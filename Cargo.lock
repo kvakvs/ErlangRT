@@ -1,0 +1,4 @@
+[root]
+name = "erlang_rt"
+version = "0.1.0"
+
