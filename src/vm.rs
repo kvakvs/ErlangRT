@@ -4,24 +4,27 @@ use std::vec::Vec;
 
 use term::Term;
 use types::Word;
-use process;
+use process::Process;
 //use term::immediate;
+use mfargs::MFArgs;
 
 //
 // VM environment, heaps, atoms, tables, processes all goes here
 //
-pub struct VM {
+pub struct VM<'a> {
   // Direct mapping string to atom index
-  atoms: BTreeMap<Box<String>, Word>,
+  atoms: BTreeMap<&'a str, Word>,
   // Reverse mapping atom index to string (sorted by index)
-  atoms_r: Vec<Box<String>>,
+  atoms_r: Vec<&'a str>,
 
+  // Pid counter increments every time a new process is spawned
   pid_counter: Word,
-  processes: BTreeMap<Term, Box<process::Process>>,
+  // Dict of pids to process boxes
+  processes: BTreeMap<Term, Box<Process<'a>>>,
 }
 
-impl VM {
-  pub fn new() -> VM {
+impl<'a> VM<'a> {
+  pub fn new() -> VM<'a> {
     VM {
       atoms: BTreeMap::new(),
       atoms_r: Vec::new(),
@@ -31,29 +34,25 @@ impl VM {
   }
 
   // Allocate new atom in the atom table or find existing. Pack atom index as atom immediate2
-  pub fn find_or_create_atom(&mut self, val: &String) -> Term {
+  pub fn find_or_create_atom(&mut self, val: &'a str) -> Term {
     if self.atoms.contains_key(val) {
       return Term::make_atom(self.atoms[val]);
     }
 
     let index = self.atoms_r.len();
-
-    // Ultra ugly: TODO
-    let boxval0 = Box::into_raw(Box::new(val.to_string()));
-    let boxval1 = unsafe { Box::from_raw(boxval0) };
-    let boxval2 = unsafe { Box::from_raw(boxval0) };
-
-    self.atoms.insert(boxval1, index);
-    self.atoms_r.push(boxval2 );
+    self.atoms.entry(val).or_insert(index);
+    self.atoms_r.push(val);
 
     Term::make_atom(index)
   }
 
-  pub fn create_process(&mut self, parent: Term) {
+  // Spawn a new process, create a new pid, register the process and jump to the MFA
+  pub fn create_process(&mut self, parent: Term, mfa: &MFArgs) -> Term {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = Term::make_pid(pid_c);
-    process::Process::new(pid, parent);
-    ()
+    let newp = Process::new(self, pid, parent, mfa);
+    self.processes.insert(pid, Box::new(newp));
+    pid
   }
 }
