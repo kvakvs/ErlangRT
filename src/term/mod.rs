@@ -1,16 +1,55 @@
-mod immediate;
+pub mod immediate;
 mod primary_tag;
 
 use types::Word;
+use self::immediate::{RAW_NIL, RAW_NON_VALUE, RAW_PID, RAW_ATOM};
+
+use std::cmp::Ordering;
 
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Term {
   value: Word
 }
 
 
+impl Ord for Term {
+  fn cmp(&self, other: &Term) -> Ordering {
+    self.value.cmp(&other.value)
+  }
+}
+
+
+impl PartialOrd for Term {
+  fn partial_cmp(&self, other: &Term) -> Option<Ordering> {
+    Some(self.value.cmp(&other.value))
+  }
+}
+
+
 impl Term {
+  pub fn nil() -> Term { Term { value: RAW_NIL } }
+
+  pub fn is_nil(&self) -> bool {
+    self.value == RAW_NIL
+  }
+
+  pub fn non_value() -> Term {
+    Term { value: RAW_NON_VALUE }
+  }
+
+  pub fn is_non_value(&self) -> bool {
+    self.value == RAW_NON_VALUE
+  }
+
+  pub fn is_pid(&self) -> bool {
+    return (self.value & immediate::IMM1_MASK) == RAW_PID
+  }
+
+  pub fn is_atom(&self) -> bool {
+    return (self.value & immediate::IMM2_MASK) == RAW_ATOM
+  }
+
   // Get primary tag bits from a raw term
   pub fn primary_tag(&self) -> primary_tag::Tag {
     primary_tag::from_word(self.value)
@@ -38,12 +77,18 @@ impl Term {
   // Construction
   //
 
-  pub fn new_raw(w: Word) -> Term {
+  // Any word becomes a term
+  pub fn make_from_raw(w: Word) -> Term {
     Term { value: w }
   }
 
   // From atom index create an atom. To create from string use vm::new_atom
-  pub fn new_atom(index: Word) -> Term {
-    Term { value: immediate::atom(index) }
+  pub fn make_atom(index: Word) -> Term {
+    Term { value: immediate::make_atom_raw(index) }
+  }
+
+  // From internal process index create a pid. To create a process use vm::create_process
+  pub fn make_pid(pindex: Word) -> Term {
+    Term { value: immediate::make_pid_raw(pindex) }
   }
 }
