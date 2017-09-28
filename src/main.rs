@@ -1,12 +1,13 @@
+mod code_srv;
 mod mfargs;
-mod term;
-mod vm;
-mod types;
 mod process;
+mod term;
+mod types;
+mod vm;
 
+use mfargs::MFArgs;
 use term::Term;
 use vm::VM;
-use mfargs::MFArgs;
 
 fn main() {
   println!("Erlang/OTP Replacement (compat OTP 20)");
@@ -23,4 +24,6 @@ fn main() {
     Vec::new()
   );
   let root_p = beam.create_process(Term::nil(), &mfa);
+  while beam.tick() {
+  }
 }

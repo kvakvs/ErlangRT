@@ -1,12 +1,12 @@
-use std::collections::BTreeMap;
 use std::boxed::Box;
+use std::collections::BTreeMap;
 use std::vec::Vec;
 
+use code_srv::{CodeServer, InstrPointer};
+use mfargs;
+use process::Process;
 use term::Term;
 use types::Word;
-use process::Process;
-//use term::immediate;
-use mfargs::MFArgs;
 
 //
 // VM environment, heaps, atoms, tables, processes all goes here
@@ -21,6 +21,8 @@ pub struct VM<'a> {
   pid_counter: Word,
   // Dict of pids to process boxes
   processes: BTreeMap<Term, Process>,
+
+  code_srv: CodeServer,
 }
 
 impl<'a> VM<'a> {
@@ -30,6 +32,7 @@ impl<'a> VM<'a> {
       atoms_r: Vec::new(),
       pid_counter: 0,
       processes: BTreeMap::new(),
+      code_srv: CodeServer::new()
     }
   }
 
@@ -47,13 +50,22 @@ impl<'a> VM<'a> {
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: Term, mfa: &MFArgs) -> Term {
+  pub fn create_process(&mut self, parent: Term, mfa: &mfargs::MFArgs) -> Term {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = Term::make_pid(pid_c);
-    let mut p = Process::new(pid, parent);
-    p.jump(self, mfa);
+    let mut p = Process::new(self, pid, parent, mfa).unwrap();
     self.processes.insert(pid, p);
     pid
+  }
+
+  // Run the VM loop (one time slice), call this repeatedly to run forever.
+  // Returns: false if VM quit, true if can continue
+  pub fn tick(&mut self) -> bool {
+    true
+  }
+
+  pub fn code_lookup(&mut self, mfa: &mfargs::IMFArity) -> Option<InstrPointer> {
+    self.code_srv.lookup(mfa)
   }
 }
