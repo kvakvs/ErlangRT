@@ -20,7 +20,7 @@ pub struct VM<'a> {
   // Pid counter increments every time a new process is spawned
   pid_counter: Word,
   // Dict of pids to process boxes
-  processes: BTreeMap<Term, Box<Process<'a>>>,
+  processes: BTreeMap<Term, Process>,
 }
 
 impl<'a> VM<'a> {
@@ -51,8 +51,8 @@ impl<'a> VM<'a> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = Term::make_pid(pid_c);
-    let newp = Process::new(self, pid, parent, mfa);
-    self.processes.insert(pid, Box::new(newp));
+    let newp = Process::new(pid, parent, mfa);
+    self.processes.insert(pid, newp);
     pid
   }
 }
