@@ -51,8 +51,9 @@ impl<'a> VM<'a> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = Term::make_pid(pid_c);
-    let newp = Process::new(pid, parent, mfa);
-    self.processes.insert(pid, newp);
+    let mut p = Process::new(pid, parent);
+    p.jump(self, mfa);
+    self.processes.insert(pid, p);
     pid
   }
 }
