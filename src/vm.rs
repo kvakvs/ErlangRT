@@ -2,9 +2,10 @@ use std::boxed::Box;
 use std::collections::BTreeMap;
 use std::vec::Vec;
 
-use code_srv::{CodeServer, InstrPointer};
+use code_srv;
 use mfargs;
 use process::Process;
+use rterror;
 use term::Term;
 use types::Word;
 
@@ -22,7 +23,7 @@ pub struct VM<'a> {
   // Dict of pids to process boxes
   processes: BTreeMap<Term, Process>,
 
-  code_srv: CodeServer,
+  code_srv: code_srv::CodeServer,
 }
 
 impl<'a> VM<'a> {
@@ -32,7 +33,7 @@ impl<'a> VM<'a> {
       atoms_r: Vec::new(),
       pid_counter: 0,
       processes: BTreeMap::new(),
-      code_srv: CodeServer::new()
+      code_srv: code_srv::CodeServer::new()
     }
   }
 
@@ -65,7 +66,23 @@ impl<'a> VM<'a> {
     true
   }
 
-  pub fn code_lookup(&mut self, mfa: &mfargs::IMFArity) -> Option<InstrPointer> {
-    self.code_srv.lookup(mfa)
+  pub fn atom_to_str(&self, atom: Term) -> String {
+    assert!(atom.is_atom());
+    self.atoms_r[atom.atom_index()].to_string()
+  }
+
+  pub fn code_lookup(&mut self,
+                     mfa: &mfargs::IMFArity) -> Result<code_srv::InstrPointer, rterror::Error> {
+    match self.code_srv.lookup(mfa) {
+      Ok(ok1) => return Ok(ok1),
+      Err(_er1) => {
+        let filename = self.atom_to_str(mfa.get_mod());
+        match self.code_srv.load(&filename) {
+          Ok(_ok2) => (),
+          Err(er2) => return Err(er2)
+        }
+      }
+    };
+    self.code_srv.lookup(mfa) // try again
   }
 }

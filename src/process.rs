@@ -1,4 +1,5 @@
 use mfargs;
+use rterror;
 use term::Term;
 use types::Word;
 use vm::VM;
@@ -15,27 +16,24 @@ pub struct Process {
 impl Process {
   // Call only from VM, process must be immediately registered in proc registry for this vm
   pub fn new(vm: &mut VM, pid: Term,
-             parent_pid: Term, mfa: &mfargs::MFArgs) -> Result<Process, String>
+             parent_pid: Term, mfa: &mfargs::MFArgs) -> Result<Process, rterror::Error>
   {
     assert!(pid.is_pid());
     assert!(parent_pid.is_pid() || parent_pid.is_nil());
     match vm.code_lookup(mfa) {
-      Some(ip) => Ok(
-        Process {
-          pid,
-          parent_pid,
-          ip
-        }),
-      None => return Err("Spawn: code lookup failed".to_string())
+      Ok(ip) => Ok(Process { pid, parent_pid, ip }),
+      Err(e) => Err(e)
     }
   }
 
-  pub fn jump(&mut self, vm: &mut VM, mfa: &mfargs::MFArgs) -> Result<(), String> {
+  pub fn jump(&mut self, vm: &mut VM, mfa: &mfargs::MFArgs) -> Result<(), rterror::Error> {
     // TODO: Find mfa in code server and set IP to it
     match vm.code_lookup(mfa) {
-      Some(ip) => self.ip = ip,
-      None => return Err("Jump: code lookup failed".to_string())
-    };
-    return Ok(())
+      Ok(ip) => {
+        self.ip = ip;
+        Ok(())
+      },
+      Err(e) => Err(e)
+    }
   }
 }

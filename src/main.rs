@@ -1,8 +1,10 @@
 mod code_srv;
 mod mfargs;
 mod process;
+mod rterror;
 mod term;
 mod types;
+mod util;
 mod vm;
 
 use mfargs::MFArgs;

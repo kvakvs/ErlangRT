@@ -26,3 +26,7 @@ pub fn from_word(w: Word) -> Tag {
 pub fn set_primary_immediate(w: Word) -> Word {
   (w & (!MASK)) | (Tag::Immediate as Word)
 }
+
+pub fn is_primary_tag(val: Word, tag: Tag) -> bool {
+  val & MASK == tag as Word
+}

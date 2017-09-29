@@ -51,9 +51,12 @@ pub const RAW_PID: Word = RAW_IMMED1
 pub const RAW_ATOM: Word = RAW_IMMED2
     | ((Immediate2::Atom as Word) << IMM1_VALUE_SHIFT);
 
+// Pre-shifted immed2 bits in immed1 position
+const RAW_IMMED2_BITS: Word = (Immediate1::Immed2 as Word) << primary_tag::SIZE;
+
 // Special Primary tag+Immed1+Immed2 bits precomposed
 const RAW_SPECIAL: Word = (primary_tag::Tag::Immediate as Word)
-    | ((Immediate1::Immed2 as Word) << primary_tag::SIZE)
+    | RAW_IMMED2_BITS
     | ((Immediate2::Special as Word) << IMM1_VALUE_SHIFT);
 
 // Precomposed bits for NIL constant
@@ -69,9 +72,18 @@ fn create_imm2(val: Word, raw_preset: Word) -> Word {
   (val << IMM2_VALUE_SHIFT) | raw_preset
 }
 
+fn is_immediate2(val: Word) -> bool { val & RAW_IMMED2_BITS == RAW_IMMED2_BITS }
+
 // Given a value (to be shifted) and RAW_* preset bits, compose them together for imm1
 fn create_imm1(val: Word, raw_preset: Word) -> Word {
   (val << IMM1_VALUE_SHIFT) | raw_preset
+}
+
+// Remove tag bits from imm2 value by shifting it right
+pub fn imm2_value(val: Word) -> Word {
+  assert!(primary_tag::is_primary_tag(val, primary_tag::Tag::Immediate));
+  assert!(is_immediate2(val));
+  val >> IMM2_VALUE_SHIFT
 }
 
 //

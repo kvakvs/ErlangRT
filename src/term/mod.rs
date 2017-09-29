@@ -47,8 +47,10 @@ impl Term {
   }
 
   pub fn is_atom(&self) -> bool {
-    return (self.value & immediate::IMM2_MASK) == RAW_ATOM
+    (self.value & immediate::IMM2_MASK) == RAW_ATOM
   }
+
+  pub fn atom_index(&self) -> Word { immediate::imm2_value(self.value) }
 
   // Get primary tag bits from a raw term
   pub fn primary_tag(&self) -> primary_tag::Tag {
