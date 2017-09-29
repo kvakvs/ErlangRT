@@ -74,8 +74,8 @@ impl<'a> VM<'a> {
   pub fn code_lookup(&mut self,
                      mfa: &mfargs::IMFArity) -> Result<code_srv::InstrPointer, rterror::Error> {
     match self.code_srv.lookup(mfa) {
-      Ok(ok1) => return Ok(ok1),
-      Err(_er1) => {
+      Some(ip) => return Ok(ip),
+      None => {
         let filename = self.atom_to_str(mfa.get_mod());
         match self.code_srv.load(&filename) {
           Ok(_ok2) => (),
@@ -83,6 +83,10 @@ impl<'a> VM<'a> {
         }
       }
     };
-    self.code_srv.lookup(mfa) // try again
+    // try again
+    match self.code_srv.lookup(mfa) {
+      Some(ip) => Ok(ip),
+      None => Err(rterror::Error::CodeLoadingFailed("Func undef".to_string()))
+    }
   }
 }

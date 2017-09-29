@@ -1,3 +1,6 @@
+extern crate bytes;
+
+mod beam;
 mod code_srv;
 mod mfargs;
 mod process;
@@ -21,7 +24,7 @@ fn main() {
   //println!("t.val={}", t.get_raw())
 
   let mfa = MFArgs::new(
-    beam.find_or_create_atom("init"),
+    beam.find_or_create_atom("lists"),
     beam.find_or_create_atom("start"),
     Vec::new()
   );

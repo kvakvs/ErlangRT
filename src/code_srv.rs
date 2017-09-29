@@ -1,10 +1,10 @@
 // Code server loads modules and stores them in memory, handles code lookups
 //
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use beam::loader;
 use mfargs;
-use util::reader;
 use rterror;
 use term::Term;
 use types::Word;
@@ -46,24 +46,32 @@ impl CodeServer {
     }
   }
 
-  // Find module:function/arity, load if not found
-  pub fn lookup(&self, mfa: &mfargs::IMFArity) -> Result<InstrPointer, rterror::Error> {
-    let e = rterror::Error::FileNotFound("hello world".to_string());
-    Err(e)
+  /// Find module:function/arity
+  pub fn lookup(&self, mfa: &mfargs::IMFArity) -> Option<InstrPointer> {
+    None
   }
 
+  /// Loading the module. Pre-stage, finding the module file from search path
   pub fn load(&mut self, filename: &str) -> Result<(), rterror::Error> {
-    let first_filename = find_first_that_exists(self.search_path, filename);
-    let mut r = reader::Reader::new(&first_filename);
-    Ok(())
+    match first_that_exists(&self.search_path, filename) {
+      Some(first_filename) => {
+        let mut loader = loader::Loader::new();
+        loader.load(&first_filename)
+      },
+      None => Err(rterror::Error::FileNotFound(filename.to_string()))
+    }
   }
 }
 
-fn find_first_that_exists(search_path: Vec<String>, filename: &str) -> Option<Path> {
+/// Iterate through the search path list and try to find a file
+fn first_that_exists(search_path: &Vec<String>,
+                     filename: &str) -> Option<PathBuf> {
   for s in search_path {
-    let full_path = format!("{}/{}.erl", s, filename);
+    let full_path = format!("{}/{}.beam", s, filename).to_string();
     let p = Path::new(&full_path);
-    if p.exists() { return Some(p) }
+    if p.exists() {
+      return Some(p.to_path_buf())
+    }
   }
   None
 }
