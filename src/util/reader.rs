@@ -18,7 +18,7 @@ impl Reader {
   }
 
   pub fn ensure_bytes(&mut self, sample: &bytes::Bytes) -> Result<(), rterror::Error> {
-    let file = &self.file;
+    let mut file = &self.file;
     //let mut take = file.take(b.len() as u64);
     //let mut buf = String::new();
     let mut actual = bytes::BytesMut::with_capacity(sample.len());
@@ -26,12 +26,12 @@ impl Reader {
 
     let b1 = actual.as_ref();
     let b2 = sample.as_ref();
-    if b1.compare(b2) != Ordering::Equal { return Ok(()) }
+    if b1 == b2 { return Ok(()) }
 //    match take.read_to_string(&mut buf) {
 //      Ok(_) => if b.compare(buf) { return Ok(()) },
 //      Err(_e) => {}
 //    }
-    let msg = format!("Expected: {}", sample);
+    let msg = format!("Expected: {:?}", sample);
     Err(rterror::Error::CodeLoadingFailed(msg))
   }
 }
