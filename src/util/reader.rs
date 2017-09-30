@@ -1,5 +1,6 @@
 extern crate bytes;
 
+use std::str;
 use std::fs::File;
 use std::io;
 use std::io::Read;
@@ -8,7 +9,7 @@ use std::path::{Path, PathBuf};
 use types::Word;
 use rterror;
 
-fn module() -> &'static str { "reader: " }
+fn module() -> &'static str { "File reader: " }
 
 pub struct Reader {
   file: File,
@@ -52,10 +53,20 @@ impl Reader {
     buf
   }
 
+  /// Read `size` characters and return as a string
   pub fn read_str(&mut self, size: Word) -> String {
+    let buf = self.read_bytes(size);
+    match str::from_utf8(&buf) {
+      Ok(v) => v.to_string(),
+      Err(e) => panic!("{}Invalid UTF-8 sequence: {}", module(), e),
+    }
+  }
+
+  /// Read only 1 byte
+  pub fn read_u8(&mut self) -> u8 {
     let mut file = &self.file;
-    let mut s = String::with_capacity(size);
-    file.take(size as u64).read_to_string(&mut s).unwrap();
-    s
+    let mut b = [0u8; 1];
+    file.read_exact(&mut b);
+    b[0]
   }
 }
