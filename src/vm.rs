@@ -85,9 +85,8 @@ impl<'a> VM<'a> {
       Some(ip) => return Ok(ip),
       None => {
         let filename = self.atom_to_str(mfa.get_mod());
-        match self.code_srv.load(&filename) {
-          Ok(_ok2) => (),
-          Err(er2) => return Err(er2)
+        if let Err(e) = self.code_srv.load(&filename) {
+          return Err(e)
         }
       }
     };

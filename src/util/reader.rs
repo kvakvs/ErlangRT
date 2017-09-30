@@ -3,7 +3,7 @@ extern crate bytes;
 use std::str;
 use std::fs::File;
 use std::io;
-use std::io::Read;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
 use types::Word;
@@ -11,15 +11,15 @@ use rterror;
 
 fn module() -> &'static str { "File reader: " }
 
-pub struct Reader {
+pub struct BinaryReader {
   file: File,
 }
 
-impl Reader {
+impl BinaryReader {
   /// Open a binary file for reading.
-  pub fn new(filename: &PathBuf) -> Reader {
+  pub fn new(filename: &PathBuf) -> BinaryReader {
     let mut file = File::open(filename).unwrap();
-    Reader { file }
+    BinaryReader { file }
   }
 
   /// From file read as many bytes as there are in `sample` and compare them.
@@ -54,12 +54,18 @@ impl Reader {
   }
 
   /// Read `size` characters and return as a string
-  pub fn read_str(&mut self, size: Word) -> String {
+  pub fn read_str_utf8(&mut self, size: Word) -> String {
     let buf = self.read_bytes(size);
     match str::from_utf8(&buf) {
       Ok(v) => v.to_string(),
       Err(e) => panic!("{}Invalid UTF-8 sequence: {}", module(), e),
     }
+  }
+
+  /// Read `size` characters and return as a string
+  pub fn read_str_latin1(&mut self, size: Word) -> String {
+    let buf = self.read_bytes(size);
+    buf.iter().map(|&c| c as char).collect()
   }
 
   /// Read only 1 byte
@@ -68,5 +74,10 @@ impl Reader {
     let mut b = [0u8; 1];
     file.read_exact(&mut b);
     b[0]
+  }
+
+  pub fn skip(&mut self, n: Word) {
+    let mut file = &self.file;
+    file.seek(SeekFrom::Current(n as i64));
   }
 }

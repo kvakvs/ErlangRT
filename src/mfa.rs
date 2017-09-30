@@ -2,7 +2,7 @@
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 use term::Term;
 
-type Arity = u16;
+pub type Arity = u32;
 
 /// MFArgs or MFArity should be able to give us mod and fun whenever, so
 /// this trait is there to allow it.
