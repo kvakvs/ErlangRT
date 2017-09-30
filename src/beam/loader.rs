@@ -1,29 +1,42 @@
 use bytes::Bytes;
 use std::path::PathBuf;
 
+use mfa::Arity;
+use module;
 use rterror;
 use types::Word;
-use mfa::Arity;
 use util::reader;
+use vm::VM;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 
-struct Import {
+struct LImport {
   mod_atom: u32,
   fun_atom: u32,
   arity: Arity,
 }
 
-struct Export {
+struct LExport {
   fun_atom: u32,
   arity: Arity,
   label: u32,
 }
 
+struct LFun {
+  fun_atom: u32,
+  arity: u32,
+  code_pos: u32,
+  index: u32,
+  nfree: u32,
+  ouniq: u32,
+}
+
 pub struct Loader {
   atom_tab: Vec<String>,
-  imports: Vec<Import>,
-  exports: Vec<Export>,
+  imports: Vec<LImport>,
+  exports: Vec<LExport>,
+  locals: Vec<LExport>,
+  funs: Vec<LFun>,
 }
 
 impl Loader {
@@ -33,12 +46,16 @@ impl Loader {
       atom_tab: Vec::new(),
       imports: Vec::new(),
       exports: Vec::new(),
+      locals: Vec::new(),
+      funs: Vec::new(),
     }
   }
 
   /// Loading the module. Validate the header and iterate over sections,
   /// then finalize by committing the changes to the VM.
-  pub fn load(&mut self, fname: &PathBuf) -> Result<(), rterror::Error> {
+  pub fn load(&mut self, fname: &PathBuf)
+    -> Result<(module::Ptr, String), rterror::Error>
+  {
     let mut r = reader::BinaryReader::new(fname);
 
     // Parse header and check file FOR1 signature
@@ -57,12 +74,18 @@ impl Loader {
 
       println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
-        "AtU8" => self.load_atoms_utf8(&mut r),
         "Atom" => self.load_atoms_latin1(&mut r),
+        "Attr" => r.skip(chunk_sz as Word), // TODO: read attributes
+        "AtU8" => self.load_atoms_utf8(&mut r),
+        "CInf" => r.skip(chunk_sz as Word),
         "Code" => self.load_code(&mut r, chunk_sz as Word),
-        "StrT" => r.skip(chunk_sz as Word),
+        "Dbgi" => r.skip(chunk_sz as Word),
+        "ExpT" => self.exports = self.load_exports(&mut r),
+        "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
-        "ExpT" => self.load_exports(&mut r),
+        "Line" => self.load_line_info(&mut r),
+        "LocT" => self.locals = self.load_exports(&mut r),
+        "StrT" => r.skip(chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
           return Err(rterror::Error::CodeLoadingFailed(msg))
@@ -75,7 +98,8 @@ impl Loader {
       if align > 0 { r.skip(align as Word); }
     }
 
-    Ok(())
+    let newmod = module::Module::new();
+    Ok((newmod, self.atom_tab[0].clone()))
   }
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
@@ -121,7 +145,7 @@ impl Loader {
     let n_imports = r.read_u32be();
     self.imports.reserve(n_imports as usize);
     for i in 0..n_imports {
-      let imp = Import {
+      let imp = LImport {
         mod_atom: r.read_u32be(),
         fun_atom: r.read_u32be(),
         arity: r.read_u32be() as Arity,
@@ -130,18 +154,49 @@ impl Loader {
     }
   }
 
-  /// Read the exports table.
+  /// Read the exports or local functions table (same format).
   /// Format is u32/big count { funindex: u32, arity: u32, label: u32 }
-  fn load_exports(&mut self, r: &mut reader::BinaryReader) {
+  fn load_exports(&mut self, r: &mut reader::BinaryReader) -> Vec<LExport> {
     let n_exports = r.read_u32be();
-    self.exports.reserve(n_exports as usize);
+    let mut exports = Vec::new();
+    exports.reserve(n_exports as usize);
     for i in 0..n_exports {
-      let exp = Export {
+      let exp = LExport {
         fun_atom: r.read_u32be(),
         arity: r.read_u32be() as Arity,
         label: r.read_u32be(),
       };
-      self.exports.push(exp);
+      exports.push(exp);
+    }
+    exports
+  }
+
+  fn load_fun_table(&mut self, r: &mut reader::BinaryReader) {
+    let n_funs = r.read_u32be();
+    self.funs.reserve(n_funs as usize);
+    for i in 0..n_funs {
+      let fun_atom = r.read_u32be();
+      let arity = r.read_u32be();
+      let code_pos = r.read_u32be();
+      let index = r.read_u32be();
+      let nfree = r.read_u32be();
+      let ouniq = r.read_u32be();
+      self.funs.push(LFun {
+        fun_atom, arity, code_pos, index, nfree, ouniq
+      })
     }
   }
+
+  fn load_line_info(&mut self, r: &mut reader::BinaryReader) {
+    let version = r.read_u32be(); // must match emulator version 0
+    let flags = r.read_u32be();
+    let n_line_instr = r.read_u32be();
+    let n_line_refs = r.read_u32be();
+    let n_filenames = r.read_u32be();
+
+    for i in 0..n_line_refs {
+
+    }
+  }
+
 }

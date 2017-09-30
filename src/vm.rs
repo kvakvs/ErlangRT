@@ -18,11 +18,11 @@ fn module() -> &'static str { "vm: " }
 //
 // VM environment, heaps, atoms, tables, processes all goes here
 //
-pub struct VM<'a> {
+pub struct VM {
   // Direct mapping string to atom index
-  atoms: BTreeMap<&'a str, Word>,
+  atoms: BTreeMap<String, Word>,
   // Reverse mapping atom index to string (sorted by index)
-  atoms_r: Vec<&'a str>,
+  atoms_r: Vec<String>,
 
   // Pid counter increments every time a new process is spawned
   pid_counter: Word,
@@ -32,8 +32,8 @@ pub struct VM<'a> {
   code_srv: code_srv::CodeServer,
 }
 
-impl<'a> VM<'a> {
-  pub fn new() -> VM<'a> {
+impl VM {
+  pub fn new() -> VM {
     VM {
       atoms: BTreeMap::new(),
       atoms_r: Vec::new(),
@@ -44,14 +44,18 @@ impl<'a> VM<'a> {
   }
 
   // Allocate new atom in the atom table or find existing. Pack atom index as atom immediate2
-  pub fn atom(&mut self, val: &'a str) -> Term {
+  pub fn atom(&mut self, val: &str) -> Term {
     if self.atoms.contains_key(val) {
       return Term::make_atom(self.atoms[val]);
     }
 
     let index = self.atoms_r.len();
-    self.atoms.entry(val).or_insert(index);
-    self.atoms_r.push(val);
+
+    let val1 = String::from(val);
+    self.atoms.entry(val1).or_insert(index);
+
+    let val2 = String::from(val);
+    self.atoms_r.push(val2);
 
     Term::make_atom(index)
   }

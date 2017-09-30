@@ -2,6 +2,8 @@
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 use term::Term;
 
+use std::cmp::Ordering;
+
 pub type Arity = u32;
 
 /// MFArgs or MFArity should be able to give us mod and fun whenever, so
@@ -13,9 +15,29 @@ pub trait IMFArity {
 }
 
 /// Reference to an internal function in some module.
+#[derive(Eq)]
 pub struct FunArity {
   f: Term,
   arity: Arity,
+}
+
+impl Ord for FunArity {
+  fn cmp(&self, other: &FunArity) -> Ordering {
+    let fa = (self.f, self.arity);
+    fa.cmp(&(other.f, other.arity))
+  }
+}
+
+impl PartialOrd for FunArity {
+  fn partial_cmp(&self, other: &FunArity) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
+}
+
+impl PartialEq for FunArity {
+  fn eq(&self, other: &FunArity) -> bool {
+    self.f == other.f && self.arity == other.arity
+  }
 }
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
