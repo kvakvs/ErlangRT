@@ -1,14 +1,24 @@
+//! Module contains reference structs to external and internal functions.
+//! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 use term::Term;
 
 type Arity = u16;
 
-// MFArgs or MFArity should be able to give us mod and fun whenever
+/// MFArgs or MFArity should be able to give us mod and fun whenever, so
+/// this trait is there to allow it.
 pub trait IMFArity {
   fn get_mod(&self) -> Term;
   fn get_fun(&self) -> Term;
   fn get_arity(&self) -> Arity;
 }
 
+/// Reference to an internal function in some module.
+pub struct FunArity {
+  f: Term,
+  arity: Arity,
+}
+
+/// Reference to an M:F(Args) function, ready to be called with arguments.
 pub struct MFArgs {
   m: Term,
   f: Term,

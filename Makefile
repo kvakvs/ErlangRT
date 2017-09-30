@@ -20,3 +20,11 @@ asm:
 
 asm-rel:
 	cargo rustc --release -- --emit asm
+
+doc:
+	cargo rustdoc -- \
+	    --no-defaults \
+	    --passes strip-hidden \
+	    --passes collapse-docs \
+	    --passes unindent-comments \
+	    --passes strip-priv-imports

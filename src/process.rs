@@ -1,4 +1,8 @@
-use mfargs;
+//!
+//! Implements Erlang process, an independent computing unit of Erlang with
+//! heap, stack, registers, and message queue.
+//!
+use mfa;
 use rterror;
 use term::Term;
 use types::Word;
@@ -16,7 +20,7 @@ pub struct Process {
 impl Process {
   // Call only from VM, process must be immediately registered in proc registry for this vm
   pub fn new(vm: &mut VM, pid: Term,
-             parent_pid: Term, mfa: &mfargs::MFArgs) -> Result<Process, rterror::Error>
+             parent_pid: Term, mfa: &mfa::MFArgs) -> Result<Process, rterror::Error>
   {
     assert!(pid.is_pid());
     assert!(parent_pid.is_pid() || parent_pid.is_nil());
@@ -26,7 +30,7 @@ impl Process {
     }
   }
 
-  pub fn jump(&mut self, vm: &mut VM, mfa: &mfargs::MFArgs) -> Result<(), rterror::Error> {
+  pub fn jump(&mut self, vm: &mut VM, mfa: &mfa::MFArgs) -> Result<(), rterror::Error> {
     // TODO: Find mfa in code server and set IP to it
     match vm.code_lookup(mfa) {
       Ok(ip) => {

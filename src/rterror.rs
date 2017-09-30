@@ -1,3 +1,6 @@
+//!
+//! Generic errors used everywhere in the VM runtime.
+//!
 use std::fmt;
 
 #[derive(Debug)]

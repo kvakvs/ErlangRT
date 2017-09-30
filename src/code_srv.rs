@@ -1,40 +1,39 @@
-// Code server loads modules and stores them in memory, handles code lookups
-//
+//!
+//! Code server loads modules and stores them in memory, handles code lookups
+//! as well as dynamic reloading and partial unloading.
+//!
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use beam::loader;
-use mfargs;
+use beam::loader; // this is TODO: changeable BEAM loader
+use mfa;
 use rterror;
 use term::Term;
 use types::Word;
+use module;
+use function;
 
 use std::sync::Arc;
 
-type ModulePtr = Arc<Box<Module>>;
 type InstrIndex = Word;
 
-
-// Defines a code position in module
+/// Defines a code position in module by referring to a function and an offset.
+/// Function pointer is refcounted, and function points to a module which is
+/// also refcounted.
 pub struct InstrPointer {
-  mod_id: ModulePtr,
+  fun: function::Ptr,
   instr_index: InstrIndex,
 }
 
 impl InstrPointer {
-  pub fn new(mod_id: ModulePtr, instr_index: InstrIndex) -> InstrPointer {
-    InstrPointer { mod_id, instr_index }
+  pub fn new(fun: function::Ptr, instr_index: InstrIndex) -> InstrPointer {
+    InstrPointer { fun, instr_index }
   }
-}
-
-pub struct Module {
-  name: Term,
-  code: Vec<Word>,
 }
 
 pub struct CodeServer {
   // Mapping {atom(): module()}
-  mods: BTreeMap<Term, Module>,
+  mods: BTreeMap<Term, module::Ptr>,
   search_path: Vec<String>,
 }
 
@@ -47,7 +46,7 @@ impl CodeServer {
   }
 
   /// Find module:function/arity
-  pub fn lookup(&self, mfa: &mfargs::IMFArity) -> Option<InstrPointer> {
+  pub fn lookup(&self, mfa: &mfa::IMFArity) -> Option<InstrPointer> {
     None
   }
 
@@ -55,6 +54,7 @@ impl CodeServer {
   pub fn load(&mut self, filename: &str) -> Result<(), rterror::Error> {
     match first_that_exists(&self.search_path, filename) {
       Some(first_filename) => {
+        // Delegate the loading task to BEAM or another loader
         let mut loader = loader::Loader::new();
         loader.load(&first_filename)
       },

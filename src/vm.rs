@@ -1,13 +1,19 @@
+//!
+//! Implements virtual machine, as a collection of processes and their
+//! registrations, schedulers, ETS tables and atom table etc.
+//!
 use std::boxed::Box;
 use std::collections::BTreeMap;
 use std::vec::Vec;
 
 use code_srv;
-use mfargs;
+use mfa;
 use process::Process;
 use rterror;
 use term::Term;
 use types::Word;
+
+fn module() -> &'static str { "vm: " }
 
 //
 // VM environment, heaps, atoms, tables, processes all goes here
@@ -38,7 +44,7 @@ impl<'a> VM<'a> {
   }
 
   // Allocate new atom in the atom table or find existing. Pack atom index as atom immediate2
-  pub fn find_or_create_atom(&mut self, val: &'a str) -> Term {
+  pub fn atom(&mut self, val: &'a str) -> Term {
     if self.atoms.contains_key(val) {
       return Term::make_atom(self.atoms[val]);
     }
@@ -51,7 +57,7 @@ impl<'a> VM<'a> {
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: Term, mfa: &mfargs::MFArgs) -> Term {
+  pub fn create_process(&mut self, parent: Term, mfa: &mfa::MFArgs) -> Term {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = Term::make_pid(pid_c);
@@ -60,8 +66,8 @@ impl<'a> VM<'a> {
     pid
   }
 
-  // Run the VM loop (one time slice), call this repeatedly to run forever.
-  // Returns: false if VM quit, true if can continue
+  /// Run the VM loop (one time slice), call this repeatedly to run forever.
+  /// Returns: false if VM quit, true if can continue
   pub fn tick(&mut self) -> bool {
     true
   }
@@ -71,8 +77,10 @@ impl<'a> VM<'a> {
     self.atoms_r[atom.atom_index()].to_string()
   }
 
+  /// Mutable lookup, will load module if lookup fails the first time
   pub fn code_lookup(&mut self,
-                     mfa: &mfargs::IMFArity) -> Result<code_srv::InstrPointer, rterror::Error> {
+                     mfa: &mfa::IMFArity) -> Result<code_srv::InstrPointer, rterror::Error> {
+    // Try lookup once, then load if not found
     match self.code_srv.lookup(mfa) {
       Some(ip) => return Ok(ip),
       None => {
@@ -83,10 +91,16 @@ impl<'a> VM<'a> {
         }
       }
     };
-    // try again
+    // Try lookup again
     match self.code_srv.lookup(mfa) {
       Some(ip) => Ok(ip),
-      None => Err(rterror::Error::CodeLoadingFailed("Func undef".to_string()))
+      None => {
+        let mod_str = self.atom_to_str(mfa.get_mod());
+        let fun_str = self.atom_to_str(mfa.get_fun());
+        let msg = format!("{}Func undef: {}:{}/{}",
+                          module(), mod_str, fun_str, mfa.get_arity());
+        Err(rterror::Error::CodeLoadingFailed(msg))
+      }
     }
   }
 }

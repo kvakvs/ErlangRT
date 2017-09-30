@@ -1,8 +1,14 @@
+//!
+//! ErlangRT is an alternative Erlang BEAM Runtime written in Rust
+//!
+
 extern crate bytes;
 
 mod beam;
 mod code_srv;
-mod mfargs;
+mod function;
+mod mfa;
+mod module;
 mod process;
 mod rterror;
 mod term;
@@ -10,12 +16,13 @@ mod types;
 mod util;
 mod vm;
 
-use mfargs::MFArgs;
+use mfa::MFArgs;
 use term::Term;
 use vm::VM;
 
+/// Entry point for the command-line interface
 fn main() {
-  println!("Erlang/OTP Replacement (compat OTP 20)");
+  println!("Erlang Runtime (compat OTP 20)");
 
   let mut beam = VM::new();
 
@@ -23,10 +30,9 @@ fn main() {
   //let t = world.new_atom(&test_a);
   //println!("t.val={}", t.get_raw())
 
-  let mfa = MFArgs::new(
-    beam.find_or_create_atom("lists"),
-    beam.find_or_create_atom("start"),
-    Vec::new()
+  let mfa = MFArgs::new(beam.atom("lists"),
+                        beam.atom("start"),
+                        Vec::new()
   );
   let root_p = beam.create_process(Term::nil(), &mfa);
   while beam.tick() {
