@@ -1,3 +1,12 @@
+//!
+//! Code loader for BEAM files uses 3 stage approach.
+//! Stage 1 reads the BEAM file and fills the loader state structure.
+//! Stage 2 commits changes to the VM (atom table for example)
+//! Stage 3 (finalize) returns Erlang module object ready for code server.
+//!
+//! Call `let l = Loader::new()`, then `l.load(filename)`, then
+//! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
+//!
 use bytes::Bytes;
 use std::path::PathBuf;
 
@@ -12,18 +21,21 @@ use term::Term;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 
+/// Raw data structure as loaded from BEAM file
 struct LImport {
   mod_atom: u32,
   fun_atom: u32,
   arity: Arity,
 }
 
+/// Raw data structure as loaded from BEAM file
 struct LExport {
   fun_atom: u32,
   arity: Arity,
   label: u32,
 }
 
+/// Raw data structure as loaded from BEAM file
 struct LFun {
   fun_atom: u32,
   arity: u32,
@@ -34,7 +46,10 @@ struct LFun {
 }
 
 pub struct Loader {
+  /// Atoms as loaded from BEAM module strings.
   atom_tab: Vec<String>,
+  /// Atoms converted to VM terms (during the stage 2)
+  vm_atoms: Vec<Term>,
   imports: Vec<LImport>,
   exports: Vec<LExport>,
   locals: Vec<LExport>,
@@ -47,6 +62,7 @@ impl Loader {
   pub fn new() -> Loader {
     Loader {
       atom_tab: Vec::new(),
+      vm_atoms: Vec::new(),
       imports: Vec::new(),
       exports: Vec::new(),
       locals: Vec::new(),
@@ -114,7 +130,12 @@ impl Loader {
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
   pub fn load_stage2(&mut self, vm: &mut VM) {
-    self.mod_name = vm.atom(&self.atom_tab[0]);
+    self.vm_atoms.reserve(self.atom_tab.len());
+    for a in &self.atom_tab {
+      self.vm_atoms.push(vm.atom(&a));
+    }
+
+    self.mod_name = self.vm_atoms[0];
   }
 
   /// At this point loading is finished, and we create Erlang module and
@@ -124,6 +145,8 @@ impl Loader {
     let newmod = module::Module::new(self.mod_name);
     Ok(newmod)
   }
+
+  //============================================================================
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
