@@ -3,6 +3,7 @@
 //!
 
 extern crate bytes;
+extern crate num;
 
 mod beam;
 mod code_srv;
@@ -34,7 +35,11 @@ fn main() {
                         beam.atom("start"),
                         Vec::new()
   );
-  let root_p = beam.create_process(Term::nil(), &mfa);
+  let root_p = match beam.create_process(Term::nil(), &mfa) {
+    Ok(p0) => p0,
+    Err(e) => panic!("{:?}", e)
+  };
+
   while beam.tick() {
   }
 }

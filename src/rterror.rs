@@ -3,10 +3,14 @@
 //!
 use std::fmt;
 
+use beam::compact_term::CTError;
+
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),
   CodeLoadingFailed(String),
+  CodeLoadingPrematureEOF,
+  CodeLoadingCompactTerm(CTError)
 }
 
 //impl fmt::Debug for Error {

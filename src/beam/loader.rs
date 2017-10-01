@@ -4,9 +4,10 @@ use std::path::PathBuf;
 use mfa::Arity;
 use module;
 use rterror;
-use types::Word;
+use types::{Word, Integral};
 use util::reader;
 use vm::VM;
+use beam::compact_term;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 
@@ -69,7 +70,13 @@ impl Loader {
     r.ensure_bytes(&hdr2)?;
 
     while true {
-      let chunk_h = r.read_str_latin1(4);
+      // EOF may strike here when we finished reading
+      let chunk_h = match r.read_str_latin1(4) {
+        Ok(s) => s,
+        // EOF is not an error
+        Err(rterror::Error::CodeLoadingPrematureEOF) => break,
+        Err(e) => return Err(e)
+      };
       let chunk_sz = r.read_u32be();
 
       println!("Chunk {}", chunk_h);
@@ -109,7 +116,7 @@ impl Loader {
     let n_atoms = r.read_u32be();
     for i in 0..n_atoms {
       let atom_bytes = r.read_u8();
-      let atom_text = r.read_str_utf8(atom_bytes as Word);
+      let atom_text = r.read_str_utf8(atom_bytes as Word).unwrap();
       self.atom_tab.push(atom_text);
     }
   }
@@ -122,7 +129,7 @@ impl Loader {
     self.atom_tab.reserve(n_atoms as usize);
     for i in 0..n_atoms {
       let atom_bytes = r.read_u8();
-      let atom_text = r.read_str_latin1(atom_bytes as Word);
+      let atom_text = r.read_str_latin1(atom_bytes as Word).unwrap();
       self.atom_tab.push(atom_text);
     }
   }
@@ -136,7 +143,7 @@ impl Loader {
     let n_funs = r.read_u32be();
     println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
       code_ver, min_opcode, max_opcode, n_labels, n_funs);
-    let code = r.read_bytes(chunk_sz - 20);
+    let code = r.read_bytes(chunk_sz - 20).unwrap();
   }
 
   /// Read the imports table.
@@ -193,9 +200,18 @@ impl Loader {
     let n_line_instr = r.read_u32be();
     let n_line_refs = r.read_u32be();
     let n_filenames = r.read_u32be();
+    let mut fname_index = 0u32;
 
     for i in 0..n_line_refs {
-
+      match compact_term::read(r).unwrap() {
+        compact_term::CompactTerm::Integer(Integral::Word(w)) => {
+          // self.linerefs.push((fname_index, w));
+        },
+        compact_term::CompactTerm::Atom(a) =>
+          fname_index = a as u32,
+        other => panic!("{}Unexpected data in line info section: {:?}",
+                        module(), other)
+      }
     }
   }
 

@@ -61,13 +61,18 @@ impl VM {
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: Term, mfa: &mfa::MFArgs) -> Term {
+  pub fn create_process(&mut self, parent: Term, mfa: &mfa::MFArgs)
+    -> Result<Term, rterror::Error> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = Term::make_pid(pid_c);
-    let mut p = Process::new(self, pid, parent, mfa).unwrap();
-    self.processes.insert(pid, p);
-    pid
+    match Process::new(self, pid, parent, mfa) {
+      Ok(p0) => {
+        self.processes.insert(pid, p0);
+        Ok(pid)
+      },
+      Err(e) => return Err(e)
+    }
   }
 
   /// Run the VM loop (one time slice), call this repeatedly to run forever.
