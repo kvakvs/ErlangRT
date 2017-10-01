@@ -125,11 +125,9 @@ pub fn read(r: &mut BinaryReader) -> Result<CompactTerm, rterror::Error> {
       match b {
         x if x == CTEExtTag::Float as u8 => {
           // floats are always stored as f64
-          let fp_bytes = r.read_bytes(8).unwrap();
-          let mut fp_bytes2 = [0u8; 8];
-          fp_bytes2.copy_from_slice(fp_bytes.as_slice());
+          let fp_bytes = r.read_u64be();
           let fp: f64 = unsafe {
-            std::mem::transmute::<[u8;8], f64>(fp_bytes2)
+            std::mem::transmute::<u64, f64>(fp_bytes)
           };
           return Ok(CompactTerm::Float(fp as types::Float))
         },
@@ -206,4 +204,13 @@ mod tests {
   fn test_int() {
     try_parse(vec![0b1u8], CompactTerm::Integer(Integral::Word(0)));
   }
+
+  #[test]
+  fn test_float() {
+    try_parse(vec![0b00010111u8, 63, 243, 192, 193, 252, 143, 50, 56],
+              CompactTerm::Float(1.23456));
+  }
+
+  // TODO: test reading longer and very long words with read_word
+  // TODO: test extended
 }

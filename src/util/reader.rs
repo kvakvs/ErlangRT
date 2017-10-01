@@ -49,14 +49,15 @@ impl BinaryReader {
 
   /// From the buffer take 4 bytes and interpret them as big endian u32.
   pub fn read_u32be(&mut self) -> u32 {
-    let r = bytes::BigEndian::read_u32(&self.buf[self.pos..self.pos+4]);
+    let r = bytes::BigEndian::read_u32(&self.buf[self.pos..self.pos + 4]);
     self.pos += 4;
     r
-//    let buf = self.read_bytes(4).unwrap();
-//    ((buf[0] as u32) << 24)
-//        | ((buf[1] as u32) << 16)
-//        | ((buf[2] as u32) << 8)
-//        | (buf[3] as u32)
+  }
+
+  pub fn read_u64be(&mut self) -> u64 {
+    let r = bytes::BigEndian::read_u64(&self.buf[self.pos..self.pos + 8]);
+    self.pos += 8;
+    r
   }
 
   /// Consume `size` bytes from `self.file` and return them as a `Vec<u8>`
