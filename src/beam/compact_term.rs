@@ -211,6 +211,29 @@ mod tests {
               CompactTerm::Float(1.23456));
   }
 
-  // TODO: test reading longer and very long words with read_word
   // TODO: test extended
+
+  /// Given the vec<u8> input, we read the word encoded in it and compare with
+  /// the word or bigint expected
+  fn try_read_word(inp: Vec<u8>, expect: Integral) {
+    let mut r = BinaryReader::from_bytes(inp);
+    let b0 = r.read_u8();
+    assert_eq!(read_word(b0, &mut r), expect)
+  }
+
+  #[test]
+  fn test_read_word_4bit() {
+    try_read_word(vec![0b10010000u8], Integral::Word(9));
+    try_read_word(vec![0b11110000u8], Integral::Word(15));
+  }
+
+  #[test]
+  fn test_read_word_11bit() {
+    try_read_word(vec![0b1000u8, 255],
+                  Integral::Word(255));
+    try_read_word(vec![0b10101000u8, 255],
+                  Integral::Word(0b101 * 256 + 255));
+    try_read_word(vec![0b11101000u8, 0b00001111],
+                  Integral::Word(0b111 * 256 + 0b00001111));
+  }
 }
