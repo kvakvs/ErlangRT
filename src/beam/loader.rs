@@ -8,6 +8,7 @@ use types::{Word, Integral};
 use util::reader;
 use vm::VM;
 use beam::compact_term;
+use term::Term;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 
@@ -38,6 +39,7 @@ pub struct Loader {
   exports: Vec<LExport>,
   locals: Vec<LExport>,
   funs: Vec<LFun>,
+  mod_name: Term,
 }
 
 impl Loader {
@@ -49,13 +51,14 @@ impl Loader {
       exports: Vec::new(),
       locals: Vec::new(),
       funs: Vec::new(),
+      mod_name: Term::non_value(),
     }
   }
 
   /// Loading the module. Validate the header and iterate over sections,
-  /// then finalize by committing the changes to the VM.
-  pub fn load(&mut self, fname: &PathBuf)
-    -> Result<(module::Ptr, String), rterror::Error>
+  /// then call `load_stage2()` to apply changes to the VM, and then finalize
+  /// it by calling `load_finalize()` which will return you a module object.
+  pub fn load(&mut self, fname: &PathBuf) -> Result<(), rterror::Error>
   {
     let mut r = reader::BinaryReader::from_file(fname);
 
@@ -104,9 +107,22 @@ impl Loader {
       let align = aligned_sz - chunk_sz;
       if align > 0 { r.skip(align as Word); }
     }
+    Ok(())
+  }
 
-    let newmod = module::Module::new();
-    Ok((newmod, self.atom_tab[0].clone()))
+  /// Call this to apply changes to the VM after module loading succeeded. The
+  /// module object is not created yet, but some effects like atoms table
+  /// we can already apply.
+  pub fn load_stage2(&mut self, vm: &mut VM) {
+    self.mod_name = vm.atom(&self.atom_tab[0]);
+  }
+
+  /// At this point loading is finished, and we create Erlang module and
+  /// return a reference counted pointer to it. VM (the caller) is responsible
+  /// for adding the module to its code registry.
+  pub fn load_finalize(&mut self) -> Result<module::Ptr, rterror::Error> {
+    let newmod = module::Module::new(self.mod_name);
+    Ok(newmod)
   }
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
@@ -212,6 +228,11 @@ impl Loader {
         other => panic!("{}Unexpected data in line info section: {:?}",
                         module(), other)
       }
+    }
+
+    for i in 0..n_filenames {
+      let name_size = r.read_u16be();
+      let fstr = r.read_str_utf8(name_size as Word);
     }
   }
 

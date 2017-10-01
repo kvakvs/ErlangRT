@@ -1,11 +1,11 @@
 extern crate bytes;
 
-use bytes::{ByteOrder, BigEndian};
+use bytes::ByteOrder;
 use std::str;
 use std::fs::File;
 use std::io;
-use std::io::{Read, Seek, SeekFrom};
-use std::path::{Path, PathBuf};
+use std::io::Read;
+use std::path::PathBuf;
 use std::cmp::min;
 
 use types::Word;
@@ -47,6 +47,13 @@ impl BinaryReader {
     Err(rterror::Error::CodeLoadingFailed(msg))
   }
 
+  /// From the buffer take 2 bytes and interpret them as big endian u16.
+  pub fn read_u16be(&mut self) -> u16 {
+    let r = bytes::BigEndian::read_u16(&self.buf[self.pos..self.pos + 2]);
+    self.pos += 2;
+    r
+  }
+
   /// From the buffer take 4 bytes and interpret them as big endian u32.
   pub fn read_u32be(&mut self) -> u32 {
     let r = bytes::BigEndian::read_u32(&self.buf[self.pos..self.pos + 4]);
@@ -54,6 +61,7 @@ impl BinaryReader {
     r
   }
 
+  /// From the buffer take 8 bytes and interpret them as big endian u64.
   pub fn read_u64be(&mut self) -> u64 {
     let r = bytes::BigEndian::read_u64(&self.buf[self.pos..self.pos + 8]);
     self.pos += 8;

@@ -21,10 +21,12 @@ pub struct Module {
 }
 
 impl Module {
-  pub fn new() -> Ptr {
+  pub fn new(name: Term) -> Ptr {
     sync::Arc::new(Module{
-      name: Term::non_value(),
+      name,
       code: BTreeMap::new(),
     })
   }
+
+  pub fn name(&self) -> Term { self.name }
 }

@@ -51,18 +51,21 @@ impl CodeServer {
     None
   }
 
-  /// Loading the module. Pre-stage, finding the module file from search path
-  pub fn load(&mut self, filename: &str)
-    -> Result<(module::Ptr, String), rterror::Error>
+  /// Find the module file from search path and return the path or error.
+  pub fn find_module_file(&mut self, filename: &str)
+    -> Result<PathBuf, rterror::Error>
   {
     match first_that_exists(&self.search_path, filename) {
-      Some(first_filename) => {
-        // Delegate the loading task to BEAM or another loader
-        let mut loader = loader::Loader::new();
-        loader.load(&first_filename)
-      },
+      Some(found_first) => Ok(found_first),
       None => Err(rterror::Error::FileNotFound(filename.to_string()))
     }
+  }
+
+  /// Notify the code server about the fact that a new module is ready to be
+  /// added to the codebase.
+  pub fn module_loaded(&mut self, mod_ptr: module::Ptr) {
+    self.mods.insert(mod_ptr.name(), mod_ptr);
+    ()
   }
 }
 

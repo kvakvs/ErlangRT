@@ -1,8 +1,6 @@
 //!
 //! Generic errors used everywhere in the VM runtime.
 //!
-use std::fmt;
-
 use beam::compact_term::CTError;
 
 #[derive(Debug)]

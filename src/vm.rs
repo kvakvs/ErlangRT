@@ -2,10 +2,10 @@
 //! Implements virtual machine, as a collection of processes and their
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
-use std::boxed::Box;
 use std::collections::BTreeMap;
 use std::vec::Vec;
 
+use beam::loader; // this is TODO: changeable BEAM loader
 use code_srv;
 use mfa;
 use process::Process;
@@ -87,15 +87,23 @@ impl VM {
   }
 
   /// Mutable lookup, will load module if lookup fails the first time
-  pub fn code_lookup(&mut self,
-                     mfa: &mfa::IMFArity) -> Result<code_srv::InstrPointer, rterror::Error> {
+  pub fn code_lookup(&mut self, mfa: &mfa::IMFArity)
+    -> Result<code_srv::InstrPointer, rterror::Error>
+  {
     // Try lookup once, then load if not found
     match self.code_srv.lookup(mfa) {
       Some(ip) => return Ok(ip),
       None => {
-        let filename = self.atom_to_str(mfa.get_mod());
-        if let Err(e) = self.code_srv.load(&filename) {
-          return Err(e)
+        let mod_name = self.atom_to_str(mfa.get_mod());
+        let found_mod = self.code_srv.find_module_file(&mod_name).unwrap();
+
+        // Delegate the loading task to BEAM or another loader
+        let mut loader = loader::Loader::new();
+        loader.load(&found_mod);
+        loader.load_stage2(self);
+        match loader.load_finalize() {
+          Ok(mod_ptr) => self.code_srv.module_loaded(mod_ptr),
+          Err(e) => return Err(e)
         }
       }
     };
