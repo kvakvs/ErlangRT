@@ -9,7 +9,7 @@ pub type Word = usize;
 pub type Float = f64;
 
 /// Represents either Word or a BigInteger
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Integral {
   Word(Word),
   BigInt(num::BigInt),

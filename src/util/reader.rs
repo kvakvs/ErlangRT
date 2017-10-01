@@ -1,10 +1,12 @@
 extern crate bytes;
 
+use bytes::{ByteOrder, BigEndian};
 use std::str;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
+use std::cmp::min;
 
 use types::Word;
 use rterror;
@@ -12,17 +14,26 @@ use rterror;
 fn module() -> &'static str { "File reader: " }
 
 pub struct BinaryReader {
-  file: File,
+  buf: Vec<u8>,
+  pos: usize,
 }
 
 impl BinaryReader {
-  /// Open a binary file for reading.
-  pub fn new(filename: &PathBuf) -> BinaryReader {
+  /// Open a binary file and read everything into buf.
+  pub fn from_file(filename: &PathBuf) -> BinaryReader {
     let mut file = File::open(filename).unwrap();
-    BinaryReader { file }
+    let mut buf: Vec<u8> = Vec::new();
+    file.read_to_end(&mut buf);
+    BinaryReader { buf, pos: 0 }
   }
 
-  /// From file read as many bytes as there are in `sample` and compare them.
+  /// Just provide a premade buf. Used for testing.
+  pub fn from_bytes(buf: Vec<u8>) -> BinaryReader {
+    BinaryReader { buf, pos: 0 }
+  }
+
+  /// From the buffer take so many bytes as there are in `sample` and compare
+  /// them.
   pub fn ensure_bytes(&mut self, sample: &bytes::Bytes)
                       -> Result<(), rterror::Error>
   {
@@ -36,25 +47,28 @@ impl BinaryReader {
     Err(rterror::Error::CodeLoadingFailed(msg))
   }
 
-  /// From file read 4 bytes and interpret them as Big Endian u32.
+  /// From the buffer take 4 bytes and interpret them as big endian u32.
   pub fn read_u32be(&mut self) -> u32 {
-    let mut buf = self.read_bytes(4).unwrap();
-    ((buf[0] as u32) << 24)
-        | ((buf[1] as u32) << 16)
-        | ((buf[2] as u32) << 8)
-        | (buf[3] as u32)
+    let r = bytes::BigEndian::read_u32(&self.buf[self.pos..self.pos+4]);
+    self.pos += 4;
+    r
+//    let buf = self.read_bytes(4).unwrap();
+//    ((buf[0] as u32) << 24)
+//        | ((buf[1] as u32) << 16)
+//        | ((buf[2] as u32) << 8)
+//        | (buf[3] as u32)
   }
 
   /// Consume `size` bytes from `self.file` and return them as a `Vec<u8>`
   pub fn read_bytes(&mut self, size: Word) -> Result<Vec<u8>, rterror::Error> {
-    let mut file = &self.file;
-    let mut buf = Vec::with_capacity(size);
-    file.take(size as u64).read_to_end(&mut buf).unwrap();
-    if buf.len() < size {
+    if self.buf.len() < self.pos + size {
       // panic!("premature EOF");
       return Err(rterror::Error::CodeLoadingPrematureEOF);
     }
-    Ok(buf)
+
+    let r = Vec::from(&self.buf[self.pos..self.pos + size]);
+    self.pos += size;
+    Ok(r)
   }
 
   /// Read `size` characters and return as a string
@@ -77,14 +91,13 @@ impl BinaryReader {
 
   /// Read only 1 byte
   pub fn read_u8(&mut self) -> u8 {
-    let mut file = &self.file;
-    let mut b = [0u8; 1];
-    file.read_exact(&mut b);
-    b[0]
+    let r = self.buf[self.pos];
+    self.pos += 1;
+    r
   }
 
+  /// Advance the position by `n` or till the end.
   pub fn skip(&mut self, n: Word) {
-    let mut file = &self.file;
-    file.seek(SeekFrom::Current(n as i64));
+    self.pos = min(self.pos + n, self.buf.len() - 1);
   }
 }

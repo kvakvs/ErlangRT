@@ -10,7 +10,7 @@ use num::bigint;
 
 /// Enum type represents a compacted simplified term format used in BEAM files,
 /// must be converted to real term during the module loading phase
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum CompactTerm {
   Literal(Word),
   Integer(Integral),
@@ -177,4 +177,33 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
                                        long_bytes.as_slice());
     Integral::BigInt(r)
   } // if larger than 11 bits
+}
+
+//
+// Testing section
+//
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn try_parse(inp: Vec<u8>, expect: CompactTerm) {
+    let mut r = BinaryReader::from_bytes(inp);
+    match read(&mut r) {
+      Ok(ref e) if e == &expect => {},
+      other => {
+        println!("Test got {:?}, expected {:?}", other, expect);
+        assert!(false)
+      }
+    }
+  }
+
+  #[test]
+  fn test_lit() {
+    try_parse(vec![0u8], CompactTerm::Literal(0));
+  }
+
+  #[test]
+  fn test_int() {
+    try_parse(vec![0b1u8], CompactTerm::Integer(Integral::Word(0)));
+  }
 }

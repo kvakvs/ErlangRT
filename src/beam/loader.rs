@@ -57,7 +57,7 @@ impl Loader {
   pub fn load(&mut self, fname: &PathBuf)
     -> Result<(module::Ptr, String), rterror::Error>
   {
-    let mut r = reader::BinaryReader::new(fname);
+    let mut r = reader::BinaryReader::from_file(fname);
 
     // Parse header and check file FOR1 signature
     let hdr1 = Bytes::from(&b"FOR1"[..]);

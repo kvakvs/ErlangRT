@@ -1,4 +1,4 @@
-.PHONY: build build-rel asm asm-rel run run-bt
+.PHONY: build build-rel asm asm-rel run run-bt test
 
 # Compile and run
 run:
@@ -28,3 +28,7 @@ doc:
 	    --passes collapse-docs \
 	    --passes unindent-comments \
 	    --passes strip-priv-imports
+
+test:
+	cargo test -- --nocapture
+
