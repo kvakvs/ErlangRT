@@ -5,8 +5,8 @@ use rterror;
 
 use std;
 use std::mem;
-use num;
 use num::bigint;
+use num::ToPrimitive;
 
 /// Enum type represents a compacted simplified term format used in BEAM files,
 /// must be converted to real term during the module loading phase
@@ -157,7 +157,7 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
   } else {
     // Bit 4 is 1 means that bits 5-6-7 contain amount of bytes+2 to store
     // the value
-    let mut n_bytes = (((b as Word) & 0b11100000) >> 5) + 2;
+    let mut n_bytes = (b >> 5) as Word + 2;
     if n_bytes == 9 {
       // bytes=9 means upper 5 bits were set to 1, special case 0b11111xxx
       // which means that following nested tagged value encodes size,
@@ -169,11 +169,13 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
         panic!("{}read word encountered a wrong byte length", module())
       }
     }
+
     // Read the remaining big endian bytes and convert to int
     let long_bytes = r.read_bytes(n_bytes).unwrap();
-    let r = num::BigInt::from_bytes_be(bigint::Sign::NoSign,
-                                       long_bytes.as_slice());
-    Integral::BigInt(r)
+    let sign = if long_bytes[0] & 0x80 == 0x80
+        { bigint::Sign::Minus } else { bigint::Sign::Plus };
+    let r = bigint::BigInt::from_bytes_be(sign, &long_bytes);
+    Integral::from_big(r)
   } // if larger than 11 bits
 }
 
@@ -193,6 +195,13 @@ mod tests {
         assert!(false)
       }
     }
+  }
+
+  #[test]
+  fn test_bigint_create() {
+    let inp = vec![255u8, 1];
+    let r = bigint::BigUint::from_bytes_be(inp.as_slice());
+    assert_eq!(r.to_usize().unwrap(), (255 * 256 + 1) as usize);
   }
 
   #[test]
@@ -229,11 +238,17 @@ mod tests {
 
   #[test]
   fn test_read_word_11bit() {
-    try_read_word(vec![0b1000u8, 255],
-                  Integral::Word(255));
+    try_read_word(vec![0b1000u8, 127],
+                  Integral::Word(127));
     try_read_word(vec![0b10101000u8, 255],
                   Integral::Word(0b101 * 256 + 255));
     try_read_word(vec![0b11101000u8, 0b00001111],
                   Integral::Word(0b111 * 256 + 0b00001111));
+  }
+
+  #[test]
+  fn test_read_word_16to64bit() {
+    try_read_word(vec![0b00011000u8, 127, 1],
+                  Integral::Word(127 * 256 + 1));
   }
 }

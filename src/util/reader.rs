@@ -68,6 +68,7 @@ impl BinaryReader {
     }
 
     let r = Vec::from(&self.buf[self.pos..self.pos + size]);
+    assert!(r.len() == size);
     self.pos += size;
     Ok(r)
   }
