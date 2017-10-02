@@ -150,7 +150,7 @@ impl Loader {
       self.vm_atoms.push(vm.atom(&a));
     }
 
-    self.parse_code_section()
+    self.postprocess_code_section()
   }
 
   /// At this point loading is finished, and we create Erlang module and
@@ -169,7 +169,7 @@ impl Loader {
   /// Formats are absolutely compatible except that Atom is latin-1
   fn load_atoms_utf8(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_atoms = r.read_u32be();
-    for i in 0..n_atoms {
+    for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_utf8(atom_bytes as Word).unwrap();
       self.raw_atoms.push(atom_text);
@@ -207,7 +207,7 @@ impl Loader {
   fn load_imports(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_imports = r.read_u32be();
     self.raw_imports.reserve(n_imports as usize);
-    for i in 0..n_imports {
+    for _i in 0..n_imports {
       let imp = LImport {
         mod_atom: r.read_u32be(),
         fun_atom: r.read_u32be(),
@@ -223,7 +223,7 @@ impl Loader {
     let n_exports = r.read_u32be();
     let mut exports = Vec::new();
     exports.reserve(n_exports as usize);
-    for i in 0..n_exports {
+    for _i in 0..n_exports {
       let exp = LExport {
         fun_atom: r.read_u32be(),
         arity: r.read_u32be() as Arity,
@@ -237,7 +237,7 @@ impl Loader {
   fn load_fun_table(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_funs = r.read_u32be();
     self.raw_funs.reserve(n_funs as usize);
-    for i in 0..n_funs {
+    for _i in 0..n_funs {
       let fun_atom = r.read_u32be();
       let arity = r.read_u32be();
       let code_pos = r.read_u32be();
@@ -258,9 +258,9 @@ impl Loader {
     let n_filenames = r.read_u32be();
     let mut fname_index = 0u32;
 
-    for i in 0..n_line_refs {
+    for _i in 0..n_line_refs {
       match compact_term::read(r).unwrap() {
-        friendly::Term::Int(Integral::Word(w)) => {
+        friendly::Term::SmallInt(w) => {
           // self.linerefs.push((fname_index, w));
         },
         friendly::Term::Atom(a) => fname_index = a as u32,
@@ -269,7 +269,7 @@ impl Loader {
       }
     }
 
-    for i in 0..n_filenames {
+    for _i in 0..n_filenames {
       let name_size = r.read_u16be();
       let fstr = r.read_str_utf8(name_size as Word);
     }
@@ -278,21 +278,39 @@ impl Loader {
   /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
   /// 'drained_code' is 'raw_code' moved out of 'self'
-  fn parse_code_section(&mut self) {
+  fn postprocess_code_section(&mut self) {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw_code, &mut raw_code);
     let mut r = bin_reader::BinaryReader::from_bytes(raw_code);
 
+    // Writing code unpacked to words here
+    let mut outp: Vec<Word> = Vec::new();
+
     while !r.eof() {
       let opcode = r.read_u8();
       let arity = gen_op::opcode_arity(opcode);
+
+      // TODO: can store 3-7 bytes of good stuff in the same word!
+      outp.push(opcode as Word);
       print!("op[{}] '{}' ", opcode, gen_op::opcode_name(opcode));
-      for i in 0..arity {
+
+      for _i in 0..arity {
         let arg = compact_term::read(&mut r).unwrap();
-        print!("{:?} ", arg);
+        print!("{:?} ", &arg);
+        outp.push(self.postprocess_to_word(arg));
       }
       println!()
+    }
+  }
+
+  /// Given some simple friendly::Term produce an encoded compact Word with it
+  /// to be stored as an opcode argument.
+  fn postprocess_to_word(&self, x: friendly::Term) -> Word {
+    match x {
+      friendly::Term::Int_(i) => low_level::Term::make_small(i),
+      friendly::Term::Nil => low_level::Term::nil().value(),
+      _ => panic!("Don't know how to represent {:?} as a Word", x)
     }
   }
 }

@@ -5,15 +5,16 @@ use num;
 use num::ToPrimitive;
 
 pub type Word = usize;
+pub type SWord = isize;
 
 /// Replace with appropriate f32 or fixed/compact for embedded platform
 pub type Float = f64;
 
 #[cfg(target_pointer_width = "32")]
-fn platf_bits() -> Word { 32 }
+pub fn platf_bits() -> Word { 32 }
 
 #[cfg(target_pointer_width = "64")]
-fn platf_bits() -> Word { 64 }
+pub fn platf_bits() -> Word { 64 }
 
 /// Represents either Word or a BigInteger
 #[derive(Debug, Eq, PartialEq)]

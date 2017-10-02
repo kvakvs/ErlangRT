@@ -31,6 +31,8 @@ impl PartialOrd for Term {
 
 
 impl Term {
+  pub fn value(&self) -> Word { self.value }
+
   pub fn nil() -> Term { Term { value: RAW_NIL } }
 
   pub fn is_nil(&self) -> bool {

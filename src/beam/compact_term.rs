@@ -123,10 +123,10 @@ pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
       return make_err(CTError::BadLabelTag)
     },
     x if x == CTETag::Integer as u8 => {
-      return Ok(friendly::Term::Int(bword))
+      return Ok(friendly::Term::from_word(bword))
     },
     x if x == CTETag::Character as u8 => {
-      return Ok(friendly::Term::Int(bword));
+      return Ok(friendly::Term::from_word(bword));
     }
     // Extended tag (lower 3 bits = 0b111)
     _ => return parse_ext_tag(b, r)
@@ -179,7 +179,7 @@ fn parse_ext_list(r: &mut BinaryReader)
   let mut el: Vec<friendly::Term> = Vec::new();
   el.reserve(n_elts);
 
-  for i in 0..n_elts {
+  for _i in 0..n_elts {
     let value = read(r)?;
     el.push(value);
   }
