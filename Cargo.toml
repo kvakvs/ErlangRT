@@ -6,3 +6,7 @@ authors = ["kv"]
 [dependencies]
 bytes = "0.4.5"
 num = "0.1.40"
+
+[profile.release]
+lto = true
+panic = 'abort'

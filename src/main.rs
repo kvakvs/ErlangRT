@@ -1,6 +1,9 @@
 //!
 //! ErlangRT is an alternative Erlang BEAM Runtime written in Rust
 //!
+// Comment this to use Rust's jemalloc library which is fat but fast
+//#![feature(alloc_system)]
+//extern crate alloc_system;
 
 extern crate bytes;
 extern crate num;
