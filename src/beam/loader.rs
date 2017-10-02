@@ -20,8 +20,9 @@ use emulator::vm::VM;
 use emulator::gen_op;
 use rterror;
 use term::Term;
+use term::friendly;
 use types::{Word, Integral};
-use util::reader;
+use util::bin_reader;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 
@@ -89,7 +90,7 @@ impl Loader {
   {
     // Prebuffered BEAM file should be released as soon as the initial phase
     // is done. TODO: [Performance] Use memmapped file?
-    let mut r = reader::BinaryReader::from_file(fname);
+    let mut r = bin_reader::BinaryReader::from_file(fname);
 
     // Parse header and check file FOR1 signature
     let hdr1 = Bytes::from(&b"FOR1"[..]);
@@ -166,7 +167,7 @@ impl Loader {
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
   /// Formats are absolutely compatible except that Atom is latin-1
-  fn load_atoms_utf8(&mut self, r: &mut reader::BinaryReader) {
+  fn load_atoms_utf8(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_atoms = r.read_u32be();
     for i in 0..n_atoms {
       let atom_bytes = r.read_u8();
@@ -178,7 +179,7 @@ impl Loader {
   /// Approaching Atom section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
   /// Same as `load_atoms_utf8` but interprets strings per-character as latin-1
-  fn load_atoms_latin1(&mut self, r: &mut reader::BinaryReader) {
+  fn load_atoms_latin1(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_atoms = r.read_u32be();
     self.raw_atoms.reserve(n_atoms as usize);
     for i in 0..n_atoms {
@@ -189,7 +190,7 @@ impl Loader {
   }
 
   /// Load the `Code` section
-  fn load_code(&mut self, r: &mut reader::BinaryReader, chunk_sz: Word) {
+  fn load_code(&mut self, r: &mut bin_reader::BinaryReader, chunk_sz: Word) {
     let code_ver = r.read_u32be();
     let min_opcode = r.read_u32be();
     let max_opcode = r.read_u32be();
@@ -203,7 +204,7 @@ impl Loader {
 
   /// Read the imports table.
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
-  fn load_imports(&mut self, r: &mut reader::BinaryReader) {
+  fn load_imports(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_imports = r.read_u32be();
     self.raw_imports.reserve(n_imports as usize);
     for i in 0..n_imports {
@@ -218,7 +219,7 @@ impl Loader {
 
   /// Read the exports or local functions table (same format).
   /// Format is u32/big count { funindex: u32, arity: u32, label: u32 }
-  fn load_exports(&mut self, r: &mut reader::BinaryReader) -> Vec<LExport> {
+  fn load_exports(&mut self, r: &mut bin_reader::BinaryReader) -> Vec<LExport> {
     let n_exports = r.read_u32be();
     let mut exports = Vec::new();
     exports.reserve(n_exports as usize);
@@ -233,7 +234,7 @@ impl Loader {
     exports
   }
 
-  fn load_fun_table(&mut self, r: &mut reader::BinaryReader) {
+  fn load_fun_table(&mut self, r: &mut bin_reader::BinaryReader) {
     let n_funs = r.read_u32be();
     self.raw_funs.reserve(n_funs as usize);
     for i in 0..n_funs {
@@ -249,7 +250,7 @@ impl Loader {
     }
   }
 
-  fn load_line_info(&mut self, r: &mut reader::BinaryReader) {
+  fn load_line_info(&mut self, r: &mut bin_reader::BinaryReader) {
     let version = r.read_u32be(); // must match emulator version 0
     let flags = r.read_u32be();
     let n_line_instr = r.read_u32be();
@@ -259,11 +260,10 @@ impl Loader {
 
     for i in 0..n_line_refs {
       match compact_term::read(r).unwrap() {
-        compact_term::CompactTerm::Integer(Integral::Word(w)) => {
+        friendly::Term::Int(Integral::Word(w)) => {
           // self.linerefs.push((fname_index, w));
         },
-        compact_term::CompactTerm::Atom(a) =>
-          fname_index = a as u32,
+        friendly::Term::Atom(a) => fname_index = a as u32,
         other => panic!("{}Unexpected data in line info section: {:?}",
                         module(), other)
       }
@@ -282,15 +282,17 @@ impl Loader {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw_code, &mut raw_code);
-    let mut r = reader::BinaryReader::from_bytes(raw_code);
+    let mut r = bin_reader::BinaryReader::from_bytes(raw_code);
 
     while !r.eof() {
       let opcode = r.read_u8();
       let arity = gen_op::opcode_arity(opcode);
-      print!("op[{}] {} ", opcode, gen_op::opcode_name(opcode));
+      print!("op[{}] '{}' ", opcode, gen_op::opcode_name(opcode));
       for i in 0..arity {
-        let arg = compact_term::read(&mut r);
-        print!("arg[{:?}] ", arg);
+        match compact_term::read(&mut r) {
+          Ok(arg) => print!("{:?} ", arg),
+          Err(e) => panic!("{:?}", e)
+        }
       }
       println!()
     }

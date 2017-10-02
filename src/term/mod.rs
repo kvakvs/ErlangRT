@@ -4,6 +4,7 @@
 //!
 pub mod immediate;
 mod primary_tag;
+pub mod friendly;
 
 use types::Word;
 use self::immediate::{RAW_NIL, RAW_NON_VALUE, RAW_PID, RAW_ATOM};

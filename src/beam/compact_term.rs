@@ -1,48 +1,59 @@
+use rterror;
+use term::friendly;
 use types::{Word, Integral};
 use types;
-use util::reader::BinaryReader;
-use rterror;
+use util::bin_reader::BinaryReader;
 
 use std;
 use std::mem;
 use num::bigint;
 use num::ToPrimitive;
 
-/// Enum type represents a compacted simplified term format used in BEAM files,
-/// must be converted to real term during the module loading phase
-#[derive(Debug, PartialEq)]
-pub enum CompactTerm {
-  Literal(Word),
-  Integer(Integral),
-  Atom(Word),
-  XReg(Word),
-  YReg(Word),
-  Label(Word),
-  Character(Word),
-  Float(types::Float),
-  List,
-  FPReg(Word),
-  AllocList,
-  ExtLiteral,
-}
+// / Enum type represents a compacted simplified term format used in BEAM files,
+// / must be converted to real term during the module loading phase
+//#[derive(Debug, PartialEq)]
+//pub enum CompactTerm {
+//  Literal(Word),
+//  Integer(Integral),
+//  Atom(Word),
+//  XReg(Word),
+//  YReg(Word),
+//  Label(Word),
+//  Character(Word),
+//  Float(types::Float),
+//  List(friendly::Term),
+//  FPReg(Word),
+//  AllocList,
+//  ExtLiteral,
+//}
 
 enum CTETag {
-  Literal = 0,
-  Integer = 1,
-  Atom = 2,
-  XReg = 3,
-  YReg = 4,
-  Label = 5,
-  Character = 6,
-  Extended = 7,
+  LiteralInt = 0b000,
+  Integer = 0b001,
+  Atom = 0b010,
+  XReg = 0b011,
+  YReg = 0b100,
+  Label = 0b101,
+  Character = 0b110,
+  Extended = 0b111,
 }
 
+#[cfg(feature="r19")]
 enum CTEExtTag {
   Float = 0b00010111,
   List = 0b00100111,
   FloatReg = 0b00110111,
   AllocList = 0b01000111,
   Literal = 0b01010111,
+}
+
+// In OTP20 the Float Ext tag is gone and Lists are taking the first value
+#[cfg(feature="r20")]
+enum CTEExtTag {
+  List = 0b00010111,
+  FloatReg = 0b00100111,
+  AllocList = 0b00110111,
+  Literal = 0b01000111,
 }
 
 /// Errors created when parsing compact term format. They are delivered to the
@@ -61,7 +72,7 @@ pub enum CTError {
 
 fn module() -> &'static str { "compact_term reader: " }
 
-fn make_err(e: CTError) -> Result<CompactTerm, rterror::Error> {
+fn make_err(e: CTError) -> Result<friendly::Term, rterror::Error> {
   Err(rterror::Error::CodeLoadingCompactTerm(e))
 }
 
@@ -70,7 +81,7 @@ fn word_to_u32(w: Word) -> u32 {
   w as u32
 }
 
-pub fn read(r: &mut BinaryReader) -> Result<CompactTerm, rterror::Error> {
+pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
   let b = r.read_u8();
   let tag = b & 0b111;
   let err_msg: &'static str = "Failed to parse beam compact term";
@@ -81,64 +92,111 @@ pub fn read(r: &mut BinaryReader) -> Result<CompactTerm, rterror::Error> {
   }
 
   match tag {
-    x if x == CTETag::Literal as u8 => {
+    x if x == CTETag::LiteralInt as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(CompactTerm::Literal(index))
+        return Ok(friendly::Term::LiteralInt(index))
       }
       return make_err(CTError::BadLiteralTag)
     },
     x if x == CTETag::Atom as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(CompactTerm::Atom(index))
+        return Ok(friendly::Term::Atom(index))
       }
       return make_err(CTError::BadAtomTag)
     },
     x if x == CTETag::XReg as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(CompactTerm::XReg(index))
+        return Ok(friendly::Term::XReg(index))
       }
       return make_err(CTError::BadXRegTag)
     },
     x if x == CTETag::YReg as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(CompactTerm::YReg(index))
+        return Ok(friendly::Term::YReg(index))
       }
       return make_err(CTError::BadYRegTag)
     },
     x if x == CTETag::Label as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(CompactTerm::Label(index))
+        return Ok(friendly::Term::Label(index))
       }
       return make_err(CTError::BadLabelTag)
     },
     x if x == CTETag::Integer as u8 => {
-      return Ok(CompactTerm::Integer(bword))
+      return Ok(friendly::Term::Int(bword))
     },
     x if x == CTETag::Character as u8 => {
-      if let Integral::Word(index) = bword {
-        return Ok(CompactTerm::Character(index))
-      }
-      return make_err(CTError::BadCharacterTag)
+      return Ok(friendly::Term::Int(bword));
     }
     // Extended tag (lower 3 bits = 0b111)
-    _ => {
-      match b {
-        x if x == CTEExtTag::Float as u8 => {
-          // floats are always stored as f64
-          let fp_bytes = r.read_u64be();
-          let fp: f64 = unsafe {
-            std::mem::transmute::<u64, f64>(fp_bytes)
-          };
-          return Ok(CompactTerm::Float(fp as types::Float))
-        },
-        _ => {
-          return make_err(CTError::BadExtendedTag)
-        }
-      }
-    }
+    _ => return parse_ext_tag(b, r)
   }
 
   return make_err(CTError::BadFormat)
+}
+
+#[cfg(feature="r19")]
+fn parse_ext_tag(b: u8, r: &mut BinaryReader)
+  -> Result<CompactTerm, rterror::Error>
+{
+  match b {
+    x if x == CTEExtTag::Float as u8 => parse_ext_float(r),
+    x if x == CTEExtTag::List as u8 => parse_ext_list(r),
+    _ => make_err(CTError::BadExtendedTag),
+  }
+}
+
+#[cfg(feature="r20")]
+fn parse_ext_tag(b: u8, r: &mut BinaryReader)
+  -> Result<friendly::Term, rterror::Error>
+{
+  match b {
+    x if x == CTEExtTag::List as u8 => parse_ext_list(r),
+    x if x == CTEExtTag::AllocList as u8 => {
+      panic!("Don't know how to decode an alloclist");
+      Ok(friendly::Term::AllocList)
+    },
+    _ => make_err(CTError::BadExtendedTag),
+  }
+}
+
+fn parse_ext_float(r: &mut BinaryReader)
+  -> Result<friendly::Term, rterror::Error>
+{
+  // floats are always stored as f64
+  let fp_bytes = r.read_u64be();
+  let fp: f64 = unsafe {
+    std::mem::transmute::<u64, f64>(fp_bytes)
+  };
+  Ok(friendly::Term::Float(fp as types::Float))
+}
+
+fn parse_ext_list(r: &mut BinaryReader)
+  -> Result<friendly::Term, rterror::Error>
+{
+  // The stream now contains a smallint size, then size/2 pairs of values
+  let n_elts= read_int(r);
+  let mut el: Vec<friendly::Term> = Vec::new();
+  el.reserve(n_elts);
+
+  for i in 0..n_elts {
+    let value = read(r)?;
+    el.push(value);
+  }
+
+  let t = friendly::Term::Tuple {elements: el};
+  return Ok(t)
+}
+
+/// Assume that the stream contains a tagged small integer (check the tag!)
+/// read it and return the unwrapped value as word.
+fn read_int(r: &mut BinaryReader) -> Word {
+  let b = r.read_u8();
+  assert_eq!(b & 0b111, CTETag::LiteralInt as u8);
+  match read_word(b, r) {
+    Integral::Word(w) => w,
+    Integral::BigInt(big) => big.to_usize().unwrap()
+  }
 }
 
 /// Given the first byte, parse an integer encoded after the 3-bit tag,
@@ -186,7 +244,7 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
 mod tests {
   use super::*;
 
-  fn try_parse(inp: Vec<u8>, expect: CompactTerm) {
+  fn try_parse(inp: Vec<u8>, expect: friendly::Term) {
     let mut r = BinaryReader::from_bytes(inp);
     match read(&mut r) {
       Ok(ref e) if e == &expect => {},
@@ -206,18 +264,18 @@ mod tests {
 
   #[test]
   fn test_lit() {
-    try_parse(vec![0u8], CompactTerm::Literal(0));
+    try_parse(vec![0u8], friendly::Term::Literal(0));
   }
 
   #[test]
   fn test_int() {
-    try_parse(vec![0b1u8], CompactTerm::Integer(Integral::Word(0)));
+    try_parse(vec![0b1u8], friendly::Term::Integer(Integral::Word(0)));
   }
 
   #[test]
   fn test_float() {
     try_parse(vec![0b00010111u8, 63, 243, 192, 193, 252, 143, 50, 56],
-              CompactTerm::Float(1.23456));
+              friendly::Term::Float(1.23456));
   }
 
   // TODO: test extended

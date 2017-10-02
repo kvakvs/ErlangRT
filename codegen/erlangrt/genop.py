@@ -100,7 +100,8 @@ class OTPTables:
         # Dict[int, {atom, id}] - maps atom id to atom record
         self.id_atom_tab = {}  # type: Dict[int, Atom]
 
-        self.load()
+        self.load_opcodes()
+        self.load_bifs()
 
     def load_opcodes(self):
         """ Read the GENOP_TAB file and produce a dict of ops
@@ -199,7 +200,3 @@ class OTPTables:
             bif_tab0,
             key=lambda b0: (b0.atom, b0.arity)
         )
-
-    def load(self):
-        self.load_opcodes()
-        self.load_bifs()

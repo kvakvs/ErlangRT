@@ -1,4 +1,4 @@
 //!
 //! Utility modules for everyday needs.
 //!
-pub mod reader;
+pub mod bin_reader;

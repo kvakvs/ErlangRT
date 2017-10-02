@@ -1,7 +1,11 @@
 [package]
 name = "erlang_rt"
 version = "0.1.0"
-authors = ["kv"]
+authors = ["Dmytro Lytovchenko"]
+
+[features]
+default = ["r20"]
+r20 = []
 
 [dependencies]
 bytes = "0.4.5"
