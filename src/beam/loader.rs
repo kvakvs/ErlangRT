@@ -10,14 +10,14 @@
 use bytes::Bytes;
 use std::path::PathBuf;
 
-use mfa::Arity;
-use module;
+use beam::compact_term;
+use emulator::mfa::Arity;
+use emulator::module;
+use emulator::vm::VM;
 use rterror;
+use term::Term;
 use types::{Word, Integral};
 use util::reader;
-use vm::VM;
-use beam::compact_term;
-use term::Term;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 

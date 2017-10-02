@@ -6,13 +6,13 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use beam::loader; // this is TODO: changeable BEAM loader
-use function;
-use mfa;
-use module;
+use emulator::function;
+use emulator::mfa;
+use emulator::module;
+use emulator::vm::VM;
 use rterror;
 use term::Term;
 use types::Word;
-use vm::VM;
 
 use std::sync::Arc;
 

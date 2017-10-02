@@ -1,5 +1,5 @@
-use mfa;
-use module;
+use emulator::mfa;
+use emulator::module;
 
 use std::sync;
 

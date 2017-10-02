@@ -9,20 +9,15 @@ extern crate bytes;
 extern crate num;
 
 mod beam;
-mod code_srv;
-mod function;
-mod mfa;
-mod module;
-mod process;
+mod emulator;
 mod rterror;
 mod term;
 mod types;
 mod util;
-mod vm;
 
-use mfa::MFArgs;
+use emulator::mfa::MFArgs;
+use emulator::vm::VM;
 use term::Term;
-use vm::VM;
 
 /// Entry point for the command-line interface
 fn main() {

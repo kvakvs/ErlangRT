@@ -2,12 +2,12 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 //!
-use mfa;
+use emulator::mfa;
 use rterror;
 use term::Term;
 use types::Word;
-use vm::VM;
-use code_srv;
+use emulator::vm::VM;
+use emulator::code_srv;
 
 pub struct Process {
   pid: Term,

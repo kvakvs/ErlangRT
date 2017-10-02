@@ -4,11 +4,13 @@
 //!
 use std::collections::BTreeMap;
 use std::vec::Vec;
+use std::path::PathBuf;
 
 use beam::loader; // this is TODO: changeable BEAM loader
-use code_srv;
-use mfa;
-use process::Process;
+use emulator::code_srv;
+use emulator::mfa;
+use emulator::module;
+use emulator::process::Process;
 use rterror;
 use term::Term;
 use types::Word;
@@ -43,7 +45,8 @@ impl VM {
     }
   }
 
-  // Allocate new atom in the atom table or find existing. Pack atom index as atom immediate2
+  // Allocate new atom in the atom table or find existing. Pack the atom index
+  // as an immediate2 Term
   pub fn atom(&mut self, val: &str) -> Term {
     if self.atoms.contains_key(val) {
       return Term::make_atom(self.atoms[val]);
@@ -97,14 +100,7 @@ impl VM {
         let mod_name = self.atom_to_str(mfa.get_mod());
         let found_mod = self.code_srv.find_module_file(&mod_name).unwrap();
 
-        // Delegate the loading task to BEAM or another loader
-        let mut loader = loader::Loader::new();
-        loader.load(&found_mod);
-        loader.load_stage2(self);
-        match loader.load_finalize() {
-          Ok(mod_ptr) => self.code_srv.module_loaded(mod_ptr),
-          Err(e) => return Err(e)
-        }
+        self.try_load_module(&found_mod)?;
       }
     };
     // Try lookup again
@@ -117,6 +113,24 @@ impl VM {
                           module(), mod_str, fun_str, mfa.get_arity());
         Err(rterror::Error::CodeLoadingFailed(msg))
       }
+    }
+  }
+
+  /// Internal function: runs 3 stages of module loader and returns an atomic
+  /// refc (Arc) module pointer or an error
+  fn try_load_module(&mut self, mod_file_path: &PathBuf)
+                     -> Result<module::Ptr, rterror::Error>
+  {
+    // Delegate the loading task to BEAM or another loader
+    let mut loader = loader::Loader::new();
+    loader.load(&mod_file_path);
+    loader.load_stage2(self);
+    match loader.load_finalize() {
+      Ok(mod_ptr) => {
+        self.code_srv.module_loaded(mod_ptr.clone());
+        Ok(mod_ptr)
+      },
+      Err(e) => Err(e)
     }
   }
 }

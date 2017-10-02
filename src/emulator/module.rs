@@ -3,8 +3,8 @@
 use std::sync;
 use std::collections::BTreeMap;
 
-use function;
-use mfa;
+use emulator::function;
+use emulator::mfa;
 use term::Term;
 
 pub type Ptr = sync::Arc<Module>;
