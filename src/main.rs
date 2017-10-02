@@ -4,7 +4,6 @@
 // Comment this to use Rust's jemalloc library which is fat but fast
 //#![feature(alloc_system)]
 //extern crate alloc_system;
-
 extern crate bytes;
 extern crate num;
 
@@ -17,7 +16,7 @@ mod util;
 
 use emulator::mfa::MFArgs;
 use emulator::vm::VM;
-use term::Term;
+use term::low_level::Term;
 
 /// Entry point for the command-line interface
 fn main() {

@@ -1,6 +1,6 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
-use term::Term;
+use term::low_level::Term;
 
 use std::cmp::Ordering;
 

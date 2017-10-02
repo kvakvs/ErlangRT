@@ -19,8 +19,8 @@ use emulator::module;
 use emulator::vm::VM;
 use emulator::gen_op;
 use rterror;
-use term::Term;
 use term::friendly;
+use term::low_level;
 use types::{Word, Integral};
 use util::bin_reader;
 
@@ -63,8 +63,8 @@ pub struct Loader {
 
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
-  vm_atoms: Vec<Term>,
-  vm_funs: BTreeMap<Term, function::Ptr>,
+  vm_atoms: Vec<low_level::Term>,
+  vm_funs: BTreeMap<low_level::Term, function::Ptr>,
 }
 
 impl Loader {
@@ -289,10 +289,8 @@ impl Loader {
       let arity = gen_op::opcode_arity(opcode);
       print!("op[{}] '{}' ", opcode, gen_op::opcode_name(opcode));
       for i in 0..arity {
-        match compact_term::read(&mut r) {
-          Ok(arg) => print!("{:?} ", arg),
-          Err(e) => panic!("{:?}", e)
-        }
+        let arg = compact_term::read(&mut r).unwrap();
+        print!("{:?} ", arg);
       }
       println!()
     }

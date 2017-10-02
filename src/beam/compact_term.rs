@@ -94,7 +94,7 @@ pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
   match tag {
     x if x == CTETag::LiteralInt as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::LiteralInt(index))
+        return Ok(friendly::Term::Int_(index))
       }
       return make_err(CTError::BadLiteralTag)
     },
@@ -106,19 +106,19 @@ pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
     },
     x if x == CTETag::XReg as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::XReg(index))
+        return Ok(friendly::Term::X_(index))
       }
       return make_err(CTError::BadXRegTag)
     },
     x if x == CTETag::YReg as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::YReg(index))
+        return Ok(friendly::Term::Y_(index))
       }
       return make_err(CTError::BadYRegTag)
     },
     x if x == CTETag::Label as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::Label(index))
+        return Ok(friendly::Term::Label_(index))
       }
       return make_err(CTError::BadLabelTag)
     },
@@ -154,7 +154,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader)
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
-      Ok(friendly::Term::AllocList)
+      Ok(friendly::Term::AllocList_)
     },
     _ => make_err(CTError::BadExtendedTag),
   }
@@ -184,7 +184,7 @@ fn parse_ext_list(r: &mut BinaryReader)
     el.push(value);
   }
 
-  let t = friendly::Term::Tuple {elements: el};
+  let t = friendly::Term::Tuple(el);
   return Ok(t)
 }
 

@@ -9,18 +9,18 @@ type Word = types::Word;
 pub enum Term {
   Atom(Word),
   Int(types::Integral),
-  Cons(Box<[Term]>),
-  Nil,
-  // an empty [] list
-  Tuple { elements: Vec<Term> },
+  Cons(Box<[Term]>), // a regular cons cell
+  Nil, // NIL [] zero sized list
+  Tuple(Vec<Term>),
+  Tuple0, // zero sized tuple
   Float(types::Float),
   // Internal values not visible in the user data
-  XReg(Word),
-  YReg(Word),
-  FPReg(Word),
-  Label(Word),
+  X_(Word),
+  Y_(Word),
+  FP_(Word),
+  Label_(Word),
   // BEAM loader specials
-  LiteralInt(Word), // a word value literally specified
-  LiteralIndex(Word), // an index in literal heap
-  AllocList,
+  Int_(Word), // a word value literally specified
+  Lit_(Word), // an index in literal heap
+  AllocList_,
 }
