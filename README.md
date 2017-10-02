@@ -8,10 +8,10 @@ Good news: I know what to do. Bad news: I have no clue how to Rust, but will lea
 ## Compiling
 
 * Install latest **Rust** and **Cargo** via rustup http://doc.crates.io/
-* Run `make` and with the magic or Bash autocomplete see which targets it 
+* Run `make` and with the magic of Bash autocomplete see which targets it 
   supports. You might like `make run`, `make doc`, `make test` and `make compile`.
   
 ## Editing and Code Navigation
 
 I am using and strongly recommend IntelliJ IDEA CE (free version) with
-IntelliJ-Rust plugin. 
+IntelliJ-Rust plugin (available in repositories tab inside IntelliJ). 
