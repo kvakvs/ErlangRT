@@ -32,6 +32,9 @@ impl BinaryReader {
     BinaryReader { buf, pos: 0 }
   }
 
+  /// Are we at the end of the buffer yet?
+  pub fn eof(&self) -> bool { self.pos >= self.buf.len() }
+
   /// From the buffer take so many bytes as there are in `sample` and compare
   /// them.
   pub fn ensure_bytes(&mut self, sample: &bytes::Bytes)

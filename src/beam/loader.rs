@@ -46,28 +46,35 @@ struct LFun {
 }
 
 pub struct Loader {
-  /// Atoms as loaded from BEAM module strings.
-  atom_tab: Vec<String>,
-  /// Atoms converted to VM terms (during the stage 2)
+  //--- Stage 1 raw structures ---
+  /// Raw atoms loaded from BEAM module as strings
+  raw_atoms: Vec<String>,
+  raw_imports: Vec<LImport>,
+  raw_exports: Vec<LExport>,
+  raw_locals: Vec<LExport>,
+  raw_funs: Vec<LFun>,
+  /// Temporary storage for loaded code, will be parsed in stage 2
+  raw_code: Vec<u8>,
+
+  //--- Stage 2 structures filled later ---
+  /// Atoms converted to VM terms
   vm_atoms: Vec<Term>,
-  imports: Vec<LImport>,
-  exports: Vec<LExport>,
-  locals: Vec<LExport>,
-  funs: Vec<LFun>,
-  mod_name: Term,
+  vm_funs: BTreeMap<Term, function::Ptr>,
 }
 
 impl Loader {
   /// Construct a new loader state.
   pub fn new() -> Loader {
     Loader {
-      atom_tab: Vec::new(),
+      raw_atoms: Vec::new(),
+      raw_imports: Vec::new(),
+      raw_exports: Vec::new(),
+      raw_locals: Vec::new(),
+      raw_funs: Vec::new(),
+      raw_code: Vec::new(),
+
       vm_atoms: Vec::new(),
-      imports: Vec::new(),
-      exports: Vec::new(),
-      locals: Vec::new(),
-      funs: Vec::new(),
-      mod_name: Term::non_value(),
+      vm_funs: BTreeMap::new(),
     }
   }
 
@@ -76,6 +83,8 @@ impl Loader {
   /// it by calling `load_finalize()` which will return you a module object.
   pub fn load(&mut self, fname: &PathBuf) -> Result<(), rterror::Error>
   {
+    // Prebuffered BEAM file should be released as soon as the initial phase
+    // is done. TODO: [Performance] Use memmapped file?
     let mut r = reader::BinaryReader::from_file(fname);
 
     // Parse header and check file FOR1 signature
@@ -106,11 +115,11 @@ impl Loader {
         "CInf" => r.skip(chunk_sz as Word),
         "Code" => self.load_code(&mut r, chunk_sz as Word),
         "Dbgi" => r.skip(chunk_sz as Word),
-        "ExpT" => self.exports = self.load_exports(&mut r),
+        "ExpT" => self.raw_exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
-        "LocT" => self.locals = self.load_exports(&mut r),
+        "LocT" => self.raw_locals = self.load_exports(&mut r),
         "StrT" => r.skip(chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
@@ -123,6 +132,7 @@ impl Loader {
       let align = aligned_sz - chunk_sz;
       if align > 0 { r.skip(align as Word); }
     }
+
     Ok(())
   }
 
@@ -130,12 +140,14 @@ impl Loader {
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
   pub fn load_stage2(&mut self, vm: &mut VM) {
-    self.vm_atoms.reserve(self.atom_tab.len());
-    for a in &self.atom_tab {
+    self.vm_atoms.reserve(self.raw_atoms.len());
+    for a in &self.raw_atoms {
       self.vm_atoms.push(vm.atom(&a));
     }
 
     self.mod_name = self.vm_atoms[0];
+
+    self.parse_code_section()
   }
 
   /// At this point loading is finished, and we create Erlang module and
@@ -156,7 +168,7 @@ impl Loader {
     for i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_utf8(atom_bytes as Word).unwrap();
-      self.atom_tab.push(atom_text);
+      self.raw_atoms.push(atom_text);
     }
   }
 
@@ -165,11 +177,11 @@ impl Loader {
   /// Same as `load_atoms_utf8` but interprets strings per-character as latin-1
   fn load_atoms_latin1(&mut self, r: &mut reader::BinaryReader) {
     let n_atoms = r.read_u32be();
-    self.atom_tab.reserve(n_atoms as usize);
+    self.raw_atoms.reserve(n_atoms as usize);
     for i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_latin1(atom_bytes as Word).unwrap();
-      self.atom_tab.push(atom_text);
+      self.raw_atoms.push(atom_text);
     }
   }
 
@@ -182,21 +194,22 @@ impl Loader {
     let n_funs = r.read_u32be();
     println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
       code_ver, min_opcode, max_opcode, n_labels, n_funs);
-    let code = r.read_bytes(chunk_sz - 20).unwrap();
+
+    self.raw_code = r.read_bytes(chunk_sz - 20).unwrap();
   }
 
   /// Read the imports table.
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
   fn load_imports(&mut self, r: &mut reader::BinaryReader) {
     let n_imports = r.read_u32be();
-    self.imports.reserve(n_imports as usize);
+    self.raw_imports.reserve(n_imports as usize);
     for i in 0..n_imports {
       let imp = LImport {
         mod_atom: r.read_u32be(),
         fun_atom: r.read_u32be(),
         arity: r.read_u32be() as Arity,
       };
-      self.imports.push(imp);
+      self.raw_imports.push(imp);
     }
   }
 
@@ -219,7 +232,7 @@ impl Loader {
 
   fn load_fun_table(&mut self, r: &mut reader::BinaryReader) {
     let n_funs = r.read_u32be();
-    self.funs.reserve(n_funs as usize);
+    self.raw_funs.reserve(n_funs as usize);
     for i in 0..n_funs {
       let fun_atom = r.read_u32be();
       let arity = r.read_u32be();
@@ -227,7 +240,7 @@ impl Loader {
       let index = r.read_u32be();
       let nfree = r.read_u32be();
       let ouniq = r.read_u32be();
-      self.funs.push(LFun {
+      self.raw_funs.push(LFun {
         fun_atom, arity, code_pos, index, nfree, ouniq
       })
     }
@@ -259,4 +272,12 @@ impl Loader {
     }
   }
 
+  /// Assume that loader raw structures are completed, and atoms are already
+  /// transferred to the VM, we can now parse opcodes and their args.
+  fn parse_code_section(&mut self) {
+    let mut r = reader::BinaryReader::from_bytes(self.code);
+    while !r.eof() {
+      let opcode = r.read_u8();
+    }
+  }
 }
