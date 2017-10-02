@@ -9,11 +9,15 @@
 //!
 use bytes::Bytes;
 use std::path::PathBuf;
+use std::collections::BTreeMap;
+use std::mem;
 
 use beam::compact_term;
+use emulator::function;
 use emulator::mfa::Arity;
 use emulator::module;
 use emulator::vm::VM;
+use emulator::gen_op;
 use rterror;
 use term::Term;
 use types::{Word, Integral};
@@ -145,8 +149,6 @@ impl Loader {
       self.vm_atoms.push(vm.atom(&a));
     }
 
-    self.mod_name = self.vm_atoms[0];
-
     self.parse_code_section()
   }
 
@@ -154,7 +156,8 @@ impl Loader {
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
   pub fn load_finalize(&mut self) -> Result<module::Ptr, rterror::Error> {
-    let newmod = module::Module::new(self.mod_name);
+    let mod_name = self.vm_atoms[0];
+    let newmod = module::Module::new(mod_name);
     Ok(newmod)
   }
 
@@ -274,10 +277,22 @@ impl Loader {
 
   /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
+  /// 'drained_code' is 'raw_code' moved out of 'self'
   fn parse_code_section(&mut self) {
-    let mut r = reader::BinaryReader::from_bytes(self.code);
+    // Dirty swap to take raw_code out of self and give it to the binary reader
+    let mut raw_code: Vec<u8> = Vec::new();
+    mem::swap(&mut self.raw_code, &mut raw_code);
+    let mut r = reader::BinaryReader::from_bytes(raw_code);
+
     while !r.eof() {
       let opcode = r.read_u8();
+      let arity = gen_op::opcode_arity(opcode);
+      print!("op[{}] {} ", opcode, gen_op::opcode_name(opcode));
+      for i in 0..arity {
+        let arg = compact_term::read(&mut r);
+        print!("arg[{:?}] ", arg);
+      }
+      println!()
     }
   }
 }
