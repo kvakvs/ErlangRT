@@ -45,7 +45,6 @@ class OTP20(OTPConfig):
                          genop_tab="otp20/genop.tab")
 
     def parse_bif_line(self, line):
-        print(line)
         line = line.split()
         btype = line[0]
         (mod, funarity) = line[1].split(':', 1)
@@ -63,6 +62,10 @@ class Genop:
         self.name = name
         self.arity = arity
         self.opcode = opcode
+
+    def cname(self):
+        s_parts = self.name.split("_")
+        return "".join([s.capitalize() for s in s_parts])
 
 
 class Bif:

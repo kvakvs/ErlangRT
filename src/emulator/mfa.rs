@@ -1,5 +1,6 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
+//use term::friendly;
 use term::low_level::Term;
 
 use std::cmp::Ordering;
@@ -19,6 +20,15 @@ pub trait IMFArity {
 pub struct FunArity {
   f: Term,
   arity: Arity,
+}
+
+impl FunArity {
+  pub fn new() -> FunArity {
+    FunArity {
+      f: Term::non_value(),
+      arity: 0,
+    }
+  }
 }
 
 impl Ord for FunArity {

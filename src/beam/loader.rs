@@ -13,6 +13,7 @@ use std::collections::BTreeMap;
 use std::mem;
 
 use beam::compact_term;
+use beam::instruction::Instr;
 use emulator::function;
 use emulator::mfa::Arity;
 use emulator::module;
@@ -22,7 +23,7 @@ use rterror;
 use term::friendly;
 use term::low_level;
 use defs::{Word, Integral};
-use util::bin_reader;
+use util::bin_reader::BinaryReader;
 
 pub fn module() -> &'static str { "BEAM loader: " }
 
@@ -50,6 +51,11 @@ struct LFun {
   ouniq: u32,
 }
 
+struct LLabel {
+  fun: function::Weak,
+  offset: Word,
+}
+
 pub struct Loader {
   //--- Stage 1 raw structures ---
   /// Raw atoms loaded from BEAM module as strings
@@ -60,6 +66,9 @@ pub struct Loader {
   raw_funs: Vec<LFun>,
   /// Temporary storage for loaded code, will be parsed in stage 2
   raw_code: Vec<u8>,
+
+  // Labels are stored here while loading, for later resolve
+  labels: BTreeMap<Word, LLabel>,
 
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
@@ -78,6 +87,8 @@ impl Loader {
       raw_funs: Vec::new(),
       raw_code: Vec::new(),
 
+      labels: BTreeMap::new(),
+
       vm_atoms: Vec::new(),
       vm_funs: BTreeMap::new(),
     }
@@ -90,7 +101,7 @@ impl Loader {
   {
     // Prebuffered BEAM file should be released as soon as the initial phase
     // is done. TODO: [Performance] Use memmapped file?
-    let mut r = bin_reader::BinaryReader::from_file(fname);
+    let mut r = BinaryReader::from_file(fname);
 
     // Parse header and check file FOR1 signature
     let hdr1 = Bytes::from(&b"FOR1"[..]);
@@ -167,7 +178,7 @@ impl Loader {
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
   /// Formats are absolutely compatible except that Atom is latin-1
-  fn load_atoms_utf8(&mut self, r: &mut bin_reader::BinaryReader) {
+  fn load_atoms_utf8(&mut self, r: &mut BinaryReader) {
     let n_atoms = r.read_u32be();
     for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
@@ -179,7 +190,7 @@ impl Loader {
   /// Approaching Atom section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
   /// Same as `load_atoms_utf8` but interprets strings per-character as latin-1
-  fn load_atoms_latin1(&mut self, r: &mut bin_reader::BinaryReader) {
+  fn load_atoms_latin1(&mut self, r: &mut BinaryReader) {
     let n_atoms = r.read_u32be();
     self.raw_atoms.reserve(n_atoms as usize);
     for i in 0..n_atoms {
@@ -190,7 +201,7 @@ impl Loader {
   }
 
   /// Load the `Code` section
-  fn load_code(&mut self, r: &mut bin_reader::BinaryReader, chunk_sz: Word) {
+  fn load_code(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
     let code_ver = r.read_u32be();
     let min_opcode = r.read_u32be();
     let max_opcode = r.read_u32be();
@@ -204,7 +215,7 @@ impl Loader {
 
   /// Read the imports table.
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
-  fn load_imports(&mut self, r: &mut bin_reader::BinaryReader) {
+  fn load_imports(&mut self, r: &mut BinaryReader) {
     let n_imports = r.read_u32be();
     self.raw_imports.reserve(n_imports as usize);
     for _i in 0..n_imports {
@@ -219,7 +230,7 @@ impl Loader {
 
   /// Read the exports or local functions table (same format).
   /// Format is u32/big count { funindex: u32, arity: u32, label: u32 }
-  fn load_exports(&mut self, r: &mut bin_reader::BinaryReader) -> Vec<LExport> {
+  fn load_exports(&mut self, r: &mut BinaryReader) -> Vec<LExport> {
     let n_exports = r.read_u32be();
     let mut exports = Vec::new();
     exports.reserve(n_exports as usize);
@@ -234,7 +245,7 @@ impl Loader {
     exports
   }
 
-  fn load_fun_table(&mut self, r: &mut bin_reader::BinaryReader) {
+  fn load_fun_table(&mut self, r: &mut BinaryReader) {
     let n_funs = r.read_u32be();
     self.raw_funs.reserve(n_funs as usize);
     for _i in 0..n_funs {
@@ -250,7 +261,7 @@ impl Loader {
     }
   }
 
-  fn load_line_info(&mut self, r: &mut bin_reader::BinaryReader) {
+  fn load_line_info(&mut self, r: &mut BinaryReader) {
     let version = r.read_u32be(); // must match emulator version 0
     let flags = r.read_u32be();
     let n_line_instr = r.read_u32be();
@@ -282,38 +293,83 @@ impl Loader {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw_code, &mut raw_code);
-    let mut r = bin_reader::BinaryReader::from_bytes(raw_code);
+    let mut r = BinaryReader::from_bytes(raw_code);
 
-    // Writing code unpacked to words here
-    let mut outp: Vec<Word> = Vec::new();
+//    // TO DO: With raw Word opcodes and args, can avoid parsing the code twice
+//    while !r.eof() {
+//      let opcode = r.read_u8();
+//      self.preprocess_instr(opcode);
+//    }
 
+    // Writing code unpacked to words here. Break at every new function_info.
+    let mut fun = function::Function::new();
+    r.reset();
     while !r.eof() {
       let opcode = r.read_u8();
-      let arity = gen_op::opcode_arity(opcode);
-
-      // TODO: can store 3-7 bytes of good stuff in the same word!
-      outp.push(opcode as Word);
-      print!("op[{}] '{}' ", opcode, gen_op::opcode_name(opcode));
-
-      for _i in 0..arity {
-        let arg = compact_term::read(&mut r).unwrap();
-        // TODO: Can possibly pack x/y/fp regs into the first opcode word
-        print!("{:?} ", &arg);
-        outp.push(self.postprocess_to_word(arg));
-      }
-      println!()
+      self.postprocess_instr(opcode, &fun, &mut r);
     }
   }
 
-  /// Given some simple friendly::Term produce an encoded compact Word with it
-  /// to be stored as an opcode argument.
-  fn postprocess_to_word(&self, arg: friendly::Term) -> Word {
-    match arg {
-      friendly::Term::Int_(i) => low_level::Term::make_small(i).raw(),
-      friendly::Term::Nil => low_level::Term::nil().raw(),
-      friendly::Term::Atom_(a) => self.vm_atoms[a].raw(),
-      friendly::Term::X_(x) => low_level::Term::make_xreg(x).raw(),
-      _ => panic!("{}Don't know how to represent {:?} as a Word", module(), arg)
+  /// Given opcode and reader, read args for this opcode, create Instr enum
+  /// and push it into the `outp`.
+  #[cfg(feature="friendly_instructions")]
+  fn postprocess_instr(&mut self, op: u8, fun: &function::Ptr,
+                       r: &mut BinaryReader) {
+    let arity = gen_op::opcode_arity(op);
+    let mut args: Vec<friendly::Term> = Vec::new();
+    for _i in 0..arity {
+      args.push(compact_term::read(r).unwrap());
     }
+    match op {
+      // add nothing for label, but record its location
+      x if x == gen_op::OPCODE::Label as u8 => {
+        if let friendly::Term::Int_(f) = args[0] {
+          // Store weak ptr to function and code offset to this label
+          let floc = LLabel {
+            fun: function::make_weak(fun),
+            offset: fun.code.len(),
+          };
+          self.labels.insert(f, floc);
+        } else { panic_postprocess_instr(op, &args[0]); }
+      },
+      _ => panic!("{}Opcode {} don't know how to create Instr", module(), op)
+    };
   }
+
+//  /// Given some simple friendly::Term produce an Instr enum with terms as args.
+//  #[cfg(not(feature="friendly_instructions"))]
+//  fn postprocess_instr(&mut self, op: u8, fun: &function::Ptr,
+//                       r: &mut BinaryReader) {
+//    // TO DO: can store 3-7 bytes of good stuff in the same word!
+//    fun.code.push(op as Word);
+//    print!("op[{}] '{}' ", opcode, gen_op::opcode_name(opcode));
+//
+//    let arity = gen_op::opcode_arity(opcode);
+//    for _i in 0..arity {
+//      let arg = compact_term::read(&mut r).unwrap();
+//      // TO DO: Can possibly pack x/y/fp regs into the first opcode word
+//      print!("{:?} ", &arg);
+//      fun.code.push(self.postprocess_arg(arg));
+//    }
+//    println!()
+//  }
+
+
+//  /// Given a friendly::Term produce an encoded compact Word to be
+//  /// stored as an opcode argument. Args are also encoded to the following
+//  /// words.
+//  #[cfg(not(feature="friendly_instructions"))]
+//  fn postprocess_arg(&self, arg: friendly::Term) -> Word {
+//    match arg {
+//      friendly::Term::Int_(i) => low_level::Term::make_small(i).raw(),
+//      friendly::Term::Nil => low_level::Term::nil().raw(),
+//      friendly::Term::Atom_(a) => self.vm_atoms[a].raw(),
+//      friendly::Term::X_(x) => low_level::Term::make_xreg(x).raw(),
+//      _ => panic!("{}Don't know how to represent {:?} as a Word", module(), arg)
+//    }
+//  }
+}
+
+fn panic_postprocess_instr(op: u8, arg: &friendly::Term) {
+  panic!("{}Opcode {} the arg {:?} is bad", module(), op, arg)
 }

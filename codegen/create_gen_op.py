@@ -27,7 +27,10 @@ pub fn opcode_arity(opcode: u8) -> u8 {
 }
 """)
 
+    #
     # ------ print opcode names map ------
+    #
+
     # print("#[cfg(debug)]")
     print("""const OPCODE_NAME_MAP: &'static [&'static str] = &[
         \"\", // opcode 0 does not exist""")
@@ -41,6 +44,17 @@ pub fn opcode_name(opcode: u8) -> &'static str {
   OPCODE_NAME_MAP[opcode as usize]
 }
 """)
+
+    #
+    # ------ print opcode enum ------
+    #
+
+    # print("#[cfg(debug)]")
+    print("pub enum OPCODE {")
+    for opcode in range(conf.min_opcode, conf.max_opcode + 1):
+        op = tables.ops[opcode]
+        print("    %s = %d," % (op.cname(), opcode))
+    print("}\n\n")
 
 
 if __name__ == "__main__":

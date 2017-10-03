@@ -4,8 +4,11 @@ version = "0.1.0"
 authors = ["Dmytro Lytovchenko"]
 
 [features]
-default = ["r20"]
+default = ["r20", "friendly_instructions"]
 r20 = []
+# Use Rust enum for storing instructions, might be a bit more memory-expensive,
+# but much type safer.
+friendly_instructions = []
 
 [dependencies]
 bytes = "0.4.5"
