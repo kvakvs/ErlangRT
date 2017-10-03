@@ -16,7 +16,7 @@ mod util;
 
 use emulator::mfa::MFArgs;
 use emulator::vm::VM;
-use term::low_level::Term;
+use term::low_level::LTerm;
 
 /// Entry point for the command-line interface
 fn main() {
@@ -32,7 +32,7 @@ fn main() {
                         beam.atom("start"),
                         Vec::new()
   );
-  let root_p = match beam.create_process(Term::nil(), &mfa) {
+  let root_p = match beam.create_process(LTerm::nil(), &mfa) {
     Ok(p0) => p0,
     Err(e) => panic!("{:?}", e)
   };

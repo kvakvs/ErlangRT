@@ -20,12 +20,13 @@ use emulator::module;
 use emulator::vm::VM;
 use emulator::gen_op;
 use rterror;
-use term::friendly;
-use term::low_level;
+use emulator::mfa;
+use term::friendly::FTerm;
+use term::low_level::LTerm;
 use defs::{Word, Integral};
 use util::bin_reader::BinaryReader;
 
-pub fn module() -> &'static str { "BEAM loader: " }
+pub fn module() -> &'static str { "beam::loader: " }
 
 /// Raw data structure as loaded from BEAM file
 struct LImport {
@@ -67,13 +68,15 @@ pub struct Loader {
   /// Temporary storage for loaded code, will be parsed in stage 2
   raw_code: Vec<u8>,
 
-  // Labels are stored here while loading, for later resolve
+  /// Labels are stored here while loading, for later resolve
   labels: BTreeMap<Word, LLabel>,
+  /// For postprocessing: Current function/arity from func_info opcode
+  funarity: mfa::FunArity,
 
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
-  vm_atoms: Vec<low_level::Term>,
-  vm_funs: BTreeMap<low_level::Term, function::Ptr>,
+  vm_atoms: Vec<LTerm>,
+  vm_funs: BTreeMap<(LTerm, mfa::Arity), function::Ptr>,
 }
 
 impl Loader {
@@ -88,6 +91,7 @@ impl Loader {
       raw_code: Vec::new(),
 
       labels: BTreeMap::new(),
+      funarity: mfa::FunArity::new(),
 
       vm_atoms: Vec::new(),
       vm_funs: BTreeMap::new(),
@@ -271,10 +275,10 @@ impl Loader {
 
     for _i in 0..n_line_refs {
       match compact_term::read(r).unwrap() {
-        friendly::Term::SmallInt(w) => {
+        FTerm::SmallInt(w) => {
           // self.linerefs.push((fname_index, w));
         },
-        friendly::Term::Atom(a) => fname_index = a as u32,
+        FTerm::Atom(a) => fname_index = a as u32,
         other => panic!("{}Unexpected data in line info section: {:?}",
                         module(), other)
       }
@@ -306,34 +310,88 @@ impl Loader {
     r.reset();
     while !r.eof() {
       let opcode = r.read_u8();
-      self.postprocess_instr(opcode, &fun, &mut r);
+      if self.postprocess_instr(opcode, &fun, &mut r) {
+        // function finished, take it
+        self.commit_fun(fun);
+        fun = function::Function::new();
+      }
+    }
+    // final function finished also take it
+    self.commit_fun(fun);
+  }
+
+  fn commit_fun(&mut self, fun: function::Ptr) {
+    let k = (self.funarity.f, self.funarity.arity);
+    self.vm_funs.insert(k, fun);
+    ()
+  }
+
+  fn maybe_resolve_atom_(&self, t: FTerm) -> FTerm {
+    match t {
+      // Repack load-time atom into a runtime atom
+      FTerm::Atom_(i) => FTerm::Atom(self.vm_atoms[i].atom_index()),
+      _ => t
     }
   }
 
   /// Given opcode and reader, read args for this opcode, create Instr enum
   /// and push it into the `outp`.
+  ///
+  /// Returns: True if new function starts now (func_info opcode). At this point
+  /// self.funarity will be set and the caller is responsible to store the
+  /// function and begin a new one.
   #[cfg(feature="friendly_instructions")]
   fn postprocess_instr(&mut self, op: u8, fun: &function::Ptr,
-                       r: &mut BinaryReader) {
+                       r: &mut BinaryReader) -> bool
+  {
+    // Read `arity` args
     let arity = gen_op::opcode_arity(op);
-    let mut args: Vec<friendly::Term> = Vec::new();
+    let mut args: Vec<FTerm> = Vec::new();
     for _i in 0..arity {
-      args.push(compact_term::read(r).unwrap());
+      let arg0 = compact_term::read(r).unwrap();
+      // Atom_ args now can be converted to Atom (VM atoms)
+      let arg1 = self.maybe_resolve_atom_(arg0);
+      args.push(arg1);
     }
+
+    println!("Opcode {} {:?}", op, args);
+    let code = &mut fun.borrow_mut().code;
+
     match op {
       // add nothing for label, but record its location
       x if x == gen_op::OPCODE::Label as u8 => {
-        if let friendly::Term::Int_(f) = args[0] {
+        if let FTerm::Int_(f) = args[0] {
           // Store weak ptr to function and code offset to this label
           let floc = LLabel {
             fun: function::make_weak(fun),
-            offset: fun.code.len(),
+            offset: code.len(),
           };
           self.labels.insert(f, floc);
-        } else { panic_postprocess_instr(op, &args[0]); }
+        } else { panic_postprocess_instr(op, &args,0); }
       },
-      _ => panic!("{}Opcode {} don't know how to create Instr", module(), op)
+
+      // add nothing for line, but TODO: Record line contents
+      x if x == gen_op::OPCODE::Line as u8 => {},
+
+      x if x == gen_op::OPCODE::FuncInfo as u8 => {
+        // arg[0] mod name, arg[1] fun name, arg[2] arity
+        self.funarity = mfa::FunArity {
+          f: args[1].to_lterm(),
+          arity: args[2].loadtime_int() as mfa::Arity
+        };
+        return true;
+      },
+
+      x if x == gen_op::OPCODE::Move as u8 => {
+        let arg_src = args[0].to_lterm();
+        let arg_dst = args[1].to_lterm();
+        let instr = Instr::Move { src: arg_src, dst: arg_dst };
+        code.push(instr);
+      }
+
+        _ => panic!("{}Opcode {} don't know how to create Instr", module(), op)
     };
+    false
   }
 
 //  /// Given some simple friendly::Term produce an Instr enum with terms as args.
@@ -370,6 +428,6 @@ impl Loader {
 //  }
 }
 
-fn panic_postprocess_instr(op: u8, arg: &friendly::Term) {
-  panic!("{}Opcode {} the arg {:?} is bad", module(), op, arg)
+fn panic_postprocess_instr(op: u8, args: &Vec<FTerm>, argi: Word) {
+  panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
 }

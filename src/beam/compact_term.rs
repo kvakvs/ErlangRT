@@ -73,7 +73,7 @@ pub enum CTError {
 
 fn module() -> &'static str { "compact_term reader: " }
 
-fn make_err(e: CTError) -> Result<friendly::Term, rterror::Error> {
+fn make_err(e: CTError) -> Result<friendly::FTerm, rterror::Error> {
   Err(rterror::Error::CodeLoadingCompactTerm(e))
 }
 
@@ -82,7 +82,7 @@ fn word_to_u32(w: Word) -> u32 {
   w as u32
 }
 
-pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
+pub fn read(r: &mut BinaryReader) -> Result<friendly::FTerm, rterror::Error> {
   let b = r.read_u8();
   let tag = b & 0b111;
   let err_msg: &'static str = "Failed to parse beam compact term";
@@ -95,43 +95,46 @@ pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
   match tag {
     x if x == CTETag::LiteralInt as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::Int_(index))
+        return Ok(friendly::FTerm::Int_(index))
       }
       return make_err(CTError::BadLiteralTag)
     },
     x if x == CTETag::Atom as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::Atom_(index))
+        if index == 0 {
+          return Ok(friendly::FTerm::Nil);
+        }
+        return Ok(friendly::FTerm::Atom_(index - 1))
       }
       return make_err(CTError::BadAtomTag)
     },
     x if x == CTETag::XReg as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::X_(index))
+        return Ok(friendly::FTerm::X_(index))
       }
       return make_err(CTError::BadXRegTag)
     },
     x if x == CTETag::YReg as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::Y_(index))
+        return Ok(friendly::FTerm::Y_(index))
       }
       return make_err(CTError::BadYRegTag)
     },
     x if x == CTETag::Label as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::Label_(index))
+        return Ok(friendly::FTerm::Label_(index))
       }
       return make_err(CTError::BadLabelTag)
     },
     x if x == CTETag::Integer as u8 => {
       if let Integral::Word(n) = bword {
-        return Ok(friendly::Term::from_word(n))
+        return Ok(friendly::FTerm::from_word(n))
       }
       return make_err(CTError::BadIntegerTag)
     },
     x if x == CTETag::Character as u8 => {
       if let Integral::Word(n) = bword {
-        return Ok(friendly::Term::from_word(n));
+        return Ok(friendly::FTerm::from_word(n));
       }
       return make_err(CTError::BadCharacterTag)
     }
@@ -155,35 +158,35 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader)
 
 #[cfg(feature="r20")]
 fn parse_ext_tag(b: u8, r: &mut BinaryReader)
-  -> Result<friendly::Term, rterror::Error>
+  -> Result<friendly::FTerm, rterror::Error>
 {
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
-      Ok(friendly::Term::AllocList_)
+      Ok(friendly::FTerm::AllocList_)
     },
     _ => make_err(CTError::BadExtendedTag),
   }
 }
 
 fn parse_ext_float(r: &mut BinaryReader)
-  -> Result<friendly::Term, rterror::Error>
+  -> Result<friendly::FTerm, rterror::Error>
 {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
   let fp: f64 = unsafe {
     std::mem::transmute::<u64, f64>(fp_bytes)
   };
-  Ok(friendly::Term::Float(fp as defs::Float))
+  Ok(friendly::FTerm::Float(fp as defs::Float))
 }
 
 fn parse_ext_list(r: &mut BinaryReader)
-  -> Result<friendly::Term, rterror::Error>
+  -> Result<friendly::FTerm, rterror::Error>
 {
   // The stream now contains a smallint size, then size/2 pairs of values
   let n_elts= read_int(r);
-  let mut el: Vec<friendly::Term> = Vec::new();
+  let mut el: Vec<friendly::FTerm> = Vec::new();
   el.reserve(n_elts);
 
   for _i in 0..n_elts {
@@ -191,7 +194,7 @@ fn parse_ext_list(r: &mut BinaryReader)
     el.push(value);
   }
 
-  let t = friendly::Term::Tuple(el);
+  let t = friendly::FTerm::Tuple(el);
   return Ok(t)
 }
 
@@ -251,7 +254,7 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
 mod tests {
   use super::*;
 
-  fn try_parse(inp: Vec<u8>, expect: friendly::Term) {
+  fn try_parse(inp: Vec<u8>, expect: friendly::FTerm) {
     let mut r = BinaryReader::from_bytes(inp);
     match read(&mut r) {
       Ok(ref e) if e == &expect => {},
@@ -271,18 +274,18 @@ mod tests {
 
   #[test]
   fn test_lit() {
-    try_parse(vec![0u8], friendly::Term::Literal(0));
+    try_parse(vec![0u8], friendly::FTerm::Literal(0));
   }
 
   #[test]
   fn test_int() {
-    try_parse(vec![0b1u8], friendly::Term::Integer(Integral::Word(0)));
+    try_parse(vec![0b1u8], friendly::FTerm::Integer(Integral::Word(0)));
   }
 
   #[test]
   fn test_float() {
     try_parse(vec![0b00010111u8, 63, 243, 192, 193, 252, 143, 50, 56],
-              friendly::Term::Float(1.23456));
+              friendly::FTerm::Float(1.23456));
   }
 
   // TODO: test extended

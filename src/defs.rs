@@ -20,6 +20,7 @@ pub const WORD_BITS: Word = 64;
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
 pub const MAX_POS_SMALL: Word = 1 << (WORD_BITS - 4 - 1);
 pub const MAX_XREGS: Word = 256;
+pub const MAX_FPREGS: Word = 32;
 
 /// Represents either Word or a BigInteger
 #[derive(Debug, Eq, PartialEq)]

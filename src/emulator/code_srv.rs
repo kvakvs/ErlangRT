@@ -11,7 +11,7 @@ use emulator::mfa;
 use emulator::module;
 use emulator::vm::VM;
 use rterror;
-use term::low_level::Term;
+use term::low_level::LTerm;
 use defs::Word;
 
 use std::sync::Arc;
@@ -34,7 +34,7 @@ impl InstrPointer {
 
 pub struct CodeServer {
   // Mapping {atom(): module()}
-  mods: BTreeMap<Term, module::Ptr>,
+  mods: BTreeMap<LTerm, module::Ptr>,
   search_path: Vec<String>,
 }
 

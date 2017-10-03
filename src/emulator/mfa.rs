@@ -1,7 +1,7 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 //use term::friendly;
-use term::low_level::Term;
+use term::low_level::LTerm;
 
 use std::cmp::Ordering;
 
@@ -10,22 +10,22 @@ pub type Arity = u32;
 /// MFArgs or MFArity should be able to give us mod and fun whenever, so
 /// this trait is there to allow it.
 pub trait IMFArity {
-  fn get_mod(&self) -> Term;
-  fn get_fun(&self) -> Term;
+  fn get_mod(&self) -> LTerm;
+  fn get_fun(&self) -> LTerm;
   fn get_arity(&self) -> Arity;
 }
 
 /// Reference to an internal function in some module.
 #[derive(Eq)]
 pub struct FunArity {
-  f: Term,
-  arity: Arity,
+  pub f: LTerm,
+  pub arity: Arity,
 }
 
 impl FunArity {
   pub fn new() -> FunArity {
     FunArity {
-      f: Term::non_value(),
+      f: LTerm::non_value(),
       arity: 0,
     }
   }
@@ -52,9 +52,9 @@ impl PartialEq for FunArity {
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
 pub struct MFArgs {
-  m: Term,
-  f: Term,
-  args: Vec<Term>
+  m: LTerm,
+  f: LTerm,
+  args: Vec<LTerm>
 }
 //
 //pub struct MFArity {
@@ -64,8 +64,8 @@ pub struct MFArgs {
 //}
 
 impl IMFArity for MFArgs {
-  fn get_mod(&self) -> Term { self.m }
-  fn get_fun(&self) -> Term { self.f }
+  fn get_mod(&self) -> LTerm { self.m }
+  fn get_fun(&self) -> LTerm { self.f }
   fn get_arity(&self) -> Arity {
     assert!(self.args.len() < Arity::max_value() as usize);
     self.args.len() as Arity
@@ -73,7 +73,7 @@ impl IMFArity for MFArgs {
 }
 
 impl MFArgs {
-  pub fn new(m: Term, f: Term, args: Vec<Term>) -> MFArgs {
+  pub fn new(m: LTerm, f: LTerm, args: Vec<LTerm>) -> MFArgs {
     MFArgs{m, f, args}
   }
 }

@@ -134,6 +134,10 @@ pub const IMM3_PREFIX: Word = IMM2_PREFIX
 /// Bit prefix for X register value
 pub const IMM3_XREG_PREFIX: Word = IMM3_PREFIX
     | ((Immediate3::XReg as Word) << IMM3_VALUE_SHIFT);
+pub const IMM3_YREG_PREFIX: Word = IMM3_PREFIX
+    | ((Immediate3::YReg as Word) << IMM3_VALUE_SHIFT);
+pub const IMM3_FPREG_PREFIX: Word = IMM3_PREFIX
+    | ((Immediate3::FPReg as Word) << IMM3_VALUE_SHIFT);
 
 //
 // Construction
@@ -195,6 +199,17 @@ pub fn make_small_raw(val: Word) -> Word {
 pub fn make_xreg_raw(x: Word) -> Word {
   assert!(x < defs::MAX_XREGS);
   create_imm3(x, IMM3_XREG_PREFIX)
+}
+
+#[inline]
+pub fn make_yreg_raw(x: Word) -> Word {
+  create_imm3(x, IMM3_YREG_PREFIX)
+}
+
+#[inline]
+pub fn make_fpreg_raw(x: Word) -> Word {
+  assert!(x < defs::MAX_FPREGS);
+  create_imm3(x, IMM3_FPREG_PREFIX)
 }
 
 //

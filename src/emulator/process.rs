@@ -4,14 +4,14 @@
 //!
 use emulator::mfa;
 use rterror;
-use term::low_level::Term;
+use term::low_level::LTerm;
 use defs::Word;
 use emulator::vm::VM;
 use emulator::code_srv;
 
 pub struct Process {
-  pid: Term,
-  parent_pid: Term,
+  pid: LTerm,
+  parent_pid: LTerm,
   // heap
   // context: regs stack...
   ip: code_srv::InstrPointer,
@@ -19,8 +19,8 @@ pub struct Process {
 
 impl Process {
   // Call only from VM, process must be immediately registered in proc registry for this vm
-  pub fn new(vm: &mut VM, pid: Term,
-             parent_pid: Term, mfa: &mfa::MFArgs) -> Result<Process, rterror::Error>
+  pub fn new(vm: &mut VM, pid: LTerm,
+             parent_pid: LTerm, mfa: &mfa::MFArgs) -> Result<Process, rterror::Error>
   {
     assert!(pid.is_pid());
     assert!(parent_pid.is_pid() || parent_pid.is_nil());

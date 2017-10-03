@@ -12,37 +12,39 @@ type Word = defs::Word;
 use std::cmp::Ordering;
 
 
+/// A low-level term, packed conveniently in a Word, or containing a
+/// pointer to heap.
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Term {
+pub struct LTerm {
   value: Word
 }
 
 
-impl Ord for Term {
-  fn cmp(&self, other: &Term) -> Ordering {
+impl Ord for LTerm {
+  fn cmp(&self, other: &LTerm) -> Ordering {
     self.value.cmp(&other.value)
   }
 }
 
 
-impl PartialOrd for Term {
-  fn partial_cmp(&self, other: &Term) -> Option<Ordering> {
+impl PartialOrd for LTerm {
+  fn partial_cmp(&self, other: &LTerm) -> Option<Ordering> {
     Some(self.value.cmp(&other.value))
   }
 }
 
 
-impl Term {
+impl LTerm {
   pub fn raw(&self) -> Word { self.value }
 
-  pub fn nil() -> Term { Term { value: IMM2_SPECIAL_NIL_PREFIX } }
+  pub fn nil() -> LTerm { LTerm { value: IMM2_SPECIAL_NIL_PREFIX } }
 
   pub fn is_nil(&self) -> bool {
     self.value == IMM2_SPECIAL_NIL_PREFIX
   }
 
-  pub fn non_value() -> Term {
-    Term { value: IMM2_SPECIAL_NONVALUE_PREFIX }
+  pub fn non_value() -> LTerm {
+    LTerm { value: IMM2_SPECIAL_NONVALUE_PREFIX }
   }
 
   pub fn is_non_value(&self) -> bool {
@@ -87,27 +89,32 @@ impl Term {
   //
 
   /// Any raw word becomes a term, possibly invalid
-  pub fn make_from_raw(w: Word) -> Term {
-    Term { value: w }
+  pub fn make_from_raw(w: Word) -> LTerm {
+    LTerm { value: w }
   }
 
   /// From atom index create an atom. To create from string use vm::new_atom
-  pub fn make_atom(index: Word) -> Term {
-    Term { value: immediate::make_atom_raw(index) }
+  pub fn make_atom(index: Word) -> LTerm {
+    LTerm { value: immediate::make_atom_raw(index) }
   }
 
-  pub fn make_small(n: Word) -> Term {
+  pub fn make_small(n: Word) -> LTerm {
     assert!(0 <= n && n < defs::MAX_POS_SMALL);
-    Term { value: immediate::make_pid_raw(n) }
+    LTerm { value: immediate::make_pid_raw(n) }
   }
 
   /// From internal process index create a pid. To create a process use vm::create_process
-  pub fn make_pid(pindex: Word) -> Term {
-    Term { value: immediate::make_pid_raw(pindex) }
+  pub fn make_pid(pindex: Word) -> LTerm {
+    LTerm { value: immediate::make_pid_raw(pindex) }
   }
 
-  pub fn make_xreg(n: Word) -> Term {
-    assert!(0 <= n && n < defs::MAX_XREGS);
-    Term { value: immediate::make_xreg_raw(n) }
+  pub fn make_xreg(n: Word) -> LTerm {
+    LTerm { value: immediate::make_xreg_raw(n) }
+  }
+  pub fn make_yreg(n: Word) -> LTerm {
+    LTerm { value: immediate::make_yreg_raw(n) }
+  }
+  pub fn make_fpreg(n: Word) -> LTerm {
+    LTerm { value: immediate::make_fpreg_raw(n) }
   }
 }

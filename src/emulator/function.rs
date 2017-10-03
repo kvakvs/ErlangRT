@@ -3,9 +3,10 @@ use emulator::module;
 use beam::instruction::Instr;
 
 use std::sync;
+use std::cell::RefCell;
 
-pub type Ptr = sync::Arc<Function>;
-pub type Weak = sync::Weak<Function>;
+pub type Ptr = sync::Arc<RefCell<Function>>;
+pub type Weak = sync::Weak<RefCell<Function>>;
 
 /// Represents a function and its bytecode. Is refcounted and can be freed
 /// early and separately from the module if the situation allows.
@@ -18,11 +19,13 @@ pub struct Function {
 
 impl Function {
   pub fn new() -> Ptr {
-    sync::Arc::new(Function {
-      parent_mod: sync::Weak::new(),
-      name: mfa::FunArity::new(),
-      code: Vec::new(),
-    })
+    sync::Arc::new(RefCell::new(
+      Function {
+        parent_mod: sync::Weak::new(),
+        name: mfa::FunArity::new(),
+        code: Vec::new(),
+      }
+    ))
   }
 }
 

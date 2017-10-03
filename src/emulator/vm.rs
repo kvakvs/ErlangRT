@@ -12,7 +12,7 @@ use emulator::mfa;
 use emulator::module;
 use emulator::process::Process;
 use rterror;
-use term::low_level::Term;
+use term::low_level::LTerm;
 use defs::Word;
 
 fn module() -> &'static str { "vm: " }
@@ -29,7 +29,7 @@ pub struct VM {
   // Pid counter increments every time a new process is spawned
   pid_counter: Word,
   // Dict of pids to process boxes
-  processes: BTreeMap<Term, Process>,
+  processes: BTreeMap<LTerm, Process>,
 
   code_srv: code_srv::CodeServer,
 }
@@ -47,9 +47,9 @@ impl VM {
 
   // Allocate new atom in the atom table or find existing. Pack the atom index
   // as an immediate2 Term
-  pub fn atom(&mut self, val: &str) -> Term {
+  pub fn atom(&mut self, val: &str) -> LTerm {
     if self.atoms.contains_key(val) {
-      return Term::make_atom(self.atoms[val]);
+      return LTerm::make_atom(self.atoms[val]);
     }
 
     let index = self.atoms_r.len();
@@ -60,15 +60,15 @@ impl VM {
     let val2 = String::from(val);
     self.atoms_r.push(val2);
 
-    Term::make_atom(index)
+    LTerm::make_atom(index)
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: Term, mfa: &mfa::MFArgs)
-    -> Result<Term, rterror::Error> {
+  pub fn create_process(&mut self, parent: LTerm, mfa: &mfa::MFArgs)
+                        -> Result<LTerm, rterror::Error> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
-    let pid = Term::make_pid(pid_c);
+    let pid = LTerm::make_pid(pid_c);
     match Process::new(self, pid, parent, mfa) {
       Ok(p0) => {
         self.processes.insert(pid, p0);
@@ -84,7 +84,7 @@ impl VM {
     true
   }
 
-  pub fn atom_to_str(&self, atom: Term) -> String {
+  pub fn atom_to_str(&self, atom: LTerm) -> String {
     assert!(atom.is_atom());
     self.atoms_r[atom.atom_index()].to_string()
   }
