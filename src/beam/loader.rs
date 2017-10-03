@@ -21,7 +21,7 @@ use emulator::gen_op;
 use rterror;
 use term::friendly;
 use term::low_level;
-use types::{Word, Integral};
+use defs::{Word, Integral};
 use util::bin_reader;
 
 pub fn module() -> &'static str { "BEAM loader: " }
@@ -297,6 +297,7 @@ impl Loader {
 
       for _i in 0..arity {
         let arg = compact_term::read(&mut r).unwrap();
+        // TODO: Can possibly pack x/y/fp regs into the first opcode word
         print!("{:?} ", &arg);
         outp.push(self.postprocess_to_word(arg));
       }
@@ -306,11 +307,13 @@ impl Loader {
 
   /// Given some simple friendly::Term produce an encoded compact Word with it
   /// to be stored as an opcode argument.
-  fn postprocess_to_word(&self, x: friendly::Term) -> Word {
-    match x {
-      friendly::Term::Int_(i) => low_level::Term::make_small(i),
-      friendly::Term::Nil => low_level::Term::nil().value(),
-      _ => panic!("Don't know how to represent {:?} as a Word", x)
+  fn postprocess_to_word(&self, arg: friendly::Term) -> Word {
+    match arg {
+      friendly::Term::Int_(i) => low_level::Term::make_small(i).raw(),
+      friendly::Term::Nil => low_level::Term::nil().raw(),
+      friendly::Term::Atom_(a) => self.vm_atoms[a].raw(),
+      friendly::Term::X_(x) => low_level::Term::make_xreg(x).raw(),
+      _ => panic!("{}Don't know how to represent {:?} as a Word", module(), arg)
     }
   }
 }

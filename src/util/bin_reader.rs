@@ -8,7 +8,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::cmp::min;
 
-use types::Word;
+use defs::Word;
 use rterror;
 
 fn module() -> &'static str { "File reader: " }

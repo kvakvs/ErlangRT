@@ -13,7 +13,7 @@ use emulator::module;
 use emulator::process::Process;
 use rterror;
 use term::low_level::Term;
-use types::Word;
+use defs::Word;
 
 fn module() -> &'static str { "vm: " }
 

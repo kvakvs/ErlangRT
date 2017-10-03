@@ -11,10 +11,15 @@ pub type SWord = isize;
 pub type Float = f64;
 
 #[cfg(target_pointer_width = "32")]
-pub fn platf_bits() -> Word { 32 }
+pub const WORD_BITS: Word = 32;
 
 #[cfg(target_pointer_width = "64")]
-pub fn platf_bits() -> Word { 64 }
+pub const WORD_BITS: Word = 64;
+
+/// Max value for a positive small integer packed into immediate2 low level
+/// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
+pub const MAX_POS_SMALL: Word = 1 << (WORD_BITS - 4 - 1);
+pub const MAX_XREGS: Word = 256;
 
 /// Represents either Word or a BigInteger
 #[derive(Debug, Eq, PartialEq)]
@@ -25,7 +30,7 @@ pub enum Integral {
 
 impl Integral {
   pub fn from_big(big: num::BigInt) -> Integral {
-    if big.bits() < platf_bits() {
+    if big.bits() < WORD_BITS {
       return Integral::Word(big.to_usize().unwrap());
     }
     Integral::BigInt(big)

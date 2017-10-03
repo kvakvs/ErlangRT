@@ -1,7 +1,7 @@
 use rterror;
 use term::friendly;
-use types::{Word, Integral};
-use types;
+use defs::{Word, Integral};
+use defs;
 use util::bin_reader::BinaryReader;
 
 use std;
@@ -20,7 +20,7 @@ use num::ToPrimitive;
 //  YReg(Word),
 //  Label(Word),
 //  Character(Word),
-//  Float(types::Float),
+//  Float(defs::Float),
 //  List(friendly::Term),
 //  FPReg(Word),
 //  AllocList,
@@ -66,6 +66,7 @@ pub enum CTError {
   BadYRegTag,
   BadLabelTag,
   BadCharacterTag,
+  BadIntegerTag,
   BadExtendedTag,
   BadFormat,
 }
@@ -100,7 +101,7 @@ pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
     },
     x if x == CTETag::Atom as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(friendly::Term::Atom(index))
+        return Ok(friendly::Term::Atom_(index))
       }
       return make_err(CTError::BadAtomTag)
     },
@@ -123,10 +124,16 @@ pub fn read(r: &mut BinaryReader) -> Result<friendly::Term, rterror::Error> {
       return make_err(CTError::BadLabelTag)
     },
     x if x == CTETag::Integer as u8 => {
-      return Ok(friendly::Term::from_word(bword))
+      if let Integral::Word(n) = bword {
+        return Ok(friendly::Term::from_word(n))
+      }
+      return make_err(CTError::BadIntegerTag)
     },
     x if x == CTETag::Character as u8 => {
-      return Ok(friendly::Term::from_word(bword));
+      if let Integral::Word(n) = bword {
+        return Ok(friendly::Term::from_word(n));
+      }
+      return make_err(CTError::BadCharacterTag)
     }
     // Extended tag (lower 3 bits = 0b111)
     _ => return parse_ext_tag(b, r)
@@ -168,7 +175,7 @@ fn parse_ext_float(r: &mut BinaryReader)
   let fp: f64 = unsafe {
     std::mem::transmute::<u64, f64>(fp_bytes)
   };
-  Ok(friendly::Term::Float(fp as types::Float))
+  Ok(friendly::Term::Float(fp as defs::Float))
 }
 
 fn parse_ext_list(r: &mut BinaryReader)

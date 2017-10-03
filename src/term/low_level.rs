@@ -2,10 +2,12 @@
 //! Low level term represents memory layout of Term bits to store the data
 //! as compact as possible while maintaining an acceptable performance
 //!
-use types::Word;
 use term::immediate;
-use term::immediate::{RAW_NIL, RAW_NON_VALUE, RAW_PID, RAW_ATOM};
+use term::immediate::{IMM2_SPECIAL_NIL_PREFIX, IMM2_SPECIAL_NONVALUE_PREFIX};
 use term::primary_tag;
+
+use defs;
+type Word = defs::Word;
 
 use std::cmp::Ordering;
 
@@ -31,28 +33,28 @@ impl PartialOrd for Term {
 
 
 impl Term {
-  pub fn value(&self) -> Word { self.value }
+  pub fn raw(&self) -> Word { self.value }
 
-  pub fn nil() -> Term { Term { value: RAW_NIL } }
+  pub fn nil() -> Term { Term { value: IMM2_SPECIAL_NIL_PREFIX } }
 
   pub fn is_nil(&self) -> bool {
-    self.value == RAW_NIL
+    self.value == IMM2_SPECIAL_NIL_PREFIX
   }
 
   pub fn non_value() -> Term {
-    Term { value: RAW_NON_VALUE }
+    Term { value: IMM2_SPECIAL_NONVALUE_PREFIX }
   }
 
   pub fn is_non_value(&self) -> bool {
-    self.value == RAW_NON_VALUE
+    self.value == IMM2_SPECIAL_NONVALUE_PREFIX
   }
 
   pub fn is_pid(&self) -> bool {
-    return (self.value & immediate::IMM1_MASK) == RAW_PID
+    return immediate::is_pid_raw(self.value)
   }
 
   pub fn is_atom(&self) -> bool {
-    (self.value & immediate::IMM2_MASK) == RAW_ATOM
+    return immediate::is_atom_raw(self.value)
   }
 
   pub fn atom_index(&self) -> Word { immediate::imm2_value(self.value) }
@@ -84,18 +86,28 @@ impl Term {
   // Construction
   //
 
-  // Any word becomes a term
+  /// Any raw word becomes a term, possibly invalid
   pub fn make_from_raw(w: Word) -> Term {
     Term { value: w }
   }
 
-  // From atom index create an atom. To create from string use vm::new_atom
+  /// From atom index create an atom. To create from string use vm::new_atom
   pub fn make_atom(index: Word) -> Term {
     Term { value: immediate::make_atom_raw(index) }
   }
 
-  // From internal process index create a pid. To create a process use vm::create_process
+  pub fn make_small(n: Word) -> Term {
+    assert!(0 <= n && n < defs::MAX_POS_SMALL);
+    Term { value: immediate::make_pid_raw(n) }
+  }
+
+  /// From internal process index create a pid. To create a process use vm::create_process
   pub fn make_pid(pindex: Word) -> Term {
     Term { value: immediate::make_pid_raw(pindex) }
+  }
+
+  pub fn make_xreg(n: Word) -> Term {
+    assert!(0 <= n && n < defs::MAX_XREGS);
+    Term { value: immediate::make_xreg_raw(n) }
   }
 }

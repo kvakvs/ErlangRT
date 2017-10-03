@@ -11,7 +11,7 @@ mod beam;
 mod emulator;
 mod rterror;
 mod term;
-mod types;
+mod defs;
 mod util;
 
 use emulator::mfa::MFArgs;

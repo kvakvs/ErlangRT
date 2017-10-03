@@ -12,7 +12,7 @@ use emulator::module;
 use emulator::vm::VM;
 use rterror;
 use term::low_level::Term;
-use types::Word;
+use defs::Word;
 
 use std::sync::Arc;
 

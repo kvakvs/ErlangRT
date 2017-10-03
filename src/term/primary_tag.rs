@@ -1,4 +1,4 @@
-use types::Word;
+use defs::Word;
 
 use std::mem::transmute;
 
