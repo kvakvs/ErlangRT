@@ -6,6 +6,7 @@
 //extern crate alloc_system;
 extern crate bytes;
 extern crate num;
+extern crate bit_field;
 
 mod beam;
 mod emulator;

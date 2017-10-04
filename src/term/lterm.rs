@@ -74,7 +74,7 @@ impl LTerm {
   /// Get primary tag bits from a raw term
   #[inline(always)]
   pub fn primary_tag(&self) -> primary::Tag {
-    primary::from_word(self.value)
+    primary::get(self.value)
   }
 
   /// Check whether primary tag of a value is `Tag::Immediate`.
@@ -201,7 +201,7 @@ impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let v = self.value;
 
-    match primary::primary_tag(v) {
+    match primary::get(v) {
       primary::Tag::Box => write!(f, "Box({:?})", self.box_ptr()),
 
       primary::Tag::Cons => write!(f, "Cons({})", v),
@@ -212,19 +212,19 @@ impl fmt::Display for LTerm {
             write!(f, "{}", self.small_get()),
 
           immediate::Immediate1::Pid =>
-            write!(f, "Pid({})", immediate::imm1_value(self.value)),
+            write!(f, "Pid({})", immediate::imm1_value(v)),
 
           immediate::Immediate1::Port =>
-            write!(f, "Port({})", immediate::imm1_value(self.value)),
+            write!(f, "Port({})", immediate::imm1_value(v)),
 
           immediate::Immediate1::Immed2 =>
 
             match immediate::get_imm2_tag(v) {
               immediate::Immediate2::Catch =>
-                write!(f, "Catch({})", immediate::imm2_value(self.value)),
+                write!(f, "Catch({})", immediate::imm2_value(v)),
 
               immediate::Immediate2::Special =>
-                write!(f, "Special({})", immediate::imm2_value(self.value)),
+                write!(f, "Special({})", immediate::imm2_value(v)),
 
               immediate::Immediate2::Atom =>
                 write!(f, "Atom({})", self.atom_index()),
@@ -233,20 +233,18 @@ impl fmt::Display for LTerm {
 
                 match immediate::get_imm3_tag(v) {
                   immediate::Immediate3::XReg =>
-                    write!(f, "X({})", immediate::imm3_value(self.value)),
+                    write!(f, "X({})", immediate::imm3_value(v)),
 
                   immediate::Immediate3::YReg =>
-                    write!(f, "Y({})", immediate::imm3_value(self.value)),
+                    write!(f, "Y({})", immediate::imm3_value(v)),
 
                   immediate::Immediate3::FPReg =>
-                    write!(f, "FP({})", immediate::imm3_value(self.value)),
+                    write!(f, "FP({})", immediate::imm3_value(v)),
 
                   immediate::Immediate3::Label =>
-                    write!(f, "Label({})", immediate::imm3_value(self.value))
+                    write!(f, "Label({})", immediate::imm3_value(v))
                 }
             },
-
-          _ => write!(f, "Imm1({})", self.value),
         },
       primary::Tag::Header => write!(f, "Header({})", v),
     }

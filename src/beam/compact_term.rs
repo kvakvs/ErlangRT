@@ -260,15 +260,17 @@ mod tests {
 
   #[test]
   fn test_lit() {
-    try_parse(vec![0u8], fterm::FTerm::Literal(0));
+    try_parse(vec![0u8], fterm::FTerm::Int_(0));
   }
 
   #[test]
   fn test_int() {
-    try_parse(vec![0b1u8], fterm::FTerm::Integer(Integral::Word(0)));
+    try_parse(vec![0b1u8], fterm::FTerm::SmallInt(0));
   }
 
+  // This test is not applicable to R20+ where the Float ext tag is removed
   #[test]
+  #[cfg(feature="r19")]
   fn test_float() {
     try_parse(vec![0b00010111u8, 63, 243, 192, 193, 252, 143, 50, 56],
               fterm::FTerm::Float(1.23456));

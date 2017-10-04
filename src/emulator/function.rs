@@ -36,7 +36,7 @@ impl Function {
     while i < self.code.len() {
       let op = self.code[i];
       assert!(op < gen_op::OPCODE_MAX);
-      print!("{} ", gen_op::opcode_name(op as u8));
+      print!("{:04x} {} ", i, gen_op::opcode_name(op as u8));
       i += 1;
 
       let arity = gen_op::opcode_arity(op as u8) as Word;

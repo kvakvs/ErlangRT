@@ -12,6 +12,7 @@ dev_build = []
 [dependencies]
 bytes = "0.4.5"
 num = "0.1.40"
+bit_field = "0.7.0"
 
 [profile.release]
 lto = true

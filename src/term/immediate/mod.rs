@@ -31,19 +31,19 @@ pub use self::imm3::*;
 /// Create a raw value for a term from atom index
 #[inline]
 pub fn make_atom_raw(val: Word) -> Word {
-  create_imm2(val, IMM2_ATOM_PREFIX)
+  combine_imm2_prefix_and_val(val, IMM2_ATOM_PREFIX)
 }
 
 /// Create a raw value for a pid term from process index
 #[inline]
 pub fn make_pid_raw(pindex: Word) -> Word {
-  create_imm1(pindex, IMM1_PID_PREFIX)
+  combine_imm1_prefix_and_val(pindex, IMM1_PID_PREFIX)
 }
 
 /// Create a raw smallint value for a term from atom index
 #[inline]
 pub fn make_small_raw(val: Word) -> Word {
-  create_imm1(val, IMM1_SMALL_PREFIX)
+  combine_imm1_prefix_and_val(val, IMM1_SMALL_PREFIX)
 }
 
 #[inline]
@@ -67,6 +67,7 @@ pub fn make_fpreg_raw(x: Word) -> Word {
 pub fn make_label_raw(x: Word) -> Word {
   create_imm3(x, IMM3_LABEL_PREFIX)
 }
+
 //
 // Checks
 //
@@ -79,4 +80,33 @@ pub fn is_pid_raw(val: Word) -> bool {
 #[inline]
 pub fn is_atom_raw(val: Word) -> bool {
   get_imm2_prefix(val) == IMM2_ATOM_PREFIX
+}
+
+
+//
+// Testing section
+//
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_imm3_tags() {
+    let n = IMM3_PREFIX;
+    assert_eq!(primary::get(n), primary::Tag::Immediate);
+    assert_eq!(get_imm1_tag(n), Immediate1::Immed2);
+    assert_eq!(get_imm2_tag(n), Immediate2::Immed3);
+  }
+
+  #[test]
+  fn test_imm3_new() {
+    let label = 0b1000000;
+    let n = make_label_raw(label);
+    assert_eq!(primary::get(n), primary::Tag::Immediate);
+    assert_eq!(get_imm1_tag(n), Immediate1::Immed2);
+    assert_eq!(get_imm2_tag(n), Immediate2::Immed3);
+    assert_eq!(get_imm3_tag(n), Immediate3::Label);
+    assert_eq!(get_imm3_prefix(n), IMM3_PREFIX);
+    assert_eq!(imm3_value(n), label);
+  }
 }

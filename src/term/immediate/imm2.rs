@@ -1,88 +1,97 @@
+//!
+//! Immediate2 values used to represent smaller special term types.
+//! Bit composition is - `.... .... ..bb aaPP`, where `PP` is primary tag,
+//! `aa` is imm1 tag, and `bb` is imm2 tag
+//!
+//! Max value for imm2 is 64-6=58, or 32-6=26 bits.
+//!
 use term::primary;
 use defs;
 use defs::Word;
 use term::immediate::imm1::*;
 
 use std::mem::transmute;
+use bit_field::BitField;
 
-//--- Immediate 2 precomposed values ---
+/// Bit position for imm1 tag
+pub const IMM2_TAG_FIRST: u8 = 4;
+pub const IMM2_TAG_LAST: u8 = 6;
 
-#[repr(u8)]
+/// Bit position for the value after imm1 tag
+pub const IMM2_VALUE_FIRST: u8 = IMM2_TAG_LAST;
+pub const IMM2_VALUE_LAST: u8 = defs::WORD_BITS as u8;
+
+#[repr(usize)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Immediate2 {
   Atom = 0,
   Catch = 1,
+  Immed3 = 2,
   /// Special includes unique values like NIL, NONVALUE
-  Special = 2,
-  /// not used
-  Immed3 = 3,
+  Special = 3,
 }
 /// Max value for the Immediate2 enum (for assertions).
 pub const IMMEDIATE2_MAX: Word = 3;
 
-#[repr(u8)]
+#[repr(usize)]
 pub enum Immediate2Special {
   Nil = 1,
   NonValue = 2,
 }
 
-pub const IMM2_SIZE: Word = 2;
-/// A mask to apply to a value shifted right by IMM2_TAG_SHIFT to get imm2 tag
-pub const IMM2_TAG_MASK: Word = (1 << IMM2_SIZE) - 1;
-/// How much to shift tag to place it into Immediate2 tag bits
-pub const IMM2_TAG_SHIFT: Word = IMM1_VALUE_SHIFT;
-/// How much to shift a value to place it after Immediate2 tag
-pub const IMM2_VALUE_SHIFT: Word = IMM1_TAG_SHIFT + IMM1_SIZE + IMM2_SIZE;
-pub const IMM2_MASK: Word = (1 << IMM2_VALUE_SHIFT) - 1;
-
-/// Cut away the value to be able to compare with raw prefixes
-#[inline]
-pub fn get_imm2_prefix(val: Word) -> Word {
-  val & IMM2_MASK
-}
-
 /// Trim to have only immediate2 bits and return them as an convenient enum.
 #[inline]
 pub fn get_imm2_tag(val: Word) -> Immediate2 {
-  let t: Word = (val >> IMM2_TAG_SHIFT) & IMM2_TAG_MASK;
+  let t: Word = val.get_bits(IMM2_TAG_FIRST..IMM2_TAG_LAST);
   assert!(t <= IMMEDIATE2_MAX);
-  unsafe { transmute(t as u8) }
+  unsafe { transmute::<Word, Immediate2>(t) }
 }
 
 /// Remove tag bits from imm2 value by shifting it right
 #[inline]
 pub fn imm2_value(val: Word) -> Word {
   assert!(is_immediate2(val));
-  val >> IMM2_VALUE_SHIFT
+  val.get_bits(IMM2_VALUE_FIRST..IMM2_VALUE_LAST)
 }
 
 /// Precomposed bits for immediate2 values
 pub const IMM2_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Immed2 as Word) << primary::PRIM_TAG_BITS);
+    | ((Immediate1::Immed2 as Word) << IMM1_TAG_FIRST);
 
 /// Precomposed bits for atom imm2
 pub const IMM2_ATOM_PREFIX: Word = IMM2_PREFIX
-    | ((Immediate2::Atom as Word) << IMM1_VALUE_SHIFT);
+    | ((Immediate2::Atom as Word) << IMM2_TAG_FIRST);
 
 //--- Imm2 values tagged special ---
 
 /// Special Primary tag+Immed1+Immed2 bits precomposed
 pub const IMM2_SPECIAL_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate2::Special as Word) << IMM2_TAG_SHIFT);
+    | ((Immediate2::Special as Word) << IMM2_TAG_FIRST);
 
 /// Precomposed bits for NIL constant
 pub const IMM2_SPECIAL_NIL_RAW: Word = IMM2_SPECIAL_PREFIX
-    | ((Immediate2Special::Nil as Word) << IMM2_VALUE_SHIFT);
+    | ((Immediate2Special::Nil as Word) << IMM2_TAG_FIRST);
 
 /// Precomposed bits for NON_VALUE constant
 pub const IMM2_SPECIAL_NONVALUE_RAW: Word = IMM2_SPECIAL_PREFIX
-    | ((Immediate2Special::NonValue as Word) << IMM2_VALUE_SHIFT);
+    | ((Immediate2Special::NonValue as Word) << IMM2_TAG_FIRST);
 
-
-
-/// Given value (to be shifted) and RAW_* preset bits, compose them together for imm2
+/// Cut away the value to be able to compare with raw prefixes
 #[inline]
-pub fn create_imm2(val: Word, raw_preset: Word) -> Word {
-  (val << IMM2_VALUE_SHIFT) | raw_preset
+pub fn get_imm2_prefix(val: Word) -> Word {
+  val.get_bits(0..IMM2_TAG_LAST)
 }
 
-pub fn is_immediate2(val: Word) -> bool { val & IMM2_MASK == IMM2_PREFIX }
+#[inline]
+pub fn is_immediate2(val: Word) -> bool {
+  get_imm2_prefix(val) == IMM2_PREFIX
+}
+
+/// Given a value raw preset bits, compose them together and form an imm2 LTerm
+#[inline]
+pub fn combine_imm2_prefix_and_val(val: Word, prefix0: Word) -> Word {
+  let mut prefix = prefix0;
+  assert!(prefix < (1 << IMM2_VALUE_FIRST));
+  assert!(val < (1 << (IMM2_VALUE_LAST - IMM2_VALUE_FIRST)));
+  *prefix.set_bits(IMM2_VALUE_FIRST..IMM2_VALUE_LAST, val)
+}
