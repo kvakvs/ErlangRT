@@ -3,12 +3,19 @@
 //!
 use num;
 use num::ToPrimitive;
+use std::mem::transmute;
+use std::{usize, isize};
 
 pub type Word = usize;
 pub type SWord = isize;
 
 /// Replace with appropriate f32 or fixed/compact for embedded platform
 pub type Float = f64;
+
+// TODO: These are not necessarity Words, might be u16 or u32
+pub type Arity = Word;
+pub type ImportIndex = Word;
+pub type ExportIndex = Word;
 
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: Word = 32;
@@ -18,7 +25,10 @@ pub const WORD_BITS: Word = 64;
 
 /// Max value for a positive small integer packed into immediate2 low level
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
-pub const MAX_POS_SMALL: Word = 1 << (WORD_BITS - 4 - 1);
+pub const MAX_UNSIG_SMALL: Word = usize::MAX / 16;
+pub const MAX_SIG_SMALL: SWord = isize::MAX / 16;
+pub const MIN_SIG_SMALL: SWord = isize::MIN / 16;
+
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 32;
 
@@ -36,4 +46,8 @@ impl Integral {
     }
     Integral::BigInt(big)
   }
+}
+
+pub fn unsafe_sword_to_word(n: SWord) -> Word {
+  unsafe { transmute::<isize, usize> (n) }
 }

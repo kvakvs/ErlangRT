@@ -116,7 +116,8 @@ pub const IMM2_SPECIAL_NONVALUE_PREFIX: Word = IMM2_SPECIAL_PREFIX
 enum Immediate3 {
   XReg = 0,
   YReg = 1,
-  FPReg = 3,
+  FPReg = 2,
+  Label = 3,
 }
 
 const IMM3_SIZE: Word = 2;
@@ -132,12 +133,17 @@ pub const IMM3_PREFIX: Word = IMM2_PREFIX
     | ((Immediate2::Immed3 as Word) << IMM2_TAG_SHIFT);
 
 /// Bit prefix for X register value
-pub const IMM3_XREG_PREFIX: Word = IMM3_PREFIX
+const IMM3_XREG_PREFIX: Word = IMM3_PREFIX
     | ((Immediate3::XReg as Word) << IMM3_VALUE_SHIFT);
-pub const IMM3_YREG_PREFIX: Word = IMM3_PREFIX
+
+const IMM3_YREG_PREFIX: Word = IMM3_PREFIX
     | ((Immediate3::YReg as Word) << IMM3_VALUE_SHIFT);
-pub const IMM3_FPREG_PREFIX: Word = IMM3_PREFIX
+
+const IMM3_FPREG_PREFIX: Word = IMM3_PREFIX
     | ((Immediate3::FPReg as Word) << IMM3_VALUE_SHIFT);
+
+const IMM3_LABEL_PREFIX: Word = IMM3_PREFIX
+    | ((Immediate3::Label as Word) << IMM3_VALUE_SHIFT);
 
 //
 // Construction
@@ -212,6 +218,10 @@ pub fn make_fpreg_raw(x: Word) -> Word {
   create_imm3(x, IMM3_FPREG_PREFIX)
 }
 
+#[inline]
+pub fn make_label_raw(x: Word) -> Word {
+  create_imm3(x, IMM3_LABEL_PREFIX)
+}
 //
 // Checks
 //

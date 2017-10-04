@@ -60,7 +60,7 @@ impl FTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
   pub fn from_word(w: Word) -> FTerm {
-    if w < defs::MAX_POS_SMALL {
+    if w < defs::MAX_UNSIG_SMALL {
       return FTerm::SmallInt(w as SWord)
     }
     FTerm::BigInt(Box::new(BigInt::from_usize(w).unwrap()))
@@ -75,7 +75,7 @@ impl FTerm {
   }
 
   /// Parse self as Int_ (load-time integer) and return the contained value.
-  pub fn loadtime_int(&self) -> Word {
+  pub fn loadtime_word(&self) -> Word {
     match self {
       &FTerm::Int_(w) => w,
       _ => panic!("{}Expected load-time int, got {:?}", module(), self)
@@ -88,6 +88,10 @@ impl FTerm {
       &FTerm::X_(i) => LTerm::make_xreg(i),
       &FTerm::Y_(i) => LTerm::make_yreg(i),
       &FTerm::FP_(i) => LTerm::make_fpreg(i),
+      &FTerm::Label_(i) => LTerm::make_label(i),
+      &FTerm::SmallInt(i) => LTerm::make_small_i(i),
+      &FTerm::Int_(i) => LTerm::make_small_u(i),
+      &FTerm::Nil => LTerm::nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
     }
   }

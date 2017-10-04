@@ -13,9 +13,7 @@ use std::collections::BTreeMap;
 use std::mem;
 
 use beam::compact_term;
-use beam::instruction::Instr;
 use emulator::function;
-use emulator::mfa::Arity;
 use emulator::module;
 use emulator::vm::VM;
 use emulator::gen_op;
@@ -23,7 +21,7 @@ use rterror;
 use emulator::mfa;
 use term::friendly::FTerm;
 use term::low_level::LTerm;
-use defs::{Word, Integral};
+use defs::{Word, Integral, Arity};
 use util::bin_reader::BinaryReader;
 
 pub fn module() -> &'static str { "beam::loader: " }
@@ -76,7 +74,7 @@ pub struct Loader {
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
   vm_atoms: Vec<LTerm>,
-  vm_funs: BTreeMap<(LTerm, mfa::Arity), function::Ptr>,
+  vm_funs: BTreeMap<(LTerm, Arity), function::Ptr>,
 }
 
 impl Loader {
@@ -307,25 +305,73 @@ impl Loader {
 
     // Writing code unpacked to words here. Break at every new function_info.
     let mut fun = function::Function::new();
-    r.reset();
+
     while !r.eof() {
-      let opcode = r.read_u8();
-      if self.postprocess_instr(opcode, &fun, &mut r) {
-        // function finished, take it
-        self.commit_fun(fun);
-        fun = function::Function::new();
+      // Read the u8 opcode
+      let op = r.read_u8();
+
+      // Read `arity` args, and convert them to reasonable runtime values
+      let arity = gen_op::opcode_arity(op);
+      let mut args: Vec<FTerm> = Vec::new();
+      for _i in 0..arity {
+        let arg0 = compact_term::read(&mut r).unwrap();
+        // Atom_ args now can be converted to Atom (VM atoms)
+        let arg1 = self.maybe_resolve_atom_(arg0);
+        args.push(arg1);
+      }
+
+      println!("Opcode {} {:?}", op, args);
+
+      match op {
+        // add nothing for label, but record its location
+        x if x == gen_op::OPCODE::Label as u8 => {
+          if let FTerm::Int_(f) = args[0] {
+            // Store weak ptr to function and code offset to this label
+            let floc = LLabel {
+              fun: function::make_weak(&fun),
+              offset: fun.borrow().code.len(),
+            };
+            self.labels.insert(f, floc);
+          } else { panic_postprocess_instr(op, &args,0); }
+        },
+
+        // add nothing for line, but TODO: Record line contents
+        x if x == gen_op::OPCODE::Line as u8 => {},
+
+        x if x == gen_op::OPCODE::FuncInfo as u8 => {
+          // arg[0] mod name, arg[1] fun name, arg[2] arity
+          self.funarity = mfa::FunArity {
+            f: args[1].to_lterm(),
+            arity: args[2].loadtime_word() as Arity
+          };
+          // function finished, take it
+          self.commit_fun(fun.clone());
+          fun = function::Function::new();
+        },
+
+        _ => { // else
+          let code = &mut fun.borrow_mut().code;
+          code.push(op as Word);
+          for a in args {
+            code.push(a.to_lterm().raw());
+          }
+        }
       }
     }
     // final function finished also take it
     self.commit_fun(fun);
   }
 
+  /// Store the fun, which is probably completed loading, into the module
+  /// dictionary.
   fn commit_fun(&mut self, fun: function::Ptr) {
     let k = (self.funarity.f, self.funarity.arity);
     self.vm_funs.insert(k, fun);
     ()
   }
 
+  /// Given a load-time Friendly Atom, resolve it to a runtime atom index
+  /// using Loader state.
   fn maybe_resolve_atom_(&self, t: FTerm) -> FTerm {
     match t {
       // Repack load-time atom into a runtime atom
@@ -357,40 +403,72 @@ impl Loader {
     println!("Opcode {} {:?}", op, args);
     let code = &mut fun.borrow_mut().code;
 
-    match op {
-      // add nothing for label, but record its location
-      x if x == gen_op::OPCODE::Label as u8 => {
-        if let FTerm::Int_(f) = args[0] {
-          // Store weak ptr to function and code offset to this label
-          let floc = LLabel {
-            fun: function::make_weak(fun),
-            offset: code.len(),
-          };
-          self.labels.insert(f, floc);
-        } else { panic_postprocess_instr(op, &args,0); }
-      },
-
-      // add nothing for line, but TODO: Record line contents
-      x if x == gen_op::OPCODE::Line as u8 => {},
-
-      x if x == gen_op::OPCODE::FuncInfo as u8 => {
-        // arg[0] mod name, arg[1] fun name, arg[2] arity
-        self.funarity = mfa::FunArity {
-          f: args[1].to_lterm(),
-          arity: args[2].loadtime_int() as mfa::Arity
-        };
-        return true;
-      },
-
-      x if x == gen_op::OPCODE::Move as u8 => {
-        let arg_src = args[0].to_lterm();
-        let arg_dst = args[1].to_lterm();
-        let instr = Instr::Move { src: arg_src, dst: arg_dst };
-        code.push(instr);
-      }
-
-        _ => panic!("{}Opcode {} don't know how to create Instr", module(), op)
-    };
+//    match op {
+//      // add nothing for label, but record its location
+//      x if x == gen_op::OPCODE::Label as u8 => {
+//        if let FTerm::Int_(f) = args[0] {
+//          // Store weak ptr to function and code offset to this label
+//          let floc = LLabel {
+//            fun: function::make_weak(fun),
+//            offset: code.len(),
+//          };
+//          self.labels.insert(f, floc);
+//        } else { panic_postprocess_instr(op, &args,0); }
+//      },
+//
+//      // add nothing for line, but TODO: Record line contents
+//      x if x == gen_op::OPCODE::Line as u8 => {},
+//
+//      x if x == gen_op::OPCODE::FuncInfo as u8 => {
+//        // arg[0] mod name, arg[1] fun name, arg[2] arity
+//        self.funarity = mfa::FunArity {
+//          f: args[1].to_lterm(),
+//          arity: args[2].loadtime_word() as Arity
+//        };
+//        return true;
+//      },
+//
+//      x if x == gen_op::OPCODE::Move as u8 => {
+//        let arg_src = args[0].to_lterm();
+//        let arg_dst = args[1].to_lterm();
+//        code.push(Instr::Move {
+//          src: arg_src, dst: arg_dst
+//        });
+//      },
+//
+//      x if x == gen_op::OPCODE::CallExt as u8 => {
+//        let arg_arity = args[0].loadtime_word();
+//        let arg_import_i = args[1].loadtime_word();
+//        code.push(Instr::CallExt {
+//          arity: arg_arity, import: arg_import_i
+//        })
+//      },
+//
+//      x if x == gen_op::OPCODE::CallExtOnly as u8 => {
+//        let arg_arity = args[0].loadtime_word();
+//        let arg_import_i = args[1].loadtime_word();
+//        code.push(Instr::CallExtOnly {
+//          arity: arg_arity, import: arg_import_i
+//        })
+//      },
+//
+//      x if x == gen_op::OPCODE::IsNonemptyList as u8 => {
+//        let arg_fail = args[0].to_lterm();
+//        let arg_val = args[1].to_lterm();
+//        code.push(Instr::IsNonemptyList {
+//          fail: arg_fail, val: arg_val
+//        })
+//      },
+//
+//      x if x == gen_op::OPCODE::GetList as u8 => {
+//        let arg_src = args[0].to_lterm();
+//        let arg_hd = args[1].to_lterm();
+//        let arg_tl = args[2].to_lterm();
+//        code.push(Instr::GetList)
+//      },
+//
+//      _ => panic!("{}Opcode {} don't know how to create Instr", module(), op)
+//    };
     false
   }
 

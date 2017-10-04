@@ -1,6 +1,6 @@
 use emulator::mfa;
 use emulator::module;
-use beam::instruction::Instr;
+use defs::Word;
 
 use std::sync;
 use std::cell::RefCell;
@@ -12,9 +12,8 @@ pub type Weak = sync::Weak<RefCell<Function>>;
 /// early and separately from the module if the situation allows.
 pub struct Function {
   parent_mod: module::Weak,
-  name: mfa::FunArity,
-  // TODO: Use Word array and encode everything to Word/low_level::Term
-  pub code: Vec<Instr>,
+  //name: mfa::FunArity,
+  pub code: Vec<Word>,
 }
 
 impl Function {
@@ -22,7 +21,7 @@ impl Function {
     sync::Arc::new(RefCell::new(
       Function {
         parent_mod: sync::Weak::new(),
-        name: mfa::FunArity::new(),
+        //name: mfa::FunArity::new(),
         code: Vec::new(),
       }
     ))

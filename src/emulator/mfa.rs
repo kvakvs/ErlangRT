@@ -5,7 +5,7 @@ use term::low_level::LTerm;
 
 use std::cmp::Ordering;
 
-pub type Arity = u32;
+use defs::Arity;
 
 /// MFArgs or MFArity should be able to give us mod and fun whenever, so
 /// this trait is there to allow it.
