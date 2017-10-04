@@ -66,10 +66,10 @@ pub const IMM3_FPREG_PREFIX: Word = IMM3_PREFIX
 pub const IMM3_LABEL_PREFIX: Word = IMM3_PREFIX
     | ((Immediate3::Label as Word) << IMM3_TAG_FIRST);
 
-/// Cut away the value to be able to compare with raw prefixes
+/// Get prefix bits BEFORE imm3 tag
 #[inline]
 pub fn get_imm3_prefix(val: Word) -> Word {
-  val.get_bits(0..IMM3_TAG_LAST)
+  val.get_bits(0..IMM3_TAG_FIRST)
 }
 
 #[inline]

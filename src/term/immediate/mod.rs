@@ -98,15 +98,27 @@ mod tests {
     assert_eq!(get_imm2_tag(n), Immediate2::Immed3);
   }
 
-  #[test]
-  fn test_imm3_new() {
-    let label = 0b1000000;
-    let n = make_label_raw(label);
+  fn test_imm3(check_val: Word) {
+    let n = make_label_raw(check_val);
     assert_eq!(primary::get(n), primary::Tag::Immediate);
     assert_eq!(get_imm1_tag(n), Immediate1::Immed2);
     assert_eq!(get_imm2_tag(n), Immediate2::Immed3);
     assert_eq!(get_imm3_tag(n), Immediate3::Label);
     assert_eq!(get_imm3_prefix(n), IMM3_PREFIX);
-    assert_eq!(imm3_value(n), label);
+    assert_eq!(imm3_value(n), check_val);
+  }
+
+  #[test]
+  fn test_imm3_new() {
+    test_imm3(0usize);
+    test_imm3(0b1000000usize);
+
+    // imm3 with all other tags consumes 8 bits, so try some special values
+    // For 32-bit system, try a 24-bit value to see that the bits are not eaten
+    test_imm3(0x100002usize);
+    if cfg!(target_pointer_width = "64") {
+      // Try a 56 bit value
+      test_imm3(0x10000000000002usize);
+    }
   }
 }

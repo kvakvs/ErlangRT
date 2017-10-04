@@ -8,6 +8,7 @@
 use term::primary;
 use defs;
 use defs::Word;
+use term::immediate::primary::PRIM_TAG_LAST;
 
 use std::mem::transmute;
 use bit_field::BitField;
@@ -47,10 +48,10 @@ pub fn is_immediate1(val: Word) -> bool {
   get_imm1_prefix(val) == IMM1_PREFIX
 }
 
-/// Cut away the value to be able to compare with raw prefixes
+/// Get prefix bits BEFORE imm1 tag
 #[inline(always)]
 pub fn get_imm1_prefix(val: Word) -> Word {
-  val.get_bits(0..IMM1_TAG_LAST)
+  val.get_bits(0..PRIM_TAG_LAST)
 }
 
 /// Trim the immediate1 bits and return them as an convenient enum.

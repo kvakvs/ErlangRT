@@ -70,16 +70,16 @@ pub const IMM2_SPECIAL_PREFIX: Word = IMM1_PREFIX
 
 /// Precomposed bits for NIL constant
 pub const IMM2_SPECIAL_NIL_RAW: Word = IMM2_SPECIAL_PREFIX
-    | ((Immediate2Special::Nil as Word) << IMM2_TAG_FIRST);
+    | ((Immediate2Special::Nil as Word) << IMM2_VALUE_FIRST);
 
 /// Precomposed bits for NON_VALUE constant
 pub const IMM2_SPECIAL_NONVALUE_RAW: Word = IMM2_SPECIAL_PREFIX
-    | ((Immediate2Special::NonValue as Word) << IMM2_TAG_FIRST);
+    | ((Immediate2Special::NonValue as Word) << IMM2_VALUE_FIRST);
 
-/// Cut away the value to be able to compare with raw prefixes
+/// Get prefix bits BEFORE imm2 tag
 #[inline]
 pub fn get_imm2_prefix(val: Word) -> Word {
-  val.get_bits(0..IMM2_TAG_LAST)
+  val.get_bits(0..IMM2_TAG_FIRST)
 }
 
 #[inline]
