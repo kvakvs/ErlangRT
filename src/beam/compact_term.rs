@@ -194,7 +194,7 @@ fn parse_ext_list(r: &mut BinaryReader)
     el.push(value);
   }
 
-  let t = friendly::FTerm::Tuple(el);
+  let t = friendly::FTerm::ExtList_(el);
   return Ok(t)
 }
 

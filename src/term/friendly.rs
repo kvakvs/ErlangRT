@@ -53,6 +53,8 @@ pub enum FTerm {
   Int_(Word),
   /// A load-time index in literal heap
   Lit_(Word),
+  /// A list of value/label pairs, a jump table
+  ExtList_(Vec<FTerm>),
   AllocList_,
 }
 
@@ -82,6 +84,8 @@ impl FTerm {
     }
   }
 
+  /// Convert a high level (friendly) term to a compact low-level term.
+  /// Some terms cannot be converted, consider checking `to_lterm_vec()`
   pub fn to_lterm(&self) -> LTerm {
     match self {
       &FTerm::Atom(i) => LTerm::make_atom(i),
@@ -95,4 +99,20 @@ impl FTerm {
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
     }
   }
+
+  /// Converts a few special friendly terms, which hold longer structures into
+  /// an array of Words (raw values of low_level LTerms).
+  pub fn to_lterm_vec(&self) -> Vec<LTerm> {
+    match self {
+      &FTerm::ExtList_(ref v) => {
+        let mut result: Vec<LTerm> = Vec::with_capacity(v.len());
+        for x in v {
+          result.push(x.to_lterm())
+        };
+        result
+      },
+      _ => panic!("{}Don't know how to convert {:?} to LTerm[]", module(), self)
+    }
+  }
+
 }

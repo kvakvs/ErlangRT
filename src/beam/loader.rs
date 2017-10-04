@@ -297,12 +297,6 @@ impl Loader {
     mem::swap(&mut self.raw_code, &mut raw_code);
     let mut r = BinaryReader::from_bytes(raw_code);
 
-//    // TO DO: With raw Word opcodes and args, can avoid parsing the code twice
-//    while !r.eof() {
-//      let opcode = r.read_u8();
-//      self.preprocess_instr(opcode);
-//    }
-
     // Writing code unpacked to words here. Break at every new function_info.
     let mut fun = function::Function::new();
 
@@ -353,7 +347,13 @@ impl Loader {
           let code = &mut fun.borrow_mut().code;
           code.push(op as Word);
           for a in args {
-            code.push(a.to_lterm().raw());
+            if let FTerm::ExtList_(ref jtab) = a {
+              for tmp in a.to_lterm_vec() {
+                code.push(tmp.raw());
+              }
+            } else {
+              code.push(a.to_lterm().raw());
+            }
           }
         }
       }
@@ -380,131 +380,7 @@ impl Loader {
     }
   }
 
-  /// Given opcode and reader, read args for this opcode, create Instr enum
-  /// and push it into the `outp`.
-  ///
-  /// Returns: True if new function starts now (func_info opcode). At this point
-  /// self.funarity will be set and the caller is responsible to store the
-  /// function and begin a new one.
-  #[cfg(feature="friendly_instructions")]
-  fn postprocess_instr(&mut self, op: u8, fun: &function::Ptr,
-                       r: &mut BinaryReader) -> bool
-  {
-    // Read `arity` args
-    let arity = gen_op::opcode_arity(op);
-    let mut args: Vec<FTerm> = Vec::new();
-    for _i in 0..arity {
-      let arg0 = compact_term::read(r).unwrap();
-      // Atom_ args now can be converted to Atom (VM atoms)
-      let arg1 = self.maybe_resolve_atom_(arg0);
-      args.push(arg1);
-    }
-
-    println!("Opcode {} {:?}", op, args);
-    let code = &mut fun.borrow_mut().code;
-
-//    match op {
-//      // add nothing for label, but record its location
-//      x if x == gen_op::OPCODE::Label as u8 => {
-//        if let FTerm::Int_(f) = args[0] {
-//          // Store weak ptr to function and code offset to this label
-//          let floc = LLabel {
-//            fun: function::make_weak(fun),
-//            offset: code.len(),
-//          };
-//          self.labels.insert(f, floc);
-//        } else { panic_postprocess_instr(op, &args,0); }
-//      },
-//
-//      // add nothing for line, but TODO: Record line contents
-//      x if x == gen_op::OPCODE::Line as u8 => {},
-//
-//      x if x == gen_op::OPCODE::FuncInfo as u8 => {
-//        // arg[0] mod name, arg[1] fun name, arg[2] arity
-//        self.funarity = mfa::FunArity {
-//          f: args[1].to_lterm(),
-//          arity: args[2].loadtime_word() as Arity
-//        };
-//        return true;
-//      },
-//
-//      x if x == gen_op::OPCODE::Move as u8 => {
-//        let arg_src = args[0].to_lterm();
-//        let arg_dst = args[1].to_lterm();
-//        code.push(Instr::Move {
-//          src: arg_src, dst: arg_dst
-//        });
-//      },
-//
-//      x if x == gen_op::OPCODE::CallExt as u8 => {
-//        let arg_arity = args[0].loadtime_word();
-//        let arg_import_i = args[1].loadtime_word();
-//        code.push(Instr::CallExt {
-//          arity: arg_arity, import: arg_import_i
-//        })
-//      },
-//
-//      x if x == gen_op::OPCODE::CallExtOnly as u8 => {
-//        let arg_arity = args[0].loadtime_word();
-//        let arg_import_i = args[1].loadtime_word();
-//        code.push(Instr::CallExtOnly {
-//          arity: arg_arity, import: arg_import_i
-//        })
-//      },
-//
-//      x if x == gen_op::OPCODE::IsNonemptyList as u8 => {
-//        let arg_fail = args[0].to_lterm();
-//        let arg_val = args[1].to_lterm();
-//        code.push(Instr::IsNonemptyList {
-//          fail: arg_fail, val: arg_val
-//        })
-//      },
-//
-//      x if x == gen_op::OPCODE::GetList as u8 => {
-//        let arg_src = args[0].to_lterm();
-//        let arg_hd = args[1].to_lterm();
-//        let arg_tl = args[2].to_lterm();
-//        code.push(Instr::GetList)
-//      },
-//
-//      _ => panic!("{}Opcode {} don't know how to create Instr", module(), op)
-//    };
-    false
-  }
-
-//  /// Given some simple friendly::Term produce an Instr enum with terms as args.
-//  #[cfg(not(feature="friendly_instructions"))]
-//  fn postprocess_instr(&mut self, op: u8, fun: &function::Ptr,
-//                       r: &mut BinaryReader) {
-//    // TO DO: can store 3-7 bytes of good stuff in the same word!
-//    fun.code.push(op as Word);
-//    print!("op[{}] '{}' ", opcode, gen_op::opcode_name(opcode));
-//
-//    let arity = gen_op::opcode_arity(opcode);
-//    for _i in 0..arity {
-//      let arg = compact_term::read(&mut r).unwrap();
-//      // TO DO: Can possibly pack x/y/fp regs into the first opcode word
-//      print!("{:?} ", &arg);
-//      fun.code.push(self.postprocess_arg(arg));
-//    }
-//    println!()
-//  }
-
-
-//  /// Given a friendly::Term produce an encoded compact Word to be
-//  /// stored as an opcode argument. Args are also encoded to the following
-//  /// words.
-//  #[cfg(not(feature="friendly_instructions"))]
-//  fn postprocess_arg(&self, arg: friendly::Term) -> Word {
-//    match arg {
-//      friendly::Term::Int_(i) => low_level::Term::make_small(i).raw(),
-//      friendly::Term::Nil => low_level::Term::nil().raw(),
-//      friendly::Term::Atom_(a) => self.vm_atoms[a].raw(),
-//      friendly::Term::X_(x) => low_level::Term::make_xreg(x).raw(),
-//      _ => panic!("{}Don't know how to represent {:?} as a Word", module(), arg)
-//    }
-//  }
-}
+} // impl
 
 fn panic_postprocess_instr(op: u8, args: &Vec<FTerm>, argi: Word) {
   panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
