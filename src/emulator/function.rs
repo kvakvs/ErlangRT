@@ -1,6 +1,8 @@
-use emulator::funarity::FunArity;
-use emulator::module;
 use defs::Word;
+use emulator::funarity::FunArity;
+use emulator::gen_op;
+use emulator::module;
+use term::low_level::LTerm;
 
 use std::sync;
 use std::cell::RefCell;
@@ -25,6 +27,26 @@ impl Function {
         code: Vec::new(),
       }
     ))
+  }
+
+  /// Print to screen disassembly of the current function
+  #[cfg(feature="dev_build")]
+  pub fn disasm(&self) {
+    let mut i = 0;
+    while i < self.code.len() {
+      let op = self.code[i];
+      assert!(op < 256);
+      print!("{} ", gen_op::opcode_name(op as u8));
+      i += 1;
+
+      let arity = gen_op::opcode_arity(op as u8) as Word;
+      for j in 0..arity {
+        print!("{} ", LTerm::from_raw(self.code[i + j]))
+      }
+
+      i += arity;
+      println!();
+    }
   }
 }
 

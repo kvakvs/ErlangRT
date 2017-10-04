@@ -23,11 +23,12 @@ const IMM1_SIZE: Word = 2;
 /// A mask to apply to a value shifted right by IMM1_TAG_SHIFT to get imm1 tag
 const IMM1_TAG_MASK: Word = (1 << IMM1_SIZE) - 1;
 /// How much to shift tag to place it into Immediate1 tag bits
-const IMM1_TAG_SHIFT: Word = primary::SIZE;
+const IMM1_TAG_SHIFT: Word = primary::PRIM_TAG_BITS;
 /// How much to shift a value to place it after Immediate2 tag
 const IMM1_VALUE_SHIFT: Word = IMM1_TAG_SHIFT + IMM1_SIZE;
 const IMM1_MASK: Word = (1 << IMM1_VALUE_SHIFT) - 1;
 
+#[repr(u8)]
 pub enum Immediate1 {
   Pid = 0,
   Port = 1,
@@ -54,13 +55,14 @@ const IMM1_PREFIX: Word = primary::Tag::Immediate as Word;
 
 /// Precomposed bits for pid imm1
 const IMM1_PID_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Pid as Word) << primary::SIZE);
+    | ((Immediate1::Pid as Word) << primary::PRIM_TAG_BITS);
 
 const IMM1_SMALL_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Small as Word) << primary::SIZE);
+    | ((Immediate1::Small as Word) << primary::PRIM_TAG_BITS);
 
 //--- Immediate 2 precomposed values ---
 
+#[repr(u8)]
 pub enum Immediate2 {
   Atom = 0,
   Catch = 1,
@@ -70,6 +72,7 @@ pub enum Immediate2 {
   Immed3 = 3,
 }
 
+#[repr(u8)]
 enum Immediate2Special {
   Nil = 1,
   NonValue = 2,
@@ -100,7 +103,7 @@ pub fn get_imm2_tag(val: Word) -> Immediate2 {
 
 /// Precomposed bits for immediate2 values
 const IMM2_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Immed2 as Word) << primary::SIZE);
+    | ((Immediate1::Immed2 as Word) << primary::PRIM_TAG_BITS);
 
 /// Precomposed bits for atom imm2
 pub const IMM2_ATOM_PREFIX: Word = IMM2_PREFIX
@@ -121,8 +124,10 @@ pub const IMM2_SPECIAL_NONVALUE_PREFIX: Word = IMM2_SPECIAL_PREFIX
     | ((Immediate2Special::NonValue as Word) << IMM2_VALUE_SHIFT);
 
 //--- Immediate 3 precomposed values ---
+// Special smaller values used in code representation
 // Bit composition is - .... .... ccbb aaPP
 
+#[repr(u8)]
 enum Immediate3 {
   XReg = 0,
   YReg = 1,
@@ -179,7 +184,7 @@ fn create_imm1(val: Word, raw_preset: Word) -> Word {
 #[inline]
 pub fn imm1_value(val: Word) -> Word {
   assert!(primary::is_primary_tag(val, primary::Tag::Immediate));
-  assert!(is_immediate1(val));
+  //assert!(is_immediate1(val));
   val >> IMM1_VALUE_SHIFT
 }
 

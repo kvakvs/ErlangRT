@@ -9,24 +9,8 @@ use std::mem;
 use num::bigint;
 use num::ToPrimitive;
 
-// / Enum type represents a compacted simplified term format used in BEAM files,
-// / must be converted to real term during the module loading phase
-//#[derive(Debug, PartialEq)]
-//pub enum CompactTerm {
-//  Literal(Word),
-//  Integer(Integral),
-//  Atom(Word),
-//  XReg(Word),
-//  YReg(Word),
-//  Label(Word),
-//  Character(Word),
-//  Float(defs::Float),
-//  List(friendly::FTerm),
-//  FPReg(Word),
-//  AllocList,
-//  ExtLiteral,
-//}
 
+#[repr(u8)]
 enum CTETag {
   LiteralInt = 0b000,
   Integer = 0b001,
@@ -39,6 +23,7 @@ enum CTETag {
 }
 
 #[cfg(feature="r19")]
+#[repr(u8)]
 enum CTEExtTag {
   Float = 0b00010111,
   List = 0b00100111,
@@ -49,6 +34,7 @@ enum CTEExtTag {
 
 // In OTP20 the Float Ext tag is gone and Lists are taking the first value
 #[cfg(feature="r20")]
+#[repr(u8)]
 enum CTEExtTag {
   List = 0b00010111,
   FloatReg = 0b00100111,

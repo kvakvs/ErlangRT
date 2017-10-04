@@ -174,7 +174,8 @@ impl Loader {
     let newmod = module::Module::new(mod_name);
     for (_k, f) in self.vm_funs.iter() {
       let fun = f.borrow();
-      println!("{} {:?}", fun.funarity, fun.code);
+      println!("------ Function {} ------", fun.funarity);
+      fun.disasm();
     }
     Ok(newmod)
   }

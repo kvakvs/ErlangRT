@@ -63,7 +63,7 @@ impl LTerm {
 
   pub fn atom_index(&self) -> Word { immediate::imm2_value(self.value) }
 
-  // Get primary tag bits from a raw term
+  /// Get primary tag bits from a raw term
   #[inline]
   pub fn primary_tag(&self) -> primary::Tag {
     primary::from_word(self.value)
@@ -98,7 +98,7 @@ impl LTerm {
 
   /// Any raw word becomes a term, possibly invalid
   #[inline]
-  pub fn make_from_raw(w: Word) -> LTerm {
+  pub fn from_raw(w: Word) -> LTerm {
     LTerm { value: w }
   }
 

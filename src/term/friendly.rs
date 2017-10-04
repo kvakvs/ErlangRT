@@ -15,6 +15,7 @@ fn module() -> &'static str { "term::friendly: " }
 
 /// A friendly Rust-enum representing Erlang term both runtime and load-time
 /// values. Make sure to crash nicely when runtime mixes with load-time.
+#[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum FTerm {
   /// Runtime atom index in the VM atom table
