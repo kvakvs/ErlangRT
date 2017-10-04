@@ -4,13 +4,14 @@
 //!
 use term::immediate;
 use term::immediate::{IMM2_SPECIAL_NIL_PREFIX, IMM2_SPECIAL_NONVALUE_PREFIX};
-use term::primary_tag;
+use term::primary;
 
 use defs;
 use defs::{Word, SWord, MAX_UNSIG_SMALL, MIN_SIG_SMALL, MAX_SIG_SMALL};
 //type Word = defs::Word;
 
 use std::cmp::Ordering;
+use std::fmt;
 
 
 /// A low-level term, packed conveniently in a Word, or containing a
@@ -64,28 +65,28 @@ impl LTerm {
 
   // Get primary tag bits from a raw term
   #[inline]
-  pub fn primary_tag(&self) -> primary_tag::Tag {
-    primary_tag::from_word(self.value)
+  pub fn primary_tag(&self) -> primary::Tag {
+    primary::from_word(self.value)
   }
 
   #[inline]
   pub fn is_imm(&self) -> bool {
-    self.primary_tag() == primary_tag::Tag::Immediate
+    self.primary_tag() == primary::Tag::Immediate
   }
 
   #[inline]
   pub fn is_box(&self) -> bool {
-    self.primary_tag() == primary_tag::Tag::Box
+    self.primary_tag() == primary::Tag::Box
   }
 
   #[inline]
   pub fn is_cons(&self) -> bool {
-    self.primary_tag() == primary_tag::Tag::Cons
+    self.primary_tag() == primary::Tag::Cons
   }
 
   #[inline]
   pub fn is_header(&self) -> bool {
-    self.primary_tag() == primary_tag::Tag::Header
+    self.primary_tag() == primary::Tag::Header
   }
 
   #[inline]
@@ -107,20 +108,6 @@ impl LTerm {
 
     LTerm { value: immediate::make_atom_raw(index)
     }
-  }
-
-  #[inline]
-  pub fn make_small_u(n: Word) -> LTerm {
-    assert!(n < MAX_UNSIG_SMALL);
-    LTerm { value: immediate::make_small_raw(n) }
-  }
-
-  #[inline]
-  pub fn make_small_i(n: SWord) -> LTerm {
-    // TODO: Do the proper min neg small
-    assert!(n < MAX_SIG_SMALL && n > MIN_SIG_SMALL);
-    let un = defs::unsafe_sword_to_word(n);
-    LTerm { value: immediate::make_small_raw(un) }
   }
 
   /// From internal process index create a pid. To create a process use vm::create_process
@@ -147,5 +134,65 @@ impl LTerm {
   #[inline]
   pub fn make_label(n: Word) -> LTerm {
     LTerm { value: immediate::make_label_raw(n) }
+  }
+
+  //
+  // Box services - boxing, unboxing, checking
+  //
+
+  #[inline]
+  pub fn box_ptr(&self) -> *const Word {
+    primary::pointer(self.value)
+  }
+
+  //
+  // Small integer handling
+  //
+  #[inline]
+  pub fn make_small_u(n: Word) -> LTerm {
+    assert!(n < MAX_UNSIG_SMALL);
+    LTerm { value: immediate::make_small_raw(n) }
+  }
+
+  #[inline]
+  pub fn make_small_i(n: SWord) -> LTerm {
+    // TODO: Do the proper min neg small
+    assert!(n < MAX_SIG_SMALL && n > MIN_SIG_SMALL);
+    let un = defs::unsafe_sword_to_word(n);
+    LTerm { value: immediate::make_small_raw(un) }
+  }
+
+  #[inline]
+  pub fn small_get(&self) -> SWord {
+    let n = immediate::imm1_value(self.value);
+    return defs::unsafe_word_to_sword(n);
+  }
+}
+
+// Printing low_level Terms as "{}"
+impl fmt::Display for LTerm {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let v = self.value;
+
+    match primary::primary_tag(v) {
+      primary::Tag::Box => write!(f, "Box({:?})", self.box_ptr()),
+
+      primary::Tag::Cons => write!(f, "Cons({})", v),
+
+      primary::Tag::Immediate =>
+        match immediate::get_imm1_tag(v) {
+          immediate::Immediate1::Small => write!(f, "{}", self.small_get()),
+
+          immediate::Immediate1::Immed2 =>
+            match immediate::get_imm2_tag(v) {
+              immediate::Immediate2::Atom =>
+                write!(f, "Atom({})", self.atom_index()),
+              _ => write!(f, "Imm2({})", self.value),
+            },
+
+          _ => write!(f, "Imm1({})", self.value),
+        },
+      primary::Tag::Header => write!(f, "Header({})", v),
+    }
   }
 }

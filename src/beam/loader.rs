@@ -18,7 +18,7 @@ use emulator::module;
 use emulator::vm::VM;
 use emulator::gen_op;
 use rterror;
-use emulator::mfa;
+use emulator::funarity::FunArity;
 use term::friendly::FTerm;
 use term::low_level::LTerm;
 use defs::{Word, Integral, Arity};
@@ -69,7 +69,7 @@ pub struct Loader {
   /// Labels are stored here while loading, for later resolve
   labels: BTreeMap<Word, LLabel>,
   /// For postprocessing: Current function/arity from func_info opcode
-  funarity: mfa::FunArity,
+  funarity: FunArity,
 
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
@@ -89,7 +89,7 @@ impl Loader {
       raw_code: Vec::new(),
 
       labels: BTreeMap::new(),
-      funarity: mfa::FunArity::new(),
+      funarity: FunArity::new(),
 
       vm_atoms: Vec::new(),
       vm_funs: BTreeMap::new(),
@@ -172,6 +172,10 @@ impl Loader {
   pub fn load_finalize(&mut self) -> Result<module::Ptr, rterror::Error> {
     let mod_name = self.vm_atoms[0];
     let newmod = module::Module::new(mod_name);
+    for (_k, f) in self.vm_funs.iter() {
+      let fun = f.borrow();
+      println!("{} {:?}", fun.funarity, fun.code);
+    }
     Ok(newmod)
   }
 
@@ -337,7 +341,7 @@ impl Loader {
 
         x if x == gen_op::OPCODE::FuncInfo as u8 => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
-          self.funarity = mfa::FunArity {
+          self.funarity = FunArity {
             f: args[1].to_lterm(),
             arity: args[2].loadtime_word() as Arity
           };
@@ -368,6 +372,7 @@ impl Loader {
   /// Store the fun, which is probably completed loading, into the module
   /// dictionary.
   fn commit_fun(&mut self, fun: function::Ptr) {
+    fun.borrow_mut().funarity = self.funarity.clone();
     let k = (self.funarity.f, self.funarity.arity);
     self.vm_funs.insert(k, fun);
     ()

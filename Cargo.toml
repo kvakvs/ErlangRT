@@ -4,8 +4,10 @@ version = "0.1.0"
 authors = ["Dmytro Lytovchenko"]
 
 [features]
-default = ["r20"]
+default = ["r20", "dev_build"]
 r20 = []
+# Enabling dev build adds functions to print internal structures
+dev_build = []
 
 [dependencies]
 bytes = "0.4.5"

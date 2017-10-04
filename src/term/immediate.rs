@@ -9,7 +9,7 @@
 //! To use `Immediate2` bits set "aa" to `Immediate1::Immed2` and set "bb" to the
 //!    desired value from `Immediate2` enum.
 //!
-use term::primary_tag;
+use term::primary;
 use defs;
 use defs::Word;
 
@@ -23,12 +23,12 @@ const IMM1_SIZE: Word = 2;
 /// A mask to apply to a value shifted right by IMM1_TAG_SHIFT to get imm1 tag
 const IMM1_TAG_MASK: Word = (1 << IMM1_SIZE) - 1;
 /// How much to shift tag to place it into Immediate1 tag bits
-const IMM1_TAG_SHIFT: Word = primary_tag::SIZE;
+const IMM1_TAG_SHIFT: Word = primary::SIZE;
 /// How much to shift a value to place it after Immediate2 tag
 const IMM1_VALUE_SHIFT: Word = IMM1_TAG_SHIFT + IMM1_SIZE;
 const IMM1_MASK: Word = (1 << IMM1_VALUE_SHIFT) - 1;
 
-enum Immediate1 {
+pub enum Immediate1 {
   Pid = 0,
   Port = 1,
   Small = 2,
@@ -41,25 +41,27 @@ fn get_imm1_prefix(val: Word) -> Word {
   val & IMM1_MASK
 }
 
-//#[inline]
-//fn get_imm1_tag(val: Word) -> Immediate1 {
-//  let t: Word = (val >> IMM1_TAG_SHIFT) & IMM1_TAG_MASK;
-//  unsafe { transmute::<Word, Immediate1>(t) }
-//}
+/// Trim the immediate1 bits and return them as an convenient enum.
+#[inline]
+pub fn get_imm1_tag(val: Word) -> Immediate1 {
+  let t: Word = (val >> IMM1_TAG_SHIFT) & IMM1_TAG_MASK;
+  assert!(t < 4);
+  unsafe { transmute(t as u8) }
+}
 
 /// Special Primary tag+Immed1 precomposed
-const IMM1_PREFIX: Word = primary_tag::Tag::Immediate as Word;
+const IMM1_PREFIX: Word = primary::Tag::Immediate as Word;
 
 /// Precomposed bits for pid imm1
 const IMM1_PID_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Pid as Word) << primary_tag::SIZE);
+    | ((Immediate1::Pid as Word) << primary::SIZE);
 
 const IMM1_SMALL_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Small as Word) << primary_tag::SIZE);
+    | ((Immediate1::Small as Word) << primary::SIZE);
 
 //--- Immediate 2 precomposed values ---
 
-enum Immediate2 {
+pub enum Immediate2 {
   Atom = 0,
   Catch = 1,
   /// Special includes unique values like NIL, NONVALUE
@@ -88,9 +90,17 @@ fn get_imm2_prefix(val: Word) -> Word {
   val & IMM2_MASK
 }
 
+/// Trim to have only immediate2 bits and return them as an convenient enum.
+#[inline]
+pub fn get_imm2_tag(val: Word) -> Immediate2 {
+  let t: Word = (val >> IMM2_TAG_SHIFT) & IMM2_TAG_MASK;
+  assert!(t < 4);
+  unsafe { transmute(t as u8) }
+}
+
 /// Precomposed bits for immediate2 values
 const IMM2_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Immed2 as Word) << primary_tag::SIZE);
+    | ((Immediate1::Immed2 as Word) << primary::SIZE);
 
 /// Precomposed bits for atom imm2
 pub const IMM2_ATOM_PREFIX: Word = IMM2_PREFIX
@@ -167,8 +177,16 @@ fn create_imm1(val: Word, raw_preset: Word) -> Word {
 
 /// Remove tag bits from imm2 value by shifting it right
 #[inline]
+pub fn imm1_value(val: Word) -> Word {
+  assert!(primary::is_primary_tag(val, primary::Tag::Immediate));
+  assert!(is_immediate1(val));
+  val >> IMM1_VALUE_SHIFT
+}
+
+/// Remove tag bits from imm2 value by shifting it right
+#[inline]
 pub fn imm2_value(val: Word) -> Word {
-  assert!(primary_tag::is_primary_tag(val, primary_tag::Tag::Immediate));
+  assert!(primary::is_primary_tag(val, primary::Tag::Immediate));
   assert!(is_immediate2(val));
   val >> IMM2_VALUE_SHIFT
 }

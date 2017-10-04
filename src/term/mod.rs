@@ -5,4 +5,4 @@
 pub mod immediate;
 pub mod friendly;
 pub mod low_level;
-pub mod primary_tag;
+pub mod primary;

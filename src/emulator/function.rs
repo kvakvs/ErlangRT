@@ -1,4 +1,4 @@
-use emulator::mfa;
+use emulator::funarity::FunArity;
 use emulator::module;
 use defs::Word;
 
@@ -11,8 +11,8 @@ pub type Weak = sync::Weak<RefCell<Function>>;
 /// Represents a function and its bytecode. Is refcounted and can be freed
 /// early and separately from the module if the situation allows.
 pub struct Function {
-  parent_mod: module::Weak,
-  //name: mfa::FunArity,
+  pub parent_mod: module::Weak,
+  pub funarity: FunArity,
   pub code: Vec<Word>,
 }
 
@@ -21,7 +21,7 @@ impl Function {
     sync::Arc::new(RefCell::new(
       Function {
         parent_mod: sync::Weak::new(),
-        //name: mfa::FunArity::new(),
+        funarity: FunArity::new(),
         code: Vec::new(),
       }
     ))

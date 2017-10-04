@@ -4,7 +4,7 @@ use std::sync;
 use std::collections::BTreeMap;
 
 use emulator::function;
-use emulator::mfa;
+use emulator::funarity::FunArity;
 use term::low_level::LTerm;
 
 pub type Ptr = sync::Arc<Module>;
@@ -15,7 +15,7 @@ pub type Weak = sync::Weak<Module>;
 pub struct Module {
   name: LTerm,
   /// Map to refcounted functions
-  code: BTreeMap<mfa::FunArity, function::Ptr>,
+  code: BTreeMap<FunArity, function::Ptr>,
   // TODO: attrs
   // TODO: lit table
 }

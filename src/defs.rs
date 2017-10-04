@@ -51,3 +51,7 @@ impl Integral {
 pub fn unsafe_sword_to_word(n: SWord) -> Word {
   unsafe { transmute::<isize, usize> (n) }
 }
+
+pub fn unsafe_word_to_sword(n: Word) -> SWord {
+  unsafe { transmute::<usize, isize> (n) }
+}
