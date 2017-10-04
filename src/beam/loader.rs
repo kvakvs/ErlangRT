@@ -14,7 +14,7 @@ use std::mem;
 
 use beam::compact_term;
 use beam::gen_op;
-use defs::{Word, Integral, Arity};
+use defs::{Word, Arity};
 use emulator::funarity::FunArity;
 use emulator::function;
 use emulator::module;
@@ -74,7 +74,7 @@ pub struct Loader {
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
   vm_atoms: Vec<LTerm>,
-  vm_funs: BTreeMap<(LTerm, Arity), function::Ptr>,
+  vm_funs: BTreeMap<FunArity, function::Ptr>,
 }
 
 impl Loader {
@@ -109,13 +109,13 @@ impl Loader {
     let hdr1 = Bytes::from(&b"FOR1"[..]);
     r.ensure_bytes(&hdr1)?;
 
-    let beam_sz = r.read_u32be();
+    let _beam_sz = r.read_u32be();
 
     // Check BEAM signature
     let hdr2 = Bytes::from(&b"BEAM"[..]);
     r.ensure_bytes(&hdr2)?;
 
-    while true {
+    loop {
       // EOF may strike here when we finished reading
       let chunk_h = match r.read_str_latin1(4) {
         Ok(s) => s,
@@ -172,15 +172,29 @@ impl Loader {
   pub fn load_finalize(&mut self) -> Result<module::Ptr, rterror::Error> {
     let mod_name = self.vm_atoms[0];
     let newmod = module::Module::new(mod_name);
-    for (_k, f) in self.vm_funs.iter() {
-      let fun = f.borrow();
-//      println!("------ Function {} ------", fun.funarity);
-      fun.disasm();
+
+    self.print_funs();
+
+    // Move funs into new module
+    {
+      let mut mod1 = newmod.borrow_mut();
+      mem::swap(&mut self.vm_funs, &mut mod1.funs);
     }
+
     Ok(newmod)
   }
 
   //============================================================================
+
+  // Print disassembly of loaded functions
+  #[cfg(feature="dev_build")]
+  fn print_funs(&self) {
+    for (_k, f) in self.vm_funs.iter() {
+      let fun = f.borrow();
+      println!("------ Function {} ------", fun.funarity);
+      fun.disasm();
+    }
+  }
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -200,7 +214,7 @@ impl Loader {
   fn load_atoms_latin1(&mut self, r: &mut BinaryReader) {
     let n_atoms = r.read_u32be();
     self.raw_atoms.reserve(n_atoms as usize);
-    for i in 0..n_atoms {
+    for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_latin1(atom_bytes as Word).unwrap();
       self.raw_atoms.push(atom_text);
@@ -209,11 +223,11 @@ impl Loader {
 
   /// Load the `Code` section
   fn load_code(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
-    let code_ver = r.read_u32be();
-    let min_opcode = r.read_u32be();
-    let max_opcode = r.read_u32be();
-    let n_labels = r.read_u32be();
-    let n_funs = r.read_u32be();
+    let _code_ver = r.read_u32be();
+    let _min_opcode = r.read_u32be();
+    let _max_opcode = r.read_u32be();
+    let _n_labels = r.read_u32be();
+    let _n_funs = r.read_u32be();
 //    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
 //      code_ver, min_opcode, max_opcode, n_labels, n_funs);
 
@@ -269,19 +283,19 @@ impl Loader {
   }
 
   fn load_line_info(&mut self, r: &mut BinaryReader) {
-    let version = r.read_u32be(); // must match emulator version 0
-    let flags = r.read_u32be();
-    let n_line_instr = r.read_u32be();
+    let _version = r.read_u32be(); // must match emulator version 0
+    let _flags = r.read_u32be();
+    let _n_line_instr = r.read_u32be();
     let n_line_refs = r.read_u32be();
     let n_filenames = r.read_u32be();
-    let mut fname_index = 0u32;
+    let mut _fname_index = 0u32;
 
     for _i in 0..n_line_refs {
       match compact_term::read(r).unwrap() {
-        FTerm::SmallInt(w) => {
-          // self.linerefs.push((fname_index, w));
+        FTerm::SmallInt(_w) => {
+          // self.linerefs.push((_fname_index, w));
         },
-        FTerm::Atom(a) => fname_index = a as u32,
+        FTerm::Atom(a) => _fname_index = a as u32,
         other => panic!("{}Unexpected data in line info section: {:?}",
                         module(), other)
       }
@@ -289,7 +303,7 @@ impl Loader {
 
     for _i in 0..n_filenames {
       let name_size = r.read_u16be();
-      let fstr = r.read_str_utf8(name_size as Word);
+      let _fstr = r.read_str_utf8(name_size as Word);
     }
   }
 
@@ -355,7 +369,7 @@ impl Loader {
           let code = &mut fun.borrow_mut().code;
           code.push(op as Word);
           for a in args {
-            if let FTerm::ExtList_(ref jtab) = a {
+            if let FTerm::ExtList_(ref _jtab) = a {
               for tmp in a.to_lterm_vec() {
                 code.push(tmp.raw());
               }
@@ -374,8 +388,7 @@ impl Loader {
   /// dictionary.
   fn commit_fun(&mut self, fun: function::Ptr) {
     fun.borrow_mut().funarity = self.funarity.clone();
-    let k = (self.funarity.f, self.funarity.arity);
-    self.vm_funs.insert(k, fun);
+    self.vm_funs.insert(self.funarity.clone(), fun);
     ()
   }
 } // impl

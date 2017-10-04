@@ -5,16 +5,12 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use beam::loader; // this is TODO: changeable BEAM loader
 use emulator::function;
 use emulator::mfa;
 use emulator::module;
-use emulator::vm::VM;
 use rterror;
 use term::lterm::LTerm;
 use defs::Word;
-
-use std::sync::Arc;
 
 type InstrIndex = Word;
 
@@ -47,7 +43,7 @@ impl CodeServer {
   }
 
   /// Find module:function/arity
-  pub fn lookup(&self, mfa: &mfa::IMFArity) -> Option<InstrPointer> {
+  pub fn lookup(&self, _mfa: &mfa::IMFArity) -> Option<InstrPointer> {
     None
   }
 
@@ -64,7 +60,8 @@ impl CodeServer {
   /// Notify the code server about the fact that a new module is ready to be
   /// added to the codebase.
   pub fn module_loaded(&mut self, mod_ptr: module::Ptr) {
-    self.mods.insert(mod_ptr.name(), mod_ptr);
+    let name = mod_ptr.borrow().name();
+    self.mods.insert(name, mod_ptr);
     ()
   }
 }

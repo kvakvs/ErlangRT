@@ -5,7 +5,6 @@
 use emulator::mfa;
 use rterror;
 use term::lterm::LTerm;
-use defs::Word;
 use emulator::vm::VM;
 use emulator::code_srv;
 

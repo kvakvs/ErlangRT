@@ -3,8 +3,6 @@
 //use term::friendly;
 use term::lterm::LTerm;
 
-use std::cmp::Ordering;
-
 use defs::Arity;
 
 /// MFArgs or MFArity should be able to give us mod and fun whenever, so

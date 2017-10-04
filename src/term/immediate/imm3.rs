@@ -7,9 +7,7 @@
 //!
 use defs::Word;
 use defs;
-use term::immediate::imm1::*;
 use term::immediate::imm2::*;
-use term::primary;
 
 use std::mem::transmute;
 use bit_field::BitField;

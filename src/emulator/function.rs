@@ -1,11 +1,11 @@
+use std::sync;
+use std::cell::RefCell;
+
 use beam::gen_op;
 use defs::Word;
 use emulator::funarity::FunArity;
 use emulator::module;
 use term::lterm::LTerm;
-
-use std::sync;
-use std::cell::RefCell;
 
 pub type Ptr = sync::Arc<RefCell<Function>>;
 pub type Weak = sync::Weak<RefCell<Function>>;
@@ -19,6 +19,7 @@ pub struct Function {
 }
 
 impl Function {
+  /// Create an empty function wrapped in atomic refcounted refcell.
   pub fn new() -> Ptr {
     sync::Arc::new(RefCell::new(
       Function {

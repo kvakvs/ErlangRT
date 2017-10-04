@@ -33,7 +33,8 @@ fn main() {
                         beam.atom("start"),
                         Vec::new()
   );
-  let root_p = match beam.create_process(LTerm::nil(), &mfa) {
+  let r = beam.create_process(LTerm::nil(), &mfa);
+  let _root_p = match r {
     Ok(p0) => p0,
     Err(e) => panic!("{:?}", e)
   };

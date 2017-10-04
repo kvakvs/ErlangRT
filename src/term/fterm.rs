@@ -9,7 +9,6 @@ use defs;
 use defs::{Word, SWord};
 use term::lterm::LTerm;
 
-use std;
 use num::bigint::BigInt;
 use num::FromPrimitive;
 

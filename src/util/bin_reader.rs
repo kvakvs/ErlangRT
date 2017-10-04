@@ -3,7 +3,6 @@ extern crate bytes;
 use bytes::ByteOrder;
 use std::str;
 use std::fs::File;
-use std::io;
 use std::io::Read;
 use std::path::PathBuf;
 use std::cmp::min;
@@ -23,7 +22,7 @@ impl BinaryReader {
   pub fn from_file(filename: &PathBuf) -> BinaryReader {
     let mut file = File::open(filename).unwrap();
     let mut buf: Vec<u8> = Vec::new();
-    file.read_to_end(&mut buf);
+    file.read_to_end(&mut buf).unwrap();
     BinaryReader { buf, pos: 0 }
   }
 

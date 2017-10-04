@@ -5,7 +5,6 @@ use defs;
 use util::bin_reader::BinaryReader;
 
 use std;
-use std::mem;
 use num::bigint;
 use num::ToPrimitive;
 
@@ -71,7 +70,7 @@ fn word_to_u32(w: Word) -> u32 {
 pub fn read(r: &mut BinaryReader) -> Result<fterm::FTerm, rterror::Error> {
   let b = r.read_u8();
   let tag = b & 0b111;
-  let err_msg: &'static str = "Failed to parse beam compact term";
+  //let err_msg: &'static str = "Failed to parse beam compact term";
 
   let mut bword = Integral::Word(0);
   if tag < CTETag::Extended as u8 {
@@ -127,8 +126,7 @@ pub fn read(r: &mut BinaryReader) -> Result<fterm::FTerm, rterror::Error> {
     // Extended tag (lower 3 bits = 0b111)
     _ => return parse_ext_tag(b, r)
   }
-
-  return make_err(CTError::BadFormat)
+  //return make_err(CTError::BadFormat)
 }
 
 #[cfg(feature="r19")]
@@ -150,7 +148,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader)
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
-      Ok(fterm::FTerm::AllocList_)
+      //Ok(fterm::FTerm::AllocList_)
     },
     _ => make_err(CTError::BadExtendedTag),
   }

@@ -5,7 +5,6 @@
 //!
 //! Max value for imm2 is 64-6=58, or 32-6=26 bits.
 //!
-use term::primary;
 use defs;
 use defs::Word;
 use term::immediate::imm1::*;

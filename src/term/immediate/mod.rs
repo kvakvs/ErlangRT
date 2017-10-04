@@ -17,8 +17,6 @@ use term::primary;
 use defs;
 use defs::Word;
 
-use std::mem::transmute;
-
 pub use self::imm1::*;
 pub use self::imm2::*;
 pub use self::imm3::*;
