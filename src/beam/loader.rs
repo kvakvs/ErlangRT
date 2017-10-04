@@ -19,8 +19,8 @@ use emulator::vm::VM;
 use emulator::gen_op;
 use rterror;
 use emulator::funarity::FunArity;
-use term::friendly::FTerm;
-use term::low_level::LTerm;
+use term::fterm::FTerm;
+use term::lterm::LTerm;
 use defs::{Word, Integral, Arity};
 use util::bin_reader::BinaryReader;
 

@@ -2,7 +2,7 @@ use defs::Word;
 use emulator::funarity::FunArity;
 use emulator::gen_op;
 use emulator::module;
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 
 use std::sync;
 use std::cell::RefCell;

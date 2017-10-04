@@ -11,7 +11,7 @@ use emulator::mfa;
 use emulator::module;
 use emulator::vm::VM;
 use rterror;
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 use defs::Word;
 
 use std::sync::Arc;

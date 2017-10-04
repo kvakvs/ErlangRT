@@ -1,11 +1,13 @@
 //!
+//! Friendly term library
+//!
 //! Representing Erlang terms as a complex Rust enum, more developer friendly,
 //! there's an memory cost, but we don't care yet. This is only used at the
 //! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
 use defs;
 use defs::{Word, SWord};
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 
 use std;
 use num::bigint::BigInt;

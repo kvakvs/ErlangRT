@@ -1,5 +1,5 @@
 //! Implement Fun/Arity pair, printing, ordering etc
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 use defs::Arity;
 
 use std::cmp::Ordering;

@@ -16,7 +16,7 @@ mod util;
 
 use emulator::mfa::MFArgs;
 use emulator::vm::VM;
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 
 /// Entry point for the command-line interface
 fn main() {

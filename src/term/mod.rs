@@ -3,6 +3,6 @@
 //! can store immediate value or a pointer to process heap.
 //!
 pub mod immediate;
-pub mod friendly;
-pub mod low_level;
+pub mod fterm;
+pub mod lterm;
 pub mod primary;

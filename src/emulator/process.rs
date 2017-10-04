@@ -4,7 +4,7 @@
 //!
 use emulator::mfa;
 use rterror;
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 use defs::Word;
 use emulator::vm::VM;
 use emulator::code_srv;
@@ -22,8 +22,8 @@ impl Process {
   pub fn new(vm: &mut VM, pid: LTerm,
              parent_pid: LTerm, mfa: &mfa::MFArgs) -> Result<Process, rterror::Error>
   {
-    assert!(pid.is_pid());
-    assert!(parent_pid.is_pid() || parent_pid.is_nil());
+    assert!(pid.is_local_pid());
+    assert!(parent_pid.is_local_pid() || parent_pid.is_nil());
     match vm.code_lookup(mfa) {
       Ok(ip) => Ok(Process { pid, parent_pid, ip }),
       Err(e) => Err(e)

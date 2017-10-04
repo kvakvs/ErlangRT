@@ -1,9 +1,11 @@
 //!
+//! Low level term library
+//!
 //! Low level term represents memory layout of Term bits to store the data
 //! as compact as possible while maintaining an acceptable performance
 //!
 use term::immediate;
-use term::immediate::{IMM2_SPECIAL_NIL_PREFIX, IMM2_SPECIAL_NONVALUE_PREFIX};
+use term::immediate::{IMM2_SPECIAL_NIL_RAW, IMM2_SPECIAL_NONVALUE_RAW};
 use term::primary;
 
 use defs;
@@ -37,59 +39,70 @@ impl PartialOrd for LTerm {
 
 
 impl LTerm {
+  /// Access the raw Word value of the low-level term.
+  #[inline(always)]
   pub fn raw(&self) -> Word { self.value }
 
-  pub fn nil() -> LTerm { LTerm { value: IMM2_SPECIAL_NIL_PREFIX } }
+  /// Create a NIL value.
+  #[inline(always)]
+  pub fn nil() -> LTerm { LTerm { value: IMM2_SPECIAL_NIL_RAW } }
 
+  /// Check whether a value is a NIL \[ \]
+  #[inline]
   pub fn is_nil(&self) -> bool {
-    self.value == IMM2_SPECIAL_NIL_PREFIX
+    self.value == IMM2_SPECIAL_NIL_RAW
   }
 
+  /// Create a NON_VALUE.
+  #[inline(always)]
   pub fn non_value() -> LTerm {
-    LTerm { value: IMM2_SPECIAL_NONVALUE_PREFIX }
+    LTerm { value: IMM2_SPECIAL_NONVALUE_RAW }
   }
 
+  /// Check whether a value is a NON_VALUE.
+  #[inline]
   pub fn is_non_value(&self) -> bool {
-    self.value == IMM2_SPECIAL_NONVALUE_PREFIX
+    self.value == IMM2_SPECIAL_NONVALUE_RAW
   }
 
-  pub fn is_pid(&self) -> bool {
+  /// Check whether a value is a local pid.
+  #[inline]
+  pub fn is_local_pid(&self) -> bool {
     return immediate::is_pid_raw(self.value)
   }
 
-  pub fn is_atom(&self) -> bool {
-    return immediate::is_atom_raw(self.value)
-  }
-
-  pub fn atom_index(&self) -> Word { immediate::imm2_value(self.value) }
-
   /// Get primary tag bits from a raw term
-  #[inline]
+  #[inline(always)]
   pub fn primary_tag(&self) -> primary::Tag {
     primary::from_word(self.value)
   }
 
-  #[inline]
+  /// Check whether primary tag of a value is `Tag::Immediate`.
+  #[inline(always)]
   pub fn is_imm(&self) -> bool {
     self.primary_tag() == primary::Tag::Immediate
   }
 
-  #[inline]
+  /// Check whether primary tag of a value is `Tag::Box`.
+  #[inline(always)]
   pub fn is_box(&self) -> bool {
     self.primary_tag() == primary::Tag::Box
   }
 
-  #[inline]
+  /// Check whether primary tag of a value is `Tag::Cons`.
+  #[inline(always)]
   pub fn is_cons(&self) -> bool {
     self.primary_tag() == primary::Tag::Cons
   }
 
-  #[inline]
+  /// Check whether primary tag of a value is `Tag::Header`.
+  #[inline(always)]
   pub fn is_header(&self) -> bool {
     self.primary_tag() == primary::Tag::Header
   }
 
-  #[inline]
+  /// Retrieve the raw value of a `LTerm`.
+  #[inline(always)]
   pub fn get_raw(&self) -> Word { self.value }
 
   //
@@ -100,14 +113,6 @@ impl LTerm {
   #[inline]
   pub fn from_raw(w: Word) -> LTerm {
     LTerm { value: w }
-  }
-
-  /// From atom index create an atom. To create from string use vm::new_atom
-  #[inline]
-  pub fn make_atom(index: Word) -> LTerm {
-
-    LTerm { value: immediate::make_atom_raw(index)
-    }
   }
 
   /// From internal process index create a pid. To create a process use vm::create_process
@@ -134,6 +139,28 @@ impl LTerm {
   #[inline]
   pub fn make_label(n: Word) -> LTerm {
     LTerm { value: immediate::make_label_raw(n) }
+  }
+
+  //
+  // Atom services - creation, checking
+  //
+
+  /// From atom index create an atom. To create from string use vm::new_atom
+  #[inline]
+  pub fn make_atom(index: Word) -> LTerm {
+    LTerm { value: immediate::make_atom_raw(index) }
+  }
+
+  /// Check whether a value is a runtime atom.
+  #[inline]
+  pub fn is_atom(&self) -> bool {
+    return immediate::is_atom_raw(self.value)
+  }
+
+  /// For an atom value, get index.
+  pub fn atom_index(&self) -> Word {
+    assert!(self.is_atom());
+    immediate::imm2_value(self.value)
   }
 
   //
@@ -181,13 +208,31 @@ impl fmt::Display for LTerm {
 
       primary::Tag::Immediate =>
         match immediate::get_imm1_tag(v) {
-          immediate::Immediate1::Small => write!(f, "{}", self.small_get()),
+          immediate::Immediate1::Small =>
+            write!(f, "{}", self.small_get()),
+
+          immediate::Immediate1::Pid =>
+            write!(f, "Pid({})", immediate::imm1_value(self.value)),
+
+          immediate::Immediate1::Port =>
+            write!(f, "Port({})", immediate::imm1_value(self.value)),
 
           immediate::Immediate1::Immed2 =>
+
             match immediate::get_imm2_tag(v) {
+              immediate::Immediate2::Catch =>
+                write!(f, "Catch({})", immediate::imm2_value(self.value)),
+
+              immediate::Immediate2::Special =>
+                write!(f, "Special({})", immediate::imm2_value(self.value)),
+
               immediate::Immediate2::Atom =>
                 write!(f, "Atom({})", self.atom_index()),
-              _ => write!(f, "Imm2({})", self.value),
+
+              immediate::Immediate2::Immed3 =>
+                match immediate::get_imm3_tag(v) {
+                  _ => write!(f, "Imm3({})", self.value),
+                }
             },
 
           _ => write!(f, "Imm1({})", self.value),

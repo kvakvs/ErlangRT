@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use emulator::function;
 use emulator::funarity::FunArity;
-use term::low_level::LTerm;
+use term::lterm::LTerm;
 
 pub type Ptr = sync::Arc<Module>;
 pub type Weak = sync::Weak<Module>;
