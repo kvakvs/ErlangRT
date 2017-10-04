@@ -41,7 +41,21 @@ impl Function {
 
       let arity = gen_op::opcode_arity(op as u8) as Word;
       for j in 0..arity {
-        print!("{} ", LTerm::from_raw(self.code[i + j]))
+        let arg_raw = self.code[i + j];
+        let arg = LTerm::from_raw(arg_raw);
+
+        // Header value in code marks an embedded block of terms
+        // Header{Arity=3} Term1 Term2 Term3
+        if arg.is_header() {
+          print!("Table{{");
+          for _h in 0..arg.header_arity() {
+            print!("{} ", LTerm::from_raw(self.code[i + j]));
+            i += 1;
+          }
+          print!("}} ");
+        } else { // Otherwise it is printable like this, and occupies 1w
+          print!("{} ", arg)
+        }
       }
 
       i += arity;

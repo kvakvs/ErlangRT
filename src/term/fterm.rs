@@ -109,7 +109,8 @@ impl FTerm {
   pub fn to_lterm_vec(&self) -> Vec<LTerm> {
     match self {
       &FTerm::ExtList_(ref v) => {
-        let mut result: Vec<LTerm> = Vec::with_capacity(v.len());
+        let mut result: Vec<LTerm> = Vec::with_capacity(v.len() + 1);
+        result.push(LTerm::make_header(v.len()));
         for x in v.iter() {
           result.push(x.to_lterm())
         };

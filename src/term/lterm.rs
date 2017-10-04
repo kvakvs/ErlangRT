@@ -74,7 +74,7 @@ impl LTerm {
   /// Get primary tag bits from a raw term
   #[inline(always)]
   pub fn primary_tag(&self) -> primary::Tag {
-    primary::get(self.value)
+    primary::get_tag(self.value)
   }
 
   /// Check whether primary tag of a value is `Tag::Immediate`.
@@ -194,14 +194,28 @@ impl LTerm {
     let n = immediate::imm1_value(self.value);
     return defs::unsafe_word_to_sword(n);
   }
+
+  //
+  // Headers, tuples etc, boxed stuff on heap and special stuff in code
+  //
+  #[inline]
+  pub fn make_header(arity: Word) -> LTerm {
+    LTerm { value: primary::make_header_raw(arity) }
+  }
+
+  pub fn header_arity(&self) -> Word {
+    assert!(self.is_header());
+    primary::get_value(self.value)
+  }
 }
+
 
 // Printing low_level Terms as "{}"
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let v = self.value;
 
-    match primary::get(v) {
+    match primary::get_tag(v) {
       primary::Tag::Box => write!(f, "Box({:?})", self.box_ptr()),
 
       primary::Tag::Cons => write!(f, "Cons({})", v),
