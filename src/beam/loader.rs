@@ -50,11 +50,6 @@ struct LFun {
   ouniq: u32,
 }
 
-struct LLabel {
-  fun: function::Weak,
-  offset: Word,
-}
-
 pub struct Loader {
   //--- Stage 1 raw structures ---
   /// Raw atoms loaded from BEAM module as strings
@@ -67,7 +62,7 @@ pub struct Loader {
   raw_code: Vec<u8>,
 
   /// Labels are stored here while loading, for later resolve
-  labels: BTreeMap<Word, LLabel>,
+  labels: BTreeMap<Word, module::CodeLabel>,
   /// For postprocessing: Current function/arity from func_info opcode
   funarity: FunArity,
 
@@ -179,6 +174,7 @@ impl Loader {
     {
       let mut mod1 = newmod.borrow_mut();
       mem::swap(&mut self.vm_funs, &mut mod1.funs);
+      mem::swap(&mut self.labels, &mut mod1.labels);
     }
 
     Ok(newmod)
@@ -343,7 +339,7 @@ impl Loader {
         x if x == gen_op::OPCODE::Label as u8 => {
           if let FTerm::Int_(f) = args[0] {
             // Store weak ptr to function and code offset to this label
-            let floc = LLabel {
+            let floc = module::CodeLabel {
               fun: function::make_weak(&fun),
               offset: fun.borrow().code.len(),
             };

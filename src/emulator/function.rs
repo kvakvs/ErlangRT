@@ -1,5 +1,5 @@
-use std::sync;
 use std::cell::RefCell;
+use std::sync;
 
 use beam::gen_op;
 use defs::Word;
@@ -17,6 +17,7 @@ pub struct Function {
   pub funarity: FunArity,
   pub code: Vec<Word>,
 }
+
 
 impl Function {
   /// Create an empty function wrapped in atomic refcounted refcell.
