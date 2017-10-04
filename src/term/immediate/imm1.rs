@@ -15,7 +15,7 @@ pub const IMM1_TAG_MASK: Word = (1 << IMM1_SIZE) - 1;
 pub const IMM1_TAG_SHIFT: Word = primary::PRIM_TAG_BITS;
 /// How much to shift a value to place it after Immediate2 tag
 pub const IMM1_VALUE_SHIFT: Word = IMM1_TAG_SHIFT + IMM1_SIZE;
-pub const IMM1_MASK: Word = (1 << IMM1_VALUE_SHIFT) - 1;
+pub const IMM1_VALUE_MASK: Word = (1 << IMM1_VALUE_SHIFT) - 1;
 
 #[repr(u8)]
 pub enum Immediate1 {
@@ -30,7 +30,7 @@ pub const IMMEDIATE1_MAX: Word = 3;
 /// Cut away the value to be able to compare with raw prefixes
 #[inline]
 pub fn get_imm1_prefix(val: Word) -> Word {
-  val & IMM1_MASK
+  val & IMM1_VALUE_MASK
 }
 
 /// Trim the immediate1 bits and return them as an convenient enum.
@@ -59,7 +59,7 @@ pub const IMM1_SMALL_PREFIX: Word = IMM1_PREFIX
     | ((Immediate1::Small as Word) << primary::PRIM_TAG_BITS);
 
 
-pub fn is_immediate1(val: Word) -> bool { val & IMM1_MASK == IMM1_PREFIX }
+pub fn is_immediate1(val: Word) -> bool { val & IMM1_TAG_MASK == IMM1_PREFIX }
 
 
 /// Given a value (to be shifted) and RAW_* preset bits, compose them together for imm1

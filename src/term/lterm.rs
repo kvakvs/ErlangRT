@@ -230,8 +230,19 @@ impl fmt::Display for LTerm {
                 write!(f, "Atom({})", self.atom_index()),
 
               immediate::Immediate2::Immed3 =>
+
                 match immediate::get_imm3_tag(v) {
-                  _ => write!(f, "Imm3({})", self.value),
+                  immediate::Immediate3::XReg =>
+                    write!(f, "X({})", immediate::imm3_value(self.value)),
+
+                  immediate::Immediate3::YReg =>
+                    write!(f, "Y({})", immediate::imm3_value(self.value)),
+
+                  immediate::Immediate3::FPReg =>
+                    write!(f, "FP({})", immediate::imm3_value(self.value)),
+
+                  immediate::Immediate3::Label =>
+                    write!(f, "Label({})", immediate::imm3_value(self.value))
                 }
             },
 
