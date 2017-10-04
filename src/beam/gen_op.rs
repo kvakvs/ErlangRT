@@ -2,6 +2,8 @@
 //! Maps genop table from Erlang/OTP source to Rust 
 
 
+pub const OPCODE_MAX: usize = 159;
+
 static ARITY_MAP: &'static [u8] = &[ 0, // opcode 0 does not exist
     1, // opcode: 1 (label)
     3, // opcode: 2 (func_info)

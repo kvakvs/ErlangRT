@@ -1,9 +1,12 @@
 HERE=$(shell pwd)
 
-.PHONY: run run-bt
+.PHONY: run run-bt run-rel
 # Compile and run
 run:
 	cargo run
+
+run-rel:
+	cargo run --release
 
 # Run with backtrace on
 run-bt:

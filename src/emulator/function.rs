@@ -1,6 +1,6 @@
+use beam::gen_op;
 use defs::Word;
 use emulator::funarity::FunArity;
-use emulator::gen_op;
 use emulator::module;
 use term::lterm::LTerm;
 
@@ -35,7 +35,7 @@ impl Function {
     let mut i = 0;
     while i < self.code.len() {
       let op = self.code[i];
-      assert!(op < 256);
+      assert!(op < gen_op::OPCODE_MAX);
       print!("{} ", gen_op::opcode_name(op as u8));
       i += 1;
 

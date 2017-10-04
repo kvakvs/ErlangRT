@@ -13,15 +13,15 @@ use std::collections::BTreeMap;
 use std::mem;
 
 use beam::compact_term;
+use beam::gen_op;
+use defs::{Word, Integral, Arity};
+use emulator::funarity::FunArity;
 use emulator::function;
 use emulator::module;
 use emulator::vm::VM;
-use emulator::gen_op;
 use rterror;
-use emulator::funarity::FunArity;
 use term::fterm::FTerm;
 use term::lterm::LTerm;
-use defs::{Word, Integral, Arity};
 use util::bin_reader::BinaryReader;
 
 pub fn module() -> &'static str { "beam::loader: " }
@@ -125,7 +125,7 @@ impl Loader {
       };
       let chunk_sz = r.read_u32be();
 
-      println!("Chunk {}", chunk_h);
+//      println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => r.skip(chunk_sz as Word), // TODO: read attributes
@@ -174,7 +174,7 @@ impl Loader {
     let newmod = module::Module::new(mod_name);
     for (_k, f) in self.vm_funs.iter() {
       let fun = f.borrow();
-      println!("------ Function {} ------", fun.funarity);
+//      println!("------ Function {} ------", fun.funarity);
       fun.disasm();
     }
     Ok(newmod)
@@ -214,8 +214,8 @@ impl Loader {
     let max_opcode = r.read_u32be();
     let n_labels = r.read_u32be();
     let n_funs = r.read_u32be();
-    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
-      code_ver, min_opcode, max_opcode, n_labels, n_funs);
+//    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
+//      code_ver, min_opcode, max_opcode, n_labels, n_funs);
 
     self.raw_code = r.read_bytes(chunk_sz - 20).unwrap();
   }
@@ -322,7 +322,7 @@ impl Loader {
         args.push(arg1);
       }
 
-      println!("Opcode {} {:?}", op, args);
+//      println!("Opcode {} {:?}", op, args);
 
       match op {
         // add nothing for label, but record its location

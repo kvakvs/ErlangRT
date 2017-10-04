@@ -6,7 +6,7 @@ SRCDIR=../src
 
 .PHONY: genop
 genop:
-	./create_gen_op.py > ${SRCDIR}/emulator/gen_op.rs
+	./create_gen_op.py > ${SRCDIR}/beam/gen_op.rs
 
 #.PHONY: vm_loop
 #vm_loop:
