@@ -1,6 +1,7 @@
 //!
 //! Representing Erlang terms as a complex Rust enum, more developer friendly,
-//! possibly there's an unknown performance/memory cost, we don't care yet.
+//! there's an memory cost, but we don't care yet. This is only used at the
+//! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
 use defs;
 use defs::{Word, SWord};
@@ -13,8 +14,8 @@ use num::FromPrimitive;
 fn module() -> &'static str { "term::friendly: " }
 
 /// A friendly Rust-enum representing Erlang term both runtime and load-time
-/// values. Make sure to crash nicely when they mix.
-#[derive(Debug, PartialEq)]
+/// values. Make sure to crash nicely when runtime mixes with load-time.
+#[derive(Debug, PartialEq, Clone)]
 pub enum FTerm {
   /// Runtime atom index in the VM atom table
   Atom(Word),
@@ -24,7 +25,7 @@ pub enum FTerm {
   Cons(Box<[FTerm]>),
   /// NIL [] zero sized list
   Nil,
-  Tuple(Vec<FTerm>),
+  Tuple(Box<Vec<FTerm>>),
   /// zero sized tuple
   Tuple0,
   Float(defs::Float),
@@ -54,7 +55,7 @@ pub enum FTerm {
   /// A load-time index in literal heap
   Lit_(Word),
   /// A list of value/label pairs, a jump table
-  ExtList_(Vec<FTerm>),
+  ExtList_(Box<Vec<FTerm>>),
   AllocList_,
 }
 
@@ -106,7 +107,7 @@ impl FTerm {
     match self {
       &FTerm::ExtList_(ref v) => {
         let mut result: Vec<LTerm> = Vec::with_capacity(v.len());
-        for x in v {
+        for x in v.iter() {
           result.push(x.to_lterm())
         };
         result
@@ -115,4 +116,28 @@ impl FTerm {
     }
   }
 
+  /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
+  /// resolve it to a runtime atom index using a lookup table.
+  pub fn maybe_resolve_atom_(&self, atom_tab: &Vec<LTerm>) -> Option<FTerm> {
+    match self {
+      // Repack load-time atom into a runtime atom
+      &FTerm::Atom_(i) =>
+        Some(FTerm::Atom(atom_tab[i].atom_index())),
+
+      // ExtList_ can contain Atom_ - convert them to runtime Atoms
+      &FTerm::ExtList_(ref lst) => {
+        let mut result: Vec<FTerm> = Vec::new();
+        result.reserve(lst.len());
+        for x in lst.iter() {
+          match x.maybe_resolve_atom_(atom_tab) {
+            Some(tmp) => result.push(tmp),
+            None => result.push(x.clone())
+          }
+        };
+        Some(FTerm::ExtList_(Box::new(result)))
+      },
+      // Otherwise no changes
+      _ => None
+    }
+  }
 }

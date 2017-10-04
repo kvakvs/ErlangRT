@@ -21,7 +21,7 @@ use num::ToPrimitive;
 //  Label(Word),
 //  Character(Word),
 //  Float(defs::Float),
-//  List(friendly::Term),
+//  List(friendly::FTerm),
 //  FPReg(Word),
 //  AllocList,
 //  ExtLiteral,
@@ -194,7 +194,7 @@ fn parse_ext_list(r: &mut BinaryReader)
     el.push(value);
   }
 
-  let t = friendly::FTerm::ExtList_(el);
+  let t = friendly::FTerm::ExtList_(Box::new(el));
   return Ok(t)
 }
 

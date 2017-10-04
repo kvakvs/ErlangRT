@@ -310,7 +310,10 @@ impl Loader {
       for _i in 0..arity {
         let arg0 = compact_term::read(&mut r).unwrap();
         // Atom_ args now can be converted to Atom (VM atoms)
-        let arg1 = self.maybe_resolve_atom_(arg0);
+        let arg1 = match arg0.maybe_resolve_atom_(&self.vm_atoms) {
+          Some(tmp) => tmp,
+          None => arg0
+        };
         args.push(arg1);
       }
 
@@ -369,17 +372,6 @@ impl Loader {
     self.vm_funs.insert(k, fun);
     ()
   }
-
-  /// Given a load-time Friendly Atom, resolve it to a runtime atom index
-  /// using Loader state.
-  fn maybe_resolve_atom_(&self, t: FTerm) -> FTerm {
-    match t {
-      // Repack load-time atom into a runtime atom
-      FTerm::Atom_(i) => FTerm::Atom(self.vm_atoms[i].atom_index()),
-      _ => t
-    }
-  }
-
 } // impl
 
 fn panic_postprocess_instr(op: u8, args: &Vec<FTerm>, argi: Word) {
