@@ -5,28 +5,13 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use emulator::function;
+use emulator::instr_pointer::InstrPointer;
 use emulator::mfa;
 use emulator::module;
-use rterror;
+use fail::{Hopefully, Error};
 use term::lterm::LTerm;
-use defs::Word;
 
-type InstrIndex = Word;
-
-/// Defines a code position in module by referring to a function and an offset.
-/// Function pointer is refcounted, and function points to a module which is
-/// also refcounted.
-pub struct InstrPointer {
-  fun: function::Ptr,
-  instr_index: InstrIndex,
-}
-
-impl InstrPointer {
-  pub fn new(fun: function::Ptr, instr_index: InstrIndex) -> InstrPointer {
-    InstrPointer { fun, instr_index }
-  }
-}
+fn module() -> &'static str { "code_srv: " }
 
 pub struct CodeServer {
   // Mapping {atom(): module()}
@@ -43,17 +28,23 @@ impl CodeServer {
   }
 
   /// Find module:function/arity
-  pub fn lookup(&self, _mfa: &mfa::IMFArity) -> Option<InstrPointer> {
-    None
+  pub fn lookup(&self, mfa: &mfa::IMFArity) -> Hopefully<InstrPointer> {
+    let m = mfa.get_mod();
+    match self.mods.get(&m) {
+      None => {
+        let msg = format!("{}Module not found {}", module(), m);
+        return Err(Error::ModuleNotFound(msg))
+      },
+      Some(mptr) => mptr.borrow().lookup(mfa)
+    }
   }
 
   /// Find the module file from search path and return the path or error.
-  pub fn find_module_file(&mut self, filename: &str)
-    -> Result<PathBuf, rterror::Error>
+  pub fn find_module_file(&mut self, filename: &str) -> Hopefully<PathBuf>
   {
     match first_that_exists(&self.search_path, filename) {
       Some(found_first) => Ok(found_first),
-      None => Err(rterror::Error::FileNotFound(filename.to_string()))
+      None => Err(Error::FileNotFound(filename.to_string()))
     }
   }
 

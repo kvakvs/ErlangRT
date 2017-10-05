@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::cmp::min;
 
 use defs::Word;
-use rterror;
+use fail::{Hopefully, Error};
 
 fn module() -> &'static str { "File reader: " }
 
@@ -39,8 +39,7 @@ impl BinaryReader {
 
   /// From the buffer take so many bytes as there are in `sample` and compare
   /// them.
-  pub fn ensure_bytes(&mut self, sample: &bytes::Bytes)
-                      -> Result<(), rterror::Error>
+  pub fn ensure_bytes(&mut self, sample: &bytes::Bytes) -> Hopefully<()>
   {
     let actual = self.read_bytes(sample.len()).unwrap();
 
@@ -49,7 +48,7 @@ impl BinaryReader {
 
     let msg = format!("{}Expected: {:?} actual {:?}",
                       module(), sample, actual);
-    Err(rterror::Error::CodeLoadingFailed(msg))
+    Err(Error::CodeLoadingFailed(msg))
   }
 
   /// From the buffer take 2 bytes and interpret them as big endian u16.
@@ -74,10 +73,10 @@ impl BinaryReader {
   }
 
   /// Consume `size` bytes from `self.file` and return them as a `Vec<u8>`
-  pub fn read_bytes(&mut self, size: Word) -> Result<Vec<u8>, rterror::Error> {
+  pub fn read_bytes(&mut self, size: Word) -> Hopefully<Vec<u8>> {
     if self.buf.len() < self.pos + size {
       // panic!("premature EOF");
-      return Err(rterror::Error::CodeLoadingPrematureEOF);
+      return Err(Error::CodeLoadingPrematureEOF);
     }
 
     let r = Vec::from(&self.buf[self.pos..self.pos + size]);
@@ -87,19 +86,19 @@ impl BinaryReader {
   }
 
   /// Read `size` characters and return as a string
-  pub fn read_str_utf8(&mut self, size: Word) -> Result<String, rterror::Error> {
+  pub fn read_str_utf8(&mut self, size: Word) -> Hopefully<String> {
     let buf = self.read_bytes(size)?;
     match str::from_utf8(&buf) {
       Ok(v) => Ok(v.to_string()),
       Err(e) => {
         let msg = format!("{}Invalid UTF-8 sequence: {}", module(), e);
-        Err(rterror::Error::CodeLoadingFailed(msg))
+        Err(Error::CodeLoadingFailed(msg))
       },
     }
   }
 
   /// Read `size` characters and return as a string
-  pub fn read_str_latin1(&mut self, size: Word) -> Result<String, rterror::Error> {
+  pub fn read_str_latin1(&mut self, size: Word) -> Hopefully<String> {
     let buf = self.read_bytes(size)?;
     Ok(buf.iter().map(|&c| c as char).collect())
   }

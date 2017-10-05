@@ -1,4 +1,4 @@
-use rterror;
+use fail::{Hopefully, Error};
 use term::fterm;
 use defs::{Word, Integral};
 use defs;
@@ -42,7 +42,7 @@ enum CTEExtTag {
 }
 
 /// Errors created when parsing compact term format. They are delivered to the
-/// end caller wrapped in `rterror::Error:CodeLoadingCompactTerm(x)`
+/// end caller wrapped in `fail::Error:CodeLoadingCompactTerm(x)`
 #[derive(Debug)]
 pub enum CTError {
   BadLiteralTag,
@@ -58,8 +58,8 @@ pub enum CTError {
 
 fn module() -> &'static str { "compact_term reader: " }
 
-fn make_err(e: CTError) -> Result<fterm::FTerm, rterror::Error> {
-  Err(rterror::Error::CodeLoadingCompactTerm(e))
+fn make_err(e: CTError) -> Hopefully<fterm::FTerm> {
+  Err(Error::CodeLoadingCompactTerm(e))
 }
 
 fn word_to_u32(w: Word) -> u32 {
@@ -67,7 +67,7 @@ fn word_to_u32(w: Word) -> u32 {
   w as u32
 }
 
-pub fn read(r: &mut BinaryReader) -> Result<fterm::FTerm, rterror::Error> {
+pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   let b = r.read_u8();
   let tag = b & 0b111;
   //let err_msg: &'static str = "Failed to parse beam compact term";
@@ -130,8 +130,7 @@ pub fn read(r: &mut BinaryReader) -> Result<fterm::FTerm, rterror::Error> {
 }
 
 #[cfg(feature="r19")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader)
-  -> Result<CompactTerm, rterror::Error>
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
 {
   match b {
     x if x == CTEExtTag::Float as u8 => parse_ext_float(r),
@@ -141,8 +140,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader)
 }
 
 #[cfg(feature="r20")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader)
-  -> Result<fterm::FTerm, rterror::Error>
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
 {
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
@@ -154,8 +152,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader)
   }
 }
 
-fn parse_ext_float(r: &mut BinaryReader)
-  -> Result<fterm::FTerm, rterror::Error>
+fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
 {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
@@ -165,8 +162,7 @@ fn parse_ext_float(r: &mut BinaryReader)
   Ok(fterm::FTerm::Float(fp as defs::Float))
 }
 
-fn parse_ext_list(r: &mut BinaryReader)
-  -> Result<fterm::FTerm, rterror::Error>
+fn parse_ext_list(r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
 {
   // The stream now contains a smallint size, then size/2 pairs of values
   let n_elts= read_int(r);

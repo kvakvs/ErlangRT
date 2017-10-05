@@ -7,13 +7,14 @@ use std::vec::Vec;
 use std::path::PathBuf;
 
 use beam::loader; // this is TODO: changeable BEAM loader
+use defs::Word;
 use emulator::code_srv;
+use emulator::instr_pointer::InstrPointer;
 use emulator::mfa;
 use emulator::module;
 use emulator::process::Process;
-use rterror;
+use fail::{Hopefully, Error};
 use term::lterm::LTerm;
-use defs::Word;
 
 fn module() -> &'static str { "vm: " }
 
@@ -64,8 +65,9 @@ impl VM {
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: LTerm, mfa: &mfa::MFArgs)
-                        -> Result<LTerm, rterror::Error> {
+  pub fn create_process(&mut self,
+                        parent: LTerm,
+                        mfa: &mfa::MFArgs) -> Hopefully<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = LTerm::make_pid(pid_c);
@@ -90,13 +92,12 @@ impl VM {
   }
 
   /// Mutable lookup, will load module if lookup fails the first time
-  pub fn code_lookup(&mut self, mfa: &mfa::IMFArity)
-    -> Result<code_srv::InstrPointer, rterror::Error>
+  pub fn code_lookup(&mut self, mfa: &mfa::IMFArity) -> Hopefully<InstrPointer>
   {
     // Try lookup once, then load if not found
     match self.code_srv.lookup(mfa) {
-      Some(ip) => return Ok(ip),
-      None => {
+      Ok(ip) => return Ok(ip),
+      Err(_e) => {
         let mod_name = self.atom_to_str(mfa.get_mod());
         let found_mod = self.code_srv.find_module_file(&mod_name).unwrap();
 
@@ -105,21 +106,21 @@ impl VM {
     };
     // Try lookup again
     match self.code_srv.lookup(mfa) {
-      Some(ip) => Ok(ip),
-      None => {
+      Ok(ip) => Ok(ip),
+      Err(e) => {
         let mod_str = self.atom_to_str(mfa.get_mod());
         let fun_str = self.atom_to_str(mfa.get_fun());
         let msg = format!("{}Func undef: {}:{}/{}",
                           module(), mod_str, fun_str, mfa.get_arity());
-        Err(rterror::Error::CodeLoadingFailed(msg))
+        Err(Error::FunctionNotFound(msg))
       }
     }
   }
 
   /// Internal function: runs 3 stages of module loader and returns an atomic
   /// refc (Arc) module pointer or an error
-  fn try_load_module(&mut self, mod_file_path: &PathBuf)
-                     -> Result<module::Ptr, rterror::Error>
+  fn try_load_module(&mut self,
+                     mod_file_path: &PathBuf) -> Hopefully<module::Ptr>
   {
     // Delegate the loading task to BEAM or another loader
     let mut loader = loader::Loader::new();

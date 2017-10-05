@@ -4,6 +4,7 @@
 use term::lterm::LTerm;
 
 use defs::Arity;
+use emulator::funarity::FunArity;
 
 /// MFArgs or MFArity should be able to give us mod and fun whenever, so
 /// this trait is there to allow it.
@@ -11,6 +12,7 @@ pub trait IMFArity {
   fn get_mod(&self) -> LTerm;
   fn get_fun(&self) -> LTerm;
   fn get_arity(&self) -> Arity;
+  fn get_funarity(&self) -> FunArity;
 }
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
@@ -32,6 +34,9 @@ impl IMFArity for MFArgs {
   fn get_arity(&self) -> Arity {
     assert!(self.args.len() < Arity::max_value() as usize);
     self.args.len() as Arity
+  }
+  fn get_funarity(&self) -> FunArity {
+    FunArity::new(self.f, self.args.len())
   }
 }
 

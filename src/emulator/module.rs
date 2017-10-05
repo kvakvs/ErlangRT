@@ -5,8 +5,11 @@ use std::collections::BTreeMap;
 use std::sync;
 
 use defs::Word;
-use emulator::function;
 use emulator::funarity::FunArity;
+use emulator::function;
+use emulator::instr_pointer::InstrPointer;
+use emulator::mfa::IMFArity;
+use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 
 pub type Ptr = sync::Arc<RefCell<Module>>;
@@ -43,4 +46,16 @@ impl Module {
   }
 
   pub fn name(&self) -> LTerm { self.name }
+
+  pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<InstrPointer> {
+    let fa = mfa.get_funarity();
+    match self.funs.get(&fa) {
+      Some(fptr) =>
+        Ok(InstrPointer::new(fptr.clone(), 0)),
+      None => {
+        let msg = format!("Function not found {} in {}", fa, self.name);
+        Err(Error::FunctionNotFound(msg))
+      }
+    }
+  }
 }

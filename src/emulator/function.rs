@@ -25,7 +25,7 @@ impl Function {
     sync::Arc::new(RefCell::new(
       Function {
         parent_mod: sync::Weak::new(),
-        funarity: FunArity::new(),
+        funarity: FunArity::new_uninit(),
         code: Vec::new(),
       }
     ))

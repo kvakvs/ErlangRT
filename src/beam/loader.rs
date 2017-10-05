@@ -19,7 +19,7 @@ use emulator::funarity::FunArity;
 use emulator::function;
 use emulator::module;
 use emulator::vm::VM;
-use rterror;
+use fail::{Hopefully, Error};
 use term::fterm::FTerm;
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
@@ -84,7 +84,7 @@ impl Loader {
       raw_code: Vec::new(),
 
       labels: BTreeMap::new(),
-      funarity: FunArity::new(),
+      funarity: FunArity::new_uninit(),
 
       vm_atoms: Vec::new(),
       vm_funs: BTreeMap::new(),
@@ -94,8 +94,7 @@ impl Loader {
   /// Loading the module. Validate the header and iterate over sections,
   /// then call `load_stage2()` to apply changes to the VM, and then finalize
   /// it by calling `load_finalize()` which will return you a module object.
-  pub fn load(&mut self, fname: &PathBuf) -> Result<(), rterror::Error>
-  {
+  pub fn load(&mut self, fname: &PathBuf) -> Hopefully<()> {
     // Prebuffered BEAM file should be released as soon as the initial phase
     // is done. TODO: [Performance] Use memmapped file?
     let mut r = BinaryReader::from_file(fname);
@@ -115,7 +114,7 @@ impl Loader {
       let chunk_h = match r.read_str_latin1(4) {
         Ok(s) => s,
         // EOF is not an error
-        Err(rterror::Error::CodeLoadingPrematureEOF) => break,
+        Err(Error::CodeLoadingPrematureEOF) => break,
         Err(e) => return Err(e)
       };
       let chunk_sz = r.read_u32be();
@@ -136,7 +135,7 @@ impl Loader {
         "StrT" => r.skip(chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
-          return Err(rterror::Error::CodeLoadingFailed(msg))
+          return Err(Error::CodeLoadingFailed(msg))
         }
       }
 
@@ -164,7 +163,7 @@ impl Loader {
   /// At this point loading is finished, and we create Erlang module and
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
-  pub fn load_finalize(&mut self) -> Result<module::Ptr, rterror::Error> {
+  pub fn load_finalize(&mut self) -> Hopefully<module::Ptr> {
     let mod_name = self.vm_atoms[0];
     let newmod = module::Module::new(mod_name);
 

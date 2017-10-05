@@ -10,7 +10,7 @@ extern crate bit_field;
 
 mod beam;
 mod emulator;
-mod rterror;
+mod fail;
 mod term;
 mod defs;
 mod util;

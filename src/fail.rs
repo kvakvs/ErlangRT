@@ -6,10 +6,17 @@ use beam::compact_term::CTError;
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),
+  //--- Code loading ---
   CodeLoadingFailed(String),
   CodeLoadingPrematureEOF,
-  CodeLoadingCompactTerm(CTError)
+  CodeLoadingCompactTerm(CTError),
+  //--- Code server, lookups ---
+  ModuleNotFound(String),
+  FunctionNotFound(String),
 }
+
+/// A templated error type based on `fail::Error`.
+pub type Hopefully<T> = Result<T, Error>;
 
 //impl fmt::Debug for Error {
 //  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
