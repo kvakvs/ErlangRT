@@ -17,6 +17,7 @@ pub type Weak = sync::Weak<RefCell<Module>>;
 
 /// Cross-function label pointer inside the module.
 // TODO: Change the BTree to something reasonable
+#[derive(Debug)]
 pub struct CodeLabel {
   pub fun: function::Weak,
   pub offset: Word,
@@ -24,6 +25,7 @@ pub struct CodeLabel {
 
 /// Represents a module with collection of functions. Modules are refcounted
 /// and can be freed early if the situation allows.
+#[derive(Debug)]
 pub struct Module {
   name: LTerm,
   /// Map to refcounted functions

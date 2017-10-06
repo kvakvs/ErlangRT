@@ -12,19 +12,26 @@ pub type Weak = sync::Weak<RefCell<Function>>;
 
 /// Represents a function and its bytecode. Is refcounted and can be freed
 /// early and separately from the module if the situation allows.
+#[derive(Debug)]
 pub struct Function {
-  pub parent_mod: module::Weak,
+  pub mod_name: LTerm,
+  // todo: merge with funarity maybe
   pub funarity: FunArity,
   pub code: Vec<Word>,
 }
 
+impl PartialEq for Function {
+  fn eq(&self, other: &Function) -> bool {
+    self.funarity == other.funarity
+  }
+}
 
 impl Function {
   /// Create an empty function wrapped in atomic refcounted refcell.
-  pub fn new() -> Ptr {
+  pub fn new(mod_name: LTerm) -> Ptr {
     sync::Arc::new(RefCell::new(
       Function {
-        parent_mod: sync::Weak::new(),
+        mod_name,
         funarity: FunArity::new_uninit(),
         code: Vec::new(),
       }

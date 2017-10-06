@@ -18,7 +18,7 @@ use std::fmt;
 
 /// A low-level term, packed conveniently in a Word, or containing a
 /// pointer to heap.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct LTerm {
   value: Word
 }

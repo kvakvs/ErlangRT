@@ -10,7 +10,7 @@ use std::fmt;
 
 
 /// Reference to an internal function in some module.
-#[derive(Eq, Clone)]
+#[derive(Debug, Eq, Clone)]
 pub struct FunArity {
   pub f: LTerm,
   pub arity: Arity,
