@@ -29,7 +29,7 @@ fn main() {
   //let t = world.new_atom(&test_a);
   //println!("t.val={}", t.get_raw())
 
-  let mfa = MFArgs::new(beam.atom("lists"),
+  let mfa = MFArgs::new(beam.atom("test"),
                         beam.atom("start"),
                         Vec::new()
   );

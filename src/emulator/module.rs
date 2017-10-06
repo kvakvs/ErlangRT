@@ -6,7 +6,7 @@ use std::sync;
 
 //use defs::Word;
 use emulator::funarity::FunArity;
-use emulator::code::{InstrPointer, CodeOffset};
+use emulator::code::{InstrPointer, CodeOffset, Code};
 use emulator::mfa::IMFArity;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
@@ -25,6 +25,7 @@ pub struct Module {
   pub funs: FunTable,
   // TODO: attrs
   // TODO: lit table
+  pub code: Code,
 }
 
 impl Module {
@@ -33,6 +34,7 @@ impl Module {
     sync::Arc::new(RefCell::new(
       Module{
         name,
+        code: Vec::new(),
         funs: BTreeMap::new(),
       }
     ))
@@ -44,6 +46,7 @@ impl Module {
 
   pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<InstrPointer> {
     let fa = mfa.get_funarity();
+
     match self.funs.get(&fa) {
       Some(offset) =>
         Ok(InstrPointer::new(self.name, offset.clone())),

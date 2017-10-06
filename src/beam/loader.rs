@@ -66,7 +66,7 @@ pub struct Loader {
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
   vm_atoms: Vec<LTerm>,
-  vm_funs: BTreeMap<FunArity, CodeOffset>,
+  //vm_funs: BTreeMap<FunArity, CodeOffset>,
 
   //--- Code postprocessing and creating a function object ---
   /// Accumulate code for the current function here then move it when done.
@@ -93,7 +93,7 @@ impl Loader {
       raw_code: Vec::new(),
 
       vm_atoms: Vec::new(),
-      vm_funs: BTreeMap::new(),
+      //vm_funs: BTreeMap::new(),
 
       code: Vec::new(),
       labels: BTreeMap::new(),
@@ -171,6 +171,7 @@ impl Loader {
     }
 
     self.postprocess_code_section();
+    self.fix_labels();
   }
 
 
@@ -182,12 +183,13 @@ impl Loader {
     let newmod = module::Module::new(mod_name);
 
     //self.print_funs();
+    println!("{:?}", self.funs.keys());
 
     // Move funs into new module
     {
       let mut mod1 = newmod.borrow_mut();
-      mem::swap(&mut self.vm_funs, &mut mod1.funs);
-      //mem::swap(&mut self.labels, &mut mod1.labels);
+      mem::swap(&mut self.funs, &mut mod1.funs);
+      mem::swap(&mut self.code, &mut mod1.code);
     }
 
     Ok(newmod)
@@ -366,6 +368,7 @@ impl Loader {
             f: args[1].to_lterm(),
             arity: args[2].loadtime_word() as Arity
           };
+          println!("add fun {:?}", funarity);
           self.funs.insert(funarity, CodeOffset::Val(self.code.len()));
         }
 
