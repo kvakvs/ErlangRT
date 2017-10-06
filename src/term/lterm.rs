@@ -256,11 +256,11 @@ impl fmt::Display for LTerm {
                     write!(f, "FP({})", immediate::imm3_value(v)),
 
                   immediate::Immediate3::Label =>
-                    write!(f, "Label({})", immediate::imm3_value(v))
+                    write!(f, "Label(0x{:04x})", immediate::imm3_value(v))
                 }
             },
         },
-      primary::Tag::Header => write!(f, "Header({})", v),
+      primary::Tag::Header => write!(f, "Header({})", primary::get_value(v)),
     }
   }
 }

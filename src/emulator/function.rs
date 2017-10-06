@@ -38,7 +38,7 @@ impl Function {
     while i < self.code.len() {
       let op = self.code[i];
       assert!(op < gen_op::OPCODE_MAX);
-      print!("{:04x} {} ", i, gen_op::opcode_name(op as u8));
+      print!("0x{:04x} {} ", i, gen_op::opcode_name(op as u8));
       i += 1;
 
       let arity = gen_op::opcode_arity(op as u8) as Word;
@@ -51,7 +51,7 @@ impl Function {
         if arg.is_header() {
           print!("Table{{");
           for _h in 0..arg.header_arity() {
-            print!("{} ", LTerm::from_raw(self.code[i + j]));
+            print!("{} ", LTerm::from_raw(self.code[i + j + 1]));
             i += 1;
           }
           print!("}} ");

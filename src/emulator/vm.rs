@@ -107,7 +107,7 @@ impl VM {
     // Try lookup again
     match self.code_srv.lookup(mfa) {
       Ok(ip) => Ok(ip),
-      Err(e) => {
+      Err(_e) => {
         let mod_str = self.atom_to_str(mfa.get_mod());
         let fun_str = self.atom_to_str(mfa.get_fun());
         let msg = format!("{}Func undef: {}:{}/{}",

@@ -61,15 +61,17 @@ pub struct Loader {
   /// Temporary storage for loaded code, will be parsed in stage 2
   raw_code: Vec<u8>,
 
-  /// Labels are stored here while loading, for later resolve
-  labels: BTreeMap<Word, module::CodeLabel>,
-  /// For postprocessing: Current function/arity from func_info opcode
-  funarity: FunArity,
-
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
   vm_atoms: Vec<LTerm>,
   vm_funs: BTreeMap<FunArity, function::Ptr>,
+  /// Labels are stored here while loading, for later resolve
+  labels: BTreeMap<Word, module::CodeLabel>,
+  /// For postprocessing: Current function/arity from func_info opcode
+  funarity: FunArity,
+  /// Locations of label values are collected and at a later pass replaced
+  /// with their word values or function pointer (if the label points outside)
+  replace_labels: Vec<Word>,
 }
 
 impl Loader {
@@ -83,11 +85,11 @@ impl Loader {
       raw_funs: Vec::new(),
       raw_code: Vec::new(),
 
-      labels: BTreeMap::new(),
-      funarity: FunArity::new_uninit(),
-
       vm_atoms: Vec::new(),
       vm_funs: BTreeMap::new(),
+      labels: BTreeMap::new(),
+      funarity: FunArity::new_uninit(),
+      replace_labels: Vec::new(),
     }
   }
 
@@ -157,7 +159,8 @@ impl Loader {
       self.vm_atoms.push(vm.atom(&a));
     }
 
-    self.postprocess_code_section()
+    self.postprocess_code_section();
+    self.postprocess_labels();
   }
 
   /// At this point loading is finished, and we create Erlang module and
@@ -360,23 +363,56 @@ impl Loader {
           fun = function::Function::new();
         },
 
-        _ => { // else
+        // else push the op and convert all args to LTerms, also remember
+        // code offsets for label values
+        _ => {
           let code = &mut fun.borrow_mut().code;
           code.push(op as Word);
           for a in args {
-            if let FTerm::ExtList_(ref _jtab) = a {
-              for tmp in a.to_lterm_vec() {
-                code.push(tmp.raw());
-              }
-            } else {
-              code.push(a.to_lterm().raw());
+            match a {
+              // Ext list is special so we convert it and its contents to lterm
+              FTerm::ExtList_(ref jtab) => {
+                code.push(LTerm::make_header(jtab.len()).raw());
+                for t in jtab.iter() {
+                  if let &FTerm::Label_(f) = t {
+                    self.push_term_or_convert_label(code, f);
+                  } else {
+                    code.push(t.to_lterm().raw());
+                  }
+                }
+              },
+              // Label value is special, we want to remember where it was
+              // to convert it to an offset
+              FTerm::Label_(f) => {
+                self.push_term_or_convert_label(code, f)
+              },
+              // Otherwise convert via a simple method
+              _ => code.push(a.to_lterm().raw())
             }
-          }
-        }
-      }
-    }
+          } // for a in args
+        } // case _
+      } // match op
+    } // while !r.eof
+
     // final function finished also take it
     self.commit_fun(fun);
+  }
+
+  /// Given label index f check if it is known, then push its Label_ LTerm to
+  /// code. Otherwise push code location to `replace_labels` and store an int
+  /// temporarily.
+  fn push_term_or_convert_label(&mut self, code: &mut Vec<Word>, f: Word) {
+    match self.labels.get(&f) {
+      Some(offs) => {
+        // Can convert immediately without postponing
+        code.push(LTerm::make_label(offs).raw())
+      },
+      None => {
+        // Do the conversion later, store an int and save the location
+        self.replace_labels.push(code.len());
+        code.push(LTerm::make_small_u(f).raw())
+      }
+    }
   }
 
   /// Store the fun, which is probably completed loading, into the module
@@ -385,6 +421,13 @@ impl Loader {
     fun.borrow_mut().funarity = self.funarity.clone();
     self.vm_funs.insert(self.funarity.clone(), fun);
     ()
+  }
+
+  /// Analyze the code and replace label values with known label locations.
+  /// Some labels point to other functions within the module - replace them
+  /// (cross-function labels) with function lookup results.
+  fn postprocess_labels(&mut self) {
+
   }
 } // impl
 
