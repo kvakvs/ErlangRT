@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::sync;
 
-use defs::Word;
+//use defs::Word;
 use emulator::funarity::FunArity;
 use emulator::function;
 use emulator::instr_pointer::InstrPointer;
@@ -17,11 +17,11 @@ pub type Weak = sync::Weak<RefCell<Module>>;
 
 /// Cross-function label pointer inside the module.
 // TODO: Change the BTree to something reasonable
-#[derive(Debug)]
-pub struct CodeLabel {
-  pub fun: function::Weak,
-  pub offset: Word,
-}
+//#[derive(Debug)]
+//pub struct CodeLabel {
+//  pub fun: function::Weak,
+//  pub offset: Word,
+//}
 
 /// Represents a module with collection of functions. Modules are refcounted
 /// and can be freed early if the situation allows.
@@ -32,7 +32,7 @@ pub struct Module {
   pub funs: BTreeMap<FunArity, function::Ptr>,
   // TODO: attrs
   // TODO: lit table
-  pub labels: BTreeMap<Word, CodeLabel>,
+  //pub labels: BTreeMap<Word, CodeLabel>,
 }
 
 impl Module {
@@ -42,7 +42,7 @@ impl Module {
       Module{
         name,
         funs: BTreeMap::new(),
-        labels: BTreeMap::new(),
+        //labels: BTreeMap::new(),
       }
     ))
   }

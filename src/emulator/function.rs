@@ -4,7 +4,6 @@ use std::sync;
 use beam::gen_op;
 use defs::Word;
 use emulator::funarity::FunArity;
-use emulator::module;
 use term::lterm::LTerm;
 
 pub type Ptr = sync::Arc<RefCell<Function>>;
@@ -28,13 +27,9 @@ impl PartialEq for Function {
 
 impl Function {
   /// Create an empty function wrapped in atomic refcounted refcell.
-  pub fn new(mod_name: LTerm) -> Ptr {
+  pub fn new(mod_name: LTerm, funarity: FunArity, code: Vec<Word>) -> Ptr {
     sync::Arc::new(RefCell::new(
-      Function {
-        mod_name,
-        funarity: FunArity::new_uninit(),
-        code: Vec::new(),
-      }
+      Function { mod_name, funarity, code }
     ))
   }
 
