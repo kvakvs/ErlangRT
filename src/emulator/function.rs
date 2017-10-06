@@ -76,3 +76,13 @@ impl Function {
 pub fn make_weak(p: &Ptr) -> Weak {
   sync::Arc::downgrade(p)
 }
+
+/// Unwrap the pointer to a function, borrow it mutably and then run the
+/// lambda `action` on the function inside fun_p.
+///
+/// Invoking:
+/// `function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {})`
+pub fn with_fun_mut<F, G>(fun_p: &Ptr, action: &mut F) -> G
+  where F: FnMut(&mut Function) -> G {
+  action(&mut fun_p.borrow_mut())
+}

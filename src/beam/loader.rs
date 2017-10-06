@@ -160,7 +160,6 @@ impl Loader {
     }
 
     self.postprocess_code_section();
-    self.postprocess_labels();
   }
 
   /// At this point loading is finished, and we create Erlang module and
@@ -335,8 +334,6 @@ impl Loader {
         args.push(arg1);
       }
 
-//      println!("Opcode {} {:?}", op, args);
-
       match op {
         // add nothing for label, but record its location
         x if x == gen_op::OPCODE::Label as u8 => {
@@ -368,19 +365,19 @@ impl Loader {
         // code offsets for label values
         _ => {
           {
-            let code = &mut fun_p.borrow_mut().code;
-            code.push(op as Word);
+            function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+              f1.code.push(op as Word)
+            })
           }
           for a in args {
             match a {
               // Ext list is special so we convert it and its contents to lterm
               FTerm::ExtList_(ref jtab) => {
                 {
-                  let mut fun = fun_p.borrow_mut();
-                  let code = &mut fun.code;
-
-                  // Push a header word with length
-                  code.push(LTerm::make_header(jtab.len()).raw());
+                  function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+                    // Push a header word with length
+                    f1.code.push(LTerm::make_header(jtab.len()).raw())
+                  })
                 }
 
                 // Each value convert to LTerm and also push forming a tuple
@@ -389,9 +386,9 @@ impl Loader {
                     // Try to resolve labels and convert now, or postpone
                     self.push_term_or_convert_label(f, &fun_p);
                   } else {
-                    let mut fun = fun_p.borrow_mut();
-                    let code = &mut fun.code;
-                    code.push(t.to_lterm().raw());
+                    function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+                      f1.code.push(t.to_lterm().raw());
+                    })
                   }
                 }
               },
@@ -402,9 +399,9 @@ impl Loader {
               },
               // Otherwise convert via a simple method
               _ => {
-                let mut fun = fun_p.borrow_mut();
-                let code = &mut fun.code;
-                code.push(a.to_lterm().raw())
+                function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+                  f1.code.push(a.to_lterm().raw())
+                })
               }
             }
           } // for a in args
@@ -435,39 +432,49 @@ impl Loader {
 
         // Only do this if the function names are same
         if same_fun {
-          let mut fun = fun_p.borrow_mut();
-          let code = &mut fun.code;
-          code.push(LTerm::make_label(code_label.offset).raw());
+          function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+            f1.code.push(LTerm::make_label(code_label.offset).raw());
+          });
           return
         }
       },
       None => {}
     };
 
-    let mut fun = fun_p.borrow_mut();
-    let code = &mut fun.code;
-
-    // Do the conversion later, store an int and save the location
-    self.replace_labels.push(code.len());
-    code.push(LTerm::make_small_u(label_id).raw())
+    function::with_fun_mut(
+      &fun_p, &mut |f1: &mut function::Function| {
+        // Do the conversion later, store an int and save the location
+        self.replace_labels.push(f1.code.len());
+        f1.code.push(LTerm::make_small_u(label_id).raw())
+      });
   }
 
-  /// Store the fun, which is probably completed loading, into the module
-  /// dictionary.
+  /// The function `fun` is almost ready, finalize labels resolution for those
+  /// labels which weren't known in the load-time, but must be all known now,
+  /// and then store it.
   fn commit_fun(&mut self, fun: function::Ptr) {
-    println!("Replace labels {:?}", self.replace_labels);
-    self.replace_labels.clear();
-
-    fun.borrow_mut().funarity = self.funarity.clone();
-    self.vm_funs.insert(self.funarity.clone(), fun);
-    ()
+    self.commit_fix_labels(&mut fun.borrow_mut());
+    self.commit_store_fun(fun);
   }
 
   /// Analyze the code and replace label values with known label locations.
   /// Some labels point to other functions within the module - replace them
   /// (cross-function labels) with function lookup results.
-  fn postprocess_labels(&mut self) {
+  fn commit_fix_labels(&mut self, fun: &mut function::Function) {
+    // Postprocess self.replace_labels, assuming that at this point labels exist
+    println!("Replace labels {:?}", self.replace_labels);
+    let mut repl = Vec::<Word>::new();
+    mem::swap(&mut repl, &mut self.replace_labels);
+    for lloc in repl.iter() {
+//      let label_lterm = fun.code
+    }
+  }
 
+  /// Store the fun, which has completed loading, into the module dictionary.
+  fn commit_store_fun(&mut self, fun: function::Ptr) {
+    // Function is done, let's store it
+    fun.borrow_mut().funarity = self.funarity.clone();
+    self.vm_funs.insert(self.funarity.clone(), fun);
   }
 } // impl
 
