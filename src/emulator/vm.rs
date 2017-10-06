@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use beam::loader; // this is TODO: changeable BEAM loader
 use defs::Word;
 use emulator::code_srv;
-use emulator::instr_pointer::InstrPointer;
+use emulator::code::InstrPointer;
 use emulator::mfa;
 use emulator::module;
 use emulator::process::Process;
@@ -22,14 +22,16 @@ fn module() -> &'static str { "vm: " }
 // VM environment, heaps, atoms, tables, processes all goes here
 //
 pub struct VM {
-  // Direct mapping string to atom index
+  /// Direct mapping string to atom index
   atoms: BTreeMap<String, Word>,
-  // Reverse mapping atom index to string (sorted by index)
+
+  /// Reverse mapping atom index to string (sorted by index)
   atoms_r: Vec<String>,
 
-  // Pid counter increments every time a new process is spawned
+  /// Pid counter increments every time a new process is spawned
   pid_counter: Word,
-  // Dict of pids to process boxes
+
+  /// Dict of pids to process boxes
   processes: BTreeMap<LTerm, Process>,
 
   code_srv: code_srv::CodeServer,

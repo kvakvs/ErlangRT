@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use emulator::instr_pointer::InstrPointer;
+use emulator::code::{InstrPointer};
 use emulator::mfa;
 use emulator::module;
 use fail::{Hopefully, Error};

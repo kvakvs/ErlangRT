@@ -6,8 +6,7 @@ use std::sync;
 
 //use defs::Word;
 use emulator::funarity::FunArity;
-use emulator::function;
-use emulator::instr_pointer::InstrPointer;
+use emulator::code::{InstrPointer, CodeOffset};
 use emulator::mfa::IMFArity;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
@@ -15,13 +14,7 @@ use term::lterm::LTerm;
 pub type Ptr = sync::Arc<RefCell<Module>>;
 pub type Weak = sync::Weak<RefCell<Module>>;
 
-/// Cross-function label pointer inside the module.
-// TODO: Change the BTree to something reasonable
-//#[derive(Debug)]
-//pub struct CodeLabel {
-//  pub fun: function::Weak,
-//  pub offset: Word,
-//}
+pub type FunTable = BTreeMap<FunArity, CodeOffset>;
 
 /// Represents a module with collection of functions. Modules are refcounted
 /// and can be freed early if the situation allows.
@@ -29,10 +22,9 @@ pub type Weak = sync::Weak<RefCell<Module>>;
 pub struct Module {
   name: LTerm,
   /// Map to refcounted functions
-  pub funs: BTreeMap<FunArity, function::Ptr>,
+  pub funs: FunTable,
   // TODO: attrs
   // TODO: lit table
-  //pub labels: BTreeMap<Word, CodeLabel>,
 }
 
 impl Module {
@@ -42,18 +34,19 @@ impl Module {
       Module{
         name,
         funs: BTreeMap::new(),
-        //labels: BTreeMap::new(),
       }
     ))
   }
 
+
   pub fn name(&self) -> LTerm { self.name }
+
 
   pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<InstrPointer> {
     let fa = mfa.get_funarity();
     match self.funs.get(&fa) {
-      Some(fptr) =>
-        Ok(InstrPointer::new(fptr.clone(), 0)),
+      Some(offset) =>
+        Ok(InstrPointer::new(self.name, offset.clone())),
       None => {
         let msg = format!("Function not found {} in {}", fa, self.name);
         Err(Error::FunctionNotFound(msg))

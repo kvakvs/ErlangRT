@@ -2,7 +2,7 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 //!
-use emulator::instr_pointer::InstrPointer;
+use emulator::code::{InstrPointer};
 use emulator::mfa;
 use emulator::vm::VM;
 use fail::Hopefully;

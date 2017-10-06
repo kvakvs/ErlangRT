@@ -15,8 +15,8 @@ use std::mem;
 use beam::compact_term;
 use beam::gen_op;
 use defs::{Word, Arity};
+use emulator::code::{LabelId, CodeOffset, Code};
 use emulator::funarity::FunArity;
-use emulator::function;
 use emulator::module;
 use emulator::vm::VM;
 use fail::{Hopefully, Error};
@@ -66,19 +66,18 @@ pub struct Loader {
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms
   vm_atoms: Vec<LTerm>,
-  vm_funs: BTreeMap<FunArity, function::Ptr>,
+  vm_funs: BTreeMap<FunArity, CodeOffset>,
 
   //--- Code postprocessing and creating a function object ---
   /// Accumulate code for the current function here then move it when done.
-  code: Vec<Word>,
+  code: Code,
   /// Labels are stored here while loading, for later resolve.
   /// Type:: map<Label, Offset>
-  labels: BTreeMap<Word, Word>,
-  /// For postprocessing: Current function/arity from func_info opcode
-  funarity: FunArity,
+  labels: BTreeMap<LabelId, CodeOffset>,
   /// Locations of label values are collected and at a later pass replaced
   /// with their word values or function pointer (if the label points outside)
-  replace_labels: Vec<Word>,
+  replace_labels: Vec<CodeOffset>,
+  funs: module::FunTable,
 }
 
 
@@ -98,8 +97,8 @@ impl Loader {
 
       code: Vec::new(),
       labels: BTreeMap::new(),
-      funarity: FunArity::new_uninit(),
       replace_labels: Vec::new(),
+      funs: BTreeMap::new(),
     }
   }
 
@@ -195,17 +194,6 @@ impl Loader {
   }
 
   //============================================================================
-
-  // Print disassembly of loaded functions
-  #[cfg(feature = "dev_build")]
-  fn print_funs(&self) {
-    for (_k, f) in self.vm_funs.iter() {
-      let fun = f.borrow();
-      println!("------ Function {} ------", fun.funarity);
-      fun.disasm();
-    }
-  }
-
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -363,7 +351,7 @@ impl Loader {
           if let FTerm::Int_(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
-            self.labels.insert(f, floc);
+            self.labels.insert(LabelId::Val(f), CodeOffset::Val(floc));
           } else {
             panic_postprocess_instr(op, &args, 0);
           }
@@ -374,12 +362,11 @@ impl Loader {
 
         x if x == gen_op::OPCODE::FuncInfo as u8 => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
-          self.funarity = FunArity {
+          let funarity = FunArity {
             f: args[1].to_lterm(),
             arity: args[2].loadtime_word() as Arity
           };
-          // function finished, take it and start a new one
-          self.commit_fun();
+          self.funs.insert(funarity, CodeOffset::Val(self.code.len()));
         }
 
         // else push the op and convert all args to LTerms, also remember
@@ -390,9 +377,6 @@ impl Loader {
         } // case _
       } // match op
     } // while !r.eof
-
-    // last function in the module is now finished, also take it
-    self.commit_fun();
   }
 
 
@@ -408,7 +392,7 @@ impl Loader {
           for t in jtab.iter() {
             let new_t = if let &FTerm::Label_(f) = t {
               // Try to resolve labels and convert now, or postpone
-              self.push_term_or_convert_label(f)
+              self.push_term_or_convert_label(LabelId::Val(f))
             } else {
               t.to_lterm().raw()
             };
@@ -418,7 +402,7 @@ impl Loader {
         // Label value is special, we want to remember where it was
         // to convert it to an offset
         &FTerm::Label_(f) => {
-          let new_t = self.push_term_or_convert_label(f);
+          let new_t = self.push_term_or_convert_label(LabelId::Val(f));
           self.code.push(new_t)
         }
         // Otherwise convert via a simple method
@@ -431,55 +415,57 @@ impl Loader {
   /// Given label index f check if it is known, then return Label_ LTerm to
   /// be pushed into the code by the caller. Otherwise push code location to
   /// `replace_labels` and store an int in the code temporarily.
-  fn push_term_or_convert_label(&mut self, label_id: Word) -> Word {
+  fn push_term_or_convert_label(&mut self, l: LabelId) -> Word {
     // Resolve the label, if exists in labels table
-    match self.labels.get(&label_id) {
-      Some(offset) => LTerm::make_label(*offset).raw(),
+    match self.labels.get(&l) {
+      Some(offset0) => {
+        let &CodeOffset::Val(offs) = offset0;
+        LTerm::make_label(offs).raw()
+      },
       None => {
-        self.replace_labels.push(self.code.len());
+        self.replace_labels.push(CodeOffset::Val(self.code.len()));
+        let LabelId::Val(label_id) = l;
         LTerm::make_small_u(label_id).raw()
       }
     }
   }
 
 
-  /// The function `fun` is almost ready, finalize labels resolution for those
-  /// labels which weren't known in the load-time, but must be all known now,
-  /// and then store it.
-  fn commit_fun(&mut self) {
-    self.commit_fix_labels();
-    self.commit_store_fun();
-  }
+//  /// The function `fun` is almost ready, finalize labels resolution for those
+//  /// labels which weren't known in the load-time, but must be all known now,
+//  /// and then store it.
+//  fn commit_fun(&mut self) {
+//    self.commit_fix_labels();
+//    self.commit_store_fun();
+//  }
 
 
   /// Analyze the code and replace label values with known label locations.
-  /// Some labels point to other functions within the module - replace them
-  /// (cross-function labels) with function lookup results.
-  fn commit_fix_labels(&mut self) {
+  fn fix_labels(&mut self) {
     // Postprocess self.replace_labels, assuming that at this point labels exist
-    println!("Replace labels {:?}", self.replace_labels);
-    let mut repl = Vec::<Word>::new();
+    let mut repl = Vec::<CodeOffset>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
     for lloc in repl.iter() {
-      let label_lterm = self.code[*lloc];
+      let &CodeOffset::Val(offs) = lloc;
+      let label_lterm = self.code[offs];
     }
   }
 
 
-  /// Store the fun, which has completed loading, into the module dictionary.
-  fn commit_store_fun(&mut self) {
-    // Move the code out of self
-    let mut code = Vec::<Word>::new();
-    mem::swap(&mut code, &mut self.code);
-
-    // Create the new function with code and insert into funs
-    let mut fun_p = function::Function::new(
-      self.vm_atoms[0].clone(),
-      self.funarity.clone(),
-      code);
-    fun_p.borrow().disasm();
-    self.vm_funs.insert(self.funarity.clone(), fun_p);
-  }
+//  /// Store the fun, which has completed loading, into the module dictionary.
+//  fn commit_store_fun(&mut self) {
+//    // Move the code out of self
+//    let mut code = Vec::<Word>::new();
+//    mem::swap(&mut code, &mut self.code);
+//
+//    // Create the new function with code and insert into funs
+//    let mut fun_p = function::Function::new(
+//      self.vm_atoms[0].clone(),
+//      self.funarity.clone(),
+//      code);
+//    fun_p.borrow().disasm();
+//    self.vm_funs.insert(self.funarity.clone(), fun_p);
+//  }
 } // impl
 
 
