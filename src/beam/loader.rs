@@ -24,7 +24,9 @@ use term::fterm::FTerm;
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
 
+
 pub fn module() -> &'static str { "beam::loader: " }
+
 
 /// Raw data structure as loaded from BEAM file
 struct LImport {
@@ -74,6 +76,7 @@ pub struct Loader {
   replace_labels: Vec<Word>,
 }
 
+
 impl Loader {
   /// Construct a new loader state.
   pub fn new() -> Loader {
@@ -92,6 +95,7 @@ impl Loader {
       replace_labels: Vec::new(),
     }
   }
+
 
   /// Loading the module. Validate the header and iterate over sections,
   /// then call `load_stage2()` to apply changes to the VM, and then finalize
@@ -121,7 +125,7 @@ impl Loader {
       };
       let chunk_sz = r.read_u32be();
 
-//      println!("Chunk {}", chunk_h);
+      //      println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => r.skip(chunk_sz as Word), // TODO: read attributes
@@ -137,7 +141,7 @@ impl Loader {
         "StrT" => r.skip(chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
-          return Err(Error::CodeLoadingFailed(msg))
+          return Err(Error::CodeLoadingFailed(msg));
         }
       }
 
@@ -149,6 +153,7 @@ impl Loader {
 
     Ok(())
   }
+
 
   /// Call this to apply changes to the VM after module loading succeeded. The
   /// module object is not created yet, but some effects like atoms table
@@ -162,6 +167,7 @@ impl Loader {
     self.postprocess_code_section();
   }
 
+
   /// At this point loading is finished, and we create Erlang module and
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
@@ -169,7 +175,7 @@ impl Loader {
     let mod_name = self.vm_atoms[0];
     let newmod = module::Module::new(mod_name);
 
-//    self.print_funs();
+    //self.print_funs();
 
     // Move funs into new module
     {
@@ -184,7 +190,7 @@ impl Loader {
   //============================================================================
 
   // Print disassembly of loaded functions
-  #[cfg(feature="dev_build")]
+  #[cfg(feature = "dev_build")]
   fn print_funs(&self) {
     for (_k, f) in self.vm_funs.iter() {
       let fun = f.borrow();
@@ -192,6 +198,7 @@ impl Loader {
       fun.disasm();
     }
   }
+
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -204,6 +211,7 @@ impl Loader {
       self.raw_atoms.push(atom_text);
     }
   }
+
 
   /// Approaching Atom section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -218,6 +226,7 @@ impl Loader {
     }
   }
 
+
   /// Load the `Code` section
   fn load_code(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
     let _code_ver = r.read_u32be();
@@ -225,11 +234,12 @@ impl Loader {
     let _max_opcode = r.read_u32be();
     let _n_labels = r.read_u32be();
     let _n_funs = r.read_u32be();
-//    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
-//      code_ver, min_opcode, max_opcode, n_labels, n_funs);
+    //    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
+    //      code_ver, min_opcode, max_opcode, n_labels, n_funs);
 
     self.raw_code = r.read_bytes(chunk_sz - 20).unwrap();
   }
+
 
   /// Read the imports table.
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
@@ -245,6 +255,7 @@ impl Loader {
       self.raw_imports.push(imp);
     }
   }
+
 
   /// Read the exports or local functions table (same format).
   /// Format is u32/big count { funindex: u32, arity: u32, label: u32 }
@@ -263,6 +274,7 @@ impl Loader {
     exports
   }
 
+
   fn load_fun_table(&mut self, r: &mut BinaryReader) {
     let n_funs = r.read_u32be();
     self.raw_funs.reserve(n_funs as usize);
@@ -274,10 +286,16 @@ impl Loader {
       let nfree = r.read_u32be();
       let ouniq = r.read_u32be();
       self.raw_funs.push(LFun {
-        fun_atom, arity, code_pos, index, nfree, ouniq
+        fun_atom,
+        arity,
+        code_pos,
+        index,
+        nfree,
+        ouniq
       })
     }
   }
+
 
   fn load_line_info(&mut self, r: &mut BinaryReader) {
     let _version = r.read_u32be(); // must match emulator version 0
@@ -291,7 +309,7 @@ impl Loader {
       match compact_term::read(r).unwrap() {
         FTerm::SmallInt(_w) => {
           // self.linerefs.push((_fname_index, w));
-        },
+        }
         FTerm::Atom(a) => _fname_index = a as u32,
         other => panic!("{}Unexpected data in line info section: {:?}",
                         module(), other)
@@ -344,11 +362,11 @@ impl Loader {
               offset: fun_p.borrow().code.len(),
             };
             self.labels.insert(f, floc);
-          } else { panic_postprocess_instr(op, &args,0); }
-        },
+          } else { panic_postprocess_instr(op, &args, 0); }
+        }
 
         // add nothing for line, but TODO: Record line contents
-        x if x == gen_op::OPCODE::Line as u8 => {},
+        x if x == gen_op::OPCODE::Line as u8 => {}
 
         x if x == gen_op::OPCODE::FuncInfo as u8 => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
@@ -356,55 +374,19 @@ impl Loader {
             f: args[1].to_lterm(),
             arity: args[2].loadtime_word() as Arity
           };
-          // function finished, take it
+          // function finished, take it and start a new one
           self.commit_fun(fun_p.clone());
           fun_p = function::Function::new(self.vm_atoms[0].clone());
-        },
+        }
 
         // else push the op and convert all args to LTerms, also remember
         // code offsets for label values
         _ => {
-          {
-            function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
-              f1.code.push(op as Word)
-            })
-          }
-          for a in args {
-            match a {
-              // Ext list is special so we convert it and its contents to lterm
-              FTerm::ExtList_(ref jtab) => {
-                {
-                  function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
-                    // Push a header word with length
-                    f1.code.push(LTerm::make_header(jtab.len()).raw())
-                  })
-                }
+          function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+            f1.code.push(op as Word)
+          });
 
-                // Each value convert to LTerm and also push forming a tuple
-                for t in jtab.iter() {
-                  if let &FTerm::Label_(f) = t {
-                    // Try to resolve labels and convert now, or postpone
-                    self.push_term_or_convert_label(f, &fun_p);
-                  } else {
-                    function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
-                      f1.code.push(t.to_lterm().raw());
-                    })
-                  }
-                }
-              },
-              // Label value is special, we want to remember where it was
-              // to convert it to an offset
-              FTerm::Label_(f) => {
-                self.push_term_or_convert_label(f, &fun_p)
-              },
-              // Otherwise convert via a simple method
-              _ => {
-                function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
-                  f1.code.push(a.to_lterm().raw())
-                })
-              }
-            }
-          } // for a in args
+          self.postprocess_store_args(&args, &fun_p);
         } // case _
       } // match op
     } // while !r.eof
@@ -413,11 +395,54 @@ impl Loader {
     self.commit_fun(fun_p);
   }
 
-  /// Given label index f check if it is known, then push its Label_ LTerm to
-  /// code. Otherwise push code location to `replace_labels` and store an int
-  /// temporarily.
+
+  fn postprocess_store_args(&mut self, args: &Vec<FTerm>, fun_p: &function::Ptr) {
+    for a in args {
+      match a {
+        // Ext list is special so we convert it and its contents to lterm
+        &FTerm::ExtList_(ref jtab) => {
+          function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+            // Push a header word with length
+            f1.code.push(LTerm::make_header(jtab.len()).raw())
+          });
+
+          // Each value convert to LTerm and also push forming a tuple
+          for t in jtab.iter() {
+            let new_t = if let &FTerm::Label_(f) = t {
+              // Try to resolve labels and convert now, or postpone
+              self.push_term_or_convert_label(f, &fun_p)
+            } else {
+              t.to_lterm().raw()
+            };
+            function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+              f1.code.push(new_t);
+            })
+          }
+        }
+        // Label value is special, we want to remember where it was
+        // to convert it to an offset
+        &FTerm::Label_(f) => {
+          let new_t = self.push_term_or_convert_label(f, &fun_p);
+          function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+            f1.code.push(new_t)
+          })
+        }
+        // Otherwise convert via a simple method
+        _ => {
+          function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
+            f1.code.push(a.to_lterm().raw())
+          })
+        }
+      }
+    } // for a in args
+  }
+
+
+  /// Given label index f check if it is known, then return Label_ LTerm to
+  /// be pushed into the code by the caller. Otherwise push code location to
+  /// `replace_labels` and store an int in the code temporarily.
   fn push_term_or_convert_label(&mut self, label_id: Word,
-                                fun_p: &function::Ptr) {
+                                fun_p: &function::Ptr) -> Word {
     // Resolve the label, if exists in labels table
     match self.labels.get(&label_id) {
       Some(code_label) => {
@@ -432,22 +457,16 @@ impl Loader {
 
         // Only do this if the function names are same
         if same_fun {
-          function::with_fun_mut(&fun_p, &mut |f1: &mut function::Function| {
-            f1.code.push(LTerm::make_label(code_label.offset).raw());
-          });
-          return
+          return LTerm::make_label(code_label.offset).raw();
         }
-      },
+      }
       None => {}
     };
 
-    function::with_fun_mut(
-      &fun_p, &mut |f1: &mut function::Function| {
-        // Do the conversion later, store an int and save the location
-        self.replace_labels.push(f1.code.len());
-        f1.code.push(LTerm::make_small_u(label_id).raw())
-      });
+    self.replace_labels.push(fun_p.borrow().code.len());
+    LTerm::make_small_u(label_id).raw()
   }
+
 
   /// The function `fun` is almost ready, finalize labels resolution for those
   /// labels which weren't known in the load-time, but must be all known now,
@@ -456,6 +475,7 @@ impl Loader {
     self.commit_fix_labels(&mut fun.borrow_mut());
     self.commit_store_fun(fun);
   }
+
 
   /// Analyze the code and replace label values with known label locations.
   /// Some labels point to other functions within the module - replace them
@@ -466,17 +486,21 @@ impl Loader {
     let mut repl = Vec::<Word>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
     for lloc in repl.iter() {
-//      let label_lterm = fun.code
+      let label_lterm = fun.code[*lloc];
     }
   }
 
+
   /// Store the fun, which has completed loading, into the module dictionary.
   fn commit_store_fun(&mut self, fun: function::Ptr) {
+    fun.borrow().disasm();
+
     // Function is done, let's store it
     fun.borrow_mut().funarity = self.funarity.clone();
     self.vm_funs.insert(self.funarity.clone(), fun);
   }
 } // impl
+
 
 fn panic_postprocess_instr(op: u8, args: &Vec<FTerm>, argi: Word) {
   panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
