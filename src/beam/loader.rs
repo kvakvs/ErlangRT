@@ -431,43 +431,24 @@ impl Loader {
   }
 
 
-//  /// The function `fun` is almost ready, finalize labels resolution for those
-//  /// labels which weren't known in the load-time, but must be all known now,
-//  /// and then store it.
-//  fn commit_fun(&mut self) {
-//    self.commit_fix_labels();
-//    self.commit_store_fun();
-//  }
-
-
   /// Analyze the code and replace label values with known label locations.
   fn fix_labels(&mut self) {
     // Postprocess self.replace_labels, assuming that at this point labels exist
     let mut repl = Vec::<CodeOffset>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
-    for lloc in repl.iter() {
-      let &CodeOffset::Val(offs) = lloc;
-      let label_lterm = self.code[offs];
+    for code_offs in repl.iter() {
+      // Read code cell
+      let &CodeOffset::Val(offs) = code_offs;
+      // Convert from LTerm smallint to integer and then to labelid
+      let unfixed = LTerm::from_raw(self.code[offs]);
+      let unfixed_l = LabelId::Val(unfixed.small_get() as Word);
+      // Lookup the label
+      let &CodeOffset::Val(fixed) = self.labels.get(&unfixed_l).unwrap();
+      // Update code cell with special label value
+      self.code[offs] = LTerm::make_label(fixed).raw();
     }
   }
-
-
-//  /// Store the fun, which has completed loading, into the module dictionary.
-//  fn commit_store_fun(&mut self) {
-//    // Move the code out of self
-//    let mut code = Vec::<Word>::new();
-//    mem::swap(&mut code, &mut self.code);
-//
-//    // Create the new function with code and insert into funs
-//    let mut fun_p = function::Function::new(
-//      self.vm_atoms[0].clone(),
-//      self.funarity.clone(),
-//      code);
-//    fun_p.borrow().disasm();
-//    self.vm_funs.insert(self.funarity.clone(), fun_p);
-//  }
-} // impl
-
+}
 
 fn panic_postprocess_instr(op: u8, args: &Vec<FTerm>, argi: Word) {
   panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
