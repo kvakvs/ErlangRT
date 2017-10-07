@@ -6,6 +6,7 @@ use beam::compact_term::CTError;
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),
+  ReadExternalTerm(String),
   //--- Code loading ---
   CodeLoadingFailed(String),
   CodeLoadingPrematureEOF,

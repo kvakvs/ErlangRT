@@ -26,6 +26,8 @@ use fail::{Hopefully, Error};
 use term::fterm::FTerm;
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
+use util::ext_term_format;
+use util::print::dump_vec;
 
 
 pub fn module() -> &'static str { "beam::loader: " }
@@ -82,7 +84,7 @@ pub struct Loader {
   replace_labels: Vec<CodeOffset>,
   funs: module::FunTable,
   /// Literal table decoded into friendly terms (does not use process heap).
-  lit_tab: Vec<FTerm>,
+  lit_tab: Vec<LTerm>,
   /// A place to allocate larger lterms (literal heap)
   lit_heap: Heap,
 }
@@ -329,15 +331,44 @@ impl Loader {
   }
 
 
+  /// Give the `r`, reader positioned on the contents of "LitT" chunk,
+  /// decompress it and feed into `self.decode_literals/1`
   fn load_literals(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
+    // Red uncompressed size and reserve some memory
     let uncomp_sz = r.read_u32be();
-    // Deduce the 4 bytes uncomp_sz
-    let deflated = r.read_bytes(chunk_sz - 4).unwrap();
-    let mut def_cur = Cursor::new(&deflated);
-    let mut stream = zlib::Decoder::new(def_cur).unwrap();
     let mut inflated = Vec::<u8>::new();
     inflated.reserve(uncomp_sz as usize);
-    stream.read_to_end(&mut inflated);
+
+    // Deduce the 4 bytes uncomp_sz
+    let deflated = r.read_bytes(chunk_sz - 4).unwrap();
+    dump_vec(&deflated);
+
+    // Decompress deflated literal table
+    let iocursor = Cursor::new(&deflated);
+    zlib::Decoder::new(iocursor).read_to_end(&mut inflated).unwrap();
+    assert_eq!(inflated.len(), uncomp_sz as usize, "LitT inflate failed");
+
+    // Parse literal table
+    self.decode_literals(inflated);
+  }
+
+
+  /// Given `inflated`, the byte contents of literal table, read the u32/big
+  /// `count` and for every encoded term skip u32 and parse the external term
+  /// format. Boxed values will go into the `self.lit_heap`.
+  fn decode_literals(&mut self, inflated: Vec<u8>) {
+    dump_vec(&inflated);
+
+    // Decode literals into literal heap here
+    let mut r = BinaryReader::from_bytes(inflated);
+    let count = r.read_u32be();
+    self.lit_tab.reserve(count as usize);
+    for _i in 0..count {
+      // size should match actual consumed ETF bytes so can skip it here
+      let _size = r.read_u32be();
+      let lterm = ext_term_format::decode(&mut r, &mut self.lit_heap).unwrap();
+      self.lit_tab.push(lterm);
+    }
   }
 
 

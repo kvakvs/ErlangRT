@@ -26,7 +26,7 @@ impl BinaryReader {
     BinaryReader { buf, pos: 0 }
   }
 
-  /// Just provide a premade buf. Used for testing.
+  /// Just provide a preloaded memory buffer, also used in tests.
   pub fn from_bytes(buf: Vec<u8>) -> BinaryReader {
     BinaryReader { buf, pos: 0 }
   }
