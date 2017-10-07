@@ -38,6 +38,8 @@ impl PartialOrd for LTerm {
 }
 
 
+// TODO: Remove deadcode directive later and fix
+#[allow(dead_code)]
 impl LTerm {
   /// Access the raw Word value of the low-level term.
   #[inline(always)]

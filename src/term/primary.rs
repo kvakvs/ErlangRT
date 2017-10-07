@@ -23,6 +23,7 @@ pub const PRIM_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 #[derive(Debug, Eq, PartialEq)]
 #[repr(usize)]
+#[allow(dead_code)]
 // First two bits in any term define its major type
 pub enum Tag {
   // points to something special on heap

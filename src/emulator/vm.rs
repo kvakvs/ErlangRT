@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::vec::Vec;
 use std::path::PathBuf;
 
-use beam::loader; // this is TODO: changeable BEAM loader
+use beam::loader;
 use defs::Word;
 use emulator::code_srv;
 use emulator::code::InstrPointer;
@@ -52,6 +52,7 @@ impl VM {
   // as an immediate2 Term
   pub fn atom(&mut self, val: &str) -> LTerm {
     if self.atoms.contains_key(val) {
+      //println!("atom {} found {}", val, self.atoms[val]);
       return LTerm::make_atom(self.atoms[val]);
     }
 
@@ -63,6 +64,7 @@ impl VM {
     let val2 = String::from(val);
     self.atoms_r.push(val2);
 
+    //println!("atom {} new {}", val, index);
     LTerm::make_atom(index)
   }
 

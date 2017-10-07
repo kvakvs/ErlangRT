@@ -41,11 +41,14 @@ impl Module {
   }
 
 
+  /// Get module name field
   pub fn name(&self) -> LTerm { self.name }
 
 
+  /// Find a funarity or mfarity in the functions table.
   pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<InstrPointer> {
     let fa = mfa.get_funarity();
+    //println!("mod Lookup {}/{}", fa.f, fa.arity);
 
     match self.funs.get(&fa) {
       Some(offset) =>

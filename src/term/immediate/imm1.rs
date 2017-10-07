@@ -23,6 +23,7 @@ pub const IMM1_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 #[repr(usize)]
 #[derive(Debug, Eq, PartialEq)]
+#[allow(dead_code)]
 pub enum Immediate1 {
   Pid = 0,
   Port = 1,

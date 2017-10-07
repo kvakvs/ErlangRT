@@ -14,10 +14,13 @@ use num::FromPrimitive;
 
 fn module() -> &'static str { "term::friendly: " }
 
+
 /// A friendly Rust-enum representing Erlang term both runtime and load-time
 /// values. Make sure to crash nicely when runtime mixes with load-time.
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
+#[allow(dead_code)]
+// TODO: Remove deadcode directive later and fix
 pub enum FTerm {
   /// Runtime atom index in the VM atom table
   Atom(Word),
@@ -51,14 +54,14 @@ pub enum FTerm {
   /// A load-time index of label
   Label_(Word),
   /// A load-time atom index in the loader atom table
-  Atom_(Word),
+  LoadTimeAtom(Word),
   /// A load-time word value literally specified
-  Int_(Word),
+  LoadTimeInt(Word),
   /// A load-time index in literal heap
-  Lit_(Word),
+  LoadTimeLit(Word),
   /// A list of value/label pairs, a jump table
-  ExtList_(Box<Vec<FTerm>>),
-  AllocList_,
+  LoadTimeExtlist(Box<Vec<FTerm>>),
+  LoadTimeAlloclist,
 }
 
 impl FTerm {
@@ -74,7 +77,7 @@ impl FTerm {
   /// Parse self as Atom_ (load-time atom) and return index to use with code loader.
   pub fn loadtime_atom_index(&self) -> Word {
     match self {
-      &FTerm::Atom_(w) => w,
+      &FTerm::LoadTimeAtom(w) => w,
       _ => panic!("{}Expected load-time atom, got {:?}", module(), self)
     }
   }
@@ -82,7 +85,7 @@ impl FTerm {
   /// Parse self as Int_ (load-time integer) and return the contained value.
   pub fn loadtime_word(&self) -> Word {
     match self {
-      &FTerm::Int_(w) => w,
+      &FTerm::LoadTimeInt(w) => w,
       _ => panic!("{}Expected load-time int, got {:?}", module(), self)
     }
   }
@@ -98,7 +101,7 @@ impl FTerm {
       // Do not convert label_ it is used as resolved offset value in lterm
       //&FTerm::Label_(i) => LTerm::make_label(i),
       &FTerm::SmallInt(i) => LTerm::make_small_i(i),
-      &FTerm::Int_(i) => LTerm::make_small_u(i),
+      &FTerm::LoadTimeInt(i) => LTerm::make_small_u(i),
       &FTerm::Nil => LTerm::nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
     }
@@ -124,12 +127,14 @@ impl FTerm {
   /// resolve it to a runtime atom index using a lookup table.
   pub fn maybe_resolve_atom_(&self, atom_tab: &Vec<LTerm>) -> Option<FTerm> {
     match self {
+      // A special value 0 means NIL []
+      &FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
+
       // Repack load-time atom into a runtime atom
-      &FTerm::Atom_(i) =>
-        Some(FTerm::Atom(atom_tab[i].atom_index())),
+      &FTerm::LoadTimeAtom(i) => Some(FTerm::Atom(atom_tab[i-1].atom_index())),
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
-      &FTerm::ExtList_(ref lst) => {
+      &FTerm::LoadTimeExtlist(ref lst) => {
         let mut result: Vec<FTerm> = Vec::new();
         result.reserve(lst.len());
         for x in lst.iter() {
@@ -138,7 +143,7 @@ impl FTerm {
             None => result.push(x.clone())
           }
         };
-        Some(FTerm::ExtList_(Box::new(result)))
+        Some(FTerm::LoadTimeExtlist(Box::new(result)))
       },
       // Otherwise no changes
       _ => None

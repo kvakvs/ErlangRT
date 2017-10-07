@@ -183,7 +183,6 @@ impl Loader {
     let newmod = module::Module::new(mod_name);
 
     //self.print_funs();
-    println!("{:?}", self.funs.keys());
 
     // Move funs into new module
     {
@@ -350,12 +349,12 @@ impl Loader {
       match op {
         // add nothing for label, but record its location
         x if x == gen_op::OPCODE::Label as u8 => {
-          if let FTerm::Int_(f) = args[0] {
+          if let FTerm::LoadTimeInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
             self.labels.insert(LabelId::Val(f), CodeOffset::Val(floc));
           } else {
-            panic_postprocess_instr(op, &args, 0);
+            op_badarg_panic(op, &args, 0);
           }
         }
 
@@ -368,7 +367,7 @@ impl Loader {
             f: args[1].to_lterm(),
             arity: args[2].loadtime_word() as Arity
           };
-          println!("add fun {:?}", funarity);
+          println!("add fun {}/{}", funarity.f, funarity.arity);
           self.funs.insert(funarity, CodeOffset::Val(self.code.len()));
         }
 
@@ -383,11 +382,15 @@ impl Loader {
   }
 
 
+  /// Given arity amount of `args` from another opcode, process them and store
+  /// into the `self.code` array. `ExtList_` get special treatment as a
+  /// container of terms. `Label_` get special treatment as we try to resolve
+  /// them into an offset.
   fn postprocess_store_args(&mut self, args: &Vec<FTerm>) {
     for a in args {
       match a {
         // Ext list is special so we convert it and its contents to lterm
-        &FTerm::ExtList_(ref jtab) => {
+        &FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
           self.code.push(LTerm::make_header(jtab.len()).raw());
 
@@ -415,9 +418,10 @@ impl Loader {
   }
 
 
-  /// Given label index f check if it is known, then return Label_ LTerm to
-  /// be pushed into the code by the caller. Otherwise push code location to
-  /// `replace_labels` and store an int in the code temporarily.
+  /// Given label index `l` check if it is known, then return a new `Label`
+  /// LTerm to be pushed into the code by the caller. Otherwise push its code
+  /// location to `self.replace_labels` to be processed later and store a
+  /// `SmallInt` LTerm in the code temporarily.
   fn push_term_or_convert_label(&mut self, l: LabelId) -> Word {
     // Resolve the label, if exists in labels table
     match self.labels.get(&l) {
@@ -445,7 +449,7 @@ impl Loader {
       // Convert from LTerm smallint to integer and then to labelid
       let unfixed = LTerm::from_raw(self.code[offs]);
       let unfixed_l = LabelId::Val(unfixed.small_get() as Word);
-      // Lookup the label
+      // Lookup the label. Crash here if bad label.
       let &CodeOffset::Val(fixed) = self.labels.get(&unfixed_l).unwrap();
       // Update code cell with special label value
       self.code[offs] = LTerm::make_label(fixed).raw();
@@ -453,6 +457,7 @@ impl Loader {
   }
 }
 
-fn panic_postprocess_instr(op: u8, args: &Vec<FTerm>, argi: Word) {
+/// Report a bad opcode arg. TODO: Use this more, than just label opcode
+fn op_badarg_panic(op: u8, args: &Vec<FTerm>, argi: Word) {
   panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
 }

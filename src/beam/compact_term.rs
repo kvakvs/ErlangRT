@@ -80,7 +80,7 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   match tag {
     x if x == CTETag::LiteralInt as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(fterm::FTerm::Int_(index))
+        return Ok(fterm::FTerm::LoadTimeInt(index))
       }
       return make_err(CTError::BadLiteralTag)
     },
@@ -89,7 +89,7 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
         if index == 0 {
           return Ok(fterm::FTerm::Nil);
         }
-        return Ok(fterm::FTerm::Atom_(index - 1))
+        return Ok(fterm::FTerm::LoadTimeAtom(index))
       }
       return make_err(CTError::BadAtomTag)
     },
@@ -174,7 +174,7 @@ fn parse_ext_list(r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
     el.push(value);
   }
 
-  let t = fterm::FTerm::ExtList_(Box::new(el));
+  let t = fterm::FTerm::LoadTimeExtlist(Box::new(el));
   return Ok(t)
 }
 
@@ -254,7 +254,7 @@ mod tests {
 
   #[test]
   fn test_lit() {
-    try_parse(vec![0u8], fterm::FTerm::Int_(0));
+    try_parse(vec![0u8], fterm::FTerm::LoadTimeInt(0));
   }
 
   #[test]
