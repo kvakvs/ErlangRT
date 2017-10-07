@@ -3,11 +3,11 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
 use std::collections::BTreeMap;
-use std::vec::Vec;
 use std::path::PathBuf;
 
 use beam::loader;
 use defs::Word;
+use emulator::atom;
 use emulator::code_srv;
 use emulator::code::InstrPointer;
 use emulator::mfa;
@@ -22,12 +22,6 @@ fn module() -> &'static str { "vm: " }
 // VM environment, heaps, atoms, tables, processes all goes here
 //
 pub struct VM {
-  /// Direct mapping string to atom index
-  atoms: BTreeMap<String, Word>,
-
-  /// Reverse mapping atom index to string (sorted by index)
-  atoms_r: Vec<String>,
-
   /// Pid counter increments every time a new process is spawned
   pid_counter: Word,
 
@@ -40,32 +34,10 @@ pub struct VM {
 impl VM {
   pub fn new() -> VM {
     VM {
-      atoms: BTreeMap::new(),
-      atoms_r: Vec::new(),
       pid_counter: 0,
       processes: BTreeMap::new(),
       code_srv: code_srv::CodeServer::new()
     }
-  }
-
-  // Allocate new atom in the atom table or find existing. Pack the atom index
-  // as an immediate2 Term
-  pub fn atom(&mut self, val: &str) -> LTerm {
-    if self.atoms.contains_key(val) {
-      //println!("atom {} found {}", val, self.atoms[val]);
-      return LTerm::make_atom(self.atoms[val]);
-    }
-
-    let index = self.atoms_r.len();
-
-    let val1 = String::from(val);
-    self.atoms.entry(val1).or_insert(index);
-
-    let val2 = String::from(val);
-    self.atoms_r.push(val2);
-
-    //println!("atom {} new {}", val, index);
-    LTerm::make_atom(index)
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
@@ -90,11 +62,6 @@ impl VM {
     true
   }
 
-  pub fn atom_to_str(&self, atom: LTerm) -> String {
-    assert!(atom.is_atom());
-    self.atoms_r[atom.atom_index()].to_string()
-  }
-
   /// Mutable lookup, will load module if lookup fails the first time
   pub fn code_lookup(&mut self, mfa: &mfa::IMFArity) -> Hopefully<InstrPointer>
   {
@@ -102,7 +69,7 @@ impl VM {
     match self.code_srv.lookup(mfa) {
       Ok(ip) => return Ok(ip),
       Err(_e) => {
-        let mod_name = self.atom_to_str(mfa.get_mod());
+        let mod_name = atom::to_str(mfa.get_mod());
         let found_mod = self.code_srv.find_module_file(&mod_name).unwrap();
 
         self.try_load_module(&found_mod)?;
@@ -112,8 +79,8 @@ impl VM {
     match self.code_srv.lookup(mfa) {
       Ok(ip) => Ok(ip),
       Err(_e) => {
-        let mod_str = self.atom_to_str(mfa.get_mod());
-        let fun_str = self.atom_to_str(mfa.get_fun());
+        let mod_str = atom::to_str(mfa.get_mod());
+        let fun_str = atom::to_str(mfa.get_fun());
         let msg = format!("{}Func undef: {}:{}/{}",
                           module(), mod_str, fun_str, mfa.get_arity());
         Err(Error::FunctionNotFound(msg))
@@ -130,7 +97,7 @@ impl VM {
     let mut loader = loader::Loader::new();
     // Phase 1: Preload data structures
     loader.load(&mod_file_path).unwrap();
-    loader.load_stage2(self);
+    loader.load_stage2();
     match loader.load_finalize() {
       Ok(mod_ptr) => {
         self.code_srv.module_loaded(mod_ptr.clone());

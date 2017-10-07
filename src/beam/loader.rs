@@ -17,11 +17,11 @@ use compress::zlib;
 use beam::compact_term;
 use beam::gen_op;
 use defs::{Word, Arity};
+use emulator::atom;
 use emulator::code::{LabelId, CodeOffset, Code};
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::module;
-use emulator::vm::VM;
 use fail::{Hopefully, Error};
 use term::fterm::FTerm;
 use term::lterm::LTerm;
@@ -185,10 +185,10 @@ impl Loader {
   /// Call this to apply changes to the VM after module loading succeeded. The
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
-  pub fn load_stage2(&mut self, vm: &mut VM) {
+  pub fn load_stage2(&mut self) {
     self.vm_atoms.reserve(self.raw_atoms.len());
     for a in &self.raw_atoms {
-      self.vm_atoms.push(vm.atom(&a));
+      self.vm_atoms.push(atom::from_str(&a));
     }
 
     self.postprocess_code_section();
@@ -546,7 +546,7 @@ impl Loader {
         Some(FTerm::Atom(aindex))
       },
 
-      &FTerm::LoadTimeLit(i) => None, // do not convert yet
+      &FTerm::LoadTimeLit(_) => None, // do not convert yet
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
       &FTerm::LoadTimeExtlist(ref lst) => {

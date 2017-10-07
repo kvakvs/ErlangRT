@@ -85,7 +85,7 @@ impl FTerm {
 
   /// Convert a high level (friendly) term to a compact low-level term.
   /// Some terms cannot be converted, consider checking `to_lterm_vec()`
-  pub fn to_lterm(&self, heap: &mut Heap) -> LTerm {
+  pub fn to_lterm(&self, _heap: &mut Heap) -> LTerm {
     match self {
       &FTerm::Atom(i) => LTerm::make_atom(i),
       &FTerm::X_(i) => LTerm::make_xreg(i),

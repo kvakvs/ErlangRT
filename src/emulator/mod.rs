@@ -1,3 +1,4 @@
+pub mod atom;
 pub mod code;
 pub mod code_srv;
 pub mod disasm;

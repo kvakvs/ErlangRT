@@ -9,6 +9,9 @@ extern crate bytes;
 extern crate num;
 extern crate bit_field;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod beam;
 mod emulator;
 mod fail;
@@ -16,6 +19,7 @@ mod term;
 mod defs;
 mod util;
 
+use emulator::atom;
 use emulator::mfa::MFArgs;
 use emulator::vm::VM;
 use term::lterm::LTerm;
@@ -35,10 +39,9 @@ fn main() {
   //let t = world.new_atom(&test_a);
   //println!("t.val={}", t.get_raw())
 
-  let mfa = MFArgs::new(beam.atom("test"),
-                        beam.atom("start"),
-                        Vec::new()
-  );
+  let mfa = MFArgs::new(atom::from_str("test"),
+                        atom::from_str("start"),
+                        Vec::new());
   let r = beam.create_process(LTerm::nil(), &mfa);
   let _root_p = match r {
     Ok(p0) => p0,
