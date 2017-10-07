@@ -143,7 +143,13 @@ impl LTerm {
     LTerm { value: immediate::make_label_raw(n) }
   }
 
-  /// From pointer to heap create a cons box
+  /// From a pointer to heap create a generic box
+  #[inline]
+  pub fn make_box(ptr: *const Word) -> LTerm {
+    LTerm { value: primary::make_box_raw(ptr) }
+  }
+
+  /// From a pointer to heap create a cons box
   #[inline]
   pub fn make_cons(ptr: *const Word) -> LTerm {
     LTerm { value: primary::make_cons_raw(ptr) }

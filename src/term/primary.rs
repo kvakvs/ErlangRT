@@ -67,6 +67,14 @@ pub fn make_header_raw(arity: Word) -> Word {
 
 
 #[inline]
+pub fn make_box_raw(ptr: *const Word) -> Word {
+  let i = ptr as Word;
+  debug_assert!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST) == 0);
+  i | (Tag::Box as Word)
+}
+
+
+#[inline]
 pub fn make_cons_raw(ptr: *const Word) -> Word {
   let i = ptr as Word;
   debug_assert!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST) == 0);

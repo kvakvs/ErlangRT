@@ -2,10 +2,11 @@
 //! or other arbitrary data, all marked.
 use term::lterm::LTerm;
 use defs::Word;
-use term::raw::RawCons;
+use term::raw::{RawCons, RawTuple};
 
 /// Default heap size when loading a module
 pub const DEFAULT_LIT_HEAP: Word = 1024;
+
 
 /// A heap structure which grows upwards with allocations. Cannot expand
 /// implicitly and will return error when capacity is exceeded. Organize a
@@ -14,12 +15,14 @@ pub struct Heap {
   data: Vec<Word>,
 }
 
+
 impl Heap {
   pub fn new(capacity: Word) -> Heap {
     Heap{
       data: Vec::with_capacity(capacity),
     }
   }
+
 
   /// Expand heap to host `n` words of data
   pub fn allocate(&mut self, n: Word) -> Option<*mut Word> {
@@ -33,9 +36,20 @@ impl Heap {
     Some(&mut self.data[pos] as *mut Word)
   }
 
+
+  /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
   pub fn allocate_cons(&mut self) -> Option<RawCons> {
     match self.allocate(2) {
       Some(p) => Some(RawCons::from_pointer(p)),
+      None => None
+    }
+  }
+
+
+  /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
+  pub fn allocate_tuple(&mut self, size: Word) -> Option<RawTuple> {
+    match self.allocate(RawTuple::word_size(size)) {
+      Some(p) => unsafe { Some(RawTuple::create_at(p, size)) },
       None => None
     }
   }

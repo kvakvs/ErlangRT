@@ -4,6 +4,7 @@ use beam::gen_op;
 use emulator::code::{Code, Labels};
 
 /// Print to screen disassembly of the current function.
+#[allow(dead_code)]
 pub fn disasm(code: &Code, _labels: Option<&Labels>) {
   let mut i = 0;
   while i < code.len() {

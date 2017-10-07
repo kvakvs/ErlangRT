@@ -52,7 +52,6 @@ pub enum CTError {
   BadCharacterTag,
   BadIntegerTag,
   BadExtendedTag(String),
-  BadFormat,
 }
 
 fn module() -> &'static str { "compact_term reader: " }

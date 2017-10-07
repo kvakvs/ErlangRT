@@ -65,12 +65,34 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   match term_tag {
     x if x == Tag::List as u8 => decode_list(r, heap),
     x if x == Tag::AtomDeprecated as u8 => decode_atom_latin1(r),
+    x if x == Tag::SmallInteger as u8 => decode_u8(r),
+    x if x == Tag::SmallTuple as u8 => {
+      let size = r.read_u8() as Word;
+      decode_tuple(r, heap, size)
+    },
     _ => {
       let msg = format!("{}Don't know how to decode ETF value tag {}",
                         module(), term_tag);
       fail(msg)
     }
   }
+}
+
+
+fn decode_tuple(r: &mut BinaryReader, heap: &mut Heap,
+                size: Word) -> Hopefully<LTerm> {
+  let rtuple = heap.allocate_tuple(size).unwrap();
+  for i in 0..size {
+    let elem = decode_naked(r, heap).unwrap();
+    unsafe { rtuple.set_element_base0(i, elem) }
+  }
+  Ok(rtuple.make_tuple())
+}
+
+
+fn decode_u8(r: &mut BinaryReader) -> Hopefully<LTerm> {
+  let val = r.read_u8();
+  Ok(LTerm::make_small_u(val as Word))
 }
 
 
@@ -92,7 +114,8 @@ fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
 
   unsafe {
     for i in 0..n_elem {
-      cell.set_hd(decode_naked(r, heap).unwrap());
+      let elem = decode_naked(r, heap).unwrap();
+      cell.set_hd(elem);
 
       if i < n_elem {
         let new_cell = heap.allocate_cons().unwrap();
