@@ -19,7 +19,7 @@ use beam::gen_op;
 use defs::{Word, Arity};
 use emulator::code::{LabelId, CodeOffset, Code};
 use emulator::funarity::FunArity;
-use emulator::heap::Heap;
+use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::module;
 use emulator::vm::VM;
 use fail::{Hopefully, Error};
@@ -102,7 +102,7 @@ impl Loader {
       raw_code: Vec::new(),
 
       lit_tab: Vec::new(),
-      lit_heap: Heap::new(),
+      lit_heap: Heap::new(DEFAULT_LIT_HEAP),
       vm_atoms: Vec::new(),
       //vm_funs: BTreeMap::new(),
 
@@ -448,7 +448,7 @@ impl Loader {
 
           // Each value convert to LTerm and also push forming a tuple
           for t in jtab.iter() {
-            let new_t = if let &FTerm::Label_(f) = t {
+            let new_t = if let &FTerm::LoadTimeLabel(f) = t {
               // Try to resolve labels and convert now, or postpone
               self.push_term_or_convert_label(LabelId::Val(f))
             } else {
@@ -457,13 +457,20 @@ impl Loader {
             self.code.push(new_t)
           }
         }
+
         // Label value is special, we want to remember where it was
         // to convert it to an offset
-        &FTerm::Label_(f) => {
+        &FTerm::LoadTimeLabel(f) => {
           let new_t = self.push_term_or_convert_label(LabelId::Val(f));
           self.code.push(new_t)
         }
-        // Otherwise convert via a simple method
+
+        // Load-time literals are already loaded on `self.lit_heap`
+        &FTerm::LoadTimeLit(lit_index) => {
+          self.code.push(self.lit_tab[lit_index].raw())
+        }
+
+          // Otherwise convert via a simple method
         _ => self.code.push(a.to_lterm(&mut self.lit_heap).raw()),
       }
     } // for a in args

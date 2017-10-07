@@ -53,7 +53,7 @@ pub enum FTerm {
   //
 
   /// A load-time index of label
-  Label_(Word),
+  LoadTimeLabel(Word),
   /// A load-time atom index in the loader atom table
   LoadTimeAtom(Word),
   /// A load-time word value literally specified

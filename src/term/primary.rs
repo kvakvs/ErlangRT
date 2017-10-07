@@ -36,23 +36,39 @@ pub enum Tag {
   Box = 3,
 }
 
+
 /// Get the primary tag bits and transmute into primary::Tag
+#[inline]
 pub fn get_tag(val: Word) -> Tag {
   let tag_bits = val.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST);
   unsafe { transmute::<usize, Tag>(tag_bits) }
 }
 
+
+#[inline]
 pub fn get_value(val: Word) -> Word {
   val.get_bits(PRIM_VALUE_FIRST..PRIM_VALUE_LAST)
 }
 
+
 /// Zero the primary tag bits and assume the rest is a valid pointer
+#[inline]
 pub fn pointer(val0: Word) -> *const Word {
   let mut val = val0;
   let untagged = val.set_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST, 0);
   untagged as *const Word
 }
 
+
+#[inline]
 pub fn make_header_raw(arity: Word) -> Word {
   (Tag::Header as Word) | (arity << PRIM_VALUE_FIRST)
+}
+
+
+#[inline]
+pub fn make_cons_raw(ptr: *const Word) -> Word {
+  let i = ptr as Word;
+  debug_assert!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST) == 0);
+  i | (Tag::Cons as Word)
 }

@@ -40,6 +40,7 @@ fn main() {
     Err(e) => panic!("{:?}", e)
   };
 
+  println!("Process created. Entering main loop...");
   while beam.tick() {
   }
 }

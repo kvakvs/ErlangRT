@@ -107,7 +107,7 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
     },
     x if x == CTETag::Label as u8 => {
       if let Integral::Word(index) = bword {
-        return Ok(fterm::FTerm::Label_(index))
+        return Ok(fterm::FTerm::LoadTimeLabel(index))
       }
       return make_err(CTError::BadLabelTag)
     },
