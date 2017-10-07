@@ -1,7 +1,6 @@
 use fail::{Hopefully, Error};
 use term::fterm;
 use defs::{Word, Integral};
-use defs;
 use util::bin_reader::BinaryReader;
 
 use std;

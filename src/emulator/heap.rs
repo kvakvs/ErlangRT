@@ -2,6 +2,7 @@
 //! or other arbitrary data, all marked.
 use term::lterm::LTerm;
 use defs::Word;
+use term::raw::RawCons;
 
 /// Default heap size when loading a module
 pub const DEFAULT_LIT_HEAP: Word = 1024;
@@ -30,5 +31,12 @@ impl Heap {
     // Assume we can grow the data without reallocating
     self.data.resize(pos + n, LTerm::nil().raw());
     Some(&mut self.data[pos] as *mut Word)
+  }
+
+  pub fn allocate_cons(&mut self) -> Option<RawCons> {
+    match self.allocate(2) {
+      Some(p) => Some(RawCons::from_pointer(p)),
+      None => None
+    }
   }
 }
