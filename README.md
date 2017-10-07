@@ -8,7 +8,8 @@ Another attempt to make Erlang runtime (BEAM emulator) in Rust.
 
 ## Project Progress
 
-* Term library 30%
+* Term library 40%
+* External Term Format (decoder 30%)
 * BEAM Loader 90%
 * VM and processes 20%
 
@@ -31,6 +32,6 @@ IntelliJ-Rust plugin (available in repositories tab inside IntelliJ).
 
 ## Reference Material
 
-* [BEAM Wisdoms](http://beam-wisdoms.clau.se/)
+* [BEAM Wisdoms](http://beam-wisdoms.clau.se/) (I run this one)
 * [The BEAM book](https://github.com/happi/theBeamBook)
   (I am also one of the editors there)
