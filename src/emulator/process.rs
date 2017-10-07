@@ -31,6 +31,7 @@ impl Process {
     }
   }
 
+  #[allow(dead_code)]
   pub fn jump(&mut self, vm: &mut VM, mfa: &mfa::MFArgs) -> Hopefully<()> {
     // TODO: Find mfa in code server and set IP to it
     match vm.code_lookup(mfa) {

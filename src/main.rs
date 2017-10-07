@@ -22,7 +22,12 @@ use term::lterm::LTerm;
 
 /// Entry point for the command-line interface
 fn main() {
-  println!("Erlang Runtime (compat OTP 20)");
+  if cfg!(feature = "r19") {
+    println!("Erlang Runtime (compat OTP 19)");
+  }
+  if cfg!(feature = "r20") {
+    println!("Erlang Runtime (compat OTP 20)");
+  }
 
   let mut beam = VM::new();
 

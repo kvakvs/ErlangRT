@@ -75,14 +75,6 @@ impl FTerm {
     FTerm::BigInt(Box::new(BigInt::from_usize(w).unwrap()))
   }
 
-  /// Parse self as Atom_ (load-time atom) and return index to use with code loader.
-  pub fn loadtime_atom_index(&self) -> Word {
-    match self {
-      &FTerm::LoadTimeAtom(w) => w,
-      _ => panic!("{}Expected load-time atom, got {:?}", module(), self)
-    }
-  }
-
   /// Parse self as Int_ (load-time integer) and return the contained value.
   pub fn loadtime_word(&self) -> Word {
     match self {

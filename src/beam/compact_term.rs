@@ -163,6 +163,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   }
 }
 
+#[cfg(feature="r19")]
 fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();

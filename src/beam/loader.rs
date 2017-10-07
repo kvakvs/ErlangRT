@@ -27,13 +27,14 @@ use term::fterm::FTerm;
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
 use util::ext_term_format;
-use util::print::dump_vec;
+//use util::print::dump_vec;
 
 
 pub fn module() -> &'static str { "beam::loader: " }
 
 
 /// Raw data structure as loaded from BEAM file
+#[allow(dead_code)]
 struct LImport {
   mod_atom: u32,
   fun_atom: u32,
@@ -41,6 +42,7 @@ struct LImport {
 }
 
 /// Raw data structure as loaded from BEAM file
+#[allow(dead_code)]
 struct LExport {
   fun_atom: u32,
   arity: Arity,
@@ -48,6 +50,7 @@ struct LExport {
 }
 
 /// Raw data structure as loaded from BEAM file
+#[allow(dead_code)]
 struct LFun {
   fun_atom: u32,
   arity: u32,
@@ -87,6 +90,10 @@ pub struct Loader {
   lit_tab: Vec<LTerm>,
   /// A place to allocate larger lterms (literal heap)
   lit_heap: Heap,
+  /// Proplist of module attributes as loaded from "Attr" section
+  mod_attrs: LTerm,
+  /// Compiler flags as loaded from "Attr" section
+  compiler_info: LTerm,
 }
 
 
@@ -110,6 +117,8 @@ impl Loader {
       labels: BTreeMap::new(),
       replace_labels: Vec::new(),
       funs: BTreeMap::new(),
+      mod_attrs: LTerm::nil(),
+      compiler_info: LTerm::nil(),
     }
   }
 
@@ -142,10 +151,10 @@ impl Loader {
       };
       let chunk_sz = r.read_u32be();
 
-      println!("Chunk {}", chunk_h);
+      //println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
         "Atom" => self.load_atoms_latin1(&mut r),
-        "Attr" => r.skip(chunk_sz as Word), // TODO: read attributes
+        "Attr" => self.load_attributes(&mut r),
         "AtU8" => self.load_atoms_utf8(&mut r),
         "CInf" => r.skip(chunk_sz as Word),
         "Code" => self.load_code(&mut r, chunk_sz as Word),
@@ -207,6 +216,14 @@ impl Loader {
   }
 
   //============================================================================
+
+  /// Read Attr section: two terms (module attributes and compiler info) encoded
+  /// as external term format.
+  fn load_attributes(&mut self, r: &mut BinaryReader) {
+    self.mod_attrs = ext_term_format::decode(r, &mut self.lit_heap).unwrap();
+    self.compiler_info = ext_term_format::decode(r, &mut self.lit_heap).unwrap();
+  }
+
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -341,7 +358,7 @@ impl Loader {
 
     // Deduce the 4 bytes uncomp_sz
     let deflated = r.read_bytes(chunk_sz - 4).unwrap();
-    dump_vec(&deflated);
+    //dump_vec(&deflated);
 
     // Decompress deflated literal table
     let iocursor = Cursor::new(&deflated);
@@ -357,7 +374,7 @@ impl Loader {
   /// `count` and for every encoded term skip u32 and parse the external term
   /// format. Boxed values will go into the `self.lit_heap`.
   fn decode_literals(&mut self, inflated: Vec<u8>) {
-    dump_vec(&inflated);
+    //dump_vec(&inflated);
 
     // Decode literals into literal heap here
     let mut r = BinaryReader::from_bytes(inflated);

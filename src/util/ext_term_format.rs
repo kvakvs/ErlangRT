@@ -70,11 +70,14 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   }
 }
 
-pub fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
+
+fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   let n_elem = r.read_u32be();
+  // Using mutability build list forward creating many cells and linking them
   let mut result = LTerm::nil();
   for _i in 0..n_elem {
     result = LTerm::make_cons(heap.allocate(2).unwrap());
+    panic!("unfinished");
   }
   Ok(result)
 }

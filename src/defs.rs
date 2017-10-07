@@ -14,8 +14,6 @@ pub type Float = f64;
 
 // TODO: These are not necessarity Words, might be u16 or u32
 pub type Arity = Word;
-pub type ImportIndex = Word;
-pub type ExportIndex = Word;
 
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: Word = 32;

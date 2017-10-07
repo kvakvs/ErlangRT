@@ -66,6 +66,7 @@ impl BinaryReader {
   }
 
   /// From the buffer take 8 bytes and interpret them as big endian u64.
+  #[cfg(feature="r19")]
   pub fn read_u64be(&mut self) -> u64 {
     let r = bytes::BigEndian::read_u64(&self.buf[self.pos..self.pos + 8]);
     self.pos += 8;
