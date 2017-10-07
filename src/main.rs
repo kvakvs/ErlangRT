@@ -4,6 +4,7 @@
 // Comment this to use Rust's jemalloc library which is fat but fast
 //#![feature(alloc_system)]
 //extern crate alloc_system;
+extern crate compress;
 extern crate bytes;
 extern crate num;
 extern crate bit_field;

@@ -8,6 +8,7 @@
 use defs;
 use defs::{Word, SWord};
 use term::lterm::LTerm;
+use emulator::heap::Heap;
 
 use num::bigint::BigInt;
 use num::FromPrimitive;
@@ -92,7 +93,7 @@ impl FTerm {
 
   /// Convert a high level (friendly) term to a compact low-level term.
   /// Some terms cannot be converted, consider checking `to_lterm_vec()`
-  pub fn to_lterm(&self) -> LTerm {
+  pub fn to_lterm(&self, heap: &mut Heap) -> LTerm {
     match self {
       &FTerm::Atom(i) => LTerm::make_atom(i),
       &FTerm::X_(i) => LTerm::make_xreg(i),
@@ -122,31 +123,4 @@ impl FTerm {
 //      _ => panic!("{}Don't know how to convert {:?} to LTerm[]", module(), self)
 //    }
 //  }
-
-  /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
-  /// resolve it to a runtime atom index using a lookup table.
-  pub fn maybe_resolve_atom_(&self, atom_tab: &Vec<LTerm>) -> Option<FTerm> {
-    match self {
-      // A special value 0 means NIL []
-      &FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
-
-      // Repack load-time atom into a runtime atom
-      &FTerm::LoadTimeAtom(i) => Some(FTerm::Atom(atom_tab[i-1].atom_index())),
-
-      // ExtList_ can contain Atom_ - convert them to runtime Atoms
-      &FTerm::LoadTimeExtlist(ref lst) => {
-        let mut result: Vec<FTerm> = Vec::new();
-        result.reserve(lst.len());
-        for x in lst.iter() {
-          match x.maybe_resolve_atom_(atom_tab) {
-            Some(tmp) => result.push(tmp),
-            None => result.push(x.clone())
-          }
-        };
-        Some(FTerm::LoadTimeExtlist(Box::new(result)))
-      },
-      // Otherwise no changes
-      _ => None
-    }
-  }
 }

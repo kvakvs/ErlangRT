@@ -13,6 +13,7 @@ dev_build = []
 bytes = "0.4.5"
 num = "0.1.40"
 bit_field = "0.7.0"
+compress = "0.1.2"
 
 [profile.release]
 lto = true

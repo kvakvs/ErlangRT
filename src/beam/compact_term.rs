@@ -52,7 +52,7 @@ pub enum CTError {
   BadLabelTag,
   BadCharacterTag,
   BadIntegerTag,
-  BadExtendedTag,
+  BadExtendedTag(String),
   BadFormat,
 }
 
@@ -130,30 +130,40 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 #[cfg(feature="r19")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
-{
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   match b {
     x if x == CTEExtTag::Float as u8 => parse_ext_float(r),
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
-    _ => make_err(CTError::BadExtendedTag),
+    x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(r),
+    x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
+    x if x == CTEExtTag::AllocList as u8 => {
+      panic!("Don't know how to decode an alloclist")
+    },
+    other => {
+      let msg = format!("Ext tag {} unknown", other);
+      make_err(CTError::BadExtendedTag(msg))
+    },
   }
 }
 
 #[cfg(feature="r20")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
-{
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
       //Ok(fterm::FTerm::AllocList_)
     },
-    _ => make_err(CTError::BadExtendedTag),
+    x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(r),
+    x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
+    other => {
+      let msg = format!("Ext tag {} unknown", other);
+      make_err(CTError::BadExtendedTag(msg))
+    },
   }
 }
 
-fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
-{
+fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
   let fp: f64 = unsafe {
@@ -162,8 +172,28 @@ fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
   Ok(fterm::FTerm::Float(fp as defs::Float))
 }
 
-fn parse_ext_list(r: &mut BinaryReader) -> Hopefully<fterm::FTerm>
-{
+
+fn parse_ext_fpreg(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+  let b = r.read_u8();
+  if let Integral::Word(reg) = read_word(b, r) {
+    return Ok(fterm::FTerm::FP_(reg))
+  }
+  let msg = format!("Ext tag FPReg value too big");
+  make_err(CTError::BadExtendedTag(msg))
+}
+
+
+fn parse_ext_literal(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+  let b = r.read_u8();
+  if let Integral::Word(reg) = read_word(b, r) {
+    return Ok(fterm::FTerm::LoadTimeLit(reg))
+  }
+  let msg = format!("Ext tag Literal value too big");
+  make_err(CTError::BadExtendedTag(msg))
+}
+
+
+fn parse_ext_list(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   // The stream now contains a smallint size, then size/2 pairs of values
   let n_elts= read_int(r);
   let mut el: Vec<fterm::FTerm> = Vec::new();

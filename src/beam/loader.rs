@@ -11,12 +11,15 @@ use bytes::Bytes;
 use std::path::PathBuf;
 use std::collections::BTreeMap;
 use std::mem;
+use std::io::{Read, Cursor};
+use compress::zlib;
 
 use beam::compact_term;
 use beam::gen_op;
 use defs::{Word, Arity};
 use emulator::code::{LabelId, CodeOffset, Code};
 use emulator::funarity::FunArity;
+use emulator::heap::Heap;
 use emulator::module;
 use emulator::vm::VM;
 use fail::{Hopefully, Error};
@@ -78,6 +81,10 @@ pub struct Loader {
   /// with their word values or function pointer (if the label points outside)
   replace_labels: Vec<CodeOffset>,
   funs: module::FunTable,
+  /// Literal table decoded into friendly terms (does not use process heap).
+  lit_tab: Vec<FTerm>,
+  /// A place to allocate larger lterms (literal heap)
+  lit_heap: Heap,
 }
 
 
@@ -92,6 +99,8 @@ impl Loader {
       raw_funs: Vec::new(),
       raw_code: Vec::new(),
 
+      lit_tab: Vec::new(),
+      lit_heap: Heap::new(),
       vm_atoms: Vec::new(),
       //vm_funs: BTreeMap::new(),
 
@@ -131,7 +140,7 @@ impl Loader {
       };
       let chunk_sz = r.read_u32be();
 
-      //      println!("Chunk {}", chunk_h);
+      println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => r.skip(chunk_sz as Word), // TODO: read attributes
@@ -145,6 +154,7 @@ impl Loader {
         "Line" => self.load_line_info(&mut r),
         "LocT" => self.raw_locals = self.load_exports(&mut r),
         "StrT" => r.skip(chunk_sz as Word),
+        "LitT" => self.load_literals(&mut r, chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
           return Err(Error::CodeLoadingFailed(msg));
@@ -319,7 +329,19 @@ impl Loader {
   }
 
 
-  /// Assume that loader raw structures are completed, and atoms are already
+  fn load_literals(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
+    let uncomp_sz = r.read_u32be();
+    // Deduce the 4 bytes uncomp_sz
+    let deflated = r.read_bytes(chunk_sz - 4).unwrap();
+    let mut def_cur = Cursor::new(&deflated);
+    let mut stream = zlib::Decoder::new(def_cur).unwrap();
+    let mut inflated = Vec::<u8>::new();
+    inflated.reserve(uncomp_sz as usize);
+    stream.read_to_end(&mut inflated);
+  }
+
+
+    /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
   /// 'drained_code' is 'raw_code' moved out of 'self'
   fn postprocess_code_section(&mut self) {
@@ -339,7 +361,7 @@ impl Loader {
       for _i in 0..arity {
         let arg0 = compact_term::read(&mut r).unwrap();
         // Atom_ args now can be converted to Atom (VM atoms)
-        let arg1 = match arg0.maybe_resolve_atom_(&self.vm_atoms) {
+        let arg1 = match self.resolve_loadtime_values(&arg0) {
           Some(tmp) => tmp,
           None => arg0
         };
@@ -364,10 +386,9 @@ impl Loader {
         x if x == gen_op::OPCODE::FuncInfo as u8 => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
           let funarity = FunArity {
-            f: args[1].to_lterm(),
+            f: args[1].to_lterm(&mut self.lit_heap),
             arity: args[2].loadtime_word() as Arity
           };
-          println!("add fun {}/{}", funarity.f, funarity.arity);
           self.funs.insert(funarity, CodeOffset::Val(self.code.len()));
         }
 
@@ -400,7 +421,7 @@ impl Loader {
               // Try to resolve labels and convert now, or postpone
               self.push_term_or_convert_label(LabelId::Val(f))
             } else {
-              t.to_lterm().raw()
+              t.to_lterm(&mut self.lit_heap).raw()
             };
             self.code.push(new_t)
           }
@@ -412,7 +433,7 @@ impl Loader {
           self.code.push(new_t)
         }
         // Otherwise convert via a simple method
-        _ => self.code.push(a.to_lterm().raw()),
+        _ => self.code.push(a.to_lterm(&mut self.lit_heap).raw()),
       }
     } // for a in args
   }
@@ -453,6 +474,39 @@ impl Loader {
       let &CodeOffset::Val(fixed) = self.labels.get(&unfixed_l).unwrap();
       // Update code cell with special label value
       self.code[offs] = LTerm::make_label(fixed).raw();
+    }
+  }
+
+
+/// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
+/// resolve it to a runtime atom index using a lookup table.
+  pub fn resolve_loadtime_values(&self, arg: &FTerm) -> Option<FTerm> {
+    match arg {
+      // A special value 0 means NIL []
+      &FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
+
+      // Repack load-time atom into a runtime atom
+      &FTerm::LoadTimeAtom(i) => {
+        let aindex = self.vm_atoms[i-1].atom_index();
+        Some(FTerm::Atom(aindex))
+      },
+
+      &FTerm::LoadTimeLit(i) => None, // do not convert yet
+
+      // ExtList_ can contain Atom_ - convert them to runtime Atoms
+      &FTerm::LoadTimeExtlist(ref lst) => {
+        let mut result: Vec<FTerm> = Vec::new();
+        result.reserve(lst.len());
+        for x in lst.iter() {
+          match self.resolve_loadtime_values(x) {
+            Some(tmp) => result.push(tmp),
+            None => result.push(x.clone())
+          }
+        };
+        Some(FTerm::LoadTimeExtlist(Box::new(result)))
+      },
+      // Otherwise no changes
+      _ => None
     }
   }
 }
