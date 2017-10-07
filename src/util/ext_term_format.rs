@@ -1,9 +1,14 @@
 use defs::Word;
+use defs;
 use emulator::atom;
 use emulator::heap::Heap;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
+use term::raw::RawBignum;
 use util::bin_reader::BinaryReader;
+
+use num;
+use num::ToPrimitive;
 
 #[repr(u8)]
 #[allow(dead_code)]
@@ -64,12 +69,33 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   let term_tag = r.read_u8();
   match term_tag {
     x if x == Tag::List as u8 => decode_list(r, heap),
+
     x if x == Tag::AtomDeprecated as u8 => decode_atom_latin1(r),
+
     x if x == Tag::SmallInteger as u8 => decode_u8(r),
+
+    x if x == Tag::Nil as u8 => Ok(LTerm::nil()),
+
+    x if x == Tag::LargeTuple as u8 => {
+      let size = r.read_u32be() as Word;
+      decode_tuple(r, heap, size)
+    },
+
     x if x == Tag::SmallTuple as u8 => {
       let size = r.read_u8() as Word;
       decode_tuple(r, heap, size)
     },
+
+    x if x == Tag::LargeBig as u8 => {
+      let size = r.read_u32be() as Word;
+      decode_big(r, heap, size)
+    },
+
+    x if x == Tag::SmallBig as u8 => {
+      let size = r.read_u8() as Word;
+      decode_big(r, heap, size)
+    },
+
     _ => {
       let msg = format!("{}Don't know how to decode ETF value tag {}",
                         module(), term_tag);
@@ -79,6 +105,26 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
 }
 
 
+/// Given `size`, read digits for a bigint.
+fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
+                size: Word) -> Hopefully<LTerm> {
+  let sign = if r.read_u8() == 0 { num::bigint::Sign::Plus }
+      else { num::bigint::Sign::Minus };
+  let digits = r.read_bytes(size).unwrap();
+  let big = num::BigInt::from_bytes_le(sign, &digits);
+
+  // Assert that the number fits into small
+  if big.bits() < defs::WORD_BITS - 4 {
+    return Ok(LTerm::make_small_i(big.to_isize().unwrap()))
+  }
+
+  // Determine storage size in words
+  let rbig = heap.allocate_big(&big).unwrap();
+  Ok(rbig.make_bignum())
+}
+
+
+/// Given arity, allocate a tuple and read its elements sequentially.
 fn decode_tuple(r: &mut BinaryReader, heap: &mut Heap,
                 size: Word) -> Hopefully<LTerm> {
   let rtuple = heap.allocate_tuple(size).unwrap();

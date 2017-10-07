@@ -11,12 +11,13 @@ impl RawTuple {
   /// Given a pointer initialize a tuple header here, hence unsafe. Return a
   /// `RawTuple` wrapper.
   pub unsafe fn create_at(p: *mut Word, arity: Word) -> RawTuple {
-    *p = primary::make_header_raw(arity);
+    *p = primary::header::make_tuple_header_raw(arity);
     RawTuple { p }
   }
 
   /// Size of a tuple in memory with the header word (used for allocations).
-  pub fn word_size(size: Word) -> Word { size + 1 }
+  #[inline]
+  pub fn storage_size(size: Word) -> Word { size + 1 }
 
   /// Given a pointer to an already initialized tuple, just return a wrapper.
   pub fn from_pointer(p: *mut Word, arity: Word) -> RawTuple {

@@ -150,6 +150,7 @@ impl Loader {
         Err(e) => return Err(e)
       };
       let chunk_sz = r.read_u32be();
+      let pos_begin = r.pos();
 
       //println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
@@ -175,7 +176,7 @@ impl Loader {
       // The next chunk is aligned at 4 bytes
       let aligned_sz = 4 * ((chunk_sz + 3) / 4);
       let align = aligned_sz - chunk_sz;
-      if align > 0 { r.skip(align as Word); }
+      r.seek(pos_begin + aligned_sz as Word);
     }
 
     Ok(())
@@ -221,7 +222,7 @@ impl Loader {
   /// as external term format.
   fn load_attributes(&mut self, r: &mut BinaryReader) {
     self.mod_attrs = ext_term_format::decode(r, &mut self.lit_heap).unwrap();
-    self.compiler_info = ext_term_format::decode(r, &mut self.lit_heap).unwrap();
+    self.compiler_info = ext_term_format::decode_naked(r, &mut self.lit_heap).unwrap();
   }
 
 
@@ -461,7 +462,7 @@ impl Loader {
         // Ext list is special so we convert it and its contents to lterm
         &FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
-          self.code.push(LTerm::make_header(jtab.len()).raw());
+          self.code.push(LTerm::make_tuple_header(jtab.len()).raw());
 
           // Each value convert to LTerm and also push forming a tuple
           for t in jtab.iter() {

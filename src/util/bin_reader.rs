@@ -26,6 +26,13 @@ impl BinaryReader {
     BinaryReader { buf, pos: 0 }
   }
 
+  pub fn pos(&self) -> Word { self.pos }
+
+  pub fn seek(&mut self, p: Word) {
+    assert!(p <= self.buf.len(), "p={} buf.len()={}", p, self.buf.len());
+    self.pos = p;
+  }
+
   /// Just provide a preloaded memory buffer, also used in tests.
   pub fn from_bytes(buf: Vec<u8>) -> BinaryReader {
     BinaryReader { buf, pos: 0 }

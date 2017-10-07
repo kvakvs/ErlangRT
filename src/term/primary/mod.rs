@@ -7,26 +7,29 @@
 //! word aligned pointer are always `00`. On some platforms extra data may be
 //! stored in pointer high bits, but this would be strongly system specific.
 //!
+pub mod header;
+
 use defs;
 use defs::Word;
 
 use std::mem::transmute;
 use bit_field::BitField;
 
-/// Bit position for the primary tag
+/// Bit position for the primary tag.
 pub const PRIM_TAG_FIRST: u8 = 0;
 pub const PRIM_TAG_LAST: u8 = 2;
 
-/// Bit position for the value after the primary tag
+/// Bit position for the value after the primary tag.
 pub const PRIM_VALUE_FIRST: u8 = PRIM_TAG_LAST;
 pub const PRIM_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 #[derive(Debug, Eq, PartialEq)]
 #[repr(usize)]
 #[allow(dead_code)]
-// First two bits in any term define its major type
+/// First two bits in any term define its major type
 pub enum Tag {
-  // points to something special on heap
+  // Marks something special on heap, never appears as a LTerm value in
+  // registers, is always on heap.
   Header = 0,
   // points to a cons cell on heap
   Cons = 1,
@@ -57,12 +60,6 @@ pub fn pointer(val0: Word) -> *const Word {
   let mut val = val0;
   let untagged = val.set_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST, 0);
   untagged as *const Word
-}
-
-
-#[inline]
-pub fn make_header_raw(arity: Word) -> Word {
-  (Tag::Header as Word) | (arity << PRIM_VALUE_FIRST)
 }
 
 

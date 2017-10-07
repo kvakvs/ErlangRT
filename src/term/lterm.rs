@@ -213,8 +213,8 @@ impl LTerm {
   // Headers, tuples etc, boxed stuff on heap and special stuff in code
   //
   #[inline]
-  pub fn make_header(arity: Word) -> LTerm {
-    LTerm { value: primary::make_header_raw(arity) }
+  pub fn make_tuple_header(arity: Word) -> LTerm {
+    LTerm { value: primary::header::make_tuple_header_raw(arity) }
   }
 
   pub fn header_arity(&self) -> Word {

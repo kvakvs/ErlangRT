@@ -15,6 +15,8 @@ pub type Float = f64;
 // TODO: These are not necessarity Words, might be u16 or u32
 pub type Arity = Word;
 
+pub use term::immediate::SMALL_BITS;
+
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: Word = 32;
 
