@@ -1,7 +1,9 @@
 //! Module implements simple Erlang-style heap which holds Words (raw LTerms)
 //! or other arbitrary data, all marked.
-use term::lterm::LTerm;
+pub mod iter;
+
 use defs::Word;
+use term::lterm::LTerm;
 use term::raw::{RawConsMut, RawTupleMut, RawBignum};
 
 use num;
@@ -10,6 +12,13 @@ use num;
 pub const DEFAULT_LIT_HEAP: Word = 1024;
 /// Default heap size when spawning a process.
 pub const DEFAULT_PROC_HEAP: Word = 300;
+
+
+#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
+pub enum DataPtr { Ptr(*const Word) }
+
+#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
+pub enum DataPtrMut { Ptr(*mut Word) }
 
 
 /// A heap structure which grows upwards with allocations. Cannot expand
@@ -67,4 +76,23 @@ impl Heap {
       None => None
     }
   }
+
+
+  /// Create a constant iterator for walking the heap.
+  pub unsafe fn iter(&self) -> iter::HeapIterator {
+    let last = self.data.len() as isize;
+    let begin = &self.data[0] as *const Word;
+    iter::HeapIterator::new(DataPtr::Ptr(begin),
+                            DataPtr::Ptr(begin.offset(last)))
+  }
+
+
+  /// Print heap contents
+  pub unsafe fn dump(&self) {
+    for data_p in self.iter() {
+      let DataPtr::Ptr(addr) = data_p;
+      println!("{:08p}: {}", addr, LTerm::from_raw(*addr))
+    }
+  }
 }
+

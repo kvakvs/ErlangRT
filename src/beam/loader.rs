@@ -213,6 +213,7 @@ impl Loader {
 
       disasm::disasm(&mod1.code, None);
     }
+    unsafe { self.lit_heap.dump() };
 
     Ok(newmod)
   }
