@@ -13,6 +13,7 @@ fn module() -> &'static str { "scheduler: " }
 
 
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 pub enum Prio {
   /// Runs when no more jobs to take or at 8x disadvantage to normal
   Low = 0,
@@ -25,6 +26,7 @@ pub enum Prio {
 
 /// Enum identifies current registration of the process
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[allow(dead_code)]
 pub enum Queue {
   None,
   //PendingTimers,
@@ -37,6 +39,7 @@ pub enum Queue {
 
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[allow(dead_code)]
 pub enum SliceResult {
   None,
   /// Process willingly gave up run queue (ended the timeslice without events)
@@ -87,7 +90,7 @@ impl Scheduler {
       queue_normal: LinkedList::new(),
       queue_high: LinkedList::new(),
 
-      advantage_count: NORMAL_ADVANTAGE,
+      advantage_count: 0,
       current: None,
 
       wait_inf: HashSet::new(),
@@ -131,7 +134,7 @@ impl Scheduler {
 
 
   /// Get another process from the run queue for this scheduler.
-  pub fn next(&mut self) {
+  pub fn next(&mut self) -> Option<&Process> {
     // FIXME: Ugly clone on self.current
     if let Some(curr_arc) = self.current.clone() {
       let curr = curr_arc.read().unwrap();
@@ -159,6 +162,45 @@ impl Scheduler {
         &SliceResult::Wait => {},
       }
     } // if self.current
+
+    // Now try and find another process to run
+    while self.current.is_none() {
+      // TODO: monotonic clock
+      // TODO: wait lists
+      // TODO: network checks
+
+      // See if any are waiting in realtime (high) priority queue
+      let mut next_pid: Option<LTerm> = None;
+      if !self.queue_high.is_empty() {
+        next_pid = self.queue_high.pop_front()
+      } else if self.advantage_count < NORMAL_ADVANTAGE {
+        if !self.queue_normal.is_empty() {
+          next_pid = self.queue_normal.pop_front()
+        } else if !self.queue_low.is_empty() {
+          next_pid = self.queue_low.pop_front()
+        }
+        self.advantage_count += 1;
+      } else {
+        if !self.queue_low.is_empty() {
+          next_pid = self.queue_low.pop_front()
+        } else if !self.queue_normal.is_empty() {
+          next_pid = self.queue_normal.pop_front()
+        }
+        self.advantage_count = 0;
+      };
+
+      if next_pid.is_some() {
+        let next_pid1 = next_pid.unwrap();
+        {
+          let next_proc = self.borrow_pid_mut(next_pid1).unwrap();
+          println!("{} next() queue {}", module(), next_proc.pid);
+        }
+
+        self.current = self.lookup_pid(next_pid1)
+      }
+    }
+
+    self.current
   }
 
 
@@ -167,6 +209,15 @@ impl Scheduler {
     assert!(pid.is_local_pid());
     match self.processes.get(&pid) {
       Some(p) => Some(p.clone()),
+      None => None
+    }
+  }
+
+  /// Get a reference to process, if it exists. Return `None` if we are sorry.
+  pub fn borrow_pid_mut(&self, pid: LTerm) -> Option<&mut process::Process> {
+    assert!(pid.is_local_pid());
+    match self.processes.get(&pid) {
+      Some(p) => Some(&mut p.write().unwrap()),
       None => None
     }
   }
