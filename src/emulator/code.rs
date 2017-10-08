@@ -23,6 +23,7 @@ pub type CodePtr = *const Word;
 pub type CodePtrMut = *mut Word;
 
 /// Universal pointer to module and offset in the module code.
+// TODO: Make this *const Word wrapped in Enum
 pub struct InstrPointer {
   mod_name: LTerm,
   ip: CodeOffset,

@@ -4,7 +4,7 @@ use emulator::atom;
 use emulator::heap::Heap;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
-use term::raw::RawBignum;
+//use term::raw::RawBignum;
 use util::bin_reader::BinaryReader;
 
 use num;

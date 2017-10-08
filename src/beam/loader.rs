@@ -175,7 +175,7 @@ impl Loader {
 
       // The next chunk is aligned at 4 bytes
       let aligned_sz = 4 * ((chunk_sz + 3) / 4);
-      let align = aligned_sz - chunk_sz;
+//      let align = aligned_sz - chunk_sz;
       r.seek(pos_begin + aligned_sz as Word);
     }
 

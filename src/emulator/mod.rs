@@ -7,4 +7,5 @@ pub mod heap;
 pub mod mfa;
 pub mod module;
 pub mod process;
+pub mod scheduler;
 pub mod vm;

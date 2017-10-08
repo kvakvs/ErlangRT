@@ -2,19 +2,21 @@
 //! Implements virtual machine, as a collection of processes and their
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
-use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use beam::loader;
+//use beam::vm_loop;
 use defs::Word;
 use emulator::atom;
-use emulator::code_srv;
 use emulator::code::InstrPointer;
+use emulator::code_srv;
 use emulator::mfa;
 use emulator::module;
 use emulator::process::Process;
+use emulator::scheduler::{Prio, Scheduler};
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
+
 
 fn module() -> &'static str { "vm: " }
 
@@ -25,31 +27,29 @@ pub struct VM {
   /// Pid counter increments every time a new process is spawned
   pid_counter: Word,
 
-  /// Dict of pids to process boxes
-  processes: BTreeMap<LTerm, Process>,
-
   code_srv: code_srv::CodeServer,
+
+  pub scheduler: Scheduler,
 }
 
 impl VM {
   pub fn new() -> VM {
     VM {
       pid_counter: 0,
-      processes: BTreeMap::new(),
-      code_srv: code_srv::CodeServer::new()
+      code_srv: code_srv::CodeServer::new(),
+      scheduler: Scheduler::new(),
     }
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self,
-                        parent: LTerm,
-                        mfa: &mfa::MFArgs) -> Hopefully<LTerm> {
+  pub fn create_process(&mut self, parent: LTerm, mfa: &mfa::MFArgs,
+                        prio: Prio) -> Hopefully<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = LTerm::make_pid(pid_c);
-    match Process::new(self, pid, parent, mfa) {
+    match Process::new(self, pid, parent, mfa, prio) {
       Ok(p0) => {
-        self.processes.insert(pid, p0);
+        self.scheduler.add(pid, p0);
         Ok(pid)
       },
       Err(e) => return Err(e)
@@ -59,7 +59,7 @@ impl VM {
   /// Run the VM loop (one time slice), call this repeatedly to run forever.
   /// Returns: false if VM quit, true if can continue
   pub fn tick(&mut self) -> bool {
-    true
+    self.dispatch()
   }
 
   /// Mutable lookup, will load module if lookup fails the first time

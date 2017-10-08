@@ -20,6 +20,7 @@ mod defs;
 mod util;
 
 use emulator::atom;
+use emulator::scheduler::Prio;
 use emulator::mfa::MFArgs;
 use emulator::vm::VM;
 use term::lterm::LTerm;
@@ -35,14 +36,12 @@ fn main() {
 
   let mut beam = VM::new();
 
-  //let test_a = "test".to_string();
-  //let t = world.new_atom(&test_a);
-  //println!("t.val={}", t.get_raw())
-
   let mfa = MFArgs::new(atom::from_str("test"),
                         atom::from_str("start"),
                         Vec::new());
-  let r = beam.create_process(LTerm::nil(), &mfa);
+  let r = beam.create_process(
+    LTerm::nil(), &mfa, Prio::Normal);
+
   let _root_p = match r {
     Ok(p0) => p0,
     Err(e) => panic!("{:?}", e)
