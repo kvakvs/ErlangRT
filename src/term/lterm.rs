@@ -20,7 +20,7 @@ use std::fmt;
 /// pointer to heap.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct LTerm {
-  value: Word
+  pub value: Word
 }
 
 
@@ -65,6 +65,12 @@ impl LTerm {
   #[inline]
   pub fn is_non_value(&self) -> bool {
     self.value == IMM2_SPECIAL_NONVALUE_RAW
+  }
+
+  /// Check whether a value is NOT a NON_VALUE.
+  #[inline]
+  pub fn is_value(&self) -> bool {
+    ! self.is_non_value()
   }
 
   /// Check whether a value is a local pid.

@@ -12,18 +12,26 @@ use term::lterm::LTerm;
 use std::sync;
 
 
-pub type Ptr = sync::Mutex<Process>;
-pub type Weak = sync::Mutex<Process>;
+pub type Ptr = sync::Arc<sync::RwLock<Process>>;
+pub type Weak = sync::Weak<sync::RwLock<Process>>;
 
 
 pub struct Process {
   pub pid: LTerm,
   parent_pid: LTerm,
 
-  /// Scheduling priority
+  //
+  // Scheduling and fail state
+  //
+
+  /// Scheduling priority (selects the runqueue when this process is scheduled)
   pub prio: scheduler::Prio,
-  /// Scheduler queue
+  /// Current scheduler queue where this process is registered
   pub current_queue: scheduler::Queue,
+  /// Record result of last scheduled timeslice for this process
+  /// (updated by the vm loop)
+  pub timeslice_result: scheduler::SliceResult,
+  pub fail_value: LTerm,
 
   // heap
   // Runtime context: regs stack...
@@ -44,11 +52,19 @@ impl Process {
         let p = Process {
           pid, parent_pid, ip, prio,
           current_queue: scheduler::Queue::None,
+          timeslice_result: scheduler::SliceResult::None,
+          fail_value: LTerm::non_value(),
         };
-        Ok(sync::Mutex::new(p))
+        Ok(sync::Arc::new(sync::RwLock::new(p)))
       },
       Err(e) => Err(e)
     }
+  }
+
+  /// Returns true if there was an error or exception during the last timeslice.
+  #[inline]
+  pub fn is_failed(&self) -> bool {
+    self.fail_value.is_value()
   }
 
   #[allow(dead_code)]

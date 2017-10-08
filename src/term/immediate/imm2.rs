@@ -95,3 +95,7 @@ pub fn combine_imm2_prefix_and_val(val: Word, prefix0: Word) -> Word {
   assert!(val < (1 << (IMM2_VALUE_LAST - IMM2_VALUE_FIRST)));
   *prefix.set_bits(IMM2_VALUE_FIRST..IMM2_VALUE_LAST, val)
 }
+
+pub const fn combine_imm2_prefix_and_val_const(val: Word, prefix0: Word) -> Word {
+  prefix0 | (val << IMM2_VALUE_FIRST)
+}

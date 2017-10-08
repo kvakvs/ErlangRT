@@ -22,7 +22,7 @@ class OTPConfig:
 class OTP19(OTPConfig):
     def __init__(self):
         super().__init__(min_opcode=1, max_opcode=158,
-                         atoms_tab="otp19/atoms.tab",
+                         atoms_tab="atoms.tab",
                          bif_tab="otp19/bif.tab",
                          genop_tab="otp19/genop.tab")
 
@@ -40,7 +40,7 @@ class OTP19(OTPConfig):
 class OTP20(OTPConfig):
     def __init__(self):
         super().__init__(min_opcode=1, max_opcode=159,
-                         atoms_tab="otp20/atom.names",
+                         atoms_tab="atoms.tab",
                          bif_tab="otp20/bif.tab",
                          genop_tab="otp20/genop.tab")
 
@@ -184,7 +184,7 @@ class OTPTables:
             open(self.conf.atoms_tab).read().split("\n"))
 
         for a in atoms:
-            self.atom_add(Atom(atom=a, cname=None))
+            self.atom_add(Atom(atom=a, cname=a.upper()))
 
         bifs = self.filter_comments(
             open(self.conf.bif_tab).read().split("\n"))
@@ -194,7 +194,7 @@ class OTPTables:
             bif_tab0.append(bif)
 
             if self.is_printable(bline[0]):
-                self.atom_add(Atom(atom=bline[0], cname=None))
+                self.atom_add(Atom(atom=bline[0], cname=bline[0].upper()))
             else:
                 self.atom_add(Atom(atom=bline[0], cname=bif.cname))
 
