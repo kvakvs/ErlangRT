@@ -2,7 +2,7 @@
 //! or other arbitrary data, all marked.
 use term::lterm::LTerm;
 use defs::Word;
-use term::raw::{RawCons, RawTuple, RawBignum};
+use term::raw::{RawCons, RawTupleMut, RawBignum};
 
 use num;
 
@@ -51,9 +51,9 @@ impl Heap {
 
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
-  pub fn allocate_tuple(&mut self, size: Word) -> Option<RawTuple> {
-    match self.allocate(RawTuple::storage_size(size)) {
-      Some(p) => unsafe { Some(RawTuple::create_at(p, size)) },
+  pub fn allocate_tuple(&mut self, size: Word) -> Option<RawTupleMut> {
+    match self.allocate(RawTupleMut::storage_size(size)) {
+      Some(p) => unsafe { Some(RawTupleMut::create_at(p, size)) },
       None => None
     }
   }

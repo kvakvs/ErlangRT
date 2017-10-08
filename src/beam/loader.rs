@@ -19,6 +19,7 @@ use beam::gen_op;
 use defs::{Word, Arity};
 use emulator::atom;
 use emulator::code::{LabelId, CodeOffset, Code};
+use emulator::disasm;
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::module;
@@ -204,13 +205,13 @@ impl Loader {
     let mod_name = self.vm_atoms[0];
     let newmod = module::Module::new(mod_name);
 
-    //self.print_funs();
-
     // Move funs into new module
     {
       let mut mod1 = newmod.borrow_mut();
       mem::swap(&mut self.funs, &mut mod1.funs);
       mem::swap(&mut self.code, &mut mod1.code);
+
+      disasm::disasm(&mod1.code, None);
     }
 
     Ok(newmod)
@@ -529,7 +530,7 @@ impl Loader {
       // Lookup the label. Crash here if bad label.
       let &CodeOffset::Val(fixed) = self.labels.get(&unfixed_l).unwrap();
       // Update code cell with special label value
-      self.code[offs] = LTerm::make_label(fixed).raw();
+      self.code[offs] = LTerm::make_small_i(fixed as isize - offs as isize).raw();
     }
   }
 

@@ -20,6 +20,18 @@ pub enum CodeOffset { Val(Word) }
 pub type Labels = BTreeMap<LabelId, CodeOffset>;
 
 pub enum CodePtr { Ptr(*const Word) }
+
+impl CodePtr {
+  pub fn null() -> CodePtr {
+    CodePtr::Ptr(0 as *const Word)
+  }
+
+  pub fn is_null(&self) -> bool {
+    let CodePtr::Ptr(p) = *self;
+    p == 0 as *const Word
+  }
+}
+
 pub enum CodePtrMut { Ptr(*mut Word) }
 
 // / Universal pointer to module and offset in the module code.

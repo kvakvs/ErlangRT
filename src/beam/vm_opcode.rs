@@ -1,6 +1,7 @@
 use beam::gen_op;
-use emulator::runtime_ctx::Context;
 use defs::{Word, DispatchResult};
+use emulator::runtime_ctx::Context;
+use term::lterm::LTerm;
 
 #[inline]
 fn assert_arity(op: gen_op::OPCODE, val: Word) {
@@ -12,7 +13,9 @@ fn assert_arity(op: gen_op::OPCODE, val: Word) {
 #[inline]
 pub fn opcode_call(ctx: &mut Context) -> DispatchResult {
   assert_arity(gen_op::OPCODE::Call, 2);
-
+  ctx.skip(1);
+  let location = LTerm::from_raw(ctx.fetch());
+  assert!(location.is_small());
   DispatchResult::Normal
 }
 

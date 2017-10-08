@@ -2,6 +2,7 @@
 //! Defines header tag values used on heap to define the header type.
 //!
 use bit_field::BitField;
+use std::mem;
 
 use defs;
 use defs::Word;
@@ -72,4 +73,17 @@ pub fn make_bignum_neg_header_raw(sz: Word) -> Word {
 #[inline]
 pub fn make_bignum_pos_header_raw(sz: Word) -> Word {
   make_header_raw(sz, HEADER_TAG_BIGPOS_RAW)
+}
+
+#[inline]
+pub fn get_header_tag(v: Word) -> HeaderTag {
+  assert_eq!(primary::get_tag(v), primary::Tag::Header);
+  let htraw = v.get_bits(HEADER_TAG_FIRST..HEADER_TAG_LAST) as Word;
+  unsafe { mem::transmute(htraw) }
+}
+
+#[inline]
+pub fn get_header_value(v: Word) -> Word {
+  assert_eq!(primary::get_tag(v), primary::Tag::Header);
+  v.get_bits(HEADER_VALUE_FIRST..HEADER_VALUE_LAST)
 }

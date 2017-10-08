@@ -7,6 +7,9 @@
 use term::immediate;
 use term::immediate::{IMM2_SPECIAL_NIL_RAW, IMM2_SPECIAL_NONVALUE_RAW};
 use term::primary;
+use term::primary::header::HeaderTag;
+use term::raw::RawTuple;
+use emulator::atom;
 
 use defs;
 use defs::{Word, SWord, MAX_UNSIG_SMALL, MIN_SIG_SMALL, MAX_SIG_SMALL};
@@ -155,10 +158,24 @@ impl LTerm {
     LTerm { value: primary::make_box_raw(ptr) }
   }
 
+  //
+  // Cons, lists, list cells, heads, tails
+  //
+
   /// From a pointer to heap create a cons box
   #[inline]
   pub fn make_cons(ptr: *const Word) -> LTerm {
     LTerm { value: primary::make_cons_raw(ptr) }
+  }
+
+  pub unsafe fn cons_hd(&self) -> LTerm {
+    let boxp = primary::pointer(self.value);
+    LTerm::from_raw(*boxp)
+  }
+
+  pub unsafe fn cons_tl(&self) -> LTerm {
+    let boxp = primary::pointer(self.value);
+    LTerm::from_raw(*(boxp.offset(1)))
   }
 
   //
@@ -195,6 +212,13 @@ impl LTerm {
   //
   // Small integer handling
   //
+
+  /// Check whether a value is a small integer.
+  #[inline]
+  pub fn is_small(&self) -> bool {
+    return immediate::is_small_raw(self.value)
+  }
+
   #[inline]
   pub fn make_small_u(n: Word) -> LTerm {
     assert!(n < MAX_UNSIG_SMALL);
@@ -218,6 +242,7 @@ impl LTerm {
   //
   // Headers, tuples etc, boxed stuff on heap and special stuff in code
   //
+
   #[inline]
   pub fn make_tuple_header(arity: Word) -> LTerm {
     LTerm { value: primary::header::make_tuple_header_raw(arity) }
@@ -238,7 +263,9 @@ impl fmt::Display for LTerm {
     match primary::get_tag(v) {
       primary::Tag::Box => write!(f, "Box({:?})", self.box_ptr()),
 
-      primary::Tag::Cons => write!(f, "Cons({})", v),
+      primary::Tag::Cons => {
+        unsafe { write!(f, "[{} | {}]", self.cons_hd(), self.cons_tl()) }
+      },
 
       primary::Tag::Immediate =>
         match immediate::get_imm1_tag(v) {
@@ -261,7 +288,7 @@ impl fmt::Display for LTerm {
                 write!(f, "Special({})", immediate::imm2_value(v)),
 
               immediate::Immediate2::Atom =>
-                write!(f, "Atom({})", self.atom_index()),
+                write!(f, "'{}'", atom::to_str(*self)),
 
               immediate::Immediate2::Immed3 =>
 
@@ -280,7 +307,36 @@ impl fmt::Display for LTerm {
                 }
             },
         },
-      primary::Tag::Header => write!(f, "Header({})", primary::get_value(v)),
+      primary::Tag::Header => {
+        let hptr = primary::pointer(v);
+        let h = unsafe { *hptr };
+
+        match primary::header::get_header_tag(h) {
+
+          HeaderTag::Tuple => {
+            let raw_tuple = RawTuple::from_pointer(hptr);
+            write!(f, "{{");
+            let arity = unsafe { raw_tuple.arity() };
+            for i in 0..arity {
+              let item = primary::get_value(v);
+            }
+            write!(f, "}}")
+          },
+          HeaderTag::BigNegative => write!(f, "BigNeg"),
+          HeaderTag::BigPositive => write!(f, "BigPos"),
+          HeaderTag::Reference => write!(f, "Ref"),
+          HeaderTag::Fun => write!(f, "Fun"),
+          HeaderTag::Float => write!(f, "Float"),
+          HeaderTag::Export => write!(f, "Export"),
+          HeaderTag::RefcBinary => write!(f, "RefcBin"),
+          HeaderTag::HeapBinary => write!(f, "HeapBin"),
+          HeaderTag::SubBinary => write!(f, "SubBin"),
+          HeaderTag::ExternalPid => write!(f, "ExtPid"),
+          HeaderTag::ExternalPort => write!(f, "ExtPort"),
+          HeaderTag::ExternalRef => write!(f, "ExtRef"),
+          _ => write!(f, "Header({})", primary::get_value(v))
+        }
+      },
     }
   }
 }

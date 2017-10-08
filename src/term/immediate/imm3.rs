@@ -27,6 +27,7 @@ pub enum Immediate3 {
   XReg = 0,
   YReg = 1,
   FPReg = 2,
+  /// Not used. Label offsets in code are represented by signed small LTerm
   Label = 3,
 }
 

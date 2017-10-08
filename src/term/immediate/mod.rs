@@ -80,9 +80,16 @@ pub fn is_pid_raw(val: Word) -> bool {
   get_imm1_prefix(val) == IMM1_PID_PREFIX
 }
 
+/// Check whether a Word represents an atom.
 #[inline]
 pub fn is_atom_raw(val: Word) -> bool {
   get_imm2_prefix(val) == IMM2_ATOM_PREFIX
+}
+
+/// Check whether a Word represents a small integer.
+#[inline]
+pub fn is_small_raw(val: Word) -> bool {
+  get_imm1_prefix(val) == IMM1_SMALL_PREFIX
 }
 
 
