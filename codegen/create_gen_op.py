@@ -54,7 +54,9 @@ pub fn opcode_name(opcode: u8) -> &'static str {
     #
 
     # print("#[cfg(debug)]")
-    print("pub enum OPCODE {")
+    print("#[derive(Debug, Eq, PartialEq)]\n"
+          "#[repr(usize)]\n"
+          "pub enum OPCODE {")
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
         print("    %s = %d," % (op.cname(), opcode))

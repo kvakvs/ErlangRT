@@ -1,7 +1,10 @@
 use beam::vm_dispatch::dispatch_op_inline;
+use beam::gen_op;
 use defs::Word;
 use emulator::code::{CodePtr};
 use emulator::vm::VM;
+
+use std::mem::transmute;
 
 impl VM {
   /// Take a process from scheduler.
@@ -14,7 +17,9 @@ impl VM {
       Some(p) => self.scheduler.lookup_pid_mut(&p).unwrap()
     };
     let mut ctx = &mut curr_p.context;
-    let op = ctx.fetch();
+    let op_w = ctx.fetch();
+    assert!(op_w <= gen_op::OPCODE_MAX);
+    let op = unsafe { transmute::<usize, gen_op::OPCODE>(op_w) };
     dispatch_op_inline(op, &mut ctx);
     true
   }

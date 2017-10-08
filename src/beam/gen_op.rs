@@ -339,6 +339,8 @@ pub fn opcode_name(opcode: u8) -> &'static str {
   OPCODE_NAME_MAP[opcode as usize]
 }
 
+#[derive(Debug, Eq, PartialEq)]
+#[repr(usize)]
 pub enum OPCODE {
     Label = 1,
     FuncInfo = 2,

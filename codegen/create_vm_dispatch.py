@@ -21,17 +21,18 @@ use defs::Word;
 
 
 #[inline(always)]
-pub fn dispatch_op_inline(op: Word, ctx: &mut Context) {{
+pub fn dispatch_op_inline(op: OPCODE, ctx: &mut Context) {{
   match op {{
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
-        print("    x if x == OPCODE::{opcode} as Word => {{}},"
-              "".format(opcode=op.cname()))
+        if op.name in tables.implemented_ops:
+            print("    OPCODE::{opcode} => {{}},"
+                  "".format(opcode=op.cname()))
 
     print("""\
-    other => panic!("vm_dispatch: Unknown opcode {}", other),   
+    other => panic!("vm_dispatch: Opcode {:?} not implemented", other),   
   }
 }
 """)
