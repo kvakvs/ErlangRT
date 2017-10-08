@@ -6,8 +6,10 @@ use term::raw::{RawCons, RawTuple, RawBignum};
 
 use num;
 
-/// Default heap size when loading a module
+/// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: Word = 1024;
+/// Default heap size when spawning a process.
+pub const DEFAULT_PROC_HEAP: Word = 300;
 
 
 /// A heap structure which grows upwards with allocations. Cannot expand

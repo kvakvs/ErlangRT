@@ -2,14 +2,16 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 //!
-use emulator::code::{InstrPointer};
+use emulator::code::{CodePtr};
+use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa;
+use emulator::runtime_ctx;
 use emulator::scheduler;
 use emulator::vm::VM;
 use fail::Hopefully;
 use term::lterm::LTerm;
 
-use std::sync;
+//use std::sync;
 
 
 //pub type Ptr = sync::Arc<sync::RwLock<Process>>;
@@ -32,10 +34,10 @@ pub struct Process {
   /// (updated by the vm loop)
   pub timeslice_result: scheduler::SliceResult,
   pub fail_value: LTerm,
+  /// Runtime context with registers, instruction pointer etc
+  pub context: runtime_ctx::Context,
 
-  // heap
-  // Runtime context: regs stack...
-  ip: InstrPointer,
+  heap: Heap,
 }
 
 impl Process {
@@ -50,10 +52,12 @@ impl Process {
     match vm.code_lookup(mfa) {
       Ok(ip) => {
         let p = Process {
-          pid, parent_pid, ip, prio,
+          pid, parent_pid, prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
           fail_value: LTerm::non_value(),
+          context: runtime_ctx::Context::new(ip),
+          heap: Heap::new(DEFAULT_PROC_HEAP),
         };
         Ok(p)
         //Ok(sync::Arc::new(sync::RwLock::new(p)))
@@ -73,7 +77,7 @@ impl Process {
     // TODO: Find mfa in code server and set IP to it
     match vm.code_lookup(mfa) {
       Ok(ip) => {
-        self.ip = ip;
+        self.context.ip = ip;
         Ok(())
       },
       Err(e) => Err(e)

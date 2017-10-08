@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use emulator::code::{InstrPointer};
+use emulator::code::CodePtr;
 use emulator::mfa;
 use emulator::module;
 use fail::{Hopefully, Error};
@@ -28,7 +28,7 @@ impl CodeServer {
   }
 
   /// Find module:function/arity
-  pub fn lookup(&self, mfa: &mfa::IMFArity) -> Hopefully<InstrPointer> {
+  pub fn lookup(&self, mfa: &mfa::IMFArity) -> Hopefully<CodePtr> {
     let m = mfa.get_mod();
     match self.mods.get(&m) {
       None => {

@@ -8,7 +8,7 @@ use beam::loader;
 //use beam::vm_loop;
 use defs::Word;
 use emulator::atom;
-use emulator::code::InstrPointer;
+use emulator::code;
 use emulator::code_srv;
 use emulator::mfa;
 use emulator::module;
@@ -63,7 +63,7 @@ impl VM {
   }
 
   /// Mutable lookup, will load module if lookup fails the first time
-  pub fn code_lookup(&mut self, mfa: &mfa::IMFArity) -> Hopefully<InstrPointer>
+  pub fn code_lookup(&mut self, mfa: &mfa::IMFArity) -> Hopefully<code::CodePtr>
   {
     // Try lookup once, then load if not found
     match self.code_srv.lookup(mfa) {

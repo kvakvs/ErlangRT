@@ -4,9 +4,9 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::sync;
 
-//use defs::Word;
+use defs::Word;
 use emulator::funarity::FunArity;
-use emulator::code::{InstrPointer, CodeOffset, Code};
+use emulator::code::{CodePtr, CodeOffset, Code};
 use emulator::mfa::IMFArity;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
@@ -46,13 +46,16 @@ impl Module {
 
 
   /// Find a funarity or mfarity in the functions table.
-  pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<InstrPointer> {
+  pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<CodePtr> {
     let fa = mfa.get_funarity();
     //println!("mod Lookup {}/{}", fa.f, fa.arity);
 
     match self.funs.get(&fa) {
-      Some(offset) =>
-        Ok(InstrPointer::new(self.name, offset.clone())),
+      Some(c_offset) => {
+        let CodeOffset::Val(offset) = *c_offset;
+        let p = &self.code[offset] as *const Word;
+        Ok(CodePtr::Ptr(p))
+      },
       None => {
         let msg = format!("Function not found {} in {}", fa, self.name);
         Err(Error::FunctionNotFound(msg))

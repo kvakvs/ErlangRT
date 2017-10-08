@@ -4,7 +4,7 @@ use std::collections::{LinkedList, HashMap, HashSet};
 
 use defs::Word;
 use emulator::process;
-use emulator::process::Process;
+//use emulator::process::Process;
 use emulator::gen_atoms;
 use term::lterm::LTerm;
 

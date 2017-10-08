@@ -19,18 +19,18 @@ pub enum CodeOffset { Val(Word) }
 /// Map of label id to offset. Maybe: Use binary search sorted array?
 pub type Labels = BTreeMap<LabelId, CodeOffset>;
 
-pub type CodePtr = *const Word;
-pub type CodePtrMut = *mut Word;
+pub enum CodePtr { Ptr(*const Word) }
+pub enum CodePtrMut { Ptr(*mut Word) }
 
-/// Universal pointer to module and offset in the module code.
+// / Universal pointer to module and offset in the module code.
 // TODO: Make this *const Word wrapped in Enum
-pub struct InstrPointer {
-  mod_name: LTerm,
-  ip: CodeOffset,
-}
+//pub struct InstrPointer {
+//  mod_name: LTerm,
+//  ip: CodeOffset,
+//}
 
-impl InstrPointer {
-  pub fn new(mod_name: LTerm, ip: CodeOffset) -> InstrPointer {
-    InstrPointer { mod_name, ip }
-  }
-}
+//impl InstrPointer {
+//  pub fn new(mod_name: LTerm, ip: CodeOffset) -> InstrPointer {
+//    InstrPointer { mod_name, ip }
+//  }
+//}

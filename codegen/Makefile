@@ -1,6 +1,5 @@
 .PHONY: all
-all: genop genatoms
-#vm_loop vm_predef_atoms vm_bif_tab
+all: genop genatoms vmdisp
 
 SRCDIR=../src
 
@@ -11,3 +10,7 @@ genop:
 .PHONY: genatoms
 genatoms:
 	./create_gen_atoms.py > ${SRCDIR}/emulator/gen_atoms.rs
+
+.PHONY: vmdisp
+vmdisp:
+	./create_vm_dispatch.py > ${SRCDIR}/beam/vm_dispatch.rs

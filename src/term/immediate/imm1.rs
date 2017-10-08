@@ -20,6 +20,8 @@ pub const IMM1_TAG_LAST: u8 = 4;
 /// Bit position for the value after imm1 tag
 pub const IMM1_VALUE_FIRST: u8 = IMM1_TAG_LAST;
 pub const IMM1_VALUE_LAST: u8 = defs::WORD_BITS as u8;
+
+#[allow(dead_code)]
 pub const SMALL_BITS: Word = (IMM1_VALUE_LAST - IMM1_VALUE_FIRST) as Word;
 
 #[repr(usize)]

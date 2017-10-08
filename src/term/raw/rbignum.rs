@@ -37,13 +37,13 @@ impl RawBignum {
   }
 
   /// Given a pointer to an already initialized tuple, just return a wrapper.
-  pub fn from_pointer(p: *mut Word, arity: Word) -> RawBignum {
-    RawBignum { p }
-  }
+//  pub fn from_pointer(p: *mut Word, arity: Word) -> RawBignum {
+//    RawBignum { p }
+//  }
 
-  pub unsafe fn arity(&self) -> Word {
-    primary::get_value(*self.p)
-  }
+//  pub unsafe fn arity(&self) -> Word {
+//    primary::get_value(*self.p)
+//  }
 
 //  /// Zero-based set element function
 //  pub unsafe fn set_element_base0(&self, i: Word, val: LTerm) {
