@@ -6,7 +6,8 @@
 
 pub const OPCODE_MAX: usize = 159;
 
-static ARITY_MAP: &'static [u8] = &[ 0, // opcode 0 does not exist
+pub static ARITY_MAP: &'static [u8] = &[
+    0, // opcode 0 does not exist
     1, // opcode: 1 (label)
     3, // opcode: 2 (func_info)
     0, // opcode: 3 (int_code_end)
@@ -339,7 +340,7 @@ pub fn opcode_name(opcode: u8) -> &'static str {
   OPCODE_NAME_MAP[opcode as usize]
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[repr(usize)]
 pub enum OPCODE {
     Label = 1,

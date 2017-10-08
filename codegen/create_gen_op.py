@@ -19,7 +19,8 @@ pub const OPCODE_MAX: usize = {op_max};
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     # print arity map
-    print("static ARITY_MAP: &'static [u8] = &[ 0, // opcode 0 does not exist")
+    print("pub static ARITY_MAP: &'static [u8] = &[\n"
+          "    0, // opcode 0 does not exist")
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
         print("    %d, // opcode: %d (%s)" % (op.arity, opcode, op.name))
@@ -54,7 +55,7 @@ pub fn opcode_name(opcode: u8) -> &'static str {
     #
 
     # print("#[cfg(debug)]")
-    print("#[derive(Debug, Eq, PartialEq)]\n"
+    print("#[derive(Debug, Copy, Clone, Eq, PartialEq)]\n"
           "#[repr(usize)]\n"
           "pub enum OPCODE {")
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
