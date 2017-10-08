@@ -2,7 +2,7 @@
 //! or other arbitrary data, all marked.
 use term::lterm::LTerm;
 use defs::Word;
-use term::raw::{RawCons, RawTupleMut, RawBignum};
+use term::raw::{RawConsMut, RawTupleMut, RawBignum};
 
 use num;
 
@@ -42,9 +42,9 @@ impl Heap {
 
 
   /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
-  pub fn allocate_cons(&mut self) -> Option<RawCons> {
+  pub fn allocate_cons(&mut self) -> Option<RawConsMut> {
     match self.allocate(2) {
-      Some(p) => Some(RawCons::from_pointer(p)),
+      Some(p) => Some(RawConsMut::from_pointer(p)),
       None => None
     }
   }

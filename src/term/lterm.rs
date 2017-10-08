@@ -8,7 +8,7 @@ use term::immediate;
 use term::immediate::{IMM2_SPECIAL_NIL_RAW, IMM2_SPECIAL_NONVALUE_RAW};
 use term::primary;
 use term::primary::header::HeaderTag;
-use term::raw::RawTuple;
+use term::raw::{RawCons, RawConsMut, RawTuple, RawTupleMut};
 use emulator::atom;
 
 use defs;
@@ -168,14 +168,22 @@ impl LTerm {
     LTerm { value: primary::make_cons_raw(ptr) }
   }
 
-  pub unsafe fn cons_hd(&self) -> LTerm {
-    let boxp = primary::pointer(self.value);
-    LTerm::from_raw(*boxp)
+
+  /// Get a proxy object for read-only accesing the cons contents.
+  pub unsafe fn raw_cons(&self) -> RawCons {
+    let v = self.value;
+    assert_eq!(primary::get_tag(v), primary::Tag::Cons);
+    let boxp = primary::pointer(v);
+    RawCons::from_pointer(boxp)
   }
 
-  pub unsafe fn cons_tl(&self) -> LTerm {
-    let boxp = primary::pointer(self.value);
-    LTerm::from_raw(*(boxp.offset(1)))
+
+  /// Get a proxy object for looking and modifying cons contents.
+  pub unsafe fn raw_cons_mut(&self) -> RawConsMut {
+    let v = self.value;
+    assert_eq!(primary::get_tag(v), primary::Tag::Cons);
+    let boxp = primary::pointer_mut(v);
+    RawConsMut::from_pointer(boxp)
   }
 
   //
@@ -188,11 +196,13 @@ impl LTerm {
     LTerm { value: immediate::make_atom_raw(index) }
   }
 
+
   /// Check whether a value is a runtime atom.
   #[inline]
   pub fn is_atom(&self) -> bool {
     return immediate::is_atom_raw(self.value)
   }
+
 
   /// For an atom value, get index.
   pub fn atom_index(&self) -> Word {
@@ -219,11 +229,13 @@ impl LTerm {
     return immediate::is_small_raw(self.value)
   }
 
+
   #[inline]
   pub fn make_small_u(n: Word) -> LTerm {
     assert!(n < MAX_UNSIG_SMALL);
     LTerm { value: immediate::make_small_raw(n) }
   }
+
 
   #[inline]
   pub fn make_small_i(n: SWord) -> LTerm {
@@ -232,6 +244,7 @@ impl LTerm {
     let un = defs::unsafe_sword_to_word(n);
     LTerm { value: immediate::make_small_raw(un) }
   }
+
 
   #[inline]
   pub fn small_get(&self) -> SWord {
@@ -248,10 +261,32 @@ impl LTerm {
     LTerm { value: primary::header::make_tuple_header_raw(arity) }
   }
 
+
   pub fn header_arity(&self) -> Word {
     assert!(self.is_header());
     primary::get_value(self.value)
   }
+
+
+  /// Get a proxy object for read-only accesing the cons contents.
+  pub unsafe fn raw_tuple(&self) -> RawTuple {
+    let v = self.value;
+    assert_eq!(primary::get_tag(v), primary::Tag::Header);
+    assert_eq!(primary::header::get_header_tag(v), HeaderTag::Tuple);
+    let boxp = primary::pointer(v);
+    RawTuple::from_pointer(boxp)
+  }
+
+
+  /// Get a proxy object for looking and modifying cons contents.
+  pub unsafe fn raw_tuple_mut(&self) -> RawTupleMut {
+    let v = self.value;
+    assert_eq!(primary::get_tag(v), primary::Tag::Header);
+    assert_eq!(primary::header::get_header_tag(v), HeaderTag::Tuple);
+    let boxp = primary::pointer_mut(v);
+    RawTupleMut::from_pointer(boxp)
+  }
+
 }
 
 
@@ -263,8 +298,9 @@ impl fmt::Display for LTerm {
     match primary::get_tag(v) {
       primary::Tag::Box => write!(f, "Box({:?})", self.box_ptr()),
 
-      primary::Tag::Cons => {
-        unsafe { write!(f, "[{} | {}]", self.cons_hd(), self.cons_tl()) }
+      primary::Tag::Cons => unsafe {
+        let raw_cons = self.raw_cons();
+        unsafe { write!(f, "[{} | {}]", raw_cons.hd(), raw_cons.tl()) }
       },
 
       primary::Tag::Immediate =>
@@ -312,7 +348,6 @@ impl fmt::Display for LTerm {
         let h = unsafe { *hptr };
 
         match primary::header::get_header_tag(h) {
-
           HeaderTag::Tuple => {
             let raw_tuple = RawTuple::from_pointer(hptr);
             write!(f, "{{");

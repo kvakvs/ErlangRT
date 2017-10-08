@@ -54,12 +54,21 @@ pub fn get_value(val: Word) -> Word {
 }
 
 
-/// Zero the primary tag bits and assume the rest is a valid pointer
+/// Zero the primary tag bits and assume the rest is a valid const pointer.
 #[inline]
 pub fn pointer(val0: Word) -> *const Word {
   let mut val = val0;
   let untagged = val.set_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST, 0);
   untagged as *const Word
+}
+
+
+/// Zero the primary tag bits and assume the rest is a valid mutable pointer.
+#[inline]
+pub fn pointer_mut(val0: Word) -> *mut Word {
+  let mut val = val0;
+  let untagged = val.set_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST, 0);
+  untagged as *mut Word
 }
 
 
