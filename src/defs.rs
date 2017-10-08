@@ -55,3 +55,12 @@ pub fn unsafe_sword_to_word(n: SWord) -> Word {
 pub fn unsafe_word_to_sword(n: Word) -> SWord {
   unsafe { transmute::<usize, isize> (n) }
 }
+
+/// Enum is used by VM dispatch handlers for opcodes to indicate whether to
+/// continue, yield (take next process in the queue) or interrupt process
+/// on error.
+pub enum DispatchResult {
+  Normal,
+  Yield,
+  Error,
+}

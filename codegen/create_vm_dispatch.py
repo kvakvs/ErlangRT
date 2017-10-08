@@ -17,19 +17,21 @@ def main():
 
 use beam::gen_op::OPCODE;
 use emulator::runtime_ctx::Context;
-use defs::Word;
+use defs::{{Word, DispatchResult}};
+use beam::vm_opcode::*;
 
 
 #[inline(always)]
-pub fn dispatch_op_inline(op: OPCODE, ctx: &mut Context) {{
+pub fn dispatch_op_inline(op: OPCODE, ctx: &mut Context) -> DispatchResult {{
   match op {{
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
         if op.name in tables.implemented_ops:
-            print("    OPCODE::{opcode} => {{}},"
-                  "".format(opcode=op.cname()))
+            print("    OPCODE::{opcode} => "
+                  "{{ return opcode_{lowercase}(ctx) }},"
+                  "".format(opcode=op.cname(), lowercase=op.name))
 
     print("""\
     other => panic!("vm_dispatch: Opcode {:?} not implemented", other),   

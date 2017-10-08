@@ -7,3 +7,4 @@ pub mod vm_loop;
 // or by invoking `make` in the `codegen/` directory
 pub mod gen_op; // generated
 pub mod vm_dispatch; // generated
+pub mod vm_opcode; // generated
