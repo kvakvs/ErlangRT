@@ -71,7 +71,7 @@ pub struct Scheduler {
   advantage_count: Word,
 
   /// Currently selected process
-  current: Option<process::Ptr>,
+  current: Option<LTerm>,
 
   /// Wait set for infinitely suspended processes (in endless receive)
   wait_inf: HashSet<LTerm>,
@@ -79,7 +79,7 @@ pub struct Scheduler {
   wait_timed: HashSet<LTerm>,
 
   /// Dict of pids to process boxes. Owned by the scheduler
-  processes: HashMap<LTerm, process::Ptr>,
+  processes: HashMap<LTerm, process::Process>,
 }
 
 
@@ -103,8 +103,8 @@ impl Scheduler {
 
   /// Register a process `proc_` in the process table and also queue it for
   /// execution. This is invoked by vm when a new process is spawned.
-  pub fn add(&mut self, pid: LTerm, proc_: process::Ptr) {
-    self.processes.insert(pid, proc_.clone());
+  pub fn add(&mut self, pid: LTerm, proc_: process::Process) {
+    self.processes.insert(pid, proc_);
     self.queue(pid);
   }
 
@@ -116,11 +116,7 @@ impl Scheduler {
 
     let prio = {
       // Lookup the pid
-      let p_arc = self.lookup_pid(pid).unwrap();
-
-      // Read-lock the rwlock inside Arc
-      let p = p_arc.read().unwrap();
-
+      let p = self.lookup_pid(&pid).unwrap();
       assert_eq!(p.current_queue, Queue::None);
       p.prio
     };
@@ -134,32 +130,37 @@ impl Scheduler {
 
 
   /// Get another process from the run queue for this scheduler.
-  pub fn next(&mut self) -> Option<&Process> {
-    // FIXME: Ugly clone on self.current
-    if let Some(curr_arc) = self.current.clone() {
-      let curr = curr_arc.read().unwrap();
-      assert_eq!(curr.current_queue, Queue::None);
-      let curr_pid = curr.pid;
+  pub fn next(&mut self) -> Option<LTerm> {
+    let current_pid = self.current;
+    if let Some(curr_pid) = current_pid {
+      let timeslice_result = {
+        let curr = self.lookup_pid(&curr_pid).unwrap();
+        assert_eq!(curr.current_queue, Queue::None);
+        curr.timeslice_result
+      };
 
-      match &curr.timeslice_result {
-        &SliceResult::Yield => {
+      match timeslice_result {
+        SliceResult::Yield => {
           self.queue(curr_pid);
           self.current = None
         },
-        &SliceResult::None => {
+        SliceResult::None => {
           self.queue(curr_pid);
           self.current = None
         },
-        &SliceResult::Finished => {
-          self.exit_process(&curr, gen_atoms::NORMAL)
+        SliceResult::Finished => {
+          self.exit_process(curr_pid, gen_atoms::NORMAL)
         },
-        &SliceResult::Exception => {
-          assert!(curr.is_failed());
-          let fail_value = curr.fail_value;
-          self.exit_process(&curr, fail_value);
+        SliceResult::Exception => {
+          let fail_value = {
+            let curr = self.lookup_pid(&curr_pid).unwrap();
+            assert!(curr.is_failed());
+            curr.fail_value
+          };
+          self.exit_process(curr_pid, fail_value);
           self.current = None
         },
-        &SliceResult::Wait => {},
+        SliceResult::Wait => {},
       }
     } // if self.current
 
@@ -192,11 +193,11 @@ impl Scheduler {
       if next_pid.is_some() {
         let next_pid1 = next_pid.unwrap();
         {
-          let next_proc = self.borrow_pid_mut(next_pid1).unwrap();
-          println!("{} next() queue {}", module(), next_proc.pid);
+          let next_p = self.lookup_pid(&next_pid1).unwrap();
+          println!("{} next() queue {}", module(), next_p.pid);
         }
 
-        self.current = self.lookup_pid(next_pid1)
+        self.current = Some(next_pid1)
       }
     }
 
@@ -204,28 +205,25 @@ impl Scheduler {
   }
 
 
-  /// Get a pointer to process, if it exists. Return `None` if we are sorry.
-  pub fn lookup_pid(&self, pid: LTerm) -> Option<process::Ptr> {
+  /// Get a read-only process, if it exists. Return `None` if we are sorry.
+  pub fn lookup_pid(&self, pid: &LTerm) -> Option<&process::Process> {
     assert!(pid.is_local_pid());
-    match self.processes.get(&pid) {
-      Some(p) => Some(p.clone()),
-      None => None
-    }
+    self.processes.get(pid)
   }
 
   /// Get a reference to process, if it exists. Return `None` if we are sorry.
-  pub fn borrow_pid_mut(&self, pid: LTerm) -> Option<&mut process::Process> {
+  pub fn lookup_pid_mut(&mut self, pid: &LTerm) -> Option<&mut process::Process> {
     assert!(pid.is_local_pid());
-    match self.processes.get(&pid) {
-      Some(p) => Some(&mut p.write().unwrap()),
-      None => None
-    }
+    self.processes.get_mut(pid)
   }
 
 
-  pub fn exit_process(&mut self, p: &Process, reason: LTerm) {
+  pub fn exit_process(&mut self, pid: LTerm, reason: LTerm) {
     // assert that process is not in any queue
-    assert_eq!(p.current_queue, Queue::None);
+    {
+      let p = self.lookup_pid_mut(&pid).unwrap();
+      assert_eq!(p.current_queue, Queue::None);
+    }
 
     // root process exits with halt()
     // assert!(p.get_registered_name() != atom::INIT);
@@ -236,8 +234,6 @@ impl Scheduler {
     // TODO: notify links
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
-    let pid = p.pid;
-
     println!("{}Scheduler::exit_process {} reason={}, result x0=?",
              module(), pid, reason //, p.runtime_ctx.regs[0]
             );

@@ -12,8 +12,8 @@ use term::lterm::LTerm;
 use std::sync;
 
 
-pub type Ptr = sync::Arc<sync::RwLock<Process>>;
-pub type Weak = sync::Weak<sync::RwLock<Process>>;
+//pub type Ptr = sync::Arc<sync::RwLock<Process>>;
+//pub type Weak = sync::Weak<sync::RwLock<Process>>;
 
 
 pub struct Process {
@@ -42,7 +42,7 @@ impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
   pub fn new(vm: &mut VM, pid: LTerm, parent_pid: LTerm, mfa: &mfa::MFArgs,
-             prio: scheduler::Prio) -> Hopefully<Ptr> {
+             prio: scheduler::Prio) -> Hopefully<Process> {
     assert!(pid.is_local_pid());
     assert!(parent_pid.is_local_pid() || parent_pid.is_nil());
 
@@ -55,7 +55,8 @@ impl Process {
           timeslice_result: scheduler::SliceResult::None,
           fail_value: LTerm::non_value(),
         };
-        Ok(sync::Arc::new(sync::RwLock::new(p)))
+        Ok(p)
+        //Ok(sync::Arc::new(sync::RwLock::new(p)))
       },
       Err(e) => Err(e)
     }
