@@ -7,7 +7,6 @@
 use term::immediate;
 use term::immediate::{IMM2_SPECIAL_NIL_RAW, IMM2_SPECIAL_NONVALUE_RAW};
 use term::primary;
-use term::primary::header::HeaderTag;
 use term::raw::{RawCons, RawConsMut, RawTuple, RawTupleMut};
 use emulator::atom;
 
@@ -272,7 +271,8 @@ impl LTerm {
   pub unsafe fn raw_tuple(&self) -> RawTuple {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
-    assert_eq!(primary::header::get_header_tag(v), HeaderTag::Tuple);
+    assert_eq!(primary::header::get_header_tag(v),
+               primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer(v);
     RawTuple::from_pointer(boxp)
   }
@@ -282,7 +282,8 @@ impl LTerm {
   pub unsafe fn raw_tuple_mut(&self) -> RawTupleMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
-    assert_eq!(primary::header::get_header_tag(v), HeaderTag::Tuple);
+    assert_eq!(primary::header::get_header_tag(v),
+               primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer_mut(v);
     RawTupleMut::from_pointer(boxp)
   }
@@ -300,8 +301,8 @@ impl fmt::Display for LTerm {
 
       primary::TAG_CONS => unsafe {
         let raw_cons = self.raw_cons();
-        unsafe { write!(f, "Cons@{:?}=[{} | {}]",
-                        raw_cons.raw_pointer(), raw_cons.hd(), raw_cons.tl()) }
+        write!(f, "Cons@{:?}=[{} | {}]",
+                        raw_cons.raw_pointer(), raw_cons.hd(), raw_cons.tl())
       },
 
       primary::TAG_IMMED =>
@@ -360,7 +361,7 @@ impl fmt::Display for LTerm {
         let h = unsafe { *hptr };
 
         match primary::header::get_header_tag(h) {
-          HeaderTag::Tuple => {
+          primary::header::TAG_HEADER_TUPLE => {
             let raw_tuple = RawTuple::from_pointer(hptr);
             write!(f, "{{").unwrap();
             let arity = unsafe { raw_tuple.arity() };
@@ -369,19 +370,21 @@ impl fmt::Display for LTerm {
             }
             write!(f, "}}")
           },
-          HeaderTag::BigNegative => write!(f, "BigNeg"),
-          HeaderTag::BigPositive => write!(f, "BigPos"),
-          HeaderTag::Reference => write!(f, "Ref"),
-          HeaderTag::Fun => write!(f, "Fun"),
-          HeaderTag::Float => write!(f, "Float"),
-          HeaderTag::Export => write!(f, "Export"),
-          HeaderTag::RefcBinary => write!(f, "RefcBin"),
-          HeaderTag::HeapBinary => write!(f, "HeapBin"),
-          HeaderTag::SubBinary => write!(f, "SubBin"),
-          HeaderTag::ExternalPid => write!(f, "ExtPid"),
-          HeaderTag::ExternalPort => write!(f, "ExtPort"),
-          HeaderTag::ExternalRef => write!(f, "ExtRef"),
-          _ => write!(f, "Header({})", primary::get_value(v))
+          primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
+          primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
+          primary::header::TAG_HEADER_REF => write!(f, "Ref"),
+          primary::header::TAG_HEADER_FUN => write!(f, "Fun"),
+          primary::header::TAG_HEADER_FLOAT => write!(f, "Float"),
+          primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
+          primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
+          primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
+          primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
+          primary::header::TAG_HEADER_EXTPID => write!(f, "ExtPid"),
+          primary::header::TAG_HEADER_EXTPORT => write!(f, "ExtPort"),
+          primary::header::TAG_HEADER_EXTREF => write!(f, "ExtRef"),
+
+          _ => panic!("Unexpected header tag value {}",
+                      primary::get_value(v))
         }
       },
       _ => panic!("Primary tag must be in range 0..3")

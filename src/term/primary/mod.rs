@@ -12,7 +12,6 @@ pub mod header;
 use defs;
 use defs::Word;
 
-use std::mem::transmute;
 use bit_field::BitField;
 
 /// Bit position for the primary tag.
@@ -20,25 +19,11 @@ pub const PRIM_TAG_FIRST: u8 = 0;
 pub const PRIM_TAG_LAST: u8 = 2;
 pub const PRIM_MASK: Word = 0b11;
 
+
 /// Bit position for the value after the primary tag.
 pub const PRIM_VALUE_FIRST: u8 = PRIM_TAG_LAST;
 pub const PRIM_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
-//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-//#[repr(usize)]
-//#[allow(dead_code)]
-// /// First two bits in any term define its major type
-//pub enum Tag {
-//  // Marks something special on heap, never appears as a LTerm value in
-//  // registers, is always on heap.
-//  Header = 0,
-//  // points to a cons cell on heap
-//  Cons = 1,
-//  // is some value which fits into a Word
-//  Immediate = 2,
-//  // points to something on heap
-//  Box = 3,
-//}
 
 /// Marks something special on heap, never appears as a LTerm value in
 /// registers, is always on heap.

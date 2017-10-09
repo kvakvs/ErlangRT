@@ -9,7 +9,6 @@ use defs::Word;
 use defs;
 use term::immediate::imm2::*;
 
-use std::mem::transmute;
 use bit_field::BitField;
 
 /// Bit position for imm1 tag

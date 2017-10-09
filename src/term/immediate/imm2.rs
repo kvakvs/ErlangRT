@@ -9,7 +9,6 @@ use defs;
 use defs::Word;
 use term::immediate::imm1::*;
 
-use std::mem::transmute;
 use bit_field::BitField;
 
 /// Bit position for imm1 tag
@@ -20,16 +19,6 @@ pub const IMM2_TAG_LAST: u8 = 6;
 pub const IMM2_VALUE_FIRST: u8 = IMM2_TAG_LAST;
 pub const IMM2_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
-//#[repr(usize)]
-//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-//#[allow(dead_code)]
-//pub enum Immediate2 {
-//  Atom = 0,
-//  Catch = 1,
-//  Immed3 = 2,
-//  /// Special includes unique values like NIL, NONVALUE
-//  Special = 3,
-//}
 
 pub const TAG_IMM2_ATOM: Word = 0;
 pub const TAG_IMM2_CATCH: Word = 1;
@@ -40,11 +29,6 @@ pub const TAG_IMM2_SPECIAL: Word = 3;
 /// Max value for the Immediate2 enum (for assertions).
 pub const IMMEDIATE2_MAX: Word = 3;
 
-//#[repr(usize)]
-//pub enum Immediate2Special {
-//  Nil = 1,
-//  NonValue = 2,
-//}
 
 /// In heap memory NIL looks like 0x40404072
 pub const TAG_IMM2_SPECIAL_NIL: Word = 0x01010101;

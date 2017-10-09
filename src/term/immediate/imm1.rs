@@ -10,7 +10,6 @@ use defs;
 use defs::Word;
 use term::immediate::primary::PRIM_TAG_LAST;
 
-use std::mem::transmute;
 use bit_field::BitField;
 
 /// Bit position for imm1 tag
@@ -23,16 +22,6 @@ pub const IMM1_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 #[allow(dead_code)]
 pub const SMALL_BITS: Word = (IMM1_VALUE_LAST - IMM1_VALUE_FIRST) as Word;
-
-//#[repr(usize)]
-//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-//#[allow(dead_code)]
-//pub enum Immediate1 {
-//  Pid = 0,
-//  Port = 1,
-//  Immed2 = 2,
-//  Small = 3,
-//}
 
 pub const TAG_IMM1_PID: Word = 0;
 pub const TAG_IMM1_PORT: Word = 1;
