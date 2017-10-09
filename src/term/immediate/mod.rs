@@ -43,11 +43,13 @@ pub fn make_pid_raw(pindex: Word) -> Word {
   combine_imm1_prefix_and_val(pindex, IMM1_PID_PREFIX)
 }
 
+
 /// Create a raw smallint value for a term from atom index
 #[inline]
 pub fn make_small_raw(val: Word) -> Word {
   combine_imm1_prefix_and_val(val, IMM1_SMALL_PREFIX)
 }
+
 
 #[inline]
 pub fn make_xreg_raw(x: Word) -> Word {
@@ -55,10 +57,12 @@ pub fn make_xreg_raw(x: Word) -> Word {
   create_imm3(x, IMM3_XREG_PREFIX)
 }
 
+
 #[inline]
 pub fn make_yreg_raw(x: Word) -> Word {
   create_imm3(x, IMM3_YREG_PREFIX)
 }
+
 
 #[inline]
 pub fn make_fpreg_raw(x: Word) -> Word {
@@ -109,11 +113,11 @@ mod tests {
   }
 
   fn test_imm3(check_val: Word) {
-    let n = make_label_raw(check_val);
+    let n = create_imm3(check_val, IMM3_XREG_PREFIX);
     assert_eq!(primary::get_tag(n), primary::TAG_IMMED);
     assert_eq!(get_imm1_tag(n), TAG_IMM1_IMM2);
     assert_eq!(get_imm2_tag(n), TAG_IMM2_IMM3);
-    assert_eq!(get_imm3_tag(n), Immediate3::Label);
+    assert_eq!(get_imm3_tag(n), TAG_IMM3_XREG);
     assert_eq!(get_imm3_prefix(n), IMM3_PREFIX);
     assert_eq!(imm3_value(n), check_val);
   }

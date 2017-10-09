@@ -3,7 +3,6 @@ use term::fterm;
 use defs::{Word, Integral};
 use util::bin_reader::BinaryReader;
 
-use std;
 use num::bigint;
 use num::ToPrimitive;
 

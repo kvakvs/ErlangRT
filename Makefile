@@ -1,6 +1,6 @@
 HERE=$(shell pwd)
 
-.PHONY: run run-bt run-rel
+.PHONY: run run-rel
 # Compile and run
 run:
 	cargo run
@@ -9,8 +9,13 @@ run-rel:
 	cargo run --release
 
 # Run with backtrace on
+.PHONY: run-bt
 run-bt:
 	RUST_BACKTRACE=1 cargo run
+
+.PHONY: gdb
+gdb: build
+	gdb target/debug/erlang_rt
 
 .PHONY: build build-rel asm asm-rel
 build:

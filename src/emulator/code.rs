@@ -32,17 +32,4 @@ impl CodePtr {
 //  }
 }
 
-pub enum CodePtrMut { Ptr(*mut Word) }
-
-// / Universal pointer to module and offset in the module code.
-// TODO: Make this *const Word wrapped in Enum
-//pub struct InstrPointer {
-//  mod_name: LTerm,
-//  ip: CodeOffset,
-//}
-
-//impl InstrPointer {
-//  pub fn new(mod_name: LTerm, ip: CodeOffset) -> InstrPointer {
-//    InstrPointer { mod_name, ip }
-//  }
-//}
+//pub enum CodePtrMut { Ptr(*mut Word) }

@@ -19,8 +19,8 @@ pub const DEFAULT_PROC_HEAP: Word = 300;
 #[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub enum DataPtr { Ptr(*const Word) }
 
-#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
-pub enum DataPtrMut { Ptr(*mut Word) }
+//#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
+//pub enum DataPtrMut { Ptr(*mut Word) }
 
 
 /// A heap structure which grows upwards with allocations. Cannot expand
