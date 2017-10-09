@@ -76,7 +76,7 @@ pub const IMM2_ATOM_PREFIX: Word = IMM2_PREFIX
 //--- Imm2 values tagged special ---
 
 /// Special Primary tag+Immed1+Immed2 bits precomposed
-pub const IMM2_SPECIAL_PREFIX: Word = IMM1_PREFIX
+pub const IMM2_SPECIAL_PREFIX: Word = IMM2_PREFIX
     | (TAG_IMM2_SPECIAL << IMM2_TAG_FIRST);
 
 /// Precomposed bits for NIL constant

@@ -147,10 +147,10 @@ impl LTerm {
     LTerm { value: immediate::make_fpreg_raw(n) }
   }
 
-  #[inline]
-  pub fn make_label(n: Word) -> LTerm {
-    LTerm { value: immediate::make_label_raw(n) }
-  }
+//  #[inline]
+//  pub fn make_label(n: Word) -> LTerm {
+//    LTerm { value: immediate::make_label_raw(n) }
+//  }
 
   /// From a pointer to heap create a generic box
   #[inline]
@@ -321,8 +321,15 @@ impl fmt::Display for LTerm {
               immediate::TAG_IMM2_CATCH =>
                 write!(f, "Catch({})", immediate::imm2_value(v)),
 
-              immediate::TAG_IMM2_SPECIAL =>
-                write!(f, "Special({})", immediate::imm2_value(v)),
+              immediate::TAG_IMM2_SPECIAL => {
+                  if self.is_nil() {
+                    write!(f, "[]")
+                  } else if self.is_non_value() {
+                    write!(f, "NON_VALUE")
+                  } else {
+                    write!(f, "Special(0x{:x})", immediate::imm2_value(v))
+                  }
+                },
 
               immediate::TAG_IMM2_ATOM =>
                 write!(f, "'{}'", atom::to_str(*self)),
@@ -330,17 +337,19 @@ impl fmt::Display for LTerm {
               immediate::TAG_IMM2_IMM3 =>
 
                 match immediate::get_imm3_tag(v) {
-                  immediate::Immediate3::XReg =>
+                  immediate::TAG_IMM3_XREG =>
                     write!(f, "X({})", immediate::imm3_value(v)),
 
-                  immediate::Immediate3::YReg =>
+                  immediate::TAG_IMM3_YREG =>
                     write!(f, "Y({})", immediate::imm3_value(v)),
 
-                  immediate::Immediate3::FPReg =>
+                  immediate::TAG_IMM3_FPREG =>
                     write!(f, "FP({})", immediate::imm3_value(v)),
 
-                  immediate::Immediate3::Label =>
-                    write!(f, "Label(0x{:04x})", immediate::imm3_value(v))
+//                  immediate::Immediate3::Label =>
+//                    write!(f, "Label(0x{:04x})", immediate::imm3_value(v)),
+
+                  _ => panic!("Immediate3 tag must be in range 0..3")
                 }
               _ => panic!("Immediate2 tag must be in range 0..3")
             },

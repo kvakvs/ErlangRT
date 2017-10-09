@@ -20,26 +20,30 @@ pub const IMM3_TAG_LAST: u8 = 8;
 pub const IMM3_VALUE_FIRST: u8 = IMM3_TAG_LAST;
 pub const IMM3_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
-#[repr(usize)]
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-#[allow(dead_code)]
-pub enum Immediate3 {
-  XReg = 0,
-  YReg = 1,
-  FPReg = 2,
-  /// Not used. Label offsets in code are represented by signed small LTerm
-  Label = 3,
-}
+//#[repr(usize)]
+//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+//#[allow(dead_code)]
+//pub enum Immediate3 {
+//  XReg = 0,
+//  YReg = 1,
+//  FPReg = 2,
+//  /// Not used. Label offsets in code are represented by signed small LTerm
+//  Label = 3,
+//}
+
+pub const TAG_IMM3_XREG: Word = 0;
+pub const TAG_IMM3_YREG: Word = 1;
+pub const TAG_IMM3_FPREG: Word = 2;
 
 /// Max value for the Immediate3 enum (for assertions).
-pub const IMMEDIATE3_MAX: Word = 3;
+pub const IMMEDIATE3_MAX: Word = 2;
 
 /// Trim to have only immediate3 bits and return them as an convenient enum.
 #[inline]
-pub fn get_imm3_tag(val: Word) -> Immediate3 {
+pub fn get_imm3_tag(val: Word) -> Word {
   let t: Word = val.get_bits(IMM3_TAG_FIRST..IMM3_TAG_LAST);
   assert!(t <= IMMEDIATE3_MAX);
-  unsafe { transmute::<Word, Immediate3>(t) }
+  t
 }
 
 /// Remove tag bits from imm3 value by shifting it right
@@ -55,16 +59,16 @@ pub const IMM3_PREFIX: Word = IMM2_PREFIX
 
 /// Bit prefix for X register value
 pub const IMM3_XREG_PREFIX: Word = IMM3_PREFIX
-    | ((Immediate3::XReg as Word) << IMM3_TAG_FIRST);
+    | (TAG_IMM3_XREG << IMM3_TAG_FIRST);
 
 pub const IMM3_YREG_PREFIX: Word = IMM3_PREFIX
-    | ((Immediate3::YReg as Word) << IMM3_TAG_FIRST);
+    | (TAG_IMM3_YREG << IMM3_TAG_FIRST);
 
 pub const IMM3_FPREG_PREFIX: Word = IMM3_PREFIX
-    | ((Immediate3::FPReg as Word) << IMM3_TAG_FIRST);
+    | (TAG_IMM3_FPREG << IMM3_TAG_FIRST);
 
-pub const IMM3_LABEL_PREFIX: Word = IMM3_PREFIX
-    | ((Immediate3::Label as Word) << IMM3_TAG_FIRST);
+//pub const IMM3_LABEL_PREFIX: Word = IMM3_PREFIX
+//    | ((Immediate3::Label as Word) << IMM3_TAG_FIRST);
 
 /// Get prefix bits BEFORE imm3 tag
 #[inline]

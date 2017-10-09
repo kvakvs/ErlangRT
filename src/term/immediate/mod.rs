@@ -66,10 +66,10 @@ pub fn make_fpreg_raw(x: Word) -> Word {
   create_imm3(x, IMM3_FPREG_PREFIX)
 }
 
-#[inline]
-pub fn make_label_raw(x: Word) -> Word {
-  create_imm3(x, IMM3_LABEL_PREFIX)
-}
+//#[inline]
+//pub fn make_label_raw(x: Word) -> Word {
+//  create_imm3(x, IMM3_LABEL_PREFIX)
+//}
 
 //
 // Checks

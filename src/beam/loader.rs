@@ -508,7 +508,7 @@ impl Loader {
     match self.labels.get(&l) {
       Some(offset0) => {
         let &CodeOffset::Val(offs) = offset0;
-        LTerm::make_label(offs).raw()
+        LTerm::make_small_u(offs).raw()
       },
       None => {
         self.replace_labels.push(CodeOffset::Val(self.code.len()));
