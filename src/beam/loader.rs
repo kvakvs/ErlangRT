@@ -423,7 +423,7 @@ impl Loader {
 
       match op {
         // add nothing for label, but record its location
-        x if x == gen_op::OPCODE::Label as u8 => {
+        x if x == gen_op::OPCODE_LABEL as u8 => {
           if let FTerm::LoadTimeInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
@@ -434,9 +434,9 @@ impl Loader {
         }
 
         // add nothing for line, but TODO: Record line contents
-        x if x == gen_op::OPCODE::Line as u8 => {}
+        x if x == gen_op::OPCODE_LINE as u8 => {}
 
-        x if x == gen_op::OPCODE::FuncInfo as u8 => {
+        x if x == gen_op::OPCODE_FUNC_INFO as u8 => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
           let funarity = FunArity {
             f: args[1].to_lterm(&mut self.lit_heap),
@@ -529,7 +529,7 @@ impl Loader {
       let &CodeOffset::Val(offs) = code_offs;
       // Convert from LTerm smallint to integer and then to labelid
       let unfixed = LTerm::from_raw(self.code[offs]);
-      let unfixed_l = LabelId::Val(unfixed.small_get() as Word);
+      let unfixed_l = LabelId::Val(unfixed.small_get_s() as Word);
       // Lookup the label. Crash here if bad label.
       let &CodeOffset::Val(fixed) = self.labels.get(&unfixed_l).unwrap();
       // Update code cell with special label value

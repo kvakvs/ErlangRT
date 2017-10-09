@@ -14,6 +14,8 @@ pub enum Error {
   //--- Code server, lookups ---
   ModuleNotFound(String),
   FunctionNotFound(String),
+  //--- Memory allocation events and errors ---
+  HeapIsFull,
 }
 
 /// A templated error type based on `fail::Error`.

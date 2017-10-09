@@ -246,9 +246,15 @@ impl LTerm {
 
 
   #[inline]
-  pub fn small_get(&self) -> SWord {
+  pub fn small_get_s(&self) -> SWord {
     let n = immediate::imm1_value(self.value);
     return defs::unsafe_word_to_sword(n);
+  }
+
+
+  #[inline]
+  pub fn small_get_u(&self) -> Word {
+    immediate::imm1_value(self.value)
   }
 
   //
@@ -307,7 +313,7 @@ impl fmt::Display for LTerm {
       primary::TAG_IMMED =>
         match immediate::get_imm1_tag(v) {
           immediate::TAG_IMM1_SMALL =>
-            write!(f, "{}", self.small_get()),
+            write!(f, "{}", self.small_get_s()),
 
           immediate::TAG_IMM1_PID =>
             write!(f, "Pid({})", immediate::imm1_value(v)),

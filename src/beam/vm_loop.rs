@@ -21,12 +21,11 @@ impl VM {
 
       // Take next opcode
 
-      let op_w = ctx.fetch();
-      assert!(op_w <= gen_op::OPCODE_MAX);
-      let op = unsafe { transmute::<usize, gen_op::OPCODE>(op_w) };
+      let op = ctx.fetch();
+      assert!(op <= gen_op::OPCODE_MAX);
 
       // Handle next opcode
-      match dispatch_op_inline(op, &mut ctx) {
+      match dispatch_op_inline(op, &mut ctx, &mut curr_p.heap) {
         DispatchResult::Yield => return true,
         DispatchResult::Error => return false,
         DispatchResult::Normal => {}, // keep looping

@@ -3,19 +3,22 @@
 //! Config used: OTP20 
 #![allow(dead_code)]
 
-use beam::gen_op::OPCODE;
+use beam::gen_op;
+use beam::opcodes::*;
+use defs::{Word, DispatchResult};
+use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;
-use defs::{DispatchResult};
-use beam::vm_opcode::*;
 
 
 #[inline(always)]
-pub fn dispatch_op_inline(op: OPCODE, ctx: &mut Context) -> DispatchResult {
+pub fn dispatch_op_inline(op: Word, ctx: &mut Context, heap: &mut Heap) -> DispatchResult {
   match op {
 
-    OPCODE::Call => { return opcode_call(ctx) },
-    OPCODE::CallLast => { return opcode_call_last(ctx) },
-    OPCODE::CallOnly => { return opcode_call_only(ctx) },
+    gen_op::OPCODE_CALL => { return opcode_call(ctx, heap) },
+    gen_op::OPCODE_CALL_LAST => { return opcode_call_last(ctx, heap) },
+    gen_op::OPCODE_CALL_ONLY => { return opcode_call_only(ctx, heap) },
+    gen_op::OPCODE_ALLOCATE => { return opcode_allocate(ctx, heap) },
+    gen_op::OPCODE_ALLOCATE_ZERO => { return opcode_allocate_zero(ctx, heap) },
     other => panic!("vm_dispatch: Opcode {:?} not implemented", other),   
   }
 }

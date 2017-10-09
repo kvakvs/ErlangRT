@@ -36,7 +36,7 @@ pub struct Process {
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
 
-  heap: Heap,
+  pub heap: Heap,
 }
 
 impl Process {

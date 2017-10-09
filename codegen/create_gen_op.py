@@ -14,6 +14,8 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
+use defs::Word;
+
 
 pub const OPCODE_MAX: usize = {op_max};
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
@@ -46,7 +48,7 @@ pub fn opcode_arity(opcode: u8) -> u8 {
 ];
 
 pub fn opcode_name(opcode: u8) -> &'static str { 
-  OPCODE_NAME_MAP[opcode as usize]
+  OPCODE_NAME_MAP[opcode as Word]
 }
 """)
 
@@ -54,14 +56,10 @@ pub fn opcode_name(opcode: u8) -> &'static str {
     # ------ print opcode enum ------
     #
 
-    # print("#[cfg(debug)]")
-    print("#[derive(Debug, Copy, Clone, Eq, PartialEq)]\n"
-          "#[repr(usize)]\n"
-          "pub enum OPCODE {")
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
-        print("    %s = %d," % (op.cname(), opcode))
-    print("}\n\n")
+        print("pub const OPCODE_%s: Word = %d;" % (op.name.upper(), opcode))
+    print("\n")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,10 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
-use term::lterm::LTerm;
 use defs::Word;
 use defs;
 use emulator::code::{CodePtr};
+use emulator::heap;
+use term::lterm::LTerm;
 
 
 /// Structure represents the runtime state of a VM process. It is "swapped in"
@@ -12,28 +13,32 @@ use emulator::code::{CodePtr};
 pub struct Context {
   /// Current code location, const ptr (unsafe!).
   pub ip: CodePtr,
+
   /// Return location, for one return without using the stack.
   pub cp: CodePtr,
+
   /// Current state of X registers.
   pub regs: [LTerm; defs::MAX_XREGS],
+
   /// Current state of Y registers.
   pub fpregs: [defs::Float; defs::MAX_FPREGS],
-  // TODO: Stack
 }
 
 
 impl Context {
   pub fn new(ip: CodePtr) -> Context {
     Context {
-      ip,
       cp: CodePtr::null(),
-      regs: [LTerm::non_value(); defs::MAX_XREGS],
       fpregs: [0.0; defs::MAX_FPREGS],
+      ip,
+      regs: [LTerm::non_value(); defs::MAX_XREGS],
     }
   }
 
 
   /// Read a word from `self.ip` and advance `ip` by 1 word.
+  /// NOTE: The compiler seems to be smart enough to optimize multiple fetches
+  /// as multiple reads and a single increment.
   pub fn fetch(&mut self) -> Word {
     let CodePtr::Ptr(ip0) = self.ip;
     unsafe {
@@ -42,6 +47,10 @@ impl Context {
       w
     }
   }
+
+
+  #[inline]
+  pub fn fetch_term(&mut self) -> LTerm { LTerm::from_raw(self.fetch()) }
 
 
   /// Advance `self.ip` by `n` words.

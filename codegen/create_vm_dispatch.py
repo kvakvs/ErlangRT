@@ -15,23 +15,25 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use beam::gen_op::OPCODE;
-use emulator::runtime_ctx::Context;
+use beam::gen_op;
+use beam::opcodes::*;
 use defs::{{Word, DispatchResult}};
-use beam::vm_opcode::*;
+use emulator::heap::Heap;
+use emulator::runtime_ctx::Context;
 
 
 #[inline(always)]
-pub fn dispatch_op_inline(op: OPCODE, ctx: &mut Context) -> DispatchResult {{
+pub fn dispatch_op_inline(op: Word, ctx: &mut Context, \
+heap: &mut Heap) -> DispatchResult {{
   match op {{
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
         if op.name in tables.implemented_ops:
-            print("    OPCODE::{opcode} => "
-                  "{{ return opcode_{lowercase}(ctx) }},"
-                  "".format(opcode=op.cname(), lowercase=op.name))
+            print("    gen_op::OPCODE_{opcode} => "
+                  "{{ return opcode_{lowercase}(ctx, heap) }},"
+                  "".format(opcode=op.name.upper(), lowercase=op.name))
 
     print("""\
     other => panic!("vm_dispatch: Opcode {:?} not implemented", other),   
