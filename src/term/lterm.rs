@@ -356,22 +356,25 @@ impl fmt::Display for LTerm {
           _ => panic!("Immediate1 tag must be in range 0..3")
         },
       primary::TAG_HEADER => {
-        let hptr = primary::pointer(v);
-        let hval = unsafe { *hptr };
+//        let hptr = primary::pointer(v);
+//        let hval = unsafe { *hptr };
 
-        match primary::header::get_tag(hval) {
+        let arity = primary::header::get_arity(v);
+
+        match primary::header::get_tag(v) {
           primary::header::TAG_HEADER_TUPLE => {
-            let raw_tuple = RawTuple::from_pointer(hptr);
-            write!(f, "{{").unwrap();
-            let arity = unsafe { raw_tuple.arity() };
-            for i in 0..arity {
-              let item = unsafe { raw_tuple.get_element(i) };
-              write!(f, "{}", item).unwrap();
-              if i + 1 < arity {
-                write!(f, ", ").unwrap();
-              }
-            }
-            write!(f, "}}")
+            write!(f, "Tuple[{}]", arity)
+//            let raw_tuple = RawTuple::from_pointer(hptr);
+//            write!(f, "{{").unwrap();
+//            let arity = unsafe { raw_tuple.arity() };
+//            for i in 0..arity {
+//              let item = unsafe { raw_tuple.get_element(i) };
+//              write!(f, "{}", item).unwrap();
+//              if i + 1 < arity {
+//                write!(f, ", ").unwrap();
+//              }
+//            }
+//            write!(f, "}}")
           },
           primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
           primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),

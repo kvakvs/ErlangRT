@@ -26,9 +26,7 @@ impl Heap {
 
       // Display a warning if boxed points outside the current heap
       match primary::get_tag(v) {
-        x if x == primary::TAG_BOX
-            || x == primary::TAG_HEADER
-            || x == primary::TAG_CONS => {
+        x if x == primary::TAG_BOX || x == primary::TAG_CONS => {
           let p = primary::pointer(v);
           if p < self.begin() || p >= self.end() {
             output += " <- heap bounds!";

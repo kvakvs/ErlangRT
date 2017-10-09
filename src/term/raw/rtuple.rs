@@ -63,14 +63,14 @@ impl RawTuple {
   }
 
 
-  pub unsafe fn arity(&self) -> Word {
-    primary::get_value(*self.p)
-  }
+//  pub unsafe fn arity(&self) -> Word {
+//    primary::get_value(*self.p)
+//  }
 
 
-  pub unsafe fn get_element(&self, i: Word) -> LTerm {
-    LTerm::from_raw(*self.p.offset(i as isize + 1))
-  }
+//  pub unsafe fn get_element(&self, i: Word) -> LTerm {
+//    LTerm::from_raw(*self.p.offset(i as isize + 1))
+//  }
 
 
 //  /// Box the `self.p` pointer into `LTerm`.
