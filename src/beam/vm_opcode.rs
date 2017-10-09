@@ -13,7 +13,7 @@ fn assert_arity(op: gen_op::OPCODE, val: Word) {
 #[inline]
 pub fn opcode_call(ctx: &mut Context) -> DispatchResult {
   assert_arity(gen_op::OPCODE::Call, 2);
-  ctx.skip(1);
+  ctx.ip_add(1);
   let location = LTerm::from_raw(ctx.fetch());
   assert!(location.is_small());
   DispatchResult::Normal
@@ -21,7 +21,7 @@ pub fn opcode_call(ctx: &mut Context) -> DispatchResult {
 
 
 #[inline]
-pub fn opcode_call_only(ctx: &mut Context) -> DispatchResult {
+pub fn opcode_call_only(_ctx: &mut Context) -> DispatchResult {
   assert_arity(gen_op::OPCODE::CallOnly, 2);
 
   DispatchResult::Normal
@@ -29,7 +29,7 @@ pub fn opcode_call_only(ctx: &mut Context) -> DispatchResult {
 
 
 #[inline]
-pub fn opcode_call_last(ctx: &mut Context) -> DispatchResult {
+pub fn opcode_call_last(_ctx: &mut Context) -> DispatchResult {
   assert_arity(gen_op::OPCODE::CallLast, 3);
 
   DispatchResult::Normal

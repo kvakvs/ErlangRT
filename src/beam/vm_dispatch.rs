@@ -5,7 +5,7 @@
 
 use beam::gen_op::OPCODE;
 use emulator::runtime_ctx::Context;
-use defs::{Word, DispatchResult};
+use defs::{DispatchResult};
 use beam::vm_opcode::*;
 
 

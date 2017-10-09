@@ -271,7 +271,7 @@ impl LTerm {
   pub unsafe fn raw_tuple(&self) -> RawTuple {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
-    assert_eq!(primary::header::get_header_tag(v),
+    assert_eq!(primary::header::get_tag(v),
                primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer(v);
     RawTuple::from_pointer(boxp)
@@ -282,7 +282,7 @@ impl LTerm {
   pub unsafe fn raw_tuple_mut(&self) -> RawTupleMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
-    assert_eq!(primary::header::get_header_tag(v),
+    assert_eq!(primary::header::get_tag(v),
                primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer_mut(v);
     RawTupleMut::from_pointer(boxp)
@@ -358,14 +358,14 @@ impl fmt::Display for LTerm {
         },
       primary::TAG_HEADER => {
         let hptr = primary::pointer(v);
-        let h = unsafe { *hptr };
+        let hval = unsafe { *hptr };
 
-        match primary::header::get_header_tag(h) {
+        match primary::header::get_tag(hval) {
           primary::header::TAG_HEADER_TUPLE => {
             let raw_tuple = RawTuple::from_pointer(hptr);
             write!(f, "{{").unwrap();
             let arity = unsafe { raw_tuple.arity() };
-            for i in 0..arity {
+            for _i in 0..arity {
               let item = primary::get_value(v);
             }
             write!(f, "}}")

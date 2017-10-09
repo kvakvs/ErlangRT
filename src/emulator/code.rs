@@ -1,6 +1,6 @@
 //! Module defines types to represent code structures.
 use defs::Word;
-use term::lterm::LTerm;
+//use term::lterm::LTerm;
 
 use std::collections::BTreeMap;
 

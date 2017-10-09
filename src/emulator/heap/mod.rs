@@ -7,7 +7,6 @@ use term::raw::{RawConsMut, RawTupleMut, RawBignum};
 
 use num;
 use alloc::raw_vec::RawVec;
-use std::boxed::Box;
 use std::fmt;
 
 /// Default heap size for constants (literals) when loading a module.

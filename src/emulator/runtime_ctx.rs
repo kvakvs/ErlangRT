@@ -45,8 +45,8 @@ impl Context {
 
 
   /// Advance `self.ip` by `n` words.
-  pub fn skip(&mut self, n: Word) {
+  pub fn ip_add(&mut self, n: isize) {
     let CodePtr::Ptr(ip0) = self.ip;
-    self.ip = unsafe { CodePtr::Ptr(ip0.offset(1)) };
+    self.ip = unsafe { CodePtr::Ptr(ip0.offset(n)) };
   }
 }

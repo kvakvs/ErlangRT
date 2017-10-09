@@ -1,7 +1,7 @@
 use beam::gen_op;
 use beam::vm_dispatch::dispatch_op_inline;
-use defs::{Word, DispatchResult};
-use emulator::code::{CodePtr};
+use defs::{DispatchResult};
+//use emulator::code::{CodePtr};
 use emulator::vm::VM;
 
 use std::mem::transmute;

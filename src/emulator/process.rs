@@ -2,7 +2,6 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 //!
-use emulator::code::{CodePtr};
 use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa;
 use emulator::runtime_ctx;
