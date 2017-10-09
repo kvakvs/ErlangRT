@@ -19,8 +19,6 @@ pub fn opcode_allocate_zero(ctx: &mut Context, heap: &mut Heap) -> DispatchResul
 
 
 #[inline]
-pub fn opcode_allocate(_ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
-  assert_arity(gen_op::OPCODE_ALLOCATE, 2);
-
-  DispatchResult::Normal
+pub fn opcode_allocate(ctx: &mut Context, heap: &mut Heap) -> DispatchResult {
+  opcode_allocate_zero(ctx, heap)
 }

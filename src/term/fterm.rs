@@ -93,7 +93,7 @@ impl FTerm {
       &FTerm::FP_(i) => LTerm::make_fpreg(i),
       // Do not convert label_ it is used as resolved offset value in lterm
       //&FTerm::Label_(i) => LTerm::make_label(i),
-      &FTerm::SmallInt(i) => LTerm::make_small_i(i),
+      &FTerm::SmallInt(i) => LTerm::make_small_s(i),
       &FTerm::LoadTimeInt(i) => LTerm::make_small_u(i),
       &FTerm::Nil => LTerm::nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)

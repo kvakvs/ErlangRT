@@ -27,7 +27,7 @@ pub const WORD_BITS: Word = 64;
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
 pub const MAX_UNSIG_SMALL: Word = usize::MAX / 16;
 pub const MAX_SIG_SMALL: SWord = isize::MAX / 16;
-pub const MIN_SIG_SMALL: SWord = isize::MIN / 16;
+pub const MIN_SIG_SMALL: SWord = -(isize::MIN / 16);
 
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 32;
@@ -48,13 +48,13 @@ impl Integral {
   }
 }
 
-pub fn unsafe_sword_to_word(n: SWord) -> Word {
-  unsafe { transmute::<isize, usize> (n) }
-}
+//pub fn unsafe_sword_to_word(n: SWord) -> Word {
+//  unsafe { transmute::<isize, usize> (n) }
+//}
 
-pub fn unsafe_word_to_sword(n: Word) -> SWord {
-  unsafe { transmute::<usize, isize> (n) }
-}
+//pub fn unsafe_word_to_sword(n: Word) -> SWord {
+//  unsafe { transmute::<usize, isize> (n) }
+//}
 
 /// Enum is used by VM dispatch handlers for opcodes to indicate whether to
 /// continue, yield (take next process in the queue) or interrupt process

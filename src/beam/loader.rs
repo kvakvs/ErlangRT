@@ -457,9 +457,9 @@ impl Loader {
 
 
   /// Given arity amount of `args` from another opcode, process them and store
-  /// into the `self.code` array. `ExtList_` get special treatment as a
-  /// container of terms. `Label_` get special treatment as we try to resolve
-  /// them into an offset.
+  /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
+  /// container of terms. `LoadTimeLabel` get special treatment as we try to
+  /// resolve them into an offset.
   fn postprocess_store_args(&mut self, args: &Vec<FTerm>) {
     for a in args {
       match a {
@@ -526,14 +526,18 @@ impl Loader {
     mem::swap(&mut repl, &mut self.replace_labels);
     for code_offs in repl.iter() {
       // Read code cell
-      let &CodeOffset::Val(offs) = code_offs;
+      let &CodeOffset::Val(cmd_offset) = code_offs;
+
       // Convert from LTerm smallint to integer and then to labelid
-      let unfixed = LTerm::from_raw(self.code[offs]);
+      let unfixed = LTerm::from_raw(self.code[cmd_offset]);
       let unfixed_l = LabelId::Val(unfixed.small_get_s() as Word);
+
       // Lookup the label. Crash here if bad label.
-      let &CodeOffset::Val(fixed) = self.labels.get(&unfixed_l).unwrap();
+      let &CodeOffset::Val(dst_offset) = self.labels.get(&unfixed_l).unwrap();
+
       // Update code cell with special label value
-      self.code[offs] = LTerm::make_small_i(fixed as isize - offs as isize).raw();
+      let diff = dst_offset as isize - cmd_offset as isize;
+      self.code[cmd_offset] = LTerm::make_small_s(diff).raw();
     }
   }
 

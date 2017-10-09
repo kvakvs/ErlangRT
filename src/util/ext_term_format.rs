@@ -115,7 +115,7 @@ fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
 
   // Assert that the number fits into small
   if big.bits() < defs::WORD_BITS - 4 {
-    return Ok(LTerm::make_small_i(big.to_isize().unwrap()))
+    return Ok(LTerm::make_small_s(big.to_isize().unwrap()))
   }
 
   // Determine storage size in words

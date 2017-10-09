@@ -15,7 +15,7 @@ mod imm3;
 
 use term::primary;
 use defs;
-use defs::Word;
+use defs::{Word, SWord};
 
 pub use self::imm1::*;
 pub use self::imm2::*;
@@ -46,8 +46,8 @@ pub fn make_pid_raw(pindex: Word) -> Word {
 
 /// Create a raw smallint value for a term from atom index
 #[inline]
-pub fn make_small_raw(val: Word) -> Word {
-  combine_imm1_prefix_and_val(val, IMM1_SMALL_PREFIX)
+pub fn make_small_raw(val: SWord) -> Word {
+  combine_imm1_prefix_and_val_signed(val, IMM1_SMALL_PREFIX)
 }
 
 
@@ -100,6 +100,7 @@ pub fn is_small_raw(val: Word) -> bool {
 //
 // Testing section
 //
+
 #[cfg(test)]
 mod tests {
   use super::*;

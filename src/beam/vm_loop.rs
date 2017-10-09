@@ -20,7 +20,6 @@ impl VM {
       let mut ctx = &mut curr_p.context;
 
       // Take next opcode
-
       let op = ctx.fetch();
       assert!(op <= gen_op::OPCODE_MAX);
 

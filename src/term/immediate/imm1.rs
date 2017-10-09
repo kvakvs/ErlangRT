@@ -7,7 +7,7 @@
 //!
 use term::primary;
 use defs;
-use defs::Word;
+use defs::{Word, SWord};
 use term::immediate::primary::PRIM_TAG_LAST;
 
 use bit_field::BitField;
@@ -49,7 +49,7 @@ pub fn is_immediate1(val: Word) -> bool {
 /// Get prefix bits BEFORE imm1 tag
 #[inline(always)]
 pub fn get_imm1_prefix(val: Word) -> Word {
-  val.get_bits(0..PRIM_TAG_LAST)
+  val.get_bits(0..IMM1_TAG_FIRST)
 }
 
 /// Trim the immediate1 bits and return them as an convenient enum.
@@ -74,4 +74,13 @@ pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
   assert!(prefix < (1 << IMM1_VALUE_FIRST));
   assert!(val < (1 << (IMM1_VALUE_LAST - IMM1_VALUE_FIRST)));
   *prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val)
+}
+
+
+#[inline]
+pub fn combine_imm1_prefix_and_val_signed(val: SWord, prefix0: Word) -> Word {
+  let mut prefix = prefix0;
+  assert!(prefix < (1 << IMM1_VALUE_FIRST));
+  assert!(val > defs::MIN_SIG_SMALL && val < defs::MAX_SIG_SMALL);
+  *prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val as Word)
 }

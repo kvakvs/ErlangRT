@@ -232,23 +232,24 @@ impl LTerm {
   #[inline]
   pub fn make_small_u(n: Word) -> LTerm {
     assert!(n < MAX_UNSIG_SMALL);
-    LTerm { value: immediate::make_small_raw(n) }
+    LTerm { value: immediate::make_small_raw(n as SWord) }
   }
 
 
   #[inline]
-  pub fn make_small_i(n: SWord) -> LTerm {
+  pub fn make_small_s(n: SWord) -> LTerm {
     // TODO: Do the proper min neg small
-    assert!(n < MAX_SIG_SMALL && n > MIN_SIG_SMALL);
-    let un = defs::unsafe_sword_to_word(n);
-    LTerm { value: immediate::make_small_raw(un) }
+    assert!(n > MIN_SIG_SMALL && n < MAX_SIG_SMALL);
+    //let un = defs::unsafe_sword_to_word(n);
+    LTerm { value: immediate::make_small_raw(n) }
   }
 
 
   #[inline]
   pub fn small_get_s(&self) -> SWord {
     let n = immediate::imm1_value(self.value);
-    return defs::unsafe_word_to_sword(n);
+    //return defs::unsafe_word_to_sword(n);
+    n as SWord
   }
 
 
@@ -401,5 +402,36 @@ impl fmt::Display for LTerm {
       },
       _ => panic!("Primary tag must be in range 0..3")
     }
+  }
+}
+
+
+//
+// Testing section
+//
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_small_unsigned() {
+    let s1 = LTerm::make_small_u(1);
+    assert_eq!(1, s1.small_get_u());
+
+    let s2 = LTerm::make_small_u(MAX_UNSIG_SMALL);
+    assert_eq!(MAX_UNSIG_SMALL, s2.small_get_u());
+  }
+
+  #[test]
+  fn test_small_signed() {
+    let s1 = LTerm::make_small_s(-1);
+    assert_eq!(-1, s1.small_get_s());
+
+    let s2 = LTerm::make_small_s(MAX_SIG_SMALL);
+    assert_eq!(MAX_SIG_SMALL, s2.small_get_s());
+
+    let s3 = LTerm::make_small_s(MIN_SIG_SMALL);
+    assert_eq!(MIN_SIG_SMALL, s3.small_get_s());
   }
 }
