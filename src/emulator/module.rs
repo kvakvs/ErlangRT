@@ -37,7 +37,7 @@ impl Module {
       Module {
         code: Vec::new(),
         funs: BTreeMap::new(),
-        lit_heap: Heap::new(0),
+        lit_heap: Heap::new(1),
         name,
       }
     ))

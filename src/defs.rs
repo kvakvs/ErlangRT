@@ -59,6 +59,7 @@ pub fn unsafe_word_to_sword(n: Word) -> SWord {
 /// Enum is used by VM dispatch handlers for opcodes to indicate whether to
 /// continue, yield (take next process in the queue) or interrupt process
 /// on error.
+#[allow(dead_code)]
 pub enum DispatchResult {
   Normal,
   Yield,

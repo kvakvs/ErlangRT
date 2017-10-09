@@ -38,7 +38,7 @@ pub enum Immediate1 {
 pub const IMMEDIATE1_MAX: Word = 3;
 
 /// Special tag {primary=Immediate} precomposed
-pub const IMM1_PREFIX: Word = primary::Tag::Immediate as Word;
+pub const IMM1_PREFIX: Word = primary::TAG_IMMED;
 
 /// Precomposed bits for pid imm1
 pub const IMM1_PID_PREFIX: Word = IMM1_PREFIX

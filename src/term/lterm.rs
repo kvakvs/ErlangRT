@@ -84,32 +84,32 @@ impl LTerm {
 
   /// Get primary tag bits from a raw term
   #[inline(always)]
-  pub fn primary_tag(&self) -> primary::Tag {
+  pub fn primary_tag(&self) -> Word {
     primary::get_tag(self.value)
   }
 
-  /// Check whether primary tag of a value is `Tag::Immediate`.
+  /// Check whether primary tag of a value is `TAG_IMMED`.
   #[inline(always)]
   pub fn is_imm(&self) -> bool {
-    self.primary_tag() == primary::Tag::Immediate
+    self.primary_tag() == primary::TAG_IMMED
   }
 
-  /// Check whether primary tag of a value is `Tag::Box`.
+  /// Check whether primary tag of a value is `TAG_BOX`.
   #[inline(always)]
   pub fn is_box(&self) -> bool {
-    self.primary_tag() == primary::Tag::Box
+    self.primary_tag() == primary::TAG_BOX
   }
 
-  /// Check whether primary tag of a value is `Tag::Cons`.
+  /// Check whether primary tag of a value is `TAG_CONS`.
   #[inline(always)]
   pub fn is_cons(&self) -> bool {
-    self.primary_tag() == primary::Tag::Cons
+    self.primary_tag() == primary::TAG_CONS
   }
 
-  /// Check whether primary tag of a value is `Tag::Header`.
+  /// Check whether primary tag of a value is `TAG_HEADER`.
   #[inline(always)]
   pub fn is_header(&self) -> bool {
-    self.primary_tag() == primary::Tag::Header
+    self.primary_tag() == primary::TAG_HEADER
   }
 
   /// Retrieve the raw value of a `LTerm`.
@@ -172,7 +172,7 @@ impl LTerm {
   /// Get a proxy object for read-only accesing the cons contents.
   pub unsafe fn raw_cons(&self) -> RawCons {
     let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::Tag::Cons);
+    assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer(v);
     RawCons::from_pointer(boxp)
   }
@@ -181,7 +181,7 @@ impl LTerm {
   /// Get a proxy object for looking and modifying cons contents.
   pub unsafe fn raw_cons_mut(&self) -> RawConsMut {
     let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::Tag::Cons);
+    assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer_mut(v);
     RawConsMut::from_pointer(boxp)
   }
@@ -271,7 +271,7 @@ impl LTerm {
   /// Get a proxy object for read-only accesing the cons contents.
   pub unsafe fn raw_tuple(&self) -> RawTuple {
     let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::Tag::Header);
+    assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
     assert_eq!(primary::header::get_header_tag(v), HeaderTag::Tuple);
     let boxp = primary::pointer(v);
     RawTuple::from_pointer(boxp)
@@ -281,7 +281,7 @@ impl LTerm {
   /// Get a proxy object for looking and modifying cons contents.
   pub unsafe fn raw_tuple_mut(&self) -> RawTupleMut {
     let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::Tag::Header);
+    assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
     assert_eq!(primary::header::get_header_tag(v), HeaderTag::Tuple);
     let boxp = primary::pointer_mut(v);
     RawTupleMut::from_pointer(boxp)
@@ -296,15 +296,15 @@ impl fmt::Display for LTerm {
     let v = self.value;
 
     match primary::get_tag(v) {
-      primary::Tag::Box => write!(f, "Box({:?})", self.box_ptr()),
+      primary::TAG_BOX => write!(f, "Box({:?})", self.box_ptr()),
 
-      primary::Tag::Cons => unsafe {
+      primary::TAG_CONS => unsafe {
         let raw_cons = self.raw_cons();
         unsafe { write!(f, "Cons@{:?}=[{} | {}]",
                         raw_cons.raw_pointer(), raw_cons.hd(), raw_cons.tl()) }
       },
 
-      primary::Tag::Immediate =>
+      primary::TAG_IMMED =>
         match immediate::get_imm1_tag(v) {
           immediate::Immediate1::Small =>
             write!(f, "{}", self.small_get()),
@@ -344,7 +344,7 @@ impl fmt::Display for LTerm {
                 }
             },
         },
-      primary::Tag::Header => {
+      primary::TAG_HEADER => {
         let hptr = primary::pointer(v);
         let h = unsafe { *hptr };
 
@@ -373,6 +373,7 @@ impl fmt::Display for LTerm {
           _ => write!(f, "Header({})", primary::get_value(v))
         }
       },
+      _ => panic!("Tag value must be 2 bits only")
     }
   }
 }

@@ -3,7 +3,7 @@
 //!
 //! Term bits are: `.... .... ..bb aaPP`
 //!
-//! Here "PP" are the primary tag, one of `primary_tag::Tag::Immediate`
+//! Here "PP" are the primary tag, one of `primary_tag::TAG_IMMED`
 //! And "aa" with size 2 bits, uses `Immediate1` bits.
 //!
 //! To use `Immediate2` bits set "aa" to `Immediate1::Immed2` and set "bb" to the
@@ -103,14 +103,14 @@ mod tests {
   #[test]
   fn test_imm3_tags() {
     let n = IMM3_PREFIX;
-    assert_eq!(primary::get_tag(n), primary::Tag::Immediate);
+    assert_eq!(primary::get_tag(n), primary::TAG_IMMED);
     assert_eq!(get_imm1_tag(n), Immediate1::Immed2);
     assert_eq!(get_imm2_tag(n), Immediate2::Immed3);
   }
 
   fn test_imm3(check_val: Word) {
     let n = make_label_raw(check_val);
-    assert_eq!(primary::get_tag(n), primary::Tag::Immediate);
+    assert_eq!(primary::get_tag(n), primary::TAG_IMMED);
     assert_eq!(get_imm1_tag(n), Immediate1::Immed2);
     assert_eq!(get_imm2_tag(n), Immediate2::Immed3);
     assert_eq!(get_imm3_tag(n), Immediate3::Label);

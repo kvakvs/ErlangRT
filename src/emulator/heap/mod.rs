@@ -6,6 +6,7 @@ use term::lterm::LTerm;
 use term::raw::{RawConsMut, RawTupleMut, RawBignum};
 
 use num;
+use alloc::raw_vec::RawVec;
 use std::boxed::Box;
 use std::fmt;
 
@@ -26,62 +27,73 @@ pub enum DataPtrMut { Ptr(*mut Word) }
 /// implicitly and will return error when capacity is exceeded. Organize a
 /// garbage collect call to get more memory TODO: gc on heap
 pub struct Heap {
-  data: Box<Vec<Word>>,
+  data: RawVec<Word>,
+  htop: Word,
 }
 
 
 impl fmt::Debug for Heap {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "Heap{{ cap: {}, used: {} }}", self.capacity(), self.used())
+    write!(f, "Heap{{ cap: {}, used: {} }}", self.capacity(), self.htop())
   }
 }
 
 
 impl Heap {
   pub fn new(capacity: Word) -> Heap {
-    Heap{
-      data: Box::new(Vec::with_capacity(capacity)),
+    assert!(capacity > 0);
+    Heap {
+      data: RawVec::with_capacity(capacity),
+      htop: 0,
     }
   }
 
 
   /// How many words do we have before it will require GC/growth.
   pub fn capacity(&self) -> usize {
-    self.data.capacity()
+    self.data.cap()
   }
 
 
   /// How many words are used.
-  pub fn used(&self) -> usize {
-    self.data.len()
+  pub fn htop(&self) -> usize {
+    self.htop
   }
 
 
   fn begin(&self) -> *const Word {
-    &self.data[0] as *const Word
+    self.data.ptr() as *const Word
   }
 
 
   unsafe fn end(&self) -> *const Word {
-    let p = &self.data[0] as *const Word;
-    p.offset(self.data.len() as isize)
+    let p = self.data.ptr() as *const Word;
+    p.offset(self.htop as isize)
   }
 
 
   /// Expand heap to host `n` words of data
   pub fn allocate(&mut self, n: Word) -> Option<*mut Word> {
-    let pos = self.data.len();
+    let pos = self.htop;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
-    if pos + n >= self.data.capacity() {
+    if pos + n >= self.data.cap() {
       return None
     }
 
     // Assume we can grow the data without reallocating
     let raw_nil = LTerm::nil().raw();
-    self.data.resize(pos + n, raw_nil);
-//    for _i in 0..n { self.data.push(raw_nil) }
+//    self.data.resize(pos + n, raw_nil);
+    let new_chunk = unsafe {
+      self.data.ptr().offset(self.htop as isize)
+    };
+    unsafe {
+      for i in 0..n {
+        *new_chunk.offset(i as isize) = raw_nil
+      }
+    }
+    self.htop += n;
 
-    Some(&mut self.data[pos] as *mut Word)
+    Some(new_chunk)
   }
 
 
@@ -115,8 +127,8 @@ impl Heap {
 
   /// Create a constant iterator for walking the heap.
   pub unsafe fn iter(&self) -> iter::HeapIterator {
-    let last = self.data.len() as isize;
-    let begin = &self.data[0] as *const Word;
+    let last = self.htop as isize;
+    let begin = self.data.ptr() as *const Word;
     iter::HeapIterator::new(DataPtr::Ptr(begin),
                             DataPtr::Ptr(begin.offset(last)))
   }

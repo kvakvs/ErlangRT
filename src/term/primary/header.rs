@@ -41,13 +41,13 @@ pub enum HeaderTag {
   ExternalRef = 14,
 }
 
-const HEADER_TAG_TUPLE_RAW: Word = (primary::Tag::Header as Word)
+const HEADER_TAG_TUPLE_RAW: Word = (primary::TAG_HEADER as Word)
       | ((HeaderTag::Tuple as Word) << HEADER_TAG_FIRST);
 
-const HEADER_TAG_BIGNEG_RAW: Word = (primary::Tag::Header as Word)
+const HEADER_TAG_BIGNEG_RAW: Word = (primary::TAG_HEADER as Word)
     | ((HeaderTag::BigNegative as Word) << HEADER_TAG_FIRST);
 
-const HEADER_TAG_BIGPOS_RAW: Word = (primary::Tag::Header as Word)
+const HEADER_TAG_BIGPOS_RAW: Word = (primary::TAG_HEADER as Word)
     | ((HeaderTag::BigPositive as Word) << HEADER_TAG_FIRST);
 
 
@@ -77,13 +77,13 @@ pub fn make_bignum_pos_header_raw(sz: Word) -> Word {
 
 #[inline]
 pub fn get_header_tag(v: Word) -> HeaderTag {
-  assert_eq!(primary::get_tag(v), primary::Tag::Header);
+  assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
   let htraw = v.get_bits(HEADER_TAG_FIRST..HEADER_TAG_LAST) as Word;
   unsafe { mem::transmute(htraw) }
 }
 
 #[inline]
 pub fn get_header_value(v: Word) -> Word {
-  assert_eq!(primary::get_tag(v), primary::Tag::Header);
+  assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
   v.get_bits(HEADER_VALUE_FIRST..HEADER_VALUE_LAST)
 }
