@@ -22,15 +22,15 @@ impl RawConsMut {
     LTerm::make_cons(self.p)
   }
 
-  /// Peek into the cons, and get head value.
-  pub unsafe fn hd(&self) -> LTerm {
-    LTerm::from_raw(*self.p)
-  }
+//  /// Peek into the cons, and get head value.
+//  pub unsafe fn hd(&self) -> LTerm {
+//    LTerm::from_raw(*self.p)
+//  }
 
-  /// Peek into the cons, and get tail value.
-  pub unsafe fn tl(&self) -> LTerm {
-    LTerm::from_raw(*(self.p.offset(1)))
-  }
+//  /// Peek into the cons, and get tail value.
+//  pub unsafe fn tl(&self) -> LTerm {
+//    LTerm::from_raw(*(self.p.offset(1)))
+//  }
 }
 
 
@@ -46,9 +46,9 @@ impl RawCons {
 
   pub fn raw_pointer(&self) -> *const Word { self.p }
 
-  pub fn make_cons(&self) -> LTerm {
-    LTerm::make_cons(self.p)
-  }
+//  pub fn make_cons(&self) -> LTerm {
+//    LTerm::make_cons(self.p)
+//  }
 
   /// Peek into the cons, and get head value.
   pub unsafe fn hd(&self) -> LTerm {

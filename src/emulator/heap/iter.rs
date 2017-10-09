@@ -1,6 +1,6 @@
 //! Define `HeapIterator` which can step over the heap
 use emulator::heap::*;
-use term::lterm::LTerm;
+//use term::lterm::LTerm;
 use term::primary;
 
 
@@ -16,11 +16,11 @@ impl HeapIterator {
   }
 
 
-  /// Read current value at the iterator location.
-  pub unsafe fn read_term(&self) -> LTerm {
-    let DataPtr::Ptr(p) = self.p;
-    LTerm::from_raw(*p)
-  }
+//  /// Read current value at the iterator location.
+//  pub unsafe fn read_term(&self) -> LTerm {
+//    let DataPtr::Ptr(p) = self.p;
+//    LTerm::from_raw(*p)
+//  }
 }
 
 
@@ -33,7 +33,7 @@ impl Iterator for HeapIterator {
     // Peek inside *p to see if we're at a header, and if so - step over it
     // using header arity. Otherwise step by 1 cell
     let val = unsafe { *p };
-    let mut size = if primary::get_tag(val) == primary::TAG_HEADER {
+    let size = if primary::get_tag(val) == primary::TAG_HEADER {
       primary::header::get_arity(val) as isize
     } else {
       1isize
@@ -47,6 +47,6 @@ impl Iterator for HeapIterator {
     }
 
     self.p = next_p;
-    unsafe { Some(self.p) }
+    Some(self.p)
   }
 }

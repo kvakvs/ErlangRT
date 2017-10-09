@@ -4,6 +4,7 @@ pub mod dump;
 use defs::Word;
 use term::lterm::LTerm;
 use term::raw::{RawConsMut, RawTupleMut, RawBignum};
+use term::raw::rtuple;
 
 use num;
 use alloc::raw_vec::RawVec;
@@ -107,7 +108,7 @@ impl Heap {
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
   pub fn allocate_tuple(&mut self, size: Word) -> Option<RawTupleMut> {
-    match self.allocate(RawTupleMut::storage_size(size)) {
+    match self.allocate(rtuple::storage_size(size)) {
       Some(p) => unsafe { Some(RawTupleMut::create_at(p, size)) },
       None => None
     }

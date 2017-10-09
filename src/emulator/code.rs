@@ -26,10 +26,10 @@ impl CodePtr {
     CodePtr::Ptr(0 as *const Word)
   }
 
-  pub fn is_null(&self) -> bool {
-    let CodePtr::Ptr(p) = *self;
-    p == 0 as *const Word
-  }
+//  pub fn is_null(&self) -> bool {
+//    let CodePtr::Ptr(p) = *self;
+//    p == 0 as *const Word
+//  }
 }
 
 pub enum CodePtrMut { Ptr(*mut Word) }

@@ -13,7 +13,7 @@ use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 
 pub type Ptr = sync::Arc<RefCell<Module>>;
-pub type Weak = sync::Weak<RefCell<Module>>;
+//pub type Weak = sync::Weak<RefCell<Module>>;
 
 pub type FunTable = BTreeMap<FunArity, CodeOffset>;
 

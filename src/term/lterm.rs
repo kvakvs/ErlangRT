@@ -301,8 +301,7 @@ impl fmt::Display for LTerm {
 
       primary::TAG_CONS => unsafe {
         let raw_cons = self.raw_cons();
-        write!(f, "Cons@{:?}=[{} | {}]",
-                        raw_cons.raw_pointer(), raw_cons.hd(), raw_cons.tl())
+        write!(f, "[{} | {}]", raw_cons.hd(), raw_cons.tl())
       },
 
       primary::TAG_IMMED =>
@@ -365,8 +364,12 @@ impl fmt::Display for LTerm {
             let raw_tuple = RawTuple::from_pointer(hptr);
             write!(f, "{{").unwrap();
             let arity = unsafe { raw_tuple.arity() };
-            for _i in 0..arity {
-              let item = primary::get_value(v);
+            for i in 0..arity {
+              let item = unsafe { raw_tuple.get_element(i) };
+              write!(f, "{}", item).unwrap();
+              if i + 1 < arity {
+                write!(f, ", ").unwrap();
+              }
             }
             write!(f, "}}")
           },

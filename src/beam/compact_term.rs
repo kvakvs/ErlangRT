@@ -60,10 +60,10 @@ fn make_err(e: CTError) -> Hopefully<fterm::FTerm> {
   Err(Error::CodeLoadingCompactTerm(e))
 }
 
-fn word_to_u32(w: Word) -> u32 {
-  assert!(w < std::u32::MAX as usize);
-  w as u32
-}
+//fn word_to_u32(w: Word) -> u32 {
+//  assert!(w < std::u32::MAX as usize);
+//  w as u32
+//}
 
 pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   let b = r.read_u8();
