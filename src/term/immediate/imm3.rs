@@ -21,7 +21,7 @@ pub const IMM3_VALUE_FIRST: u8 = IMM3_TAG_LAST;
 pub const IMM3_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 #[repr(usize)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum Immediate3 {
   XReg = 0,

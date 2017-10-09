@@ -44,6 +44,8 @@ impl RawCons {
     RawCons { p }
   }
 
+  pub fn raw_pointer(&self) -> *const Word { self.p }
+
   pub fn make_cons(&self) -> LTerm {
     LTerm::make_cons(self.p)
   }

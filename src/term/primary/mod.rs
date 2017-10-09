@@ -23,7 +23,7 @@ pub const PRIM_TAG_LAST: u8 = 2;
 pub const PRIM_VALUE_FIRST: u8 = PRIM_TAG_LAST;
 pub const PRIM_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[repr(usize)]
 #[allow(dead_code)]
 /// First two bits in any term define its major type

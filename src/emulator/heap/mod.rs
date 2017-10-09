@@ -1,12 +1,13 @@
-//! Module implements simple Erlang-style heap which holds Words (raw LTerms)
-//! or other arbitrary data, all marked.
 pub mod iter;
+pub mod dump;
 
 use defs::Word;
 use term::lterm::LTerm;
 use term::raw::{RawConsMut, RawTupleMut, RawBignum};
 
 use num;
+use std::boxed::Box;
+use std::fmt;
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: Word = 1024;
@@ -25,15 +26,45 @@ pub enum DataPtrMut { Ptr(*mut Word) }
 /// implicitly and will return error when capacity is exceeded. Organize a
 /// garbage collect call to get more memory TODO: gc on heap
 pub struct Heap {
-  data: Vec<Word>,
+  data: Box<Vec<Word>>,
+}
+
+
+impl fmt::Debug for Heap {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "Heap{{ cap: {}, used: {} }}", self.capacity(), self.used())
+  }
 }
 
 
 impl Heap {
   pub fn new(capacity: Word) -> Heap {
     Heap{
-      data: Vec::with_capacity(capacity),
+      data: Box::new(Vec::with_capacity(capacity)),
     }
+  }
+
+
+  /// How many words do we have before it will require GC/growth.
+  pub fn capacity(&self) -> usize {
+    self.data.capacity()
+  }
+
+
+  /// How many words are used.
+  pub fn used(&self) -> usize {
+    self.data.len()
+  }
+
+
+  fn begin(&self) -> *const Word {
+    &self.data[0] as *const Word
+  }
+
+
+  unsafe fn end(&self) -> *const Word {
+    let p = &self.data[0] as *const Word;
+    p.offset(self.data.len() as isize)
   }
 
 
@@ -44,8 +75,12 @@ impl Heap {
     if pos + n >= self.data.capacity() {
       return None
     }
+
     // Assume we can grow the data without reallocating
-    self.data.resize(pos + n, LTerm::nil().raw());
+    let raw_nil = LTerm::nil().raw();
+    self.data.resize(pos + n, raw_nil);
+//    for _i in 0..n { self.data.push(raw_nil) }
+
     Some(&mut self.data[pos] as *mut Word)
   }
 
@@ -84,15 +119,6 @@ impl Heap {
     let begin = &self.data[0] as *const Word;
     iter::HeapIterator::new(DataPtr::Ptr(begin),
                             DataPtr::Ptr(begin.offset(last)))
-  }
-
-
-  /// Print heap contents
-  pub unsafe fn dump(&self) {
-    for data_p in self.iter() {
-      let DataPtr::Ptr(addr) = data_p;
-      println!("{:08p}: {}", addr, LTerm::from_raw(*addr))
-    }
   }
 }
 

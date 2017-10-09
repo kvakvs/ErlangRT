@@ -21,7 +21,7 @@ pub const IMM2_VALUE_FIRST: u8 = IMM2_TAG_LAST;
 pub const IMM2_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 #[repr(usize)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum Immediate2 {
   Atom = 0,

@@ -5,8 +5,9 @@ use std::collections::BTreeMap;
 use std::sync;
 
 use defs::Word;
-use emulator::funarity::FunArity;
 use emulator::code::{CodePtr, CodeOffset, Code};
+use emulator::funarity::FunArity;
+use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa::IMFArity;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
@@ -26,16 +27,18 @@ pub struct Module {
   // TODO: attrs
   // TODO: lit table
   pub code: Code,
+  pub lit_heap: Heap, // set by module loader
 }
 
 impl Module {
   /// Create an empty module wrapped in atomic refcounted refcell.
   pub fn new(name: LTerm) -> Ptr {
     sync::Arc::new(RefCell::new(
-      Module{
-        name,
+      Module {
         code: Vec::new(),
         funs: BTreeMap::new(),
+        lit_heap: Heap::new(0),
+        name,
       }
     ))
   }

@@ -158,15 +158,16 @@ impl Loader {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => self.load_attributes(&mut r),
         "AtU8" => self.load_atoms_utf8(&mut r),
-        "CInf" => r.skip(chunk_sz as Word),
+        "CInf" => r.skip(chunk_sz as Word), // skip compiler info
         "Code" => self.load_code(&mut r, chunk_sz as Word),
-        "Dbgi" => r.skip(chunk_sz as Word),
+        "Dbgi" => r.skip(chunk_sz as Word), // skip debug info
         "ExpT" => self.raw_exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
         "LocT" => self.raw_locals = self.load_exports(&mut r),
-        "StrT" => r.skip(chunk_sz as Word),
+        "StrT" => r.skip(chunk_sz as Word), // skip strings TODO load strings?
+        "Abst" => r.skip(chunk_sz as Word), // skip abstract code
         "LitT" => self.load_literals(&mut r, chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
@@ -210,10 +211,11 @@ impl Loader {
       let mut mod1 = newmod.borrow_mut();
       mem::swap(&mut self.funs, &mut mod1.funs);
       mem::swap(&mut self.code, &mut mod1.code);
+      mem::swap(&mut self.lit_heap, &mut mod1.lit_heap);
 
       disasm::disasm(&mod1.code, None);
+      unsafe { mod1.lit_heap.dump() };
     }
-    unsafe { self.lit_heap.dump() };
 
     Ok(newmod)
   }

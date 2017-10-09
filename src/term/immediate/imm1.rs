@@ -25,7 +25,7 @@ pub const IMM1_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 pub const SMALL_BITS: Word = (IMM1_VALUE_LAST - IMM1_VALUE_FIRST) as Word;
 
 #[repr(usize)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum Immediate1 {
   Pid = 0,

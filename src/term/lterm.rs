@@ -300,7 +300,8 @@ impl fmt::Display for LTerm {
 
       primary::Tag::Cons => unsafe {
         let raw_cons = self.raw_cons();
-        unsafe { write!(f, "[{} | {}]", raw_cons.hd(), raw_cons.tl()) }
+        unsafe { write!(f, "Cons@{:?}=[{} | {}]",
+                        raw_cons.raw_pointer(), raw_cons.hd(), raw_cons.tl()) }
       },
 
       primary::Tag::Immediate =>
@@ -350,7 +351,7 @@ impl fmt::Display for LTerm {
         match primary::header::get_header_tag(h) {
           HeaderTag::Tuple => {
             let raw_tuple = RawTuple::from_pointer(hptr);
-            write!(f, "{{");
+            write!(f, "{{").unwrap();
             let arity = unsafe { raw_tuple.arity() };
             for i in 0..arity {
               let item = primary::get_value(v);
