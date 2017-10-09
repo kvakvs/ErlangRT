@@ -20,31 +20,42 @@ pub const IMM2_TAG_LAST: u8 = 6;
 pub const IMM2_VALUE_FIRST: u8 = IMM2_TAG_LAST;
 pub const IMM2_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
-#[repr(usize)]
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-#[allow(dead_code)]
-pub enum Immediate2 {
-  Atom = 0,
-  Catch = 1,
-  Immed3 = 2,
-  /// Special includes unique values like NIL, NONVALUE
-  Special = 3,
-}
+//#[repr(usize)]
+//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+//#[allow(dead_code)]
+//pub enum Immediate2 {
+//  Atom = 0,
+//  Catch = 1,
+//  Immed3 = 2,
+//  /// Special includes unique values like NIL, NONVALUE
+//  Special = 3,
+//}
+
+pub const TAG_IMM2_ATOM: Word = 0;
+pub const TAG_IMM2_CATCH: Word = 1;
+pub const TAG_IMM2_IMM3: Word = 2;
+/// Special includes unique values like NIL, NONVALUE
+pub const TAG_IMM2_SPECIAL: Word = 3;
+
 /// Max value for the Immediate2 enum (for assertions).
 pub const IMMEDIATE2_MAX: Word = 3;
 
-#[repr(usize)]
-pub enum Immediate2Special {
-  Nil = 1,
-  NonValue = 2,
-}
+//#[repr(usize)]
+//pub enum Immediate2Special {
+//  Nil = 1,
+//  NonValue = 2,
+//}
+
+/// In heap memory NIL looks like 0x40404072
+pub const TAG_IMM2_SPECIAL_NIL: Word = 0x01010101;
+pub const TAG_IMM2_SPECIAL_NONVALUE: Word = 0x03030303;
 
 /// Trim to have only immediate2 bits and return them as an convenient enum.
 #[inline]
-pub fn get_imm2_tag(val: Word) -> Immediate2 {
+pub fn get_imm2_tag(val: Word) -> Word {
   let t: Word = val.get_bits(IMM2_TAG_FIRST..IMM2_TAG_LAST);
   assert!(t <= IMMEDIATE2_MAX);
-  unsafe { transmute::<Word, Immediate2>(t) }
+  t
 }
 
 /// Remove tag bits from imm2 value by shifting it right
@@ -56,25 +67,25 @@ pub fn imm2_value(val: Word) -> Word {
 
 /// Precomposed bits for immediate2 values
 pub const IMM2_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Immed2 as Word) << IMM1_TAG_FIRST);
+    | (TAG_IMM1_IMM2 << IMM1_TAG_FIRST);
 
 /// Precomposed bits for atom imm2
 pub const IMM2_ATOM_PREFIX: Word = IMM2_PREFIX
-    | ((Immediate2::Atom as Word) << IMM2_TAG_FIRST);
+    | (TAG_IMM2_ATOM << IMM2_TAG_FIRST);
 
 //--- Imm2 values tagged special ---
 
 /// Special Primary tag+Immed1+Immed2 bits precomposed
 pub const IMM2_SPECIAL_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate2::Special as Word) << IMM2_TAG_FIRST);
+    | (TAG_IMM2_SPECIAL << IMM2_TAG_FIRST);
 
 /// Precomposed bits for NIL constant
 pub const IMM2_SPECIAL_NIL_RAW: Word = IMM2_SPECIAL_PREFIX
-    | ((Immediate2Special::Nil as Word) << IMM2_VALUE_FIRST);
+    | (TAG_IMM2_SPECIAL_NIL << IMM2_VALUE_FIRST);
 
 /// Precomposed bits for NON_VALUE constant
 pub const IMM2_SPECIAL_NONVALUE_RAW: Word = IMM2_SPECIAL_PREFIX
-    | ((Immediate2Special::NonValue as Word) << IMM2_VALUE_FIRST);
+    | (TAG_IMM2_SPECIAL_NONVALUE << IMM2_VALUE_FIRST);
 
 /// Get prefix bits BEFORE imm2 tag
 #[inline]

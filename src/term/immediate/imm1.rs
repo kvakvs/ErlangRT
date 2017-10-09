@@ -24,15 +24,20 @@ pub const IMM1_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 #[allow(dead_code)]
 pub const SMALL_BITS: Word = (IMM1_VALUE_LAST - IMM1_VALUE_FIRST) as Word;
 
-#[repr(usize)]
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-#[allow(dead_code)]
-pub enum Immediate1 {
-  Pid = 0,
-  Port = 1,
-  Immed2 = 2,
-  Small = 3,
-}
+//#[repr(usize)]
+//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+//#[allow(dead_code)]
+//pub enum Immediate1 {
+//  Pid = 0,
+//  Port = 1,
+//  Immed2 = 2,
+//  Small = 3,
+//}
+
+pub const TAG_IMM1_PID: Word = 0;
+pub const TAG_IMM1_PORT: Word = 1;
+pub const TAG_IMM1_IMM2: Word = 2;
+pub const TAG_IMM1_SMALL: Word = 3;
 
 /// Max value for the Immediate1 enum (for assertions).
 pub const IMMEDIATE1_MAX: Word = 3;
@@ -42,10 +47,10 @@ pub const IMM1_PREFIX: Word = primary::TAG_IMMED;
 
 /// Precomposed bits for pid imm1
 pub const IMM1_PID_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Pid as Word) << IMM1_TAG_FIRST);
+    | (TAG_IMM1_PID << IMM1_TAG_FIRST);
 
 pub const IMM1_SMALL_PREFIX: Word = IMM1_PREFIX
-    | ((Immediate1::Small as Word) << IMM1_TAG_FIRST);
+    | (TAG_IMM1_SMALL << IMM1_TAG_FIRST);
 
 #[inline(always)]
 pub fn is_immediate1(val: Word) -> bool {
@@ -60,10 +65,10 @@ pub fn get_imm1_prefix(val: Word) -> Word {
 
 /// Trim the immediate1 bits and return them as an convenient enum.
 #[inline]
-pub fn get_imm1_tag(val: Word) -> Immediate1 {
+pub fn get_imm1_tag(val: Word) -> Word {
   let t: Word = val.get_bits(IMM1_TAG_FIRST..IMM1_TAG_LAST);
   assert!(t <= IMMEDIATE1_MAX);
-  unsafe { transmute::<Word, Immediate1>(t) }
+  t
 }
 
 /// Remove tag bits from imm1 value by shifting it right

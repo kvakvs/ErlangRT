@@ -77,8 +77,9 @@ pub fn pointer(val0: Word) -> *const Word {
 /// Zero the primary tag bits and assume the rest is a valid mutable pointer.
 #[inline]
 pub fn pointer_mut(val0: Word) -> *mut Word {
-  let mut val = val0;
-  let untagged = val.set_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST, 0);
+//  let mut val = val0;
+//  let untagged = val.set_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST, 0);
+  let untagged = val0 & (!PRIM_MASK);
   untagged as *mut Word
 }
 

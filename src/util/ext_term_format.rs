@@ -163,7 +163,7 @@ fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
       let elem = decode_naked(r, heap).unwrap();
       cell.set_hd(elem);
 
-      if i < n_elem {
+      if i + 1 < n_elem {
         let new_cell = heap.allocate_cons().unwrap();
         cell.set_tl(new_cell.make_cons());
         cell = new_cell;

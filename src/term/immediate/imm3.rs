@@ -51,7 +51,7 @@ pub fn imm3_value(val: Word) -> Word {
 
 /// Precomposed bits to use with immediate3 tags and values
 pub const IMM3_PREFIX: Word = IMM2_PREFIX
-    | ((Immediate2::Immed3 as Word) << IMM2_TAG_FIRST);
+    | (TAG_IMM2_IMM3 << IMM2_TAG_FIRST);
 
 /// Bit prefix for X register value
 pub const IMM3_XREG_PREFIX: Word = IMM3_PREFIX

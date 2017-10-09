@@ -306,28 +306,28 @@ impl fmt::Display for LTerm {
 
       primary::TAG_IMMED =>
         match immediate::get_imm1_tag(v) {
-          immediate::Immediate1::Small =>
+          immediate::TAG_IMM1_SMALL =>
             write!(f, "{}", self.small_get()),
 
-          immediate::Immediate1::Pid =>
+          immediate::TAG_IMM1_PID =>
             write!(f, "Pid({})", immediate::imm1_value(v)),
 
-          immediate::Immediate1::Port =>
+          immediate::TAG_IMM1_PORT =>
             write!(f, "Port({})", immediate::imm1_value(v)),
 
-          immediate::Immediate1::Immed2 =>
+          immediate::TAG_IMM1_IMM2 =>
 
             match immediate::get_imm2_tag(v) {
-              immediate::Immediate2::Catch =>
+              immediate::TAG_IMM2_CATCH =>
                 write!(f, "Catch({})", immediate::imm2_value(v)),
 
-              immediate::Immediate2::Special =>
+              immediate::TAG_IMM2_SPECIAL =>
                 write!(f, "Special({})", immediate::imm2_value(v)),
 
-              immediate::Immediate2::Atom =>
+              immediate::TAG_IMM2_ATOM =>
                 write!(f, "'{}'", atom::to_str(*self)),
 
-              immediate::Immediate2::Immed3 =>
+              immediate::TAG_IMM2_IMM3 =>
 
                 match immediate::get_imm3_tag(v) {
                   immediate::Immediate3::XReg =>
@@ -342,7 +342,9 @@ impl fmt::Display for LTerm {
                   immediate::Immediate3::Label =>
                     write!(f, "Label(0x{:04x})", immediate::imm3_value(v))
                 }
+              _ => panic!("Immediate2 tag must be in range 0..3")
             },
+          _ => panic!("Immediate1 tag must be in range 0..3")
         },
       primary::TAG_HEADER => {
         let hptr = primary::pointer(v);
@@ -373,7 +375,7 @@ impl fmt::Display for LTerm {
           _ => write!(f, "Header({})", primary::get_value(v))
         }
       },
-      _ => panic!("Tag value must be 2 bits only")
+      _ => panic!("Primary tag must be in range 0..3")
     }
   }
 }
