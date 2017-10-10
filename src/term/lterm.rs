@@ -125,6 +125,13 @@ impl LTerm {
     LTerm { value: w }
   }
 
+
+  #[inline]
+  pub fn make_cp(p: *const Word) -> LTerm {
+    LTerm { value: (p as Word) | defs::TAG_CP }
+  }
+
+
   /// From internal process index create a pid. To create a process use vm::create_process
   #[inline]
   pub fn make_pid(pindex: Word) -> LTerm {

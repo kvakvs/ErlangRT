@@ -27,10 +27,20 @@ pub const WORD_BITS: Word = 64;
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
 pub const MAX_UNSIG_SMALL: Word = usize::MAX / 16;
 pub const MAX_SIG_SMALL: SWord = isize::MAX / 16;
-pub const MIN_SIG_SMALL: SWord = -(isize::MIN / 16);
+pub const MIN_SIG_SMALL: SWord = isize::MIN / 16;
 
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 32;
+
+
+/// For CP values the highest bit is set. CP values never appear on heap, or
+/// in registers, only in code or stack.
+#[cfg(target_pointer_width = "32")]
+pub const TAG_CP: Word = 1usize << 31;
+
+#[cfg(target_pointer_width = "64")]
+pub const TAG_CP: Word = 1usize << 63;
+
 
 /// Represents either Word or a BigInteger
 #[derive(Debug, Eq, PartialEq)]

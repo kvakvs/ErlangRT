@@ -19,13 +19,7 @@ pub enum CodeOffset { Val(Word) }
 /// Map of label id to offset. Maybe: Use binary search sorted array?
 pub type Labels = BTreeMap<LabelId, CodeOffset>;
 
-
-#[cfg(target_pointer_width = "32")]
-const TAG_CP: Word = 1usize << 31;
-
-#[cfg(target_pointer_width = "64")]
-const TAG_CP: Word = 1usize << 63;
-
+use defs::TAG_CP;
 
 #[derive(Copy, Clone)]
 pub enum CodePtr { Ptr(*const Word) }

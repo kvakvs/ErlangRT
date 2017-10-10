@@ -506,16 +506,23 @@ impl Loader {
   fn push_term_or_convert_label(&mut self, l: LabelId) -> Word {
     // Resolve the label, if exists in labels table
     match self.labels.get(&l) {
-      Some(offset0) => {
-        let &CodeOffset::Val(offs) = offset0;
-        LTerm::make_small_u(offs).raw()
-      },
+      Some(offset0) =>
+        self.create_jump_destination(offset0),
       None => {
         self.replace_labels.push(CodeOffset::Val(self.code.len()));
         let LabelId::Val(label_id) = l;
         LTerm::make_small_u(label_id).raw()
       }
     }
+  }
+
+
+  /// Given label destination and `self.code` length calculate a relative
+  /// signed jump offset for it.
+  fn create_jump_destination(&self, dst_offset: &CodeOffset) -> Word {
+    let &CodeOffset::Val(offs) = dst_offset;
+    let ptr = &self.code[offs] as *const Word;
+    LTerm::make_box(ptr).raw()
   }
 
 
@@ -533,11 +540,10 @@ impl Loader {
       let unfixed_l = LabelId::Val(unfixed.small_get_s() as Word);
 
       // Lookup the label. Crash here if bad label.
-      let &CodeOffset::Val(dst_offset) = self.labels.get(&unfixed_l).unwrap();
+      let dst_offset = self.labels.get(&unfixed_l).unwrap();
 
       // Update code cell with special label value
-      let diff = dst_offset as isize - cmd_offset as isize;
-      self.code[cmd_offset] = LTerm::make_small_s(diff).raw();
+      self.code[cmd_offset] = self.create_jump_destination(&dst_offset);
     }
   }
 

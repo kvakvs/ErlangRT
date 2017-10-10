@@ -21,7 +21,8 @@ impl VM {
 
       // Take next opcode
       let op = ctx.fetch();
-      assert!(op <= gen_op::OPCODE_MAX);
+      assert!(op <= gen_op::OPCODE_MAX,
+              "Opcode too big (wrong memory address?) got 0x{:x}", op);
 
       // Handle next opcode
       match dispatch_op_inline(op, &mut ctx, &mut curr_p.heap) {

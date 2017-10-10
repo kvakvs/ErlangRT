@@ -93,7 +93,7 @@ pub fn is_atom_raw(val: Word) -> bool {
 /// Check whether a Word represents a small integer.
 #[inline]
 pub fn is_small_raw(val: Word) -> bool {
-  get_imm1_prefix(val) == IMM1_SMALL_PREFIX
+  get_imm2_prefix(val) == IMM1_SMALL_PREFIX
 }
 
 
