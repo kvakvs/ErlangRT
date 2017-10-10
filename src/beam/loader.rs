@@ -213,8 +213,10 @@ impl Loader {
       mem::swap(&mut self.code, &mut mod1.code);
       mem::swap(&mut self.lit_heap, &mut mod1.lit_heap);
 
-      disasm::disasm(&mod1.code, None);
-      unsafe { mod1.lit_heap.dump() };
+      unsafe {
+        disasm::disasm(&mod1.code, None);
+        mod1.lit_heap.dump()
+      };
     }
 
     Ok(newmod)

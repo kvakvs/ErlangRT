@@ -389,7 +389,7 @@ impl fmt::Display for LTerm {
 
         match primary::header::get_tag(v) {
           primary::header::TAG_HEADER_TUPLE => {
-            write!(f, "Tuple[{}]", arity)
+            write!(f, "Header: Tuple[{}]", arity)
 //            let raw_tuple = RawTuple::from_pointer(hptr);
 //            write!(f, "{{").unwrap();
 //            let arity = unsafe { raw_tuple.arity() };
@@ -402,18 +402,18 @@ impl fmt::Display for LTerm {
 //            }
 //            write!(f, "}}")
           },
-          primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
-          primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
-          primary::header::TAG_HEADER_REF => write!(f, "Ref"),
-          primary::header::TAG_HEADER_FUN => write!(f, "Fun"),
-          primary::header::TAG_HEADER_FLOAT => write!(f, "Float"),
-          primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
-          primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
-          primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
-          primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
-          primary::header::TAG_HEADER_EXTPID => write!(f, "ExtPid"),
-          primary::header::TAG_HEADER_EXTPORT => write!(f, "ExtPort"),
-          primary::header::TAG_HEADER_EXTREF => write!(f, "ExtRef"),
+          primary::header::TAG_HEADER_BIGNEG => write!(f, "Header: BigNeg"),
+          primary::header::TAG_HEADER_BIGPOS => write!(f, "Header: BigPos"),
+          primary::header::TAG_HEADER_REF => write!(f, "Header: Ref"),
+          primary::header::TAG_HEADER_FUN => write!(f, "Header: Fun"),
+          primary::header::TAG_HEADER_FLOAT => write!(f, "Header: Float"),
+          primary::header::TAG_HEADER_EXPORT => write!(f, "Header: Export"),
+          primary::header::TAG_HEADER_REFCBIN => write!(f, "Header: RefcBin"),
+          primary::header::TAG_HEADER_HEAPBIN => write!(f, "Header: HeapBin"),
+          primary::header::TAG_HEADER_SUBBIN => write!(f, "Header: SubBin"),
+          primary::header::TAG_HEADER_EXTPID => write!(f, "Header: ExtPid"),
+          primary::header::TAG_HEADER_EXTPORT => write!(f, "Header: ExtPort"),
+          primary::header::TAG_HEADER_EXTREF => write!(f, "Header: ExtRef"),
 
           _ => panic!("Unexpected header tag value {}",
                       primary::get_value(v))

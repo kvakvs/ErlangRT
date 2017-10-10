@@ -22,7 +22,7 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> 
     gen_op::OPCODE_ALLOCATE_ZERO => { return opcode_allocate_zero(ctx, heap) },
     gen_op::OPCODE_RETURN => { return opcode_return(ctx, heap) },
     gen_op::OPCODE_MOVE => { return opcode_move(ctx, heap) },
-    other => unknown_opcode(other),   
+    other => unknown_opcode(other, ctx),   
   }
   DispatchResult::Yield
 }

@@ -5,17 +5,21 @@ use emulator::code::{opcode, Code, Labels};
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
-pub fn disasm(code: &Code, _labels: Option<&Labels>) {
-  let mut i = 0;
-  while i < code.len() {
-    let op = opcode::from_memory_word(code[i]);
-    assert!(op < gen_op::OPCODE_MAX);
-    print!("0x{:04x} {} ", i, gen_op::opcode_name(op as u8));
-    i += 1;
+pub unsafe fn disasm(code: &Code, _labels: Option<&Labels>) {
+  let mut ip = &code[0] as *const Word;
+  let iend = ip.offset(code.len() as isize);
 
-    let arity = gen_op::opcode_arity(op as u8) as Word;
-    for j in 0..arity {
-      let arg_raw = code[i + j];
+  while ip < iend {
+    let op = opcode::from_memory_word(*ip);
+    assert!(op < gen_op::OPCODE_MAX);
+    print!("0x{:p}: {} ", ip, gen_op::opcode_name(op as u8));
+    ip = ip.offset(1);
+
+    let n_args = gen_op::opcode_arity(op as u8) as Word;
+
+    for arg_index in 0..n_args {
+
+      let arg_raw = *ip.offset(arg_index as isize);
       let arg = LTerm::from_raw(arg_raw);
 
       // Header value in code marks an embedded block of terms
@@ -23,8 +27,8 @@ pub fn disasm(code: &Code, _labels: Option<&Labels>) {
       if arg.is_header() {
         print!("[");
         for _h in 0..arg.header_arity() {
-          print!("{} ", LTerm::from_raw(code[i + j + 1]));
-          i += 1;
+          print!("{} ", LTerm::from_raw(*ip.offset(arg_index as isize + 1)));
+          ip = ip.offset(1);
         }
         print!("] ");
       } else { // Otherwise it is printable like this, and occupies 1w
@@ -32,7 +36,7 @@ pub fn disasm(code: &Code, _labels: Option<&Labels>) {
       }
     }
 
-    i += arity;
+    ip = ip.offset(n_args as isize);
     println!();
   }
 }

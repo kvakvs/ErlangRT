@@ -7,6 +7,8 @@ use emulator::heap;
 use term::lterm::LTerm;
 use term::immediate;
 
+use std::fmt;
+
 
 fn module() -> &'static str { "runtime_ctx: " }
 
@@ -105,4 +107,16 @@ impl Context {
     panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
   }
 
+}
+
+
+impl fmt::Display for Context {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let mut str_regs = String::new();
+    for v in self.regs[0..10].iter() {
+      str_regs += &format!("{}; ", v)
+    }
+
+    writeln!(f, "ip: {:?}, cp: {:?}\nregs[..10]: {}", self.ip, self.cp, str_regs)
+  }
 }

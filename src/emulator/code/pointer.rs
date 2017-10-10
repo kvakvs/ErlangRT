@@ -9,7 +9,7 @@ use term::immediate;
 ///
 /// In debug build additional mark bits `Imm3::OPCODE` are added to this word
 /// and additional check is done here in `CodePtr`.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum CodePtr { Ptr(*const Word) }
 
 impl CodePtr {

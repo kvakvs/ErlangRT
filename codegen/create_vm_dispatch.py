@@ -37,7 +37,7 @@ heap: &mut Heap) -> DispatchResult {{
                   "".format(opcode=op.name.upper(), lowercase=op.name))
 
     print("""\
-    other => unknown_opcode(other),   
+    other => unknown_opcode(other, ctx),   
   }
   DispatchResult::Yield
 }

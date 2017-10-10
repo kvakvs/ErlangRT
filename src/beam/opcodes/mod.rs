@@ -10,6 +10,7 @@ pub use beam::opcodes::op_data::*;
 use beam::gen_op;
 use defs::Word;
 use emulator::code::opcode::RawOpcode;
+use emulator::runtime_ctx::Context;
 
 
 /// Run a check whether opcode is not too large (within the supported range).
@@ -27,7 +28,8 @@ pub fn assert_arity(_op: RawOpcode, _val: Word) {}
 
 
 /// Display an error about opcode not supported/not implemented.
-pub fn unknown_opcode(op: RawOpcode) {
+pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {
+  println!("Emulator state:\n{}", ctx);
   panic!("vm_dispatch: Opcode {:?} '{}' not implemented",
          op, gen_op::opcode_name(op))
 }
