@@ -1,3 +1,5 @@
+//! Module implements opcodes related to execution control: Calls, jumps,
+//! returns etc.
 use beam::gen_op;
 use emulator::code::CodePtr;
 use beam::opcodes::assert_arity;

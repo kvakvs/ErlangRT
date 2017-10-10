@@ -52,7 +52,7 @@ pub fn get_imm3_tag(val: Word) -> Word {
 
 /// Remove tag bits from imm3 value by shifting it right
 #[inline]
-pub fn imm3_value(val: Word) -> Word {
+pub fn get_imm3_value(val: Word) -> Word {
   assert!(is_immediate3(val));
   val.get_bits(IMM3_VALUE_FIRST..IMM3_VALUE_LAST)
 }

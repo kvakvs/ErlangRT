@@ -187,5 +187,31 @@ impl Heap {
       *p = val
     }
   }
+
+
+  pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> Hopefully<()> {
+    if self.send - self.stop > index + 1 {
+      return Err(Error::StackIndexRange)
+    }
+    let pos = index as isize + self.stop as isize + 1;
+    unsafe {
+      let p = self.data.ptr().offset(pos);
+      *p = val.raw()
+    }
+    Ok(())
+  }
+
+
+  pub fn stack_get_y(&self, index: Word) -> Hopefully<LTerm> {
+    if self.send - self.stop > index + 1 {
+      return Err(Error::StackIndexRange)
+    }
+    let pos = index as isize + self.stop as isize + 1;
+    unsafe {
+      let p = self.data.ptr().offset(pos);
+      Ok(LTerm::from_raw(*p))
+    }
+  }
+
 }
 

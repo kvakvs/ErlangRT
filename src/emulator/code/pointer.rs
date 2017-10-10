@@ -1,7 +1,7 @@
 //! Module defines pointer types for readonly code and mutable code.
 use defs::Word;
 use defs::TAG_CP;
-use term::immediate::imm3;
+use term::immediate;
 
 /// Pointer to code location, can only be created to point to some opcode
 /// (instruction begin), and never to the data. During VM execution iterates
@@ -16,7 +16,7 @@ impl CodePtr {
 
   #[cfg(debug_assertions)]
   pub fn from_ptr(p: *const Word) -> CodePtr {
-    unsafe { assert!(imm3::is_immediate3(*p)); }
+    unsafe { assert!(immediate::is_immediate3(*p)); }
     CodePtr::Ptr(p)
   }
 

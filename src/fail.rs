@@ -16,6 +16,7 @@ pub enum Error {
   FunctionNotFound(String),
   //--- Memory allocation events and errors ---
   HeapIsFull,
+  StackIndexRange,
 }
 
 /// A templated error type based on `fail::Error`.

@@ -6,7 +6,7 @@ use defs::Word;
 use beam::gen_op;
 
 #[cfg(debug_assertions)]
-use term::immediate::imm3;
+use term::immediate;
 
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
@@ -19,7 +19,8 @@ pub type RawOpcode = u8;
 #[inline]
 #[cfg(debug_assertions)]
 pub fn to_memory_word(raw: RawOpcode) -> Word {
-  imm3::create_imm3(raw as Word, imm3::IMM3_OPCODE_PREFIX)
+  immediate::create_imm3(raw as Word,
+                         immediate::IMM3_OPCODE_PREFIX)
 }
 
 
@@ -35,7 +36,7 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 #[inline]
 #[cfg(debug_assertions)]
 pub fn from_memory_word(m: Word) -> RawOpcode {
-  let raw = imm3::imm3_value(m);
+  let raw = immediate::get_imm3_value(m);
   debug_assert!(raw <= gen_op::OPCODE_MAX as Word);
   raw as RawOpcode
 }

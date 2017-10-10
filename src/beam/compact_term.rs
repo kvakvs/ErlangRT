@@ -1,3 +1,5 @@
+//! Module implements decoder for compact term format used in BEAM files.
+//! http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding
 use fail::{Hopefully, Error};
 use term::fterm;
 use defs::{Word, Integral};

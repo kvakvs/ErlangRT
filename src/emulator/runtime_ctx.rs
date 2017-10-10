@@ -5,6 +5,10 @@ use defs;
 use emulator::code::{CodePtr};
 use emulator::heap;
 use term::lterm::LTerm;
+use term::immediate;
+
+
+fn module() -> &'static str { "runtime_ctx: " }
 
 
 /// Structure represents the runtime state of a VM process. It is "swapped in"
@@ -58,4 +62,47 @@ impl Context {
     let CodePtr::Ptr(ip0) = self.ip;
     self.ip = unsafe { CodePtr::Ptr(ip0.offset(n)) };
   }
+
+
+  /// Read a register otherwise term is returned unchanged.
+  // TODO: Optimize - separate load constant from load register instruction
+  pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
+    if src.is_immediate3() {
+      let v = src.value;
+      match immediate::get_imm3_tag(v) {
+        immediate::TAG_IMM3_XREG => return self.regs[immediate::get_imm3_value(v)],
+        immediate::TAG_IMM3_YREG => {
+          let y_index = immediate::get_imm3_value(v);
+          let y_result = hp.stack_get_y(y_index);
+          return y_result.unwrap()
+        },
+        _ => panic!("{}Don't know how to ctx.load from {}", module(), src)
+      }
+    }
+    // otherwise return unchanged
+    src
+  }
+
+
+  /// Copy a value from `src` (possibly a stack cell or a register) to `dst`.
+  pub fn store(&mut self, src: LTerm, dst: LTerm, hp: &mut heap::Heap) {
+    let src_val = self.load(src, hp);
+    if dst.is_immediate3() {
+      let v = dst.value;
+      match immediate::get_imm3_tag(v) {
+        immediate::TAG_IMM3_XREG => {
+          self.regs[immediate::get_imm3_value(v)] = src_val;
+          return
+        },
+        immediate::TAG_IMM3_YREG => {
+          let y = immediate::get_imm3_value(v);
+          let y_result = hp.stack_set_y(y, src_val);
+          return y_result.unwrap()
+        },
+        _ => {}
+      }
+    }
+    panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
+  }
+
 }

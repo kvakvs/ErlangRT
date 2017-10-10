@@ -44,7 +44,7 @@ pub fn get_imm2_tag(val: Word) -> Word {
 
 /// Remove tag bits from imm2 value by shifting it right
 #[inline]
-pub fn imm2_value(val: Word) -> Word {
+pub fn get_imm2_value(val: Word) -> Word {
   assert!(is_immediate2(val));
   val.get_bits(IMM2_VALUE_FIRST..IMM2_VALUE_LAST)
 }

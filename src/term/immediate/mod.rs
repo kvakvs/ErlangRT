@@ -8,10 +8,10 @@
 //!
 //! To use `Immediate2` bits set "aa" to `TAG_IMM1_IMM2` and set "bb" to the
 //!    desired value from `Immediate2` enum.
-//!
-pub mod imm1;
-pub mod imm2;
-pub mod imm3;
+
+mod imm1;
+mod imm2;
+mod imm3;
 
 use term::primary;
 use defs;
@@ -120,7 +120,7 @@ mod tests {
     assert_eq!(get_imm2_tag(n), TAG_IMM2_IMM3);
     assert_eq!(get_imm3_tag(n), TAG_IMM3_XREG);
     assert_eq!(get_imm3_prefix(n), IMM3_PREFIX);
-    assert_eq!(imm3_value(n), check_val);
+    assert_eq!(get_imm3_value(n), check_val);
   }
 
   #[test]

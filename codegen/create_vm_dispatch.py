@@ -37,9 +37,9 @@ heap: &mut Heap) -> DispatchResult {{
                   "".format(opcode=op.name.upper(), lowercase=op.name))
 
     print("""\
-    other => panic!("vm_dispatch: Opcode {:?} '{}' not implemented", 
-                other, gen_op::opcode_name(other)),   
+    other => unknown_opcode(other),   
   }
+  DispatchResult::Yield
 }
 """)
 

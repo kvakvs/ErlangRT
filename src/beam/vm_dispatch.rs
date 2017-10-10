@@ -20,8 +20,9 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> 
     gen_op::OPCODE_CALL_ONLY => { return opcode_call_only(ctx, heap) },
     gen_op::OPCODE_ALLOCATE => { return opcode_allocate(ctx, heap) },
     gen_op::OPCODE_ALLOCATE_ZERO => { return opcode_allocate_zero(ctx, heap) },
-    other => panic!("vm_dispatch: Opcode {:?} '{}' not implemented", 
-                other, gen_op::opcode_name(other)),   
+    gen_op::OPCODE_MOVE => { return opcode_move(ctx, heap) },
+    other => unknown_opcode(other),   
   }
+  DispatchResult::Yield
 }
 

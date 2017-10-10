@@ -87,10 +87,22 @@ impl LTerm {
     primary::get_tag(self.value)
   }
 
-  /// Check whether primary tag of a value is `TAG_IMMED`.
+  /// Check whether a value has immediate1 bits as prefix.
   #[inline(always)]
-  pub fn is_imm(&self) -> bool {
-    self.primary_tag() == primary::TAG_IMMED
+  pub fn is_immediate1(&self) -> bool {
+    immediate::is_immediate1(self.value)
+  }
+
+  /// Check whether a value has immediate2 bits as prefix.
+  #[inline(always)]
+  pub fn is_immediate2(&self) -> bool {
+    immediate::is_immediate2(self.value)
+  }
+
+  /// Check whether a value has immediate3 bits as prefix.
+  #[inline(always)]
+  pub fn is_immediate3(&self) -> bool {
+    immediate::is_immediate3(self.value)
   }
 
   /// Check whether primary tag of a value is `TAG_BOX`.
@@ -213,7 +225,7 @@ impl LTerm {
   /// For an atom value, get index.
   pub fn atom_index(&self) -> Word {
     assert!(self.is_atom());
-    immediate::imm2_value(self.value)
+    immediate::get_imm2_value(self.value)
   }
 
   //
@@ -254,7 +266,7 @@ impl LTerm {
 
   #[inline]
   pub fn small_get_s(&self) -> SWord {
-    let n = immediate::imm1_value(self.value);
+    let n = immediate::get_imm1_value(self.value);
     //return defs::unsafe_word_to_sword(n);
     n as SWord
   }
@@ -262,7 +274,7 @@ impl LTerm {
 
   #[inline]
   pub fn small_get_u(&self) -> Word {
-    immediate::imm1_value(self.value)
+    immediate::get_imm1_value(self.value)
   }
 
   //
@@ -324,16 +336,16 @@ impl fmt::Display for LTerm {
             write!(f, "{}", self.small_get_s()),
 
           immediate::TAG_IMM1_PID =>
-            write!(f, "Pid({})", immediate::imm1_value(v)),
+            write!(f, "Pid({})", immediate::get_imm1_value(v)),
 
           immediate::TAG_IMM1_PORT =>
-            write!(f, "Port({})", immediate::imm1_value(v)),
+            write!(f, "Port({})", immediate::get_imm1_value(v)),
 
           immediate::TAG_IMM1_IMM2 =>
 
             match immediate::get_imm2_tag(v) {
               immediate::TAG_IMM2_CATCH =>
-                write!(f, "Catch({})", immediate::imm2_value(v)),
+                write!(f, "Catch({})", immediate::get_imm2_value(v)),
 
               immediate::TAG_IMM2_SPECIAL => {
                   if self.is_nil() {
@@ -341,7 +353,7 @@ impl fmt::Display for LTerm {
                   } else if self.is_non_value() {
                     write!(f, "NON_VALUE")
                   } else {
-                    write!(f, "Special(0x{:x})", immediate::imm2_value(v))
+                    write!(f, "Special(0x{:x})", immediate::get_imm2_value(v))
                   }
                 },
 
@@ -352,13 +364,13 @@ impl fmt::Display for LTerm {
 
                 match immediate::get_imm3_tag(v) {
                   immediate::TAG_IMM3_XREG =>
-                    write!(f, "X({})", immediate::imm3_value(v)),
+                    write!(f, "X({})", immediate::get_imm3_value(v)),
 
                   immediate::TAG_IMM3_YREG =>
-                    write!(f, "Y({})", immediate::imm3_value(v)),
+                    write!(f, "Y({})", immediate::get_imm3_value(v)),
 
                   immediate::TAG_IMM3_FPREG =>
-                    write!(f, "FP({})", immediate::imm3_value(v)),
+                    write!(f, "FP({})", immediate::get_imm3_value(v)),
 
 //                  immediate::Immediate3::Label =>
 //                    write!(f, "Label(0x{:04x})", immediate::imm3_value(v)),
