@@ -2,6 +2,7 @@
 call
 call_only
 call_last
+return
 
 #====== Memory and Stack ======
 allocate

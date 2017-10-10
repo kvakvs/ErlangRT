@@ -213,5 +213,7 @@ impl Heap {
     }
   }
 
+
+  pub fn stack_depth(&self) -> Word { self.send - self.stop }
 }
 

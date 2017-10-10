@@ -13,7 +13,6 @@ use term::immediate;
 pub enum CodePtr { Ptr(*const Word) }
 
 impl CodePtr {
-
   #[cfg(debug_assertions)]
   pub fn from_ptr(p: *const Word) -> CodePtr {
     unsafe { assert!(immediate::is_immediate3(*p)); }
@@ -45,10 +44,16 @@ impl CodePtr {
     CodePtr::Ptr(new_p)
   }
 
-  //  pub fn is_null(&self) -> bool {
-  //    let CodePtr::Ptr(p) = *self;
-  //    p == 0 as *const Word
-  //  }
+
+  #[inline]
+  pub fn is_null(&self) -> bool {
+    let CodePtr::Ptr(p) = *self;
+    p == 0 as *const Word
+  }
+
+
+  #[inline]
+  pub fn is_not_null(&self) -> bool { ! self.is_null() }
 }
 
 //pub enum CodePtrMut { Ptr(*mut Word) }
