@@ -4,7 +4,7 @@ use defs::{DispatchResult};
 use emulator::code::{opcode};
 use emulator::vm::VM;
 
-use std::mem::transmute;
+//use std::mem::transmute;
 
 impl VM {
   /// Take a process from scheduler.

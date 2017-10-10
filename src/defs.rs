@@ -3,7 +3,7 @@
 //!
 use num;
 use num::ToPrimitive;
-use std::mem::transmute;
+//use std::mem::transmute;
 use std::{usize, isize};
 
 pub type Word = usize;

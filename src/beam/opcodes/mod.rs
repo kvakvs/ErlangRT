@@ -1,8 +1,8 @@
-pub mod execution_control;
-pub mod memory;
+pub mod op_execution;
+pub mod op_memory;
 
-pub use beam::opcodes::execution_control::*;
-pub use beam::opcodes::memory::*;
+pub use beam::opcodes::op_execution::*;
+pub use beam::opcodes::op_memory::*;
 
 use beam::gen_op;
 use defs::Word;

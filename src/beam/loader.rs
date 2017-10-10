@@ -448,7 +448,7 @@ impl Loader {
         // else push the op and convert all args to LTerms, also remember
         // code offsets for label values
         _ => {
-          self.code.push(op as Word);
+          self.code.push(opcode::to_memory_word(op));
           self.postprocess_store_args(&args);
         } // case _
       } // match op

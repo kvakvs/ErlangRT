@@ -23,11 +23,11 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 }
 
 
-//#[inline]
-//#[cfg(not(debug_assertions))]
-//pub fn to_memory_word(raw: RawOpcode) -> Word {
-//  raw as Word
-//}
+#[inline]
+#[cfg(not(debug_assertions))]
+pub fn to_memory_word(raw: RawOpcode) -> Word {
+  raw as Word
+}
 
 
 /// Convert the opcode from memory format into raw. For debug build it was
@@ -41,8 +41,8 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 }
 
 
-//#[inline]
-//#[cfg(not(debug_assertions))]
-//pub fn to_memory_word(m: Word) -> RawOpcode {
-//  m as RawOpcode
-//}
+#[inline]
+#[cfg(not(debug_assertions))]
+pub fn to_memory_word(m: Word) -> RawOpcode {
+  m as RawOpcode
+}

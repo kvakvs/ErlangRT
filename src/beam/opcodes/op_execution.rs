@@ -16,7 +16,7 @@ pub fn opcode_call(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
                 "Call location must be a box (have {})", location);
 
   ctx.cp = ctx.ip;
-  ctx.ip = CodePtr::Ptr(location.box_ptr());
+  ctx.ip = CodePtr::from_ptr(location.box_ptr());
 
   DispatchResult::Normal
 }
@@ -30,7 +30,7 @@ pub fn opcode_call_only(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
   debug_assert!(location.is_box(),
                 "Call location must be a box (have {})", location);
 
-  ctx.ip = CodePtr::Ptr(location.box_ptr());
+  ctx.ip = CodePtr::from_ptr(location.box_ptr());
 
   DispatchResult::Normal
 }

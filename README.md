@@ -8,10 +8,12 @@ Another attempt to make Erlang runtime (BEAM emulator) in Rust.
 
 ## Project Progress
 
-* Term library 40%
+* Term library 50%
 * External Term Format (decoder 30%)
 * BEAM Loader 90%
 * VM and processes 20%
+* VM loop and opcodes 5%
+* Some basic BIFs 0%
 
 ## Compiling
 
