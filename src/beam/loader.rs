@@ -18,7 +18,7 @@ use beam::compact_term;
 use beam::gen_op;
 use defs::{Word, Arity};
 use emulator::atom;
-use emulator::code::{LabelId, CodeOffset, Code};
+use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::disasm;
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
@@ -405,8 +405,8 @@ impl Loader {
 
     // Writing code unpacked to words here. Break at every new function_info.
     while !r.eof() {
-      // Read the u8 opcode
-      let op = r.read_u8();
+      // Read the opcode from the code section
+      let op: opcode::RawOpcode = r.read_u8();
 
       // Read `arity` args, and convert them to reasonable runtime values
       let arity = gen_op::opcode_arity(op);
@@ -423,7 +423,7 @@ impl Loader {
 
       match op {
         // add nothing for label, but record its location
-        x if x == gen_op::OPCODE_LABEL as u8 => {
+        x if x == gen_op::OPCODE_LABEL => {
           if let FTerm::LoadTimeInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
@@ -434,9 +434,9 @@ impl Loader {
         }
 
         // add nothing for line, but TODO: Record line contents
-        x if x == gen_op::OPCODE_LINE as u8 => {}
+        x if x == gen_op::OPCODE_LINE => {}
 
-        x if x == gen_op::OPCODE_FUNC_INFO as u8 => {
+        x if x == gen_op::OPCODE_FUNC_INFO => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
           let funarity = FunArity {
             f: args[1].to_lterm(&mut self.lit_heap),

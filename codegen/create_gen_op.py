@@ -15,13 +15,14 @@ def main():
 #![allow(dead_code)]
 
 use defs::Word;
+use emulator::code::opcode::RawOpcode;
 
 
-pub const OPCODE_MAX: usize = {op_max};
+pub const OPCODE_MAX: RawOpcode = {op_max};
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     # print arity map
-    print("pub static ARITY_MAP: &'static [u8] = &[\n"
+    print("pub static ARITY_MAP: &'static [RawOpcode] = &[\n"
           "    0, // opcode 0 does not exist")
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
@@ -29,7 +30,7 @@ pub const OPCODE_MAX: usize = {op_max};
     print("""\
 ];
 
-pub fn opcode_arity(opcode: u8) -> u8 { 
+pub fn opcode_arity(opcode: RawOpcode) -> u8 { 
   ARITY_MAP[opcode as usize]
 }
 """)
@@ -47,7 +48,7 @@ pub fn opcode_arity(opcode: u8) -> u8 {
     print("""\
 ];
 
-pub fn opcode_name(opcode: u8) -> &'static str { 
+pub fn opcode_name(opcode: RawOpcode) -> &'static str { 
   OPCODE_NAME_MAP[opcode as Word]
 }
 """)
@@ -58,7 +59,8 @@ pub fn opcode_name(opcode: u8) -> &'static str {
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
-        print("pub const OPCODE_%s: Word = %d;" % (op.name.upper(), opcode))
+        print("pub const OPCODE_%s: RawOpcode = %d;"
+              % (op.name.upper(), opcode))
     print("\n")
 
 

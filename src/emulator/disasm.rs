@@ -1,14 +1,14 @@
 use defs::Word;
 use term::lterm::LTerm;
 use beam::gen_op;
-use emulator::code::{Code, Labels};
+use emulator::code::{opcode, Code, Labels};
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
 pub fn disasm(code: &Code, _labels: Option<&Labels>) {
   let mut i = 0;
   while i < code.len() {
-    let op = code[i];
+    let op = opcode::from_memory_word(code[i]);
     assert!(op < gen_op::OPCODE_MAX);
     print!("0x{:04x} {} ", i, gen_op::opcode_name(op as u8));
     i += 1;

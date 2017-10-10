@@ -9,9 +9,9 @@
 //! To use `Immediate2` bits set "aa" to `TAG_IMM1_IMM2` and set "bb" to the
 //!    desired value from `Immediate2` enum.
 //!
-mod imm1;
-mod imm2;
-mod imm3;
+pub mod imm1;
+pub mod imm2;
+pub mod imm3;
 
 use term::primary;
 use defs;

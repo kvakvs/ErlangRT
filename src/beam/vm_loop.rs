@@ -1,7 +1,7 @@
 use beam::gen_op;
 use beam::vm_dispatch::dispatch_op_inline;
 use defs::{DispatchResult};
-//use emulator::code::{CodePtr};
+use emulator::code::{opcode};
 use emulator::vm::VM;
 
 use std::mem::transmute;
@@ -20,7 +20,7 @@ impl VM {
       let mut ctx = &mut curr_p.context;
 
       // Take next opcode
-      let op = ctx.fetch();
+      let op = opcode::from_memory_word(ctx.fetch());
       assert!(op <= gen_op::OPCODE_MAX,
               "Opcode too big (wrong memory address?) got 0x{:x}", op);
 

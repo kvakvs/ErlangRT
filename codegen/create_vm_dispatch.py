@@ -18,12 +18,13 @@ def main():
 use beam::gen_op;
 use beam::opcodes::*;
 use defs::{{Word, DispatchResult}};
+use emulator::code::opcode::RawOpcode;
 use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;
 
 
 #[inline(always)]
-pub fn dispatch_op_inline(op: Word, ctx: &mut Context, \
+pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, \
 heap: &mut Heap) -> DispatchResult {{
   match op {{
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))

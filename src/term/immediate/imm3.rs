@@ -34,8 +34,13 @@ pub const TAG_IMM3_XREG: Word = 0;
 pub const TAG_IMM3_YREG: Word = 1;
 pub const TAG_IMM3_FPREG: Word = 2;
 
+#[cfg(debug_assertions)]
+pub const TAG_IMM3_OPCODE: Word = 3;
+
+
 /// Max value for the Immediate3 enum (for assertions).
-pub const IMMEDIATE3_MAX: Word = 2;
+pub const IMMEDIATE3_MAX: Word = 3;
+
 
 /// Trim to have only immediate3 bits and return them as an convenient enum.
 #[inline]
@@ -66,8 +71,14 @@ pub const IMM3_YREG_PREFIX: Word = IMM3_PREFIX
 pub const IMM3_FPREG_PREFIX: Word = IMM3_PREFIX
     | (TAG_IMM3_FPREG << IMM3_TAG_FIRST);
 
-//pub const IMM3_LABEL_PREFIX: Word = IMM3_PREFIX
-//    | ((Immediate3::Label as Word) << IMM3_TAG_FIRST);
+
+/// Debug-time mark on the opcode, so that we are able to check that jump
+/// destinations point to a legitimate opcode.
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
+pub const IMM3_OPCODE_PREFIX: Word = IMM3_PREFIX
+    | (TAG_IMM3_OPCODE << IMM3_TAG_FIRST);
+
 
 /// Get prefix bits BEFORE imm3 tag
 #[inline]
@@ -75,10 +86,13 @@ pub fn get_imm3_prefix(val: Word) -> Word {
   val.get_bits(0..IMM3_TAG_FIRST)
 }
 
+
+/// Check whether a word contains imm3 prefix bits.
 #[inline]
 pub fn is_immediate3(val: Word) -> bool {
   get_imm3_prefix(val) == IMM3_PREFIX
 }
+
 
 /// Given a value raw preset bits, compose them together and form an imm3 LTerm
 #[inline]
