@@ -27,13 +27,14 @@ use fail::{Hopefully, Error};
 use term::fterm::FTerm;
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
-use util::ext_term_format;
+use util::ext_term_format as etf;
 //use util::print::dump_vec;
 
 
 pub fn module() -> &'static str { "beam::loader: " }
 
 
+/// Imports table item (mfa's referred by this module).
 /// Raw data structure as loaded from BEAM file
 #[allow(dead_code)]
 struct LImport {
@@ -42,7 +43,9 @@ struct LImport {
   arity: Arity,
 }
 
-/// Raw data structure as loaded from BEAM file
+
+/// Exports table item, as specified in `-export()` attribute.
+/// Raw data structure as loaded from BEAM file.
 #[allow(dead_code)]
 struct LExport {
   fun_atom: u32,
@@ -50,6 +53,8 @@ struct LExport {
   label: u32,
 }
 
+
+/// Function closures used in this file, with info on captured values.
 /// Raw data structure as loaded from BEAM file
 #[allow(dead_code)]
 struct LFun {
@@ -61,6 +66,8 @@ struct LFun {
   ouniq: u32,
 }
 
+
+/// BEAM loader state.
 pub struct Loader {
   //--- Stage 1 raw structures ---
   /// Raw atoms loaded from BEAM module as strings
@@ -215,7 +222,7 @@ impl Loader {
 
       unsafe {
         disasm::disasm(&mod1.code, None);
-        mod1.lit_heap.dump()
+        //mod1.lit_heap.dump()
       };
     }
 
@@ -227,8 +234,8 @@ impl Loader {
   /// Read Attr section: two terms (module attributes and compiler info) encoded
   /// as external term format.
   fn load_attributes(&mut self, r: &mut BinaryReader) {
-    self.mod_attrs = ext_term_format::decode(r, &mut self.lit_heap).unwrap();
-    self.compiler_info = ext_term_format::decode_naked(r, &mut self.lit_heap).unwrap();
+    self.mod_attrs = etf::decode(r, &mut self.lit_heap).unwrap();
+    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap).unwrap();
   }
 
 
@@ -390,7 +397,7 @@ impl Loader {
     for _i in 0..count {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
-      let lterm = ext_term_format::decode(&mut r, &mut self.lit_heap).unwrap();
+      let lterm = etf::decode(&mut r, &mut self.lit_heap).unwrap();
       self.lit_tab.push(lterm);
     }
   }

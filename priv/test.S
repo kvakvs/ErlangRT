@@ -12,16 +12,17 @@
     {line,[{location,"test.erl",4}]}.
     {func_info,{atom,test},{atom,start},0}.
   {label,2}.
-    {call_only,0,{f,4}}.
+    {move,{literal,[a,123]},{x,0}}.
+    {call_only,1,{f,4}}.
 
 
-{function, test1, 0, 4}.
+{function, test1, 1, 4}.
   {label,3}.
     {line,[{location,"test.erl",7}]}.
-    {func_info,{atom,test},{atom,test1},0}.
+    {func_info,{atom,test},{atom,test1},1}.
   {label,4}.
-    {move,{literal,[a,123]},{x,0}}.
-    return.
+    {line,[{location,"test.erl",7}]}.
+    {call_ext_only,1,{extfunc,lists,reverse,1}}.
 
 
 {function, module_info, 0, 6}.
