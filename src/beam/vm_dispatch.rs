@@ -16,12 +16,12 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> 
   match op {
 
     gen_op::OPCODE_CALL => { return opcode_call(ctx, heap) },
-    gen_op::OPCODE_CALL_LAST => { return opcode_call_last(ctx, heap) },
     gen_op::OPCODE_CALL_ONLY => { return opcode_call_only(ctx, heap) },
     gen_op::OPCODE_ALLOCATE => { return opcode_allocate(ctx, heap) },
     gen_op::OPCODE_ALLOCATE_ZERO => { return opcode_allocate_zero(ctx, heap) },
     gen_op::OPCODE_RETURN => { return opcode_return(ctx, heap) },
     gen_op::OPCODE_MOVE => { return opcode_move(ctx, heap) },
+    gen_op::OPCODE_CALL_EXT_ONLY => { return opcode_call_ext_only(ctx, heap) },
     other => unknown_opcode(other, ctx),   
   }
   DispatchResult::Yield

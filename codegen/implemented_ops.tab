@@ -1,7 +1,8 @@
 #====== Calls and Execution Control ======
 call
 call_only
-call_last
+# call_last
+call_ext_only
 return
 
 #====== Memory and Stack ======
