@@ -2,16 +2,20 @@ HERE=$(shell pwd)
 
 .PHONY: run run-rel
 # Compile and run
-run:
+run: priv
 	cargo run
 
-run-rel:
+run-rel: priv
 	cargo run --release
 
 # Run with backtrace on
 .PHONY: run-bt
-run-bt:
+run-bt: priv
 	RUST_BACKTRACE=1 cargo run
+
+# Build test modules from priv/
+priv:
+	mkdir priv; cd priv && $(MAKE)
 
 .PHONY: gdb
 gdb: build

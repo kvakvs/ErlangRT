@@ -1,0 +1,3 @@
+# These files are compiled on the fly by running make with Erlang 20
+*.S
+*.beam
