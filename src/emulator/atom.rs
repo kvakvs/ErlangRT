@@ -6,6 +6,7 @@ use std::sync::Mutex;
 
 use defs::Word;
 use term::lterm::LTerm;
+use emulator::gen_atoms;
 
 /// Lookup table for atom to atom index and back. Declared static for use by
 /// printing and atom loading facilities without having to pass the VM pointer
@@ -18,12 +19,28 @@ struct AtomStorage {
   atoms_r: Mutex<Vec<String>>,
 }
 
+impl AtomStorage {
+  pub fn add_init_atoms(&mut self) {
+    let mut atoms_ = self.atoms.lock().unwrap();
+    let mut atoms_r_ = self.atoms_r.lock().unwrap();
+    let mut index = 0usize;
+
+    for ga in gen_atoms::ATOM_INIT_NAMES {
+      atoms_.insert(ga.to_string(), index);
+      atoms_r_.push(ga.to_string());
+      index += 1;
+    }
+  }
+}
+
 lazy_static! {
   static ref ATOMS: AtomStorage = {
-    AtomStorage {
+    let mut storage = AtomStorage {
       atoms: Mutex::new(BTreeMap::new()),
       atoms_r: Mutex::new(Vec::new()),
-    }
+    };
+    storage.add_init_atoms();
+    storage
   };
 }
 

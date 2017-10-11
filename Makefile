@@ -14,6 +14,7 @@ run-bt: priv
 	RUST_BACKTRACE=1 cargo run
 
 # Build test modules from priv/
+.PHONY: priv
 priv:
 	mkdir priv; cd priv && $(MAKE)
 

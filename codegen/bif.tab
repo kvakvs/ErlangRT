@@ -1,0 +1,68 @@
+#
+# Module_name BIF_atom_name Arity [C_function_name]
+#
+# Function name will be prefixed by "bif_" and suffixed by "_arity"
+# for example:
+#     erlang - 2 minus
+# will create mapping to bif erlang:'-'/2 named bif_minus_2(Process *, Term, Term) in Rust
+#
+erlang - 2 minus
+erlang + 2 plus
+erlang ++ 2 plusplus
+erlang == 2 equals
+erlang =:= 2 equals_exact
+erlang =< 2 less_equal
+erlang >= 2 greater_equal
+erlang * 2 multiply
+erlang / 2 divide
+
+#--- A
+erlang apply 2
+erlang apply 3
+erlang atom_to_list 1
+
+#--- E
+erlang element 2
+erlang exit 1
+erlang exit 2
+
+#--- G
+erlang group_leader 0
+erlang group_leader 2
+
+#--- F
+erlang function_exported 3
+
+#--- H
+erlang hd 1
+
+#--- I
+erlang integer_to_list 1
+erlang integer_to_list 2
+erlang is_process_alive 1
+
+#--- L
+erlang length 1
+erlang list_to_atom 1
+erlang list_to_existing_atom 1
+
+#--- M
+erlang make_fun 3
+
+#--- N
+erlang nif_error 1
+
+#--- P
+erlang process_flag 2
+
+#--- R
+erlang register 2
+
+#--- S
+erlang self 0
+erlang spawn 3
+erlang spawn_link 3
+# erlang spawn_link 1 2 4
+
+#--- T
+erlang tl 1

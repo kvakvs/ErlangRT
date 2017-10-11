@@ -3,10 +3,10 @@
 use beam::gen_op;
 use emulator::code::CodePtr;
 use beam::opcodes::assert_arity;
-use defs::{Word, DispatchResult};
+use defs::{DispatchResult};
 use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;
-use term::lterm::LTerm;
+//use term::lterm::LTerm;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }

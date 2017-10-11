@@ -63,9 +63,15 @@ class Genop:
         self.arity = arity
         self.opcode = opcode
 
-    def cname(self):
-        s_parts = self.name.split("_")
-        return "".join([s.capitalize() for s in s_parts])
+
+def enum_name(name: str) -> str:
+    """ Capitalize all parts of a name to form a suitable enum name """
+    if name.startswith("'"):
+        return enum_name(name.strip("'"))
+
+    s_parts = name.split("_")
+    result = "".join([s.upper() for s in s_parts])
+    return result
 
 
 class Bif:
