@@ -38,7 +38,7 @@ pub const TAG_IMM3_FPREG: Word = 2;
 pub const TAG_IMM3_OPCODE: Word = 3;
 
 
-/// Max value for the Immediate3 enum (for assertions).
+/// Max value for the `Immediate3` enum (for assertions).
 pub const IMMEDIATE3_MAX: Word = 3;
 
 
@@ -94,7 +94,7 @@ pub fn is_immediate3(val: Word) -> bool {
 }
 
 
-/// Given a value raw preset bits, compose them together and form an imm3 LTerm
+/// Given a value raw preset bits, compose them together and form an imm3 `LTerm`
 #[inline]
 pub fn create_imm3(val: Word, prefix0: Word) -> Word {
   let mut prefix = prefix0;

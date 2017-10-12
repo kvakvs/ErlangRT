@@ -24,21 +24,21 @@ enum CTETag {
 #[cfg(feature="r19")]
 #[repr(u8)]
 enum CTEExtTag {
-  Float = 0b00010111,
-  List = 0b00100111,
-  FloatReg = 0b00110111,
-  AllocList = 0b01000111,
-  Literal = 0b01010111,
+  Float = 0b0001_0111,
+  List = 0b0010_0111,
+  FloatReg = 0b0011_0111,
+  AllocList = 0b0100_0111,
+  Literal = 0b0101_0111,
 }
 
 // In OTP20 the Float Ext tag is gone and Lists are taking the first value
 #[cfg(feature="r20")]
 #[repr(u8)]
 enum CTEExtTag {
-  List = 0b00010111,
-  FloatReg = 0b00100111,
-  AllocList = 0b00110111,
-  Literal = 0b01000111,
+  List = 0b0001_0111,
+  FloatReg = 0b0010_0111,
+  AllocList = 0b0011_0111,
+  Literal = 0b0100_0111,
 }
 
 /// Errors created when parsing compact term format. They are delivered to the
@@ -71,17 +71,18 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   let tag = b & 0b111;
   //let err_msg: &'static str = "Failed to parse beam compact term";
 
-  let mut bword = Integral::Word(0);
-  if tag < CTETag::Extended as u8 {
-    bword = read_word(b, r);
-  }
+  let bword = if tag < CTETag::Extended as u8 {
+    read_word(b, r)
+  } else {
+    Integral::Word(0)
+  };
 
   match tag {
     x if x == CTETag::LiteralInt as u8 => {
       if let Integral::Word(index) = bword {
         return Ok(fterm::FTerm::LoadTimeInt(index))
       }
-      return make_err(CTError::BadLiteralTag)
+      make_err(CTError::BadLiteralTag)
     },
     x if x == CTETag::Atom as u8 => {
       if let Integral::Word(index) = bword {
@@ -90,40 +91,40 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
         }
         return Ok(fterm::FTerm::LoadTimeAtom(index))
       }
-      return make_err(CTError::BadAtomTag)
+      make_err(CTError::BadAtomTag)
     },
     x if x == CTETag::XReg as u8 => {
       if let Integral::Word(index) = bword {
         return Ok(fterm::FTerm::X_(index))
       }
-      return make_err(CTError::BadXRegTag)
+      make_err(CTError::BadXRegTag)
     },
     x if x == CTETag::YReg as u8 => {
       if let Integral::Word(index) = bword {
         return Ok(fterm::FTerm::Y_(index))
       }
-      return make_err(CTError::BadYRegTag)
+      make_err(CTError::BadYRegTag)
     },
     x if x == CTETag::Label as u8 => {
       if let Integral::Word(index) = bword {
         return Ok(fterm::FTerm::LoadTimeLabel(index))
       }
-      return make_err(CTError::BadLabelTag)
+      make_err(CTError::BadLabelTag)
     },
     x if x == CTETag::Integer as u8 => {
       if let Integral::Word(n) = bword {
         return Ok(fterm::FTerm::from_word(n))
       }
-      return make_err(CTError::BadIntegerTag)
+      make_err(CTError::BadIntegerTag)
     },
     x if x == CTETag::Character as u8 => {
       if let Integral::Word(n) = bword {
         return Ok(fterm::FTerm::from_word(n));
       }
-      return make_err(CTError::BadCharacterTag)
+      make_err(CTError::BadCharacterTag)
     }
     // Extended tag (lower 3 bits = 0b111)
-    _ => return parse_ext_tag(b, r)
+    _ => parse_ext_tag(b, r)
   }
   //return make_err(CTError::BadFormat)
 }
@@ -178,7 +179,7 @@ fn parse_ext_fpreg(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   if let Integral::Word(reg) = read_word(b, r) {
     return Ok(fterm::FTerm::FP_(reg))
   }
-  let msg = format!("Ext tag FPReg value too big");
+  let msg = "Ext tag FPReg value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
 }
 
@@ -188,7 +189,7 @@ fn parse_ext_literal(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   if let Integral::Word(reg) = read_word(b, r) {
     return Ok(fterm::FTerm::LoadTimeLit(reg))
   }
-  let msg = format!("Ext tag Literal value too big");
+  let msg = "toExt tag Literal value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
 }
 
@@ -204,8 +205,7 @@ fn parse_ext_list(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
     el.push(value);
   }
 
-  let t = fterm::FTerm::LoadTimeExtlist(Box::new(el));
-  return Ok(t)
+  Ok(fterm::FTerm::LoadTimeExtlist(el))
 }
 
 /// Assume that the stream contains a tagged small integer (check the tag!)
@@ -227,11 +227,11 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
     return Integral::Word((b as Word) >> 4);
   }
   // Bit 3 is 1, but...
-  if 0 == (b & 0b10000) {
+  if 0 == (b & 0b1_0000) {
     // Bit 4 is 0, marks that the following 3 bits (most significant) and
     // the following byte (least significant) will contain the 11-bit value
-    let r = ((b as Word) & 0b11100000) << 3 | (r.read_u8() as Word);
-    return Integral::Word(r);
+    let r = ((b as Word) & 0b1110_0000) << 3 | (r.read_u8() as Word);
+    Integral::Word(r)
   } else {
     // Bit 4 is 1 means that bits 5-6-7 contain amount of bytes+2 to store
     // the value

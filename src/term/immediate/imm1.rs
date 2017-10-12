@@ -67,7 +67,7 @@ pub fn get_imm1_value(val: Word) -> Word {
   val.get_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST)
 }
 
-/// Given a value raw preset bits, compose them together and form an imm1 LTerm
+/// Given a value raw preset bits, compose them together and form an imm1 `LTerm`
 #[inline]
 pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
   let mut prefix = prefix0;

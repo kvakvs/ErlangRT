@@ -31,8 +31,8 @@ pub const IMMEDIATE2_MAX: Word = 3;
 
 
 /// In heap memory NIL looks like 0x40404072
-pub const TAG_IMM2_SPECIAL_NIL: Word = 0x01010101;
-pub const TAG_IMM2_SPECIAL_NONVALUE: Word = 0x03030303;
+pub const TAG_IMM2_SPECIAL_NIL: Word = 0x0101_0101;
+pub const TAG_IMM2_SPECIAL_NONVALUE: Word = 0x0303_0303;
 
 /// Trim to have only immediate2 bits and return them as an convenient enum.
 #[inline]
@@ -67,7 +67,7 @@ pub const IMM2_SPECIAL_PREFIX: Word = IMM2_PREFIX
 pub const IMM2_SPECIAL_NIL_RAW: Word = IMM2_SPECIAL_PREFIX
     | (TAG_IMM2_SPECIAL_NIL << IMM2_VALUE_FIRST);
 
-/// Precomposed bits for NON_VALUE constant
+/// Precomposed bits for `NON_VALUE` constant
 pub const IMM2_SPECIAL_NONVALUE_RAW: Word = IMM2_SPECIAL_PREFIX
     | (TAG_IMM2_SPECIAL_NONVALUE << IMM2_VALUE_FIRST);
 
@@ -82,7 +82,7 @@ pub fn is_immediate2(val: Word) -> bool {
   get_imm2_prefix(val) == IMM2_PREFIX
 }
 
-/// Given a value raw preset bits, compose them together and form an imm2 LTerm
+/// Given a value raw preset bits, compose them together and form an imm2 `LTerm`
 #[inline]
 pub fn combine_imm2_prefix_and_val(val: Word, prefix0: Word) -> Word {
   let mut prefix = prefix0;

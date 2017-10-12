@@ -78,7 +78,7 @@ impl LTerm {
   /// Check whether a value is a local pid.
   #[inline]
   pub fn is_local_pid(&self) -> bool {
-    return immediate::is_pid_raw(self.value)
+    immediate::is_pid_raw(self.value)
   }
 
   /// Get primary tag bits from a raw term
@@ -218,7 +218,7 @@ impl LTerm {
   /// Check whether a value is a runtime atom.
   #[inline]
   pub fn is_atom(&self) -> bool {
-    return immediate::is_atom_raw(self.value)
+    immediate::is_atom_raw(self.value)
   }
 
 
@@ -244,7 +244,7 @@ impl LTerm {
   /// Check whether a value is a small integer.
   #[inline]
   pub fn is_small(&self) -> bool {
-    return immediate::is_small_raw(self.value)
+    immediate::is_small_raw(self.value)
   }
 
 

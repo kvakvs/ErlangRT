@@ -12,6 +12,9 @@ pub use emulator::code::pointer::*;
 /// Code array stores opcodes/jump table offsets and args encoded as `LTerm`
 pub type Code = Vec<Word>;
 
+/// A slice to a code array
+pub type RefCode<'a> = &'a [Word];
+
 /// Tagged word for label index
 #[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
 pub enum LabelId { Val(Word) }

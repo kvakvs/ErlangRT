@@ -26,7 +26,7 @@ impl CodePtr {
 
 
   pub fn null() -> CodePtr {
-    CodePtr::Ptr(0 as *const Word)
+    CodePtr::Ptr(::std::ptr::null())
   }
 
 
@@ -48,7 +48,7 @@ impl CodePtr {
   #[inline]
   pub fn is_null(&self) -> bool {
     let CodePtr::Ptr(p) = *self;
-    p == 0 as *const Word
+    p.is_null()
   }
 
 

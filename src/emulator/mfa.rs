@@ -6,7 +6,7 @@ use term::lterm::LTerm;
 use defs::Arity;
 use emulator::funarity::FunArity;
 
-/// MFArgs or MFArity should be able to give us mod and fun whenever, so
+/// `MFArgs` or `MFArity` should be able to give us mod and fun whenever, so
 /// this trait is there to allow it.
 pub trait IMFArity {
   fn get_mod(&self) -> LTerm;

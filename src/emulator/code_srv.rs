@@ -33,7 +33,7 @@ impl CodeServer {
     match self.mods.get(&m) {
       None => {
         let msg = format!("{}Module not found {}", module(), m);
-        return Err(Error::ModuleNotFound(msg))
+        Err(Error::ModuleNotFound(msg))
       },
       Some(mptr) => mptr.borrow().lookup(mfa)
     }
@@ -58,7 +58,7 @@ impl CodeServer {
 }
 
 /// Iterate through the search path list and try to find a file
-fn first_that_exists(search_path: &Vec<String>,
+fn first_that_exists(search_path: &[String],
                      filename: &str) -> Option<PathBuf> {
   for s in search_path {
     let full_path = format!("{}/{}.beam", s, filename).to_string();

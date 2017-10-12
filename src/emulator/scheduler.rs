@@ -140,10 +140,7 @@ impl Scheduler {
       };
 
       match timeslice_result {
-        SliceResult::Yield => {
-          self.queue(curr_pid);
-          self.current = None
-        },
+        SliceResult::Yield |
         SliceResult::None => {
           self.queue(curr_pid);
           self.current = None

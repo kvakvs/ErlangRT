@@ -31,7 +31,7 @@ pub enum FTerm {
   Cons(Box<[FTerm]>),
   /// NIL [] zero sized list
   Nil,
-  Tuple(Box<Vec<FTerm>>),
+  Tuple(Vec<FTerm>),
   /// zero sized tuple
   Tuple0,
   Float(defs::Float),
@@ -61,7 +61,7 @@ pub enum FTerm {
   /// A load-time index in literal heap
   LoadTimeLit(Word),
   /// A list of value/label pairs, a jump table
-  LoadTimeExtlist(Box<Vec<FTerm>>),
+  LoadTimeExtlist(Vec<FTerm>),
   LoadTimeAlloclist,
 }
 
@@ -77,8 +77,8 @@ impl FTerm {
 
   /// Parse self as Int_ (load-time integer) and return the contained value.
   pub fn loadtime_word(&self) -> Word {
-    match self {
-      &FTerm::LoadTimeInt(w) => w,
+    match *self {
+      FTerm::LoadTimeInt(w) => w,
       _ => panic!("{}Expected load-time int, got {:?}", module(), self)
     }
   }
@@ -86,16 +86,16 @@ impl FTerm {
   /// Convert a high level (friendly) term to a compact low-level term.
   /// Some terms cannot be converted, consider checking `to_lterm_vec()`
   pub fn to_lterm(&self, _heap: &mut Heap) -> LTerm {
-    match self {
-      &FTerm::Atom(i) => LTerm::make_atom(i),
-      &FTerm::X_(i) => LTerm::make_xreg(i),
-      &FTerm::Y_(i) => LTerm::make_yreg(i),
-      &FTerm::FP_(i) => LTerm::make_fpreg(i),
+    match *self {
+      FTerm::Atom(i) => LTerm::make_atom(i),
+      FTerm::X_(i) => LTerm::make_xreg(i),
+      FTerm::Y_(i) => LTerm::make_yreg(i),
+      FTerm::FP_(i) => LTerm::make_fpreg(i),
       // Do not convert label_ it is used as resolved offset value in lterm
-      //&FTerm::Label_(i) => LTerm::make_label(i),
-      &FTerm::SmallInt(i) => LTerm::make_small_s(i),
-      &FTerm::LoadTimeInt(i) => LTerm::make_small_u(i),
-      &FTerm::Nil => LTerm::nil(),
+      //FTerm::Label_(i) => LTerm::make_label(i),
+      FTerm::SmallInt(i) => LTerm::make_small_s(i),
+      FTerm::LoadTimeInt(i) => LTerm::make_small_u(i),
+      FTerm::Nil => LTerm::nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
     }
   }

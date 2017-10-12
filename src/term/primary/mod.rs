@@ -1,5 +1,5 @@
 //!
-//! All low level (LTerm) values have a primary tag to define basic type.
+//! All low level (`LTerm`) values have a primary tag to define basic type.
 //! Bit composition is - `.... .... .... ..PP`, where `PP` is the primary tag.
 //!
 //! Max value for such term is 64-2=62, or 32-2=30 bits. This value is large
@@ -25,7 +25,7 @@ pub const PRIM_VALUE_FIRST: u8 = PRIM_TAG_LAST;
 pub const PRIM_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 
-/// Marks something special on heap, never appears as a LTerm value in
+/// Marks something special on heap, never appears as a `LTerm` value in
 /// registers, is always on heap.
 pub const TAG_HEADER: Word = 0;
 /// points to a cons cell on heap
@@ -36,7 +36,7 @@ pub const TAG_IMMED: Word = 2;
 pub const TAG_BOX: Word = 3;
 
 
-/// Get the primary tag bits and transmute into primary::Tag
+/// Get the primary tag bits and transmute into `primary::Tag`
 #[inline]
 pub fn get_tag(val: Word) -> Word {
   val.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST)
