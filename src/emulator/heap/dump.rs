@@ -8,6 +8,8 @@ use term::primary;
 
 impl Heap {
   /// Print heap contents
+  #[allow(dead_code)]
+  // This function is not used sometimes, this is fine
   pub unsafe fn dump(&self) {
     for data_p in self.iter() {
       let DataPtr::Ptr(addr) = data_p;

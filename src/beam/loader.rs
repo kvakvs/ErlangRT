@@ -166,16 +166,16 @@ impl Loader {
         "Attr" => self.load_attributes(&mut r),
         "AtU8" => self.load_atoms_utf8(&mut r),
         "Code" => self.load_code(&mut r, chunk_sz as Word),
-        "CInf" | // skip compiler info
-        "Dbgi" => r.skip(chunk_sz as Word), // skip debug info
         "ExpT" => self.raw_exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
         "LocT" => self.raw_locals = self.load_exports(&mut r),
+        "LitT" => self.load_literals(&mut r, chunk_sz as Word),
+        "CInf" | // skip compiler info
+        "Dbgi" | // skip debug info
         "StrT" | // skip strings TODO load strings?
         "Abst" => r.skip(chunk_sz as Word), // skip abstract code
-        "LitT" => self.load_literals(&mut r, chunk_sz as Word),
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
           return Err(Error::CodeLoadingFailed(msg));

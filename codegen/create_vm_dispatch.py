@@ -17,7 +17,7 @@ def main():
 
 use beam::gen_op;
 use beam::opcodes::*;
-use defs::{{Word, DispatchResult}};
+use defs::{{DispatchResult}};
 use emulator::code::opcode::RawOpcode;
 use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;

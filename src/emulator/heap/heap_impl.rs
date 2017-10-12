@@ -63,11 +63,15 @@ impl Heap {
   }
 
 
+  // This is used by heap walkers such as "dump.rs"
+  #[allow(dead_code)]
   pub fn begin(&self) -> *const Word {
     self.data.ptr() as *const Word
   }
 
 
+  // This is used by heap walkers such as "dump.rs"
+  #[allow(dead_code)]
   pub unsafe fn end(&self) -> *const Word {
     let p = self.data.ptr() as *const Word;
     p.offset(self.htop as isize)
@@ -128,6 +132,8 @@ impl Heap {
 
 
   /// Create a constant iterator for walking the heap.
+  // This is used by heap walkers such as "dump.rs"
+  #[allow(dead_code)]
   pub unsafe fn iter(&self) -> iter::HeapIterator {
     let last = self.htop as isize;
     let begin = self.data.ptr() as *const Word;

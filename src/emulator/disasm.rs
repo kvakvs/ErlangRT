@@ -1,7 +1,7 @@
 use defs::Word;
 use term::lterm::LTerm;
 use beam::gen_op;
-use emulator::code::{opcode, Code, Labels, RefCode};
+use emulator::code::{opcode, Labels, RefCode};
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]

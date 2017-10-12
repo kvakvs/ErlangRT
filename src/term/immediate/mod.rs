@@ -13,7 +13,7 @@ mod imm1;
 mod imm2;
 mod imm3;
 
-use term::primary;
+//use term::primary;
 use defs;
 use defs::{Word, SWord};
 

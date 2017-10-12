@@ -38,11 +38,11 @@ impl CodePtr {
   }
 
 
-  pub fn offset(&self, n: isize) -> CodePtr {
-    let CodePtr::Ptr(p) = *self;
-    let new_p = unsafe { p.offset(n) };
-    CodePtr::Ptr(new_p)
-  }
+//  pub fn offset(&self, n: isize) -> CodePtr {
+//    let CodePtr::Ptr(p) = *self;
+//    let new_p = unsafe { p.offset(n) };
+//    CodePtr::Ptr(new_p)
+//  }
 
 
   #[inline]
@@ -52,8 +52,8 @@ impl CodePtr {
   }
 
 
-  #[inline]
-  pub fn is_not_null(&self) -> bool { ! self.is_null() }
+//  #[inline]
+//  pub fn is_not_null(&self) -> bool { ! self.is_null() }
 }
 
 //pub enum CodePtrMut { Ptr(*mut Word) }
