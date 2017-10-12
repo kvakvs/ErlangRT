@@ -42,7 +42,7 @@ pub const TAG_CP: Word = 1usize << 31;
 pub const TAG_CP: Word = 1usize << 63;
 
 
-/// Represents either Word or a BigInteger
+/// Represents either Word or a `BigInteger`
 #[derive(Debug, Eq, PartialEq)]
 pub enum Integral {
   Word(Word),

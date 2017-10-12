@@ -20,7 +20,7 @@ const HEADER_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
 
 // 0?
-/// TAG_HEADER* marks the type, which follows the header word.
+/// `TAG_HEADER*` marks the type, which follows the header word.
 pub const TAG_HEADER_TUPLE: Word = 1;
 pub const TAG_HEADER_BIGNEG: Word = 2;
 pub const TAG_HEADER_BIGPOS: Word = 3;

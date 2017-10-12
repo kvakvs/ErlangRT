@@ -1,11 +1,11 @@
 use defs::Word;
 use term::lterm::LTerm;
 use beam::gen_op;
-use emulator::code::{opcode, Code, Labels};
+use emulator::code::{opcode, Code, Labels, RefCode};
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
-pub unsafe fn disasm(code: &Code, _labels: Option<&Labels>) {
+pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>) {
   let mut ip = &code[0] as *const Word;
   let iend = ip.offset(code.len() as isize);
 

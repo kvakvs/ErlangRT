@@ -52,7 +52,7 @@ impl VM {
         self.scheduler.add(pid, p0);
         Ok(pid)
       },
-      Err(e) => return Err(e)
+      Err(e) => Err(e)
     }
   }
 
@@ -96,7 +96,7 @@ impl VM {
     // Delegate the loading task to BEAM or another loader
     let mut loader = loader::Loader::new();
     // Phase 1: Preload data structures
-    loader.load(&mod_file_path).unwrap();
+    loader.load(mod_file_path).unwrap();
     loader.load_stage2();
     match loader.load_finalize() {
       Ok(mod_ptr) => {

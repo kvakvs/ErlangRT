@@ -173,7 +173,7 @@ impl Loader {
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
         "LocT" => self.raw_locals = self.load_exports(&mut r),
-        "StrT" => r.skip(chunk_sz as Word), // skip strings TODO load strings?
+        "StrT" | // skip strings TODO load strings?
         "Abst" => r.skip(chunk_sz as Word), // skip abstract code
         "LitT" => self.load_literals(&mut r, chunk_sz as Word),
         other => {
@@ -198,7 +198,7 @@ impl Loader {
   pub fn load_stage2(&mut self) {
     self.vm_atoms.reserve(self.raw_atoms.len());
     for a in &self.raw_atoms {
-      self.vm_atoms.push(atom::from_str(&a));
+      self.vm_atoms.push(atom::from_str(a));
     }
 
     self.postprocess_code_section();
@@ -469,17 +469,17 @@ impl Loader {
   /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
   /// container of terms. `LoadTimeLabel` get special treatment as we try to
   /// resolve them into an offset.
-  fn postprocess_store_args(&mut self, args: &Vec<FTerm>) {
+  fn postprocess_store_args(&mut self, args: &[FTerm]) {
     for a in args {
-      match a {
+      match *a {
         // Ext list is special so we convert it and its contents to lterm
-        &FTerm::LoadTimeExtlist(ref jtab) => {
+        FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
           self.code.push(LTerm::make_tuple_header(jtab.len()).raw());
 
           // Each value convert to LTerm and also push forming a tuple
           for t in jtab.iter() {
-            let new_t = if let &FTerm::LoadTimeLabel(f) = t {
+            let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
               self.push_term_or_convert_label(LabelId::Val(f))
             } else {
@@ -491,13 +491,13 @@ impl Loader {
 
         // Label value is special, we want to remember where it was
         // to convert it to an offset
-        &FTerm::LoadTimeLabel(f) => {
+        FTerm::LoadTimeLabel(f) => {
           let new_t = self.push_term_or_convert_label(LabelId::Val(f));
           self.code.push(new_t)
         }
 
         // Load-time literals are already loaded on `self.lit_heap`
-        &FTerm::LoadTimeLit(lit_index) => {
+        FTerm::LoadTimeLit(lit_index) => {
           self.code.push(self.lit_tab[lit_index].raw())
         }
 
@@ -540,7 +540,7 @@ impl Loader {
     // Postprocess self.replace_labels, assuming that at this point labels exist
     let mut repl = Vec::<CodeOffset>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
-    for code_offs in repl.iter() {
+    for code_offs in &repl {
       // Read code cell
       let &CodeOffset::Val(cmd_offset) = code_offs;
 
@@ -549,10 +549,10 @@ impl Loader {
       let unfixed_l = LabelId::Val(unfixed.small_get_s() as Word);
 
       // Lookup the label. Crash here if bad label.
-      let dst_offset = self.labels.get(&unfixed_l).unwrap();
+      let dst_offset = &self.labels[&unfixed_l];
 
       // Update code cell with special label value
-      self.code[cmd_offset] = self.create_jump_destination(&dst_offset);
+      self.code[cmd_offset] = self.create_jump_destination(dst_offset);
     }
   }
 
@@ -560,20 +560,20 @@ impl Loader {
 /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
 /// resolve it to a runtime atom index using a lookup table.
   pub fn resolve_loadtime_values(&self, arg: &FTerm) -> Option<FTerm> {
-    match arg {
+    match *arg {
       // A special value 0 means NIL []
-      &FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
+      FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
 
       // Repack load-time atom into a runtime atom
-      &FTerm::LoadTimeAtom(i) => {
+      FTerm::LoadTimeAtom(i) => {
         let aindex = self.vm_atoms[i-1].atom_index();
         Some(FTerm::Atom(aindex))
       },
 
-      &FTerm::LoadTimeLit(_) => None, // do not convert yet
+      FTerm::LoadTimeLit(_) => None, // do not convert yet
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
-      &FTerm::LoadTimeExtlist(ref lst) => {
+      FTerm::LoadTimeExtlist(ref lst) => {
         let mut result: Vec<FTerm> = Vec::new();
         result.reserve(lst.len());
         for x in lst.iter() {
@@ -582,7 +582,7 @@ impl Loader {
             None => result.push(x.clone())
           }
         };
-        Some(FTerm::LoadTimeExtlist(Box::new(result)))
+        Some(FTerm::LoadTimeExtlist(result))
       },
       // Otherwise no changes
       _ => None
@@ -591,6 +591,6 @@ impl Loader {
 }
 
 /// Report a bad opcode arg. TODO: Use this more, than just label opcode
-fn op_badarg_panic(op: u8, args: &Vec<FTerm>, argi: Word) {
+fn op_badarg_panic(op: u8, args: &[FTerm], argi: Word) {
   panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
 }

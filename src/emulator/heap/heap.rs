@@ -120,8 +120,8 @@ impl Heap {
   /// Allocate words on heap enough to store bignum digits and copy the given
   /// bignum to memory, return the pointer.
   pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<RawBignum> {
-    match self.allocate(RawBignum::storage_size(&big)) {
-      Ok(p) => unsafe { Ok(RawBignum::create_at(p, &big)) },
+    match self.allocate(RawBignum::storage_size(big)) {
+      Ok(p) => unsafe { Ok(RawBignum::create_at(p, big)) },
       Err(e) => Err(e) // repack inner Err into outer Err
     }
   }

@@ -2,7 +2,7 @@
 ///
 /// `0000 | 61 21 30 00 00 00 00 00 | 00 00 00 00 00 00 00 00  a!0..... ........`
 #[allow(dead_code)]
-pub fn dump_vec(data: &Vec<u8>) {
+pub fn dump_vec(data: &[u8]) {
   let mut i = 0;
   while i < data.len() {
     // Offset
