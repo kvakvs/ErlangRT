@@ -59,11 +59,11 @@ impl Context {
   pub fn fetch_term(&mut self) -> LTerm { LTerm::from_raw(self.fetch()) }
 
 
-  /// Advance `self.ip` by `n` words.
-  pub fn ip_add(&mut self, n: isize) {
-    let CodePtr::Ptr(ip0) = self.ip;
-    self.ip = unsafe { CodePtr::Ptr(ip0.offset(n)) };
-  }
+//  /// Advance `self.ip` by `n` words.
+//  pub fn ip_add(&mut self, n: isize) {
+//    let CodePtr::Ptr(ip0) = self.ip;
+//    self.ip = unsafe { CodePtr::Ptr(ip0.offset(n)) };
+//  }
 
 
   /// Read a register otherwise term is returned unchanged.

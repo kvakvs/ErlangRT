@@ -14,7 +14,7 @@ pub fn opcode_allocate_zero(ctx: &mut Context, heap: &mut Heap) -> DispatchResul
 
   if !heap.stack_have(stack_need + 1) {
     // Stack has not enough, invoke GC and possibly fail
-    let live = ctx.fetch_term();
+    let _live = ctx.fetch_term();
     panic!("TODO GC here or fail");
   } else {
     // Stack has enough words, we can allocate unchecked

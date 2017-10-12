@@ -35,6 +35,10 @@ asm:
 asm-rel:
 	cargo rustc --release -- --emit asm
 
+.PHONY: clippy
+clippy:
+	cargo rustc --features clippy -- -Z no-trans -Z extra-plugins=clippy
+
 .PHONY: doc
 doc:
 	cargo rustdoc -- \

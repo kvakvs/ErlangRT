@@ -44,11 +44,11 @@ impl PartialOrd for LTerm {
 #[allow(dead_code)]
 impl LTerm {
   /// Access the raw Word value of the low-level term.
-  #[inline(always)]
+  #[inline]
   pub fn raw(&self) -> Word { self.value }
 
   /// Create a NIL value.
-  #[inline(always)]
+  #[inline]
   pub fn nil() -> LTerm { LTerm { value: IMM2_SPECIAL_NIL_RAW } }
 
   /// Check whether a value is a NIL \[ \]
@@ -58,7 +58,7 @@ impl LTerm {
   }
 
   /// Create a NON_VALUE.
-  #[inline(always)]
+  #[inline]
   pub fn non_value() -> LTerm {
     LTerm { value: IMM2_SPECIAL_NONVALUE_RAW }
   }
@@ -82,49 +82,49 @@ impl LTerm {
   }
 
   /// Get primary tag bits from a raw term
-  #[inline(always)]
+  #[inline]
   pub fn primary_tag(&self) -> Word {
     primary::get_tag(self.value)
   }
 
   /// Check whether a value has immediate1 bits as prefix.
-  #[inline(always)]
+  #[inline]
   pub fn is_immediate1(&self) -> bool {
     immediate::is_immediate1(self.value)
   }
 
   /// Check whether a value has immediate2 bits as prefix.
-  #[inline(always)]
+  #[inline]
   pub fn is_immediate2(&self) -> bool {
     immediate::is_immediate2(self.value)
   }
 
   /// Check whether a value has immediate3 bits as prefix.
-  #[inline(always)]
+  #[inline]
   pub fn is_immediate3(&self) -> bool {
     immediate::is_immediate3(self.value)
   }
 
   /// Check whether primary tag of a value is `TAG_BOX`.
-  #[inline(always)]
+  #[inline]
   pub fn is_box(&self) -> bool {
     self.primary_tag() == primary::TAG_BOX
   }
 
   /// Check whether primary tag of a value is `TAG_CONS`.
-  #[inline(always)]
+  #[inline]
   pub fn is_cons(&self) -> bool {
     self.primary_tag() == primary::TAG_CONS
   }
 
   /// Check whether primary tag of a value is `TAG_HEADER`.
-  #[inline(always)]
+  #[inline]
   pub fn is_header(&self) -> bool {
     self.primary_tag() == primary::TAG_HEADER
   }
 
   /// Retrieve the raw value of a `LTerm`.
-  #[inline(always)]
+  #[inline]
   pub fn get_raw(&self) -> Word { self.value }
 
   //

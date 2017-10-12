@@ -3,6 +3,7 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use beam::loader;
 //use beam::vm_loop;
@@ -100,7 +101,7 @@ impl VM {
     loader.load_stage2();
     match loader.load_finalize() {
       Ok(mod_ptr) => {
-        self.code_srv.module_loaded(mod_ptr.clone());
+        self.code_srv.module_loaded(Arc::clone(&mod_ptr));
         Ok(mod_ptr)
       },
       Err(e) => Err(e)

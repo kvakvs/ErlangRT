@@ -58,7 +58,7 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
                             _heap: &mut Heap) -> DispatchResult {
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
   let _arity = ctx.fetch();
-  let export = ctx.fetch();
+  let _export = ctx.fetch();
   // TODO: Get M:F/Arity
   // TODO: is bif?
   if true { //is_bif(export) {
@@ -68,7 +68,7 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
   }
   panic!("{}Incomplete call_ext_only implementation", module());
 
-  DispatchResult::Normal
+  //DispatchResult::Normal
 }
 
 

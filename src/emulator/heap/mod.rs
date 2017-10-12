@@ -1,5 +1,5 @@
 pub mod dump;
-pub mod heap;
+pub mod heap_impl;
 pub mod iter;
 
 use defs::Word;
@@ -10,4 +10,4 @@ pub const DEFAULT_LIT_HEAP: Word = 1024;
 pub const DEFAULT_PROC_HEAP: Word = 300;
 
 
-pub use emulator::heap::heap::*;
+pub use emulator::heap::heap_impl::*;

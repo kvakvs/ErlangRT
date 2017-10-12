@@ -11,7 +11,7 @@ use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;
 
 
-#[inline(always)]
+#[inline]
 pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> DispatchResult {
   match op {
 

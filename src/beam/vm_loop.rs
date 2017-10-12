@@ -13,7 +13,7 @@ impl VM {
   /// Call dispatch again to schedule another process.
   pub fn dispatch(&mut self) -> bool {
     loop {
-      let curr_p = match self.scheduler.next() {
+      let curr_p = match self.scheduler.next_process() {
         None => return false,
         Some(p) => self.scheduler.lookup_pid_mut(&p).unwrap()
       };

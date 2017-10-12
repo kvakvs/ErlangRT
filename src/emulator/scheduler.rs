@@ -1,5 +1,5 @@
 //! Code related to task scheduling and priorities.
-use std::collections::{LinkedList, HashMap, HashSet};
+use std::collections::{VecDeque, HashMap, HashSet};
 //use std::sync;
 
 use defs::Word;
@@ -63,9 +63,9 @@ pub struct Scheduler {
   // This is the naive implementation of run queues.
   // A better approach would be to build an intrusive double linked list through
   // every process in the queue (as done by the original ERTS).
-  queue_low: LinkedList<LTerm>,
-  queue_normal: LinkedList<LTerm>,
-  queue_high: LinkedList<LTerm>,
+  queue_low: VecDeque<LTerm>,
+  queue_normal: VecDeque<LTerm>,
+  queue_high: VecDeque<LTerm>,
 
   /// A counter used to skip some schedulings for low processes
   advantage_count: Word,
@@ -86,9 +86,9 @@ pub struct Scheduler {
 impl Scheduler {
   pub fn new() -> Scheduler {
     Scheduler{
-      queue_low: LinkedList::new(),
-      queue_normal: LinkedList::new(),
-      queue_high: LinkedList::new(),
+      queue_low: VecDeque::new(),
+      queue_normal: VecDeque::new(),
+      queue_high: VecDeque::new(),
 
       advantage_count: 0,
       current: None,
@@ -130,7 +130,7 @@ impl Scheduler {
 
 
   /// Get another process from the run queue for this scheduler.
-  pub fn next(&mut self) -> Option<LTerm> {
+  pub fn next_process(&mut self) -> Option<LTerm> {
     let current_pid = self.current;
     if let Some(curr_pid) = current_pid {
       let timeslice_result = {

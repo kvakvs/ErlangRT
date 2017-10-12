@@ -4,6 +4,10 @@
 #![feature(const_fn)]
 #![feature(alloc)] // for rawvec
 
+// Use from command line instead: `cargo build --features "clippy"` or `make clippy`
+//#![cfg_attr(feature="clippy", feature(plugin))]
+//#![cfg_attr(feature="clippy", plugin(clippy))]
+
 // Comment this to use Rust's jemalloc library which is fat but fast
 //#![feature(alloc_system)]
 //extern crate alloc_system;

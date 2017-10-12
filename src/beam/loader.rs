@@ -165,8 +165,8 @@ impl Loader {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => self.load_attributes(&mut r),
         "AtU8" => self.load_atoms_utf8(&mut r),
-        "CInf" => r.skip(chunk_sz as Word), // skip compiler info
         "Code" => self.load_code(&mut r, chunk_sz as Word),
+        "CInf" | // skip compiler info
         "Dbgi" => r.skip(chunk_sz as Word), // skip debug info
         "ExpT" => self.raw_exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
@@ -570,7 +570,7 @@ impl Loader {
         Some(FTerm::Atom(aindex))
       },
 
-      FTerm::LoadTimeLit(_) => None, // do not convert yet
+      //FTerm::LoadTimeLit(_) => None, // do not convert yet
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
       FTerm::LoadTimeExtlist(ref lst) => {

@@ -72,7 +72,7 @@ pub fn pointer_mut(val0: Word) -> *mut Word {
 #[inline]
 pub fn make_box_raw(ptr: *const Word) -> Word {
   let i = ptr as Word;
-  debug_assert!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST) == 0);
+  debug_assert_eq!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST), 0);
   i | TAG_BOX
 }
 
@@ -80,7 +80,7 @@ pub fn make_box_raw(ptr: *const Word) -> Word {
 #[inline]
 pub fn make_cons_raw(ptr: *const Word) -> Word {
   let i = ptr as Word;
-  debug_assert!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST) == 0);
+  debug_assert_eq!(i.get_bits(PRIM_TAG_FIRST..PRIM_TAG_LAST), 0);
   i | TAG_CONS
 }
 

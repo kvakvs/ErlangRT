@@ -52,7 +52,7 @@ fn fail(msg: String) -> Hopefully<LTerm> {
 
 /// Given a binary reader `r` parse term and return it, `heap` is used to
 /// allocate space for larger boxed terms.
-#[inline(always)]
+#[inline]
 pub fn decode(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   let etf_tag = r.read_u8();
   if etf_tag != Tag::ETF as u8 {

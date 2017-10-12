@@ -23,7 +23,7 @@ pub fn assert_arity(op: RawOpcode, val: Word) {
              gen_op::opcode_name(op as u8), op, val);
 }
 #[cfg(not(debug_assertions))]
-#[inline(always)]
+#[inline]
 pub fn assert_arity(_op: RawOpcode, _val: Word) {}
 
 

@@ -8,7 +8,7 @@
 use term::primary;
 use defs;
 use defs::{Word, SWord};
-use term::immediate::primary::PRIM_TAG_LAST;
+//use term::immediate::primary::PRIM_TAG_LAST;
 
 use bit_field::BitField;
 
@@ -41,13 +41,13 @@ pub const IMM1_PID_PREFIX: Word = IMM1_PREFIX
 pub const IMM1_SMALL_PREFIX: Word = IMM1_PREFIX
     | (TAG_IMM1_SMALL << IMM1_TAG_FIRST);
 
-#[inline(always)]
+#[inline]
 pub fn is_immediate1(val: Word) -> bool {
   get_imm1_prefix(val) == IMM1_PREFIX
 }
 
 /// Get prefix bits BEFORE imm1 tag
-#[inline(always)]
+#[inline]
 pub fn get_imm1_prefix(val: Word) -> Word {
   val.get_bits(0..IMM1_TAG_FIRST)
 }
