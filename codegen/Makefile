@@ -1,5 +1,5 @@
 .PHONY: all
-all: genop genatoms vmdisp
+all: genop genatoms vmdisp genbif
 
 SRCDIR=../src
 
@@ -10,6 +10,10 @@ genop:
 .PHONY: genatoms
 genatoms:
 	./create_gen_atoms.py > ${SRCDIR}/emulator/gen_atoms.rs
+
+.PHONY: genbif
+genbif:
+	./create_gen_bif.py > ${SRCDIR}/emulator/gen_bif.rs
 
 .PHONY: vmdisp
 vmdisp:

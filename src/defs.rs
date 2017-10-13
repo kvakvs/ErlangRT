@@ -75,3 +75,6 @@ pub enum DispatchResult {
   Yield,
   Error,
 }
+
+
+pub type BifFn = fn(args: &[LTerm]) -> LTerm;

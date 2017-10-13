@@ -150,14 +150,14 @@ impl Heap {
   }
 
 
-  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
-    // Check if heap top is too close to stack top, then fail
-    if !self.stack_have(need) {
-      return Err(Error::HeapIsFull)
-    }
-    self.stack_alloc_unchecked(need);
-    Ok(())
-  }
+//  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
+//    // Check if heap top is too close to stack top, then fail
+//    if !self.stack_have(need) {
+//      return Err(Error::HeapIsFull)
+//    }
+//    self.stack_alloc_unchecked(need);
+//    Ok(())
+//  }
 
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
@@ -176,13 +176,13 @@ impl Heap {
 
 
   // TODO: Add unsafe push without range checks (batch check+multiple push)
-  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
-    if !self.stack_have(1) {
-      return Err(Error::HeapIsFull)
-    }
-    self.stack_push_unchecked(val);
-    Ok(())
-  }
+//  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
+//    if !self.stack_have(1) {
+//      return Err(Error::HeapIsFull)
+//    }
+//    self.stack_push_unchecked(val);
+//    Ok(())
+//  }
 
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.

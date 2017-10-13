@@ -52,6 +52,7 @@ class OTP20(OTPConfig):
         cname = line[2] if len(line) >= 3 else fun
 
         return Bif(atom=fun,
+                   mod=mod,
                    arity=arity,
                    cname=cname,
                    biftype=btype)
@@ -74,19 +75,29 @@ def enum_name(name: str) -> str:
     return result
 
 
+def c_fun_name(name: str) -> str:
+    """ Capitalize all parts of a name to form a suitable enum name """
+    if name.startswith("'"):
+        return c_fun_name(name.strip("'"))
+
+    return name.lower()
+
+
 class Bif:
-    def __init__(self, atom: str, arity: int, cname: int, biftype=None):
-        self.atom = atom
+    def __init__(self, atom: str, arity: int, cname: int, mod: str,
+                 biftype=None):
         self.arity = arity
-        self.cname = cname
+        self.atom = atom
         self.biftype = biftype  # None, ubif (no heap), gcbif (use heap), bif
+        self.cname = cname
+        self.mod = mod
 
 
 class Atom:
     def __init__(self, atom: str, cname: Union[str, None]):
         self.cname = cname
-        self.text = atom
         self.id = None
+        self.text = atom
 
 
 class OTPTables:

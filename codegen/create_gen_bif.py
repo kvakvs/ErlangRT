@@ -15,18 +15,28 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
+use defs::{{Arity, BifFn}};
+use emulator::funarity::FunArity;
+use emulator::gen_atoms;
 use term::immediate;
 use term::lterm::LTerm;
-use emulator::funarity::FunArity;
 
+
+pub static BIF_TABLE: &'static [(LTerm, LTerm, Arity, BifFn)] = &[
 """.format(otp=conf.__class__.__name__))
 
-    print("pub static BIF_MAP: HashMap<LTerm, Vec<FunArity>> = &[\n")
+    for bif in tables.bif_tab:
+        print("    (gen_atoms::{mod}, "
+              "gen_atoms::{fun}, {arity}, "
+              "{biftype}_{fun_name}_{arity}),"
+              "".format(cname=bif.cname,
+                        mod=genop.enum_name(bif.mod).upper(),
+                        fun=genop.enum_name(bif.cname).upper(),
+                        fun_name=genop.c_fun_name(bif.cname),
+                        biftype=bif.biftype,
+                        arity=bif.arity))
 
-    for a in tables.atom_tab:
-        print("pub const {name}: LTerm = LTerm {{ "
-              "value: immediate::make_atom_raw_const({index}) }};"
-              "".format(name=a.cname, index=a.id))
+    print("];\n")
 
 
 if __name__ == "__main__":
