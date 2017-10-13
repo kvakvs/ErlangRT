@@ -21,6 +21,7 @@ extern crate bit_field;
 extern crate lazy_static;
 
 mod beam;
+mod bif;
 mod emulator;
 mod fail;
 mod term;

@@ -15,20 +15,23 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use defs::{{Arity, BifFn}};
+use defs::Arity;
 use emulator::funarity::FunArity;
 use emulator::gen_atoms;
 use term::immediate;
 use term::lterm::LTerm;
+use bif;
 
 
-pub static BIF_TABLE: &'static [(LTerm, LTerm, Arity, BifFn)] = &[
+type BifTabItem = (LTerm, LTerm, Arity, bif::BifFn);
+
+pub static BIF_TABLE: &'static [BifTabItem] = &[
 """.format(otp=conf.__class__.__name__))
 
     for bif in tables.bif_tab:
         print("    (gen_atoms::{mod}, "
               "gen_atoms::{fun}, {arity}, "
-              "{biftype}_{fun_name}_{arity}),"
+              "bif::{biftype}_{fun_name}_{arity}),"
               "".format(cname=bif.cname,
                         mod=genop.enum_name(bif.mod).upper(),
                         fun=genop.enum_name(bif.cname).upper(),

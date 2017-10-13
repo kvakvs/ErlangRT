@@ -3,15 +3,18 @@
 //! Config used: OTP20 
 #![allow(dead_code)]
 
-use defs::{Arity, BifFn};
+use defs::Arity;
 use emulator::funarity::FunArity;
 use emulator::gen_atoms;
 use term::immediate;
 use term::lterm::LTerm;
+use bif;
 
 
-pub static BIF_TABLE: &'static [(LTerm, LTerm, Arity, BifFn)] = &[
+type BifTabItem = (LTerm, LTerm, Arity, bif::BifFn);
 
-    (gen_atoms::ERLANG, gen_atoms::SELF, 0, ubif_self_0),
+pub static BIF_TABLE: &'static [BifTabItem] = &[
+
+    (gen_atoms::ERLANG, gen_atoms::SELF, 0, bif::ubif_self_0),
 ];
 
