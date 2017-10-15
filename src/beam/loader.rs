@@ -172,10 +172,12 @@ impl Loader {
         "Line" => self.load_line_info(&mut r),
         "LocT" => self.raw_locals = self.load_exports(&mut r),
         "LitT" => self.load_literals(&mut r, chunk_sz as Word),
+
         "CInf" | // skip compiler info
         "Dbgi" | // skip debug info
         "StrT" | // skip strings TODO load strings?
         "Abst" => r.skip(chunk_sz as Word), // skip abstract code
+
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
           return Err(Error::CodeLoadingFailed(msg));
@@ -184,7 +186,6 @@ impl Loader {
 
       // The next chunk is aligned at 4 bytes
       let aligned_sz = 4 * ((chunk_sz + 3) / 4);
-//      let align = aligned_sz - chunk_sz;
       r.seek(pos_begin + aligned_sz as Word);
     }
 
@@ -475,24 +476,28 @@ impl Loader {
         // Ext list is special so we convert it and its contents to lterm
         FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
-          self.code.push(LTerm::make_tuple_header(jtab.len()).raw());
+          let heap_jtab = self.lit_heap.allocate_tuple(jtab.len()).unwrap();
+          self.code.push(heap_jtab.make_tuple().raw());
 
           // Each value convert to LTerm and also push forming a tuple
+          let mut index = 0usize;
           for t in jtab.iter() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
-              self.push_term_or_convert_label(LabelId::Val(f))
+              self.maybe_convert_label(LabelId::Val(f))
             } else {
               t.to_lterm(&mut self.lit_heap).raw()
             };
-            self.code.push(new_t)
+
+            unsafe { heap_jtab.set_raw_word_base0(index, new_t) }
+            index += 1;
           }
         }
 
         // Label value is special, we want to remember where it was
         // to convert it to an offset
         FTerm::LoadTimeLabel(f) => {
-          let new_t = self.push_term_or_convert_label(LabelId::Val(f));
+          let new_t = self.maybe_convert_label(LabelId::Val(f));
           self.code.push(new_t)
         }
 
@@ -512,7 +517,7 @@ impl Loader {
   /// LTerm to be pushed into the code by the caller. Otherwise push its code
   /// location to `self.replace_labels` to be processed later and store a
   /// `SmallInt` LTerm in the code temporarily.
-  fn push_term_or_convert_label(&mut self, l: LabelId) -> Word {
+  fn maybe_convert_label(&mut self, l: LabelId) -> Word {
     // Resolve the label, if exists in labels table
     match self.labels.get(&l) {
       Some(offset0) =>

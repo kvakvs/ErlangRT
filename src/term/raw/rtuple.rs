@@ -33,13 +33,22 @@ impl RawTupleMut {
 
 
   /// Zero-based set element function
+  #[inline]
   pub unsafe fn set_element_base0(&self, i: Word, val: LTerm) {
     assert!(i < self.arity());
     *self.p.offset(i as isize + 1) = val.raw()
   }
 
 
-//  pub unsafe fn get_element(&self, i: Word) -> LTerm {
+  /// Zero-based set element function
+  #[inline]
+  pub unsafe fn set_raw_word_base0(&self, i: Word, val: Word) {
+    assert!(i < self.arity());
+    *self.p.offset(i as isize + 1) = val
+  }
+
+
+  //  pub unsafe fn get_element(&self, i: Word) -> LTerm {
 //    LTerm::from_raw(*self.p.offset(i as isize + 1))
 //  }
 

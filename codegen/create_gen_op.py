@@ -30,6 +30,7 @@ pub const OPCODE_MAX: RawOpcode = {op_max};
     print("""\
 ];
 
+#[inline]
 pub fn opcode_arity(opcode: RawOpcode) -> u8 {
   ARITY_MAP[opcode as usize]
 }

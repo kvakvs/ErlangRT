@@ -16,9 +16,9 @@ def main():
 #![allow(dead_code)]
 
 use defs::Arity;
-use emulator::funarity::FunArity;
+//use emulator::funarity::FunArity;
 use emulator::gen_atoms;
-use term::immediate;
+//use term::immediate;
 use term::lterm::LTerm;
 use bif;
 

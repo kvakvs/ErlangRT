@@ -24,16 +24,16 @@ pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>) {
 
       // Header value in code marks an embedded block of terms
       // Header{Arity=3} Term1 Term2 Term3
-      if arg.is_header() {
-        print!("[");
-        for _h in 0..arg.header_arity() {
-          print!("{} ", LTerm::from_raw(*ip.offset(arg_index as isize + 1)));
-          ip = ip.offset(1);
-        }
-        print!("] ");
-      } else { // Otherwise it is printable like this, and occupies 1w
+//      if arg.is_header() {
+//        print!("[");
+//        for _h in 0..arg.header_arity() {
+//          print!("{} ", LTerm::from_raw(*ip.offset(arg_index as isize + 1)));
+//          ip = ip.offset(1);
+//        }
+//        print!("] ");
+//      } else { // Otherwise it is printable like this, and occupies 1w
         print!("{} ", arg)
-      }
+//      }
     }
 
     ip = ip.offset(n_args as isize);
