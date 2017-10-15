@@ -172,6 +172,7 @@ pub static ARITY_MAP: &'static [RawOpcode] = &[
     4, // opcode: 159 (is_tagged_tuple)
 ];
 
+#[inline]
 pub fn opcode_arity(opcode: RawOpcode) -> u8 {
   ARITY_MAP[opcode as usize]
 }

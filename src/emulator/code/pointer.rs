@@ -9,7 +9,7 @@ use term::immediate;
 ///
 /// In debug build additional mark bits `Imm3::OPCODE` are added to this word
 /// and additional check is done here in `CodePtr`.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub enum CodePtr { Ptr(*const Word) }
 
 impl CodePtr {
@@ -56,4 +56,30 @@ impl CodePtr {
 //  pub fn is_not_null(&self) -> bool { ! self.is_null() }
 }
 
-//pub enum CodePtrMut { Ptr(*mut Word) }
+/// A mutable code pointer for walking the code and modifying the values.
+/// See `emulator::code::iter` for iterators.
+#[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
+pub enum CodePtrMut { Ptr(*mut Word) }
+
+impl CodePtrMut {
+
+  /// Read word at the code pointer.
+  pub unsafe fn read_0(&self) -> Word {
+    let CodePtrMut::Ptr(p) = *self;
+    *p
+  }
+
+
+  /// Read `n`-th word from code pointer.
+  pub unsafe fn read_n(&self, n: isize) -> Word {
+    let CodePtrMut::Ptr(p) = *self;
+    *(p.offset(n))
+  }
+
+
+  /// Write `n`-th word at the code pointer.
+  pub unsafe fn write_n(&self, n: isize, val: Word) {
+    let CodePtrMut::Ptr(p) = *self;
+    *(p.offset(n)) = val
+  }
+}

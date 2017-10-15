@@ -23,12 +23,10 @@ impl AtomStorage {
   pub fn add_init_atoms(&mut self) {
     let mut atoms_ = self.atoms.lock().unwrap();
     let mut atoms_r_ = self.atoms_r.lock().unwrap();
-    let mut index = 0usize;
 
-    for ga in gen_atoms::ATOM_INIT_NAMES {
+    for (index, ga) in gen_atoms::ATOM_INIT_NAMES.iter().enumerate() {
       atoms_.insert(ga.to_string(), index);
       atoms_r_.push(ga.to_string());
-      index += 1;
     }
   }
 }

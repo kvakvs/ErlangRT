@@ -14,11 +14,13 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
+use emulator::code;
 use beam::compact_term;
 use beam::gen_op;
 use defs::{Word, Arity};
 use emulator::atom;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
+use emulator::code::pointer::CodePtrMut;
 use emulator::disasm;
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
@@ -102,6 +104,8 @@ pub struct Loader {
   mod_attrs: LTerm,
   /// Compiler flags as loaded from "Attr" section
   compiler_info: LTerm,
+  /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
+  lit_imports: Vec<LTerm>,
 }
 
 
@@ -127,6 +131,7 @@ impl Loader {
       funs: BTreeMap::new(),
       mod_attrs: LTerm::nil(),
       compiler_info: LTerm::nil(),
+      lit_imports: Vec::new(),
     }
   }
 
@@ -203,7 +208,8 @@ impl Loader {
     }
 
     self.postprocess_code_section();
-    self.fix_labels();
+    self.postprocess_fix_labels();
+    self.postprocess_setup_imports();
   }
 
 
@@ -480,8 +486,7 @@ impl Loader {
           self.code.push(heap_jtab.make_tuple().raw());
 
           // Each value convert to LTerm and also push forming a tuple
-          let mut index = 0usize;
-          for t in jtab.iter() {
+          for (index, t) in jtab.iter().enumerate() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
               self.maybe_convert_label(LabelId::Val(f))
@@ -490,7 +495,6 @@ impl Loader {
             };
 
             unsafe { heap_jtab.set_raw_word_base0(index, new_t) }
-            index += 1;
           }
         }
 
@@ -541,7 +545,7 @@ impl Loader {
 
 
   /// Analyze the code and replace label values with known label locations.
-  fn fix_labels(&mut self) {
+  fn postprocess_fix_labels(&mut self) {
     // Postprocess self.replace_labels, assuming that at this point labels exist
     let mut repl = Vec::<CodeOffset>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
@@ -562,8 +566,69 @@ impl Loader {
   }
 
 
-/// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
-/// resolve it to a runtime atom index using a lookup table.
+  /// Analyze the code and for certain opcodes overwrite their import index
+  /// args with direct pointer to import heap.
+  fn postprocess_setup_imports(&mut self) {
+    // Step 1
+    // Write imports onto literal heap as {Mod, Fun, Arity} triplets
+    //
+    self.lit_imports.reserve(self.raw_imports.len());
+    for ri in &self.raw_imports {
+      let imp_tuple = self.lit_heap.allocate_tuple(3).unwrap(); // {m,f,arity}
+      unsafe {
+        let mod_atom = self.vm_atoms[ri.mod_atom as usize];
+        imp_tuple.set_element_base0(0, mod_atom);
+        let fun_atom = self.vm_atoms[ri.fun_atom as usize];
+        imp_tuple.set_element_base0(1, fun_atom);
+        imp_tuple.set_element_base0(2, LTerm::make_small_u(ri.arity));
+      }
+      self.lit_imports.push(imp_tuple.make_tuple());
+    }
+
+    // Step 2
+    // For each opcode if it has import index arg - overwrite it
+    //
+    let c_iter = unsafe {
+      code::iter::create_mut(&mut self.code)
+    };
+    for cp in c_iter {
+      let curr_opcode = unsafe { opcode::from_memory_word(cp.read_0()) };
+      match curr_opcode {
+        gen_op::OPCODE_MAKE_FUN2 => {
+          // arg[0] is export
+          self.rewrite_import_index_arg(&cp, 1)
+        },
+        gen_op::OPCODE_BIF1 |
+        gen_op::OPCODE_BIF2 |
+        gen_op::OPCODE_CALL_EXT |
+        gen_op::OPCODE_CALL_EXT_LAST |
+        gen_op::OPCODE_CALL_EXT_ONLY => {
+          // arg[1] is export
+          self.rewrite_import_index_arg(&cp, 2)
+        },
+        gen_op::OPCODE_GC_BIF1 |
+        gen_op::OPCODE_GC_BIF2 |
+        gen_op::OPCODE_GC_BIF3 => {
+          // arg[2] is export
+          self.rewrite_import_index_arg(&cp, 3)
+        }
+        _ => {}
+      }
+    }
+  }
+
+
+  /// Internal helper which takes N'th arg of an opcode, parses it as a small
+  /// unsigned and writes an LTerm pointer to a literal {M,F,Arity} tuple.
+  fn rewrite_import_index_arg(&self, cp: &CodePtrMut, n: isize) {
+    let import0 = unsafe { LTerm::from_raw(cp.read_n(n)) };
+    let import1 = self.lit_imports[import0.small_get_u()].raw();
+    unsafe { cp.write_n(n, import1) }
+  }
+
+
+  /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
+  /// resolve it to a runtime atom index using a lookup table.
   pub fn resolve_loadtime_values(&self, arg: &FTerm) -> Option<FTerm> {
     match *arg {
       // A special value 0 means NIL []

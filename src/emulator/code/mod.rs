@@ -1,6 +1,7 @@
 //! Module defines types to represent code structures.
 pub mod opcode;
 pub mod pointer;
+pub mod iter;
 
 use defs::Word;
 
