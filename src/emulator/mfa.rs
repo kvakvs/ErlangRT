@@ -6,14 +6,15 @@ use term::lterm::LTerm;
 use defs::Arity;
 use emulator::funarity::FunArity;
 
-/// `MFArgs` or `MFArity` should be able to give us mod and fun whenever, so
-/// this trait is there to allow it.
-pub trait IMFArity {
-  fn get_mod(&self) -> LTerm;
-  fn get_fun(&self) -> LTerm;
-  fn get_arity(&self) -> Arity;
-  fn get_funarity(&self) -> FunArity;
-}
+///// `MFArgs` or `MFArity` should be able to give us mod and fun whenever, so
+///// this trait is there to allow it.
+//pub trait IMFArity {
+//  fn get_mod(&self) -> LTerm;
+//  fn get_fun(&self) -> LTerm;
+//  fn get_arity(&self) -> Arity;
+//  fn get_funarity(&self) -> FunArity;
+//}
+
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
 pub struct MFArgs {
@@ -21,33 +22,59 @@ pub struct MFArgs {
   f: LTerm,
   args: Vec<LTerm>
 }
-//
-//pub struct MFArity {
-//  m: Term,
-//  f: Term,
-//  arity: Arity
+
+
+//impl IMFArity for MFArgs {
+//  fn get_mod(&self) -> LTerm { self.m }
+//  fn get_fun(&self) -> LTerm { self.f }
+//  fn get_arity(&self) -> Arity {
+//    assert!(self.args.len() < Arity::max_value() as usize);
+//    self.args.len() as Arity
+//  }
+//  fn get_funarity(&self) -> FunArity {
+//    FunArity::new(self.f, self.args.len())
+//  }
 //}
 
-impl IMFArity for MFArgs {
-  fn get_mod(&self) -> LTerm { self.m }
-  fn get_fun(&self) -> LTerm { self.f }
-  fn get_arity(&self) -> Arity {
-    assert!(self.args.len() < Arity::max_value() as usize);
-    self.args.len() as Arity
-  }
-  fn get_funarity(&self) -> FunArity {
-    FunArity::new(self.f, self.args.len())
-  }
-}
 
 impl MFArgs {
+
   pub fn new(m: LTerm, f: LTerm, args: Vec<LTerm>) -> MFArgs {
     MFArgs{m, f, args}
   }
+
+  pub fn get_mfarity(&self) -> MFArity {
+    MFArity { m: self.m, f: self.f, arity: self.args.len()}
+  }
 }
 
-//impl MFArity {
-//  pub fn new(m: Term, f: Term, arity: Arity) -> MFArity {
-//    MFArity{m, f, arity}
+
+pub struct MFArity {
+  pub m: LTerm,
+  pub f: LTerm,
+  pub arity: Arity
+}
+
+
+//impl IMFArity for MFArity {
+//  fn get_mod(&self) -> LTerm { self.m }
+//  fn get_fun(&self) -> LTerm { self.f }
+//  fn get_arity(&self) -> Arity { self.arity }
+//  fn get_funarity(&self) -> FunArity {
+//    FunArity::new(self.f, self.a)
 //  }
 //}
+
+
+impl MFArity {
+
+  pub fn new(m: LTerm, f: LTerm, arity: Arity) -> MFArity {
+    MFArity { m, f, arity }
+  }
+
+
+  pub fn get_funarity(&self) -> FunArity {
+    FunArity::new(self.f, self.arity)
+  }
+
+}

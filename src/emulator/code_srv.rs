@@ -28,8 +28,8 @@ impl CodeServer {
   }
 
   /// Find module:function/arity
-  pub fn lookup(&self, mfa: &mfa::IMFArity) -> Hopefully<CodePtr> {
-    let m = mfa.get_mod();
+  pub fn lookup(&self, mfa: &mfa::MFArity) -> Hopefully<CodePtr> {
+    let m = mfa.m;
     match self.mods.get(&m) {
       None => {
         let msg = format!("{}Module not found {}", module(), m);

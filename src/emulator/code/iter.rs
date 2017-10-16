@@ -31,9 +31,9 @@ impl CodeIteratorMut {
 
 impl CodeIterator {
 
-  pub fn new(begin: CodePtr, end: CodePtr) -> CodeIterator {
-    CodeIterator { p: begin, end }
-  }
+//  pub fn new(begin: CodePtr, end: CodePtr) -> CodeIterator {
+//    CodeIterator { p: begin, end }
+//  }
 
 
 //  /// Read current value at the iterator location.
@@ -68,13 +68,13 @@ impl Iterator for CodeIterator {
 }
 
 
-/// Create an iterator for readonly walking the code.
-pub unsafe fn create(code: &[Word]) -> CodeIterator {
-  let begin = &code[0] as *const Word;
-  let last = begin.offset(code.len() as isize);
-  CodeIterator::new(CodePtr::Ptr(begin),
-                    CodePtr::Ptr(last))
-}
+///// Create an iterator for readonly walking the code.
+//pub unsafe fn create(code: &[Word]) -> CodeIterator {
+//  let begin = &code[0] as *const Word;
+//  let last = begin.offset(code.len() as isize);
+//  CodeIterator::new(CodePtr::Ptr(begin),
+//                    CodePtr::Ptr(last))
+//}
 
 
 impl Iterator for CodeIteratorMut {

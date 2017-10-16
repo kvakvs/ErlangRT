@@ -60,6 +60,7 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
   let _arity = ctx.fetch();
   let _export = ctx.fetch();
   // TODO: Get M:F/Arity
+
   // TODO: is bif?
   if true { //is_bif(export) {
     // TODO: call bif

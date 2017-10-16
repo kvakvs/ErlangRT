@@ -11,7 +11,7 @@ use defs::Word;
 use emulator::atom;
 use emulator::code;
 use emulator::code_srv;
-use emulator::mfa;
+use emulator::mfa::{MFArity, MFArgs};
 use emulator::module;
 use emulator::process::Process;
 use emulator::scheduler::{Prio, Scheduler};
@@ -43,12 +43,13 @@ impl VM {
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: LTerm, mfa: &mfa::MFArgs,
+  pub fn create_process(&mut self, parent: LTerm, mfargs: &MFArgs,
                         prio: Prio) -> Hopefully<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
     let pid = LTerm::make_pid(pid_c);
-    match Process::new(self, pid, parent, mfa, prio) {
+    let mfarity = mfargs.get_mfarity();
+    match Process::new(self, pid, parent, &mfarity, prio) {
       Ok(p0) => {
         self.scheduler.add(pid, p0);
         Ok(pid)
@@ -64,26 +65,26 @@ impl VM {
   }
 
   /// Mutable lookup, will load module if lookup fails the first time
-  pub fn code_lookup(&mut self, mfa: &mfa::IMFArity) -> Hopefully<code::CodePtr>
+  pub fn code_lookup(&mut self, mfarity: &MFArity) -> Hopefully<code::CodePtr>
   {
     // Try lookup once, then load if not found
-    match self.code_srv.lookup(mfa) {
+    match self.code_srv.lookup(mfarity) {
       Ok(ip) => return Ok(ip),
       Err(_e) => {
-        let mod_name = atom::to_str(mfa.get_mod());
+        let mod_name = atom::to_str(mfarity.m);
         let found_mod = self.code_srv.find_module_file(&mod_name).unwrap();
 
         self.try_load_module(&found_mod)?;
       }
     };
     // Try lookup again
-    match self.code_srv.lookup(mfa) {
+    match self.code_srv.lookup(mfarity) {
       Ok(ip) => Ok(ip),
       Err(_e) => {
-        let mod_str = atom::to_str(mfa.get_mod());
-        let fun_str = atom::to_str(mfa.get_fun());
+        let mod_str = atom::to_str(mfarity.m);
+        let fun_str = atom::to_str(mfarity.f);
         let msg = format!("{}Func undef: {}:{}/{}",
-                          module(), mod_str, fun_str, mfa.get_arity());
+                          module(), mod_str, fun_str, mfarity.arity);
         Err(Error::FunctionNotFound(msg))
       }
     }

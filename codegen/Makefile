@@ -13,7 +13,7 @@ genatoms:
 
 .PHONY: genbif
 genbif:
-	./create_gen_bif.py > ${SRCDIR}/emulator/gen_bif.rs
+	./create_gen_bif.py > ${SRCDIR}/bif/gen_bif.rs
 
 .PHONY: vmdisp
 vmdisp:

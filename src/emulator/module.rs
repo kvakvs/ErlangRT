@@ -8,7 +8,7 @@ use defs::Word;
 use emulator::code::{CodePtr, CodeOffset, Code};
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap};
-use emulator::mfa::IMFArity;
+use emulator::mfa::MFArity;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 
@@ -49,7 +49,7 @@ impl Module {
 
 
   /// Find a funarity or mfarity in the functions table.
-  pub fn lookup(&self, mfa: &IMFArity) -> Hopefully<CodePtr> {
+  pub fn lookup(&self, mfa: &MFArity) -> Hopefully<CodePtr> {
     let fa = mfa.get_funarity();
     //println!("mod Lookup {}/{}", fa.f, fa.arity);
 
