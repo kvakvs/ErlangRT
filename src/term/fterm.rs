@@ -69,7 +69,7 @@ impl FTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
   pub fn from_word(w: Word) -> FTerm {
-    if w < defs::MAX_UNSIG_SMALL {
+    if w < defs::MAX_UNSIGNED_SMALL {
       return FTerm::SmallInt(w as SWord)
     }
     FTerm::BigInt(Box::new(BigInt::from_usize(w).unwrap()))

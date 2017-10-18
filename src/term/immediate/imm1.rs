@@ -81,6 +81,12 @@ pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
 pub fn combine_imm1_prefix_and_val_signed(val: SWord, prefix0: Word) -> Word {
   let mut prefix = prefix0;
   assert!(prefix < (1 << IMM1_VALUE_FIRST));
-  assert!(val > defs::MIN_SIG_SMALL && val < defs::MAX_SIG_SMALL);
+  assert!(val >= defs::MIN_NEG_SMALL,
+          "val 0x{:x} must be >= MIN_SIG_SMALL 0x{:x}",
+          val, defs::MIN_NEG_SMALL);
+  assert!(val <= defs::MAX_POS_SMALL,
+          "val 0x{:X} must be <= MAX_SIG_SMALL 0x{:x}",
+          val, defs::MAX_POS_SMALL);
+
   *prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val as Word)
 }

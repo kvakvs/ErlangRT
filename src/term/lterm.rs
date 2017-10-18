@@ -11,7 +11,7 @@ use term::raw::{RawCons, RawConsMut, RawTuple, RawTupleMut};
 use emulator::atom;
 
 use defs;
-use defs::{Word, SWord, MAX_UNSIG_SMALL, MIN_SIG_SMALL, MAX_SIG_SMALL};
+use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
 //type Word = defs::Word;
 
 use std::cmp::Ordering;
@@ -250,7 +250,8 @@ impl LTerm {
 
   #[inline]
   pub fn make_small_u(n: Word) -> LTerm {
-    assert!(n < MAX_UNSIG_SMALL);
+    assert!(n <= MAX_UNSIGNED_SMALL,
+            "make_small_u n=0x{:x} <= limit=0x{:x}", n, MAX_UNSIGNED_SMALL);
     LTerm { value: immediate::make_small_raw(n as SWord) }
   }
 
@@ -258,7 +259,12 @@ impl LTerm {
   #[inline]
   pub fn make_small_s(n: SWord) -> LTerm {
     // TODO: Do the proper min neg small
-    assert!(n > MIN_SIG_SMALL && n < MAX_SIG_SMALL);
+    assert!(n >= MIN_NEG_SMALL,
+            "make_small_s: n=0x{:x} must be >= MIN_NEG_SMALL 0x{:x}",
+            n, MIN_NEG_SMALL);
+    assert!(n <= MAX_POS_SMALL,
+            "make_small_s: n=0x{:x} must be <= MAX_POS_SMALL 0x{:x}",
+            n, MAX_POS_SMALL);
     //let un = defs::unsafe_sword_to_word(n);
     LTerm { value: immediate::make_small_raw(n) }
   }
@@ -438,19 +444,25 @@ mod tests {
     let s1 = LTerm::make_small_u(1);
     assert_eq!(1, s1.small_get_u());
 
-    let s2 = LTerm::make_small_u(MAX_UNSIG_SMALL);
-    assert_eq!(MAX_UNSIG_SMALL, s2.small_get_u());
+    let s2 = LTerm::make_small_u(MAX_UNSIGNED_SMALL);
+    assert_eq!(MAX_UNSIGNED_SMALL, s2.small_get_u());
   }
 
   #[test]
-  fn test_small_signed() {
+  fn test_small_signed_1() {
+    let s2 = LTerm::make_small_s(1);
+    assert_eq!(1, s2.small_get_s());
+
     let s1 = LTerm::make_small_s(-1);
     assert_eq!(-1, s1.small_get_s());
+  }
 
-    let s2 = LTerm::make_small_s(MAX_SIG_SMALL);
-    assert_eq!(MAX_SIG_SMALL, s2.small_get_s());
+  #[test]
+  fn test_small_signed_limits() {
+    let s2 = LTerm::make_small_s(MAX_POS_SMALL);
+    assert_eq!(MAX_POS_SMALL, s2.small_get_s());
 
-    let s3 = LTerm::make_small_s(MIN_SIG_SMALL);
-    assert_eq!(MIN_SIG_SMALL, s3.small_get_s());
+    let s3 = LTerm::make_small_s(MIN_NEG_SMALL);
+    assert_eq!(MIN_NEG_SMALL, s3.small_get_s());
   }
 }

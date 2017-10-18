@@ -13,7 +13,6 @@ mod imm1;
 mod imm2;
 mod imm3;
 
-//use term::primary;
 use defs;
 use defs::{Word, SWord};
 
@@ -104,6 +103,7 @@ pub fn is_small_raw(val: Word) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use term::primary;
 
   #[test]
   fn test_imm3_tags() {
