@@ -14,11 +14,13 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
+use bif;
 use emulator::code;
 use beam::compact_term;
 use beam::gen_op;
-use defs::{Word, Arity};
+use defs::{Word, SWord, Arity};
 use emulator::atom;
+use emulator::mfa::MFArity;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code::pointer::CodePtrMut;
 use emulator::disasm;
@@ -576,11 +578,19 @@ impl Loader {
     for ri in &self.raw_imports {
       let imp_tuple = self.lit_heap.allocate_tuple(3).unwrap(); // {m,f,arity}
       unsafe {
-        let mod_atom = self.vm_atoms[ri.mod_atom as usize];
+        let mod_atom = self.vm_atoms[ri.mod_atom as usize - 1];
         imp_tuple.set_element_base0(0, mod_atom);
-        let fun_atom = self.vm_atoms[ri.fun_atom as usize];
+        let fun_atom = self.vm_atoms[ri.fun_atom as usize - 1];
         imp_tuple.set_element_base0(1, fun_atom);
-        imp_tuple.set_element_base0(2, LTerm::make_small_u(ri.arity));
+
+        // Encode BIF as negative arity in the `export` {M,F,A} tuple
+        let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
+        let arity = if bif::is_bif(&mf_arity) {
+          LTerm::make_small_s(-(ri.arity as SWord))
+        } else {
+          LTerm::make_small_s(ri.arity as SWord)
+        };
+        imp_tuple.set_element_base0(2, arity);
       }
       self.lit_imports.push(imp_tuple.make_tuple());
     }

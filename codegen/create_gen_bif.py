@@ -21,15 +21,21 @@ use term::lterm::LTerm;
 use bif;
 
 
-type BifTabItem = (LTerm, LTerm, Arity, bif::BifFn);
+pub struct BifTabItem {{
+    pub m: LTerm, 
+    pub f: LTerm, 
+    pub arity: Arity, 
+    pub func: bif::BifFn
+}}
+
 
 pub static BIF_TABLE: &'static [BifTabItem] = &[
 """.format(otp=conf.__class__.__name__))
 
     for bif in tables.bif_tab:
-        print("    (gen_atoms::{mod}, "
-              "gen_atoms::{fun}, {arity}, "
-              "bif::{biftype}_{fun_name}_{arity}),"
+        print("    BifTabItem {{ m: gen_atoms::{mod}, "
+              "f: gen_atoms::{fun}, arity: {arity},"
+              "\n        func: bif::{biftype}_{fun_name}_{arity} }},"
               "".format(cname=bif.cname,
                         mod=genop.enum_name(bif.mod).upper(),
                         fun=genop.enum_name(bif.cname).upper(),

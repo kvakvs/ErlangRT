@@ -58,7 +58,7 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
                             _heap: &mut Heap) -> DispatchResult {
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
   let _arity = ctx.fetch();
-  let _export = ctx.fetch();
+  let export = ctx.fetch_term(); // {M,F,Arity} tuple or {M,F,-Arity} bif
   // TODO: Get M:F/Arity
 
   // TODO: is bif?

@@ -9,10 +9,17 @@ use term::lterm::LTerm;
 use bif;
 
 
-type BifTabItem = (LTerm, LTerm, Arity, bif::BifFn);
+pub struct BifTabItem {
+    pub m: LTerm, 
+    pub f: LTerm, 
+    pub arity: Arity, 
+    pub func: bif::BifFn
+}
+
 
 pub static BIF_TABLE: &'static [BifTabItem] = &[
 
-    (gen_atoms::ERLANG, gen_atoms::SELF, 0, bif::ubif_self_0),
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SELF, arity: 0,
+        func: bif::ubif_self_0 },
 ];
 
