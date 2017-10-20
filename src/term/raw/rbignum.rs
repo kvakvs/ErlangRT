@@ -7,7 +7,7 @@ use num;
 
 /// Represents raw layout of bignum digits in memory.
 /// TODO: Operate without copying.
-pub struct RawBignum {
+pub struct BignumPtr {
   p: *mut Word,
 }
 
@@ -15,7 +15,7 @@ pub struct RawBignum {
 fn module() -> &'static str { "raw::rbignum: " }
 
 
-impl RawBignum {
+impl BignumPtr {
   /// How many words of heap we need to store the bignum.
   #[inline]
   pub fn storage_size(big: &num::BigInt) -> Word {
@@ -24,8 +24,8 @@ impl RawBignum {
 
   /// Given a pointer initialize a boxed value header here, hence unsafe.
   /// Return a `RawBignum` wrapper.
-  pub unsafe fn create_at(p: *mut Word, big: &num::BigInt) -> RawBignum {
-    let storage_sz = RawBignum::storage_size(big);
+  pub unsafe fn create_at(p: *mut Word, big: &num::BigInt) -> BignumPtr {
+    let storage_sz = BignumPtr::storage_size(big);
     match big.sign() {
       num::bigint::Sign::Minus =>
         *p = primary::header::make_bignum_neg_header_raw(storage_sz),
@@ -33,7 +33,7 @@ impl RawBignum {
         *p = primary::header::make_bignum_pos_header_raw(storage_sz),
       _ => panic!("{}create_at - no sign", module())
     }
-    RawBignum { p }
+    BignumPtr { p }
   }
 
   /// Given a pointer to an already initialized tuple, just return a wrapper.

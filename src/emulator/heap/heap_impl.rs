@@ -4,7 +4,7 @@ use fail::{Error, Hopefully};
 use term;
 use term::lterm::LTerm;
 use term::raw::rtuple;
-use term::raw::{RawConsMut, RawTupleMut, RawBignum};
+use term::raw::{ConsPtrMut, TuplePtrMut, BignumPtr};
 
 use num;
 use alloc::raw_vec::RawVec;
@@ -104,18 +104,18 @@ impl Heap {
 
 
   /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
-  pub fn allocate_cons(&mut self) -> Hopefully<RawConsMut> {
+  pub fn allocate_cons(&mut self) -> Hopefully<ConsPtrMut> {
     match self.allocate(2) {
-      Ok(p) => Ok(RawConsMut::from_pointer(p)),
+      Ok(p) => Ok(ConsPtrMut::from_pointer(p)),
       Err(e) => Err(e) // repack inner Err into outer Err
     }
   }
 
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
-  pub fn allocate_tuple(&mut self, size: Word) -> Hopefully<RawTupleMut> {
+  pub fn allocate_tuple(&mut self, size: Word) -> Hopefully<TuplePtrMut> {
     match self.allocate(rtuple::storage_size(size)) {
-      Ok(p) => unsafe { Ok(RawTupleMut::create_at(p, size)) },
+      Ok(p) => unsafe { Ok(TuplePtrMut::create_at(p, size)) },
       Err(e) => Err(e) // repack inner Err into outer Err
     }
   }
@@ -123,9 +123,9 @@ impl Heap {
 
   /// Allocate words on heap enough to store bignum digits and copy the given
   /// bignum to memory, return the pointer.
-  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<RawBignum> {
-    match self.allocate(RawBignum::storage_size(big)) {
-      Ok(p) => unsafe { Ok(RawBignum::create_at(p, big)) },
+  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
+    match self.allocate(BignumPtr::storage_size(big)) {
+      Ok(p) => unsafe { Ok(BignumPtr::create_at(p, big)) },
       Err(e) => Err(e) // repack inner Err into outer Err
     }
   }

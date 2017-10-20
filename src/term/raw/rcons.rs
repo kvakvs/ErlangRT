@@ -1,13 +1,13 @@
 use defs::Word;
 use term::lterm::LTerm;
 
-pub struct RawConsMut {
+pub struct ConsPtrMut {
   p: *mut Word,
 }
 
-impl RawConsMut {
-  pub fn from_pointer(p: *mut Word) -> RawConsMut {
-    RawConsMut { p }
+impl ConsPtrMut {
+  pub fn from_pointer(p: *mut Word) -> ConsPtrMut {
+    ConsPtrMut { p }
   }
 
   pub unsafe fn set_hd(&self, val: LTerm) {
@@ -34,14 +34,14 @@ impl RawConsMut {
 }
 
 
-pub struct RawCons {
+pub struct ConsPtr {
   p: *const Word,
 }
 
 
-impl RawCons {
-  pub fn from_pointer(p: *const Word) -> RawCons {
-    RawCons { p }
+impl ConsPtr {
+  pub fn from_pointer(p: *const Word) -> ConsPtr {
+    ConsPtr { p }
   }
 
 //  pub fn raw_pointer(&self) -> *const Word { self.p }

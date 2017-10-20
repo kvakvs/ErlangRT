@@ -7,7 +7,7 @@
 use term::immediate;
 use term::immediate::{IMM2_SPECIAL_NIL_RAW, IMM2_SPECIAL_NONVALUE_RAW};
 use term::primary;
-use term::raw::{RawCons, RawConsMut, RawTuple, RawTupleMut};
+use term::raw::{ConsPtr, ConsPtrMut, TuplePtr, TuplePtrMut};
 use emulator::atom;
 
 use defs;
@@ -188,20 +188,20 @@ impl LTerm {
 
 
   /// Get a proxy object for read-only accesing the cons contents.
-  pub unsafe fn raw_cons(&self) -> RawCons {
+  pub unsafe fn raw_cons(&self) -> ConsPtr {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer(v);
-    RawCons::from_pointer(boxp)
+    ConsPtr::from_pointer(boxp)
   }
 
 
   /// Get a proxy object for looking and modifying cons contents.
-  pub unsafe fn raw_cons_mut(&self) -> RawConsMut {
+  pub unsafe fn raw_cons_mut(&self) -> ConsPtrMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer_mut(v);
-    RawConsMut::from_pointer(boxp)
+    ConsPtrMut::from_pointer(boxp)
   }
 
   //
@@ -300,24 +300,24 @@ impl LTerm {
 
 
   /// Get a proxy object for read-only accesing the cons contents.
-  pub unsafe fn raw_tuple(&self) -> RawTuple {
+  pub unsafe fn raw_tuple(&self) -> TuplePtr {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
     assert_eq!(primary::header::get_tag(v),
                primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer(v);
-    RawTuple::from_pointer(boxp)
+    TuplePtr::from_pointer(boxp)
   }
 
 
   /// Get a proxy object for looking and modifying cons contents.
-  pub unsafe fn raw_tuple_mut(&self) -> RawTupleMut {
+  pub unsafe fn raw_tuple_mut(&self) -> TuplePtrMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
     assert_eq!(primary::header::get_tag(v),
                primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer_mut(v);
-    RawTupleMut::from_pointer(boxp)
+    TuplePtrMut::from_pointer(boxp)
   }
 
 }
