@@ -44,7 +44,11 @@ impl MFArgs {
   }
 
   pub fn get_mfarity(&self) -> MFArity {
-    MFArity { m: self.m, f: self.f, arity: self.args.len()}
+    MFArity {
+      m: self.m,
+      f: self.f,
+      arity: self.args.len() as Arity
+    }
   }
 }
 

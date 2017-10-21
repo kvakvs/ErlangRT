@@ -12,8 +12,7 @@ pub type SWord = isize;
 /// Replace with appropriate f32 or fixed/compact for embedded platform
 pub type Float = f64;
 
-// TODO: These are not necessarity Words, might be u16 or u32
-pub type Arity = Word;
+pub type Arity = u32;
 
 pub use term::immediate::SMALL_BITS;
 
@@ -22,6 +21,8 @@ pub const WORD_BITS: Word = 32;
 
 #[cfg(target_pointer_width = "64")]
 pub const WORD_BITS: Word = 64;
+
+pub const WORD_BYTES: Word = WORD_BITS / 8;
 
 /// Max value for a positive small integer packed into immediate2 low level
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign

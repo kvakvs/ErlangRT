@@ -1,5 +1,7 @@
 pub mod dump;
 pub mod heap_impl;
+pub mod heapobj;
+pub mod ho_import;
 pub mod iter;
 
 use defs::Word;

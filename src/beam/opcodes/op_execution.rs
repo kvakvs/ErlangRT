@@ -71,7 +71,7 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
     panic!("{}call_ext_only: call import", module());
   }
 
-  DispatchResult::Normal
+  //DispatchResult::Normal
 }
 
 

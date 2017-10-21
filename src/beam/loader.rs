@@ -14,25 +14,26 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
-use bif;
-use emulator::code;
+//use util::print::dump_vec;
 use beam::compact_term;
 use beam::gen_op;
+use bif;
 use defs::{Word, SWord, Arity};
 use emulator::atom;
-use emulator::mfa::MFArity;
-use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code::pointer::CodePtrMut;
+use emulator::code::{LabelId, CodeOffset, Code, opcode};
+use emulator::code;
 use emulator::disasm;
 use emulator::funarity::FunArity;
+use emulator::heap::ho_import::HOImport;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
+use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
 use term::fterm::FTerm;
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
 use util::ext_term_format as etf;
-//use util::print::dump_vec;
 
 
 pub fn module() -> &'static str { "beam::loader: " }
@@ -42,8 +43,8 @@ pub fn module() -> &'static str { "beam::loader: " }
 /// Raw data structure as loaded from BEAM file
 #[allow(dead_code)]
 struct LImport {
-  mod_atom: u32,
-  fun_atom: u32,
+  mod_atom_i: u32,
+  fun_atom_i: u32,
   arity: Arity,
 }
 
@@ -52,7 +53,7 @@ struct LImport {
 /// Raw data structure as loaded from BEAM file.
 #[allow(dead_code)]
 struct LExport {
-  fun_atom: u32,
+  fun_atom_i: u32,
   arity: Arity,
   label: u32,
 }
@@ -62,7 +63,7 @@ struct LExport {
 /// Raw data structure as loaded from BEAM file
 #[allow(dead_code)]
 struct LFun {
-  fun_atom: u32,
+  fun_atom_i: u32,
   arity: u32,
   code_pos: u32,
   index: u32,
@@ -296,8 +297,8 @@ impl Loader {
     self.raw_imports.reserve(n_imports as usize);
     for _i in 0..n_imports {
       let imp = LImport {
-        mod_atom: r.read_u32be(),
-        fun_atom: r.read_u32be(),
+        mod_atom_i: r.read_u32be(),
+        fun_atom_i: r.read_u32be(),
         arity: r.read_u32be() as Arity,
       };
       self.raw_imports.push(imp);
@@ -313,7 +314,7 @@ impl Loader {
     exports.reserve(n_exports as usize);
     for _i in 0..n_exports {
       let exp = LExport {
-        fun_atom: r.read_u32be(),
+        fun_atom_i: r.read_u32be(),
         arity: r.read_u32be() as Arity,
         label: r.read_u32be(),
       };
@@ -334,7 +335,7 @@ impl Loader {
       let nfree = r.read_u32be();
       let ouniq = r.read_u32be();
       self.raw_funs.push(LFun {
-        fun_atom,
+        fun_atom_i: fun_atom,
         arity,
         code_pos,
         index,
@@ -576,23 +577,31 @@ impl Loader {
     //
     self.lit_imports.reserve(self.raw_imports.len());
     for ri in &self.raw_imports {
-      let imp_tuple = self.lit_heap.allocate_tuple(3).unwrap(); // {m,f,arity}
-      unsafe {
-        let mod_atom = self.vm_atoms[ri.mod_atom as usize - 1];
-        imp_tuple.set_element_base0(0, mod_atom);
-        let fun_atom = self.vm_atoms[ri.fun_atom as usize - 1];
-        imp_tuple.set_element_base0(1, fun_atom);
-
-        // Encode BIF as negative arity in the `export` {M,F,A} tuple
-        let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
-        let arity = if bif::is_bif(&mf_arity) {
-          LTerm::make_small_s(-(ri.arity as SWord))
-        } else {
-          LTerm::make_small_s(ri.arity as SWord)
-        };
-        imp_tuple.set_element_base0(2, arity);
-      }
-      self.lit_imports.push(imp_tuple.make_tuple());
+//      let imp_tuple = self.lit_heap.allocate_tuple(3).unwrap(); // {m,f,arity}
+//      unsafe {
+//        let mod_atom = self.vm_atoms[ri.mod_atom as usize - 1];
+//        imp_tuple.set_element_base0(0, mod_atom);
+//        let fun_atom = self.vm_atoms[ri.fun_atom as usize - 1];
+//        imp_tuple.set_element_base0(1, fun_atom);
+//
+//        // Encode BIF as negative arity in the `export` {M,F,A} tuple
+//        let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
+//        let arity = if bif::is_bif(&mf_arity) {
+//          LTerm::make_small_s(-(ri.arity as SWord))
+//        } else {
+//          LTerm::make_small_s(ri.arity as SWord)
+//        };
+//        imp_tuple.set_element_base0(2, arity);
+//      }
+//      self.lit_imports.push(imp_tuple.make_tuple());
+      let mod_atom = self.vm_atoms[ri.mod_atom_i as usize - 1];
+      let fun_atom = self.vm_atoms[ri.fun_atom_i as usize - 1];
+      let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
+      let is_bif = bif::is_bif(&mf_arity);
+      let ho_imp = HOImport::place_into(&mut self.lit_heap,
+                                        mod_atom, fun_atom, ri.arity,
+                                        is_bif);
+      self.lit_imports.push(ho_imp);
     }
 
     // Step 2
