@@ -1,13 +1,16 @@
 //! Module implements opcodes related to execution control: Calls, jumps,
 //! returns etc.
+
+//use term::lterm::LTerm;
 use beam::gen_op;
-use emulator::code::CodePtr;
 use beam::opcodes::assert_arity;
 use defs::{DispatchResult};
+use emulator::code::CodePtr;
+//use emulator::code_srv;
 use emulator::heap::Heap;
+use emulator::heap::ho_import::HOImport;
 use emulator::runtime_ctx::Context;
 use term::raw::rtuple::TuplePtr;
-//use term::lterm::LTerm;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }
@@ -60,18 +63,17 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
   let _arity = ctx.fetch();
   // {M,F,Arity} tuple or {M,F,-Arity} bif
-  let export = TuplePtr::from_pointer(ctx.fetch_term().box_ptr());
+  let import = HOImport::from_term(ctx.fetch_term());
 
-  let arity_t = unsafe { export.get_element_base0(2) };
-  let arity = arity_t.small_get_s();
-  if arity < 0 { // arity < 0 for bif
-    panic!("{}call_ext_only: call_bif", module());
-  } else {
-
-    panic!("{}call_ext_only: call import", module());
+  unsafe {
+    if (*import).is_bif {
+      panic!("{}call_ext_only: call_bif", module());
+    } else {
+      ctx.ip = (*import).resolve();
+    }
   }
 
-  //DispatchResult::Normal
+  DispatchResult::Normal
 }
 
 

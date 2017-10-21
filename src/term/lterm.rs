@@ -234,6 +234,7 @@ impl LTerm {
 
   #[inline]
   pub fn box_ptr(&self) -> *const Word {
+    assert!(self.is_box());
     primary::pointer(self.value)
   }
 

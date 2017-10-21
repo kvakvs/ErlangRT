@@ -18,7 +18,7 @@ use compress::zlib;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
-use defs::{Word, SWord, Arity};
+use defs::{Word, Arity};
 use emulator::atom;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
@@ -598,9 +598,7 @@ impl Loader {
       let fun_atom = self.vm_atoms[ri.fun_atom_i as usize - 1];
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
-      let ho_imp = HOImport::place_into(&mut self.lit_heap,
-                                        mod_atom, fun_atom, ri.arity,
-                                        is_bif);
+      let ho_imp = HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif);
       self.lit_imports.push(ho_imp);
     }
 
