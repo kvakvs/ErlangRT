@@ -2,7 +2,7 @@
 
 use std::mem::size_of;
 
-use defs::{Arity, WORD_BYTES, Word};
+use defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
 use emulator::heap::Heap;
@@ -55,6 +55,6 @@ impl HOImport {
 
 
   pub fn resolve(&self) -> CodePtr {
-    code_srv::lookup(&self.mfarity).unwrap()
+    code_srv::lookup_and_load(&self.mfarity).unwrap()
   }
 }

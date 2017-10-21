@@ -4,10 +4,12 @@
 //!
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
 
+use beam::loader;
+use emulator::atom;
 use emulator::code::CodePtr;
-use emulator::mfa;
+use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
@@ -40,14 +42,14 @@ impl CodeServer {
 
 
   /// Find module:function/arity
-  pub fn lookup(&self, mfa: &mfa::MFArity) -> Hopefully<CodePtr> {
-    let m = mfa.m;
+  pub fn lookup(&self, mfarity: &MFArity) -> Hopefully<CodePtr> {
+    let m = mfarity.m;
     match self.mods.get(&m) {
       None => {
         let msg = format!("{}Module not found {}", module(), m);
         Err(Error::ModuleNotFound(msg))
       },
-      Some(mptr) => mptr.lock().unwrap().lookup(mfa)
+      Some(mptr) => mptr.lock().unwrap().lookup(mfarity)
     }
   }
 
@@ -66,7 +68,56 @@ impl CodeServer {
     self.mods.insert(name, mod_ptr);
     ()
   }
+
+
+  /// Lookup, which will attempt to load a missing module if lookup fails
+  /// on the first attempt.
+  pub fn lookup_and_load(&mut self, mfarity: &MFArity) -> Hopefully<CodePtr> {
+    // Try lookup once, then load if not found
+    match self.lookup(mfarity) {
+      Ok(ip) => return Ok(ip),
+      Err(_e) => {
+        let mod_name = atom::to_str(mfarity.m);
+        let found_mod = self.find_module_file(&mod_name).unwrap();
+
+        self.try_load_module(&found_mod)?;
+      }
+    };
+    // Try lookup again
+    match self.lookup(mfarity) {
+      Ok(ip) => Ok(ip),
+      Err(_e) => {
+        let mod_str = atom::to_str(mfarity.m);
+        let fun_str = atom::to_str(mfarity.f);
+        let msg = format!("{}Func undef: {}:{}/{}",
+                          module(), mod_str, fun_str, mfarity.arity);
+        Err(Error::FunctionNotFound(msg))
+      }
+    }
+  }
+
+
+  /// Internal function: runs 3 stages of module loader and returns an atomic
+  /// refc (Arc) module pointer or an error
+  fn try_load_module(&mut self,
+                     mod_file_path: &PathBuf) -> Hopefully<module::Ptr>
+  {
+    // Delegate the loading task to BEAM or another loader
+    let mut loader = loader::Loader::new();
+    // Phase 1: Preload data structures
+    loader.load(mod_file_path).unwrap();
+    loader.load_stage2();
+    match loader.load_finalize() {
+      Ok(mod_ptr) => {
+        self.module_loaded(Arc::clone(&mod_ptr));
+        Ok(mod_ptr)
+      },
+      Err(e) => Err(e)
+    }
+  }
+
 }
+
 
 /// Iterate through the search path list and try to find a file
 fn first_that_exists(search_path: &[String],
@@ -83,9 +134,15 @@ fn first_that_exists(search_path: &[String],
 
 
 #[inline]
-pub fn lookup(mfa: &mfa::MFArity) -> Hopefully<CodePtr> {
+pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
   let cs = CODE_SRV.lock().unwrap();
-  cs.lookup(mfa)
+  cs.lookup(mfarity)
+}
+
+#[inline]
+pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+  let mut cs = CODE_SRV.lock().unwrap();
+  cs.lookup_and_load(mfarity)
 }
 
 #[inline]

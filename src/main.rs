@@ -49,15 +49,10 @@ fn main() {
   let mfa = MFArgs::new(atom::from_str("test"),
                         atom::from_str("start"),
                         Vec::new());
-  let r = beam.create_process(
-    LTerm::nil(), &mfa, Prio::Normal);
-
-  let _root_p = match r {
-    Ok(p0) => p0,
-    Err(e) => panic!("{:?}", e)
-  };
+  let rootp = beam.create_process(LTerm::nil(),
+                                  &mfa,
+                                  Prio::Normal).unwrap();
 
   println!("Process created. Entering main loop...");
-  while beam.tick() {
-  }
+  while beam.tick() {}
 }

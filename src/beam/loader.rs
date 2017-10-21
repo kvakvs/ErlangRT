@@ -561,6 +561,7 @@ impl Loader {
       let unfixed_l = LabelId::Val(unfixed.small_get_s() as Word);
 
       // Lookup the label. Crash here if bad label.
+      //println!("len(labels)={} unfixedl={:?}", self.labels.len(), unfixed_l);
       let dst_offset = &self.labels[&unfixed_l];
 
       // Update code cell with special label value

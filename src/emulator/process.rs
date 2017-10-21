@@ -3,7 +3,8 @@
 //! heap, stack, registers, and message queue.
 //!
 use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
-use emulator::mfa;
+use emulator::mfa::MFArity;
+use emulator::code_srv;
 use emulator::runtime_ctx;
 use emulator::scheduler;
 use emulator::vm::VM;
@@ -42,13 +43,13 @@ pub struct Process {
 impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
-  pub fn new(vm: &mut VM, pid: LTerm, parent_pid: LTerm, mfa: &mfa::MFArity,
+  pub fn new(vm: &mut VM, pid: LTerm, parent_pid: LTerm, mfarity: &MFArity,
              prio: scheduler::Prio) -> Hopefully<Process> {
     assert!(pid.is_local_pid());
     assert!(parent_pid.is_local_pid() || parent_pid.is_nil());
 
     // Process must start with some code location
-    match vm.code_lookup(mfa) {
+    match code_srv::lookup_and_load(mfarity) {
       Ok(ip) => {
         let p = Process {
           pid, parent_pid, prio,
@@ -72,9 +73,9 @@ impl Process {
   }
 
   #[allow(dead_code)]
-  pub fn jump(&mut self, vm: &mut VM, mfa: &mfa::MFArity) -> Hopefully<()> {
+  pub fn jump(&mut self, vm: &mut VM, mfarity: &MFArity) -> Hopefully<()> {
     // TODO: Find mfa in code server and set IP to it
-    match vm.code_lookup(mfa) {
+    match code_srv::lookup_and_load(mfarity) {
       Ok(ip) => {
         self.context.ip = ip;
         Ok(())

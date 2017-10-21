@@ -3,13 +3,10 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
 use std::path::PathBuf;
-use std::sync::Arc;
 
-use beam::loader;
-//use beam::vm_loop;
 use defs::Word;
 use emulator::atom;
-use emulator::code;
+use emulator::code::CodePtr;
 use emulator::code_srv;
 use emulator::mfa::{MFArity, MFArgs};
 use emulator::module;
@@ -43,10 +40,13 @@ impl VM {
   }
 
   // Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: LTerm, mfargs: &MFArgs,
+  pub fn create_process(&mut self,
+                        parent: LTerm,
+                        mfargs: &MFArgs,
                         prio: Prio) -> Hopefully<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
+
     let pid = LTerm::make_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
     match Process::new(self, pid, parent, &mfarity, prio) {
@@ -64,48 +64,4 @@ impl VM {
     self.dispatch()
   }
 
-  /// Mutable lookup, will load module if lookup fails the first time
-  pub fn code_lookup(&mut self, mfarity: &MFArity) -> Hopefully<code::CodePtr>
-  {
-    // Try lookup once, then load if not found
-    match code_srv::lookup(mfarity) {
-      Ok(ip) => return Ok(ip),
-      Err(_e) => {
-        let mod_name = atom::to_str(mfarity.m);
-        let found_mod = code_srv::find_module_file(&mod_name).unwrap();
-
-        self.try_load_module(&found_mod)?;
-      }
-    };
-    // Try lookup again
-    match code_srv::lookup(mfarity) {
-      Ok(ip) => Ok(ip),
-      Err(_e) => {
-        let mod_str = atom::to_str(mfarity.m);
-        let fun_str = atom::to_str(mfarity.f);
-        let msg = format!("{}Func undef: {}:{}/{}",
-                          module(), mod_str, fun_str, mfarity.arity);
-        Err(Error::FunctionNotFound(msg))
-      }
-    }
-  }
-
-  /// Internal function: runs 3 stages of module loader and returns an atomic
-  /// refc (Arc) module pointer or an error
-  fn try_load_module(&mut self,
-                     mod_file_path: &PathBuf) -> Hopefully<module::Ptr>
-  {
-    // Delegate the loading task to BEAM or another loader
-    let mut loader = loader::Loader::new();
-    // Phase 1: Preload data structures
-    loader.load(mod_file_path).unwrap();
-    loader.load_stage2();
-    match loader.load_finalize() {
-      Ok(mod_ptr) => {
-        code_srv::module_loaded(Arc::clone(&mod_ptr));
-        Ok(mod_ptr)
-      },
-      Err(e) => Err(e)
-    }
-  }
 }
