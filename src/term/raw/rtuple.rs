@@ -55,9 +55,10 @@ impl TuplePtrMut {
   }
 
 
-  //  pub unsafe fn get_element(&self, i: Word) -> LTerm {
-//    LTerm::from_raw(*self.p.offset(i as isize + 1))
-//  }
+  pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
+    let TuplePtrMut::Ptr(p) = *self;
+    LTerm::from_raw(*p.offset(i as isize + 1))
+  }
 
 
   /// Box the `self.p` pointer into `LTerm`.

@@ -32,6 +32,7 @@ use emulator::module;
 use fail::{Hopefully, Error};
 use term::fterm::FTerm;
 use term::lterm::LTerm;
+use term::raw::TuplePtrMut;
 use util::bin_reader::BinaryReader;
 use util::ext_term_format as etf;
 
@@ -72,6 +73,14 @@ struct LFun {
 }
 
 
+/// Represents an instruction to patch either a code location or an index in
+/// a tuple which represents a jump table (pairs value -> label)
+enum PatchLocation {
+  PatchCodeOffset(Word),
+  PatchJtabElement(LTerm, Word)
+}
+
+
 /// BEAM loader state.
 pub struct Loader {
   //--- Stage 1 raw structures ---
@@ -97,7 +106,7 @@ pub struct Loader {
   labels: BTreeMap<LabelId, CodeOffset>,
   /// Locations of label values are collected and at a later pass replaced
   /// with their word values or function pointer (if the label points outside)
-  replace_labels: Vec<CodeOffset>,
+  replace_labels: Vec<PatchLocation>,
   funs: module::FunTable,
   /// Literal table decoded into friendly terms (does not use process heap).
   lit_tab: Vec<LTerm>,
@@ -492,7 +501,8 @@ impl Loader {
           for (index, t) in jtab.iter().enumerate() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
-              self.maybe_convert_label(LabelId::Val(f))
+              let ploc = PatchLocation::PatchJtabElement(heap_jtab.make_tuple(), index);
+              self.maybe_convert_label(LabelId::Val(f), ploc)
             } else {
               t.to_lterm(&mut self.lit_heap).raw()
             };
@@ -504,7 +514,9 @@ impl Loader {
         // Label value is special, we want to remember where it was
         // to convert it to an offset
         FTerm::LoadTimeLabel(f) => {
-          let new_t = self.maybe_convert_label(LabelId::Val(f));
+          let ploc = PatchLocation::PatchCodeOffset(self.code.len());
+          let new_t = self.maybe_convert_label(LabelId::Val(f),
+                                               ploc);
           self.code.push(new_t)
         }
 
@@ -520,17 +532,18 @@ impl Loader {
   }
 
 
-  /// Given label index `l` check if it is known, then return a new `Label`
-  /// LTerm to be pushed into the code by the caller. Otherwise push its code
-  /// location to `self.replace_labels` to be processed later and store a
-  /// `SmallInt` LTerm in the code temporarily.
-  fn maybe_convert_label(&mut self, l: LabelId) -> Word {
+  /// Given label index `l` check if it is known, then return a new jump
+  /// destination - a boxed code location pointer to be used by the caller.
+  /// Otherwise the `patch_location` is stored to `self.replace_labels` to be
+  /// processed later and a `SmallInt` is returned to be used temporarily.
+  fn maybe_convert_label(&mut self, l: LabelId,
+                         patch_loc: PatchLocation) -> Word {
     // Resolve the label, if exists in labels table
     match self.labels.get(&l) {
       Some(offset0) =>
         self.create_jump_destination(offset0),
       None => {
-        self.replace_labels.push(CodeOffset::Val(self.code.len()));
+        self.replace_labels.push(patch_loc);
         let LabelId::Val(label_id) = l;
         LTerm::make_small_u(label_id).raw()
       }
@@ -550,22 +563,47 @@ impl Loader {
   /// Analyze the code and replace label values with known label locations.
   fn postprocess_fix_labels(&mut self) {
     // Postprocess self.replace_labels, assuming that at this point labels exist
-    let mut repl = Vec::<CodeOffset>::new();
+    let mut repl = Vec::<PatchLocation>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
-    for code_offs in &repl {
-      // Read code cell
-      let &CodeOffset::Val(cmd_offset) = code_offs;
 
-      // Convert from LTerm smallint to integer and then to labelid
-      let unfixed = LTerm::from_raw(self.code[cmd_offset]);
-      let unfixed_l = LabelId::Val(unfixed.small_get_s() as Word);
+    for ploc in &repl {
+      match ploc {
+        &PatchLocation::PatchCodeOffset(cmd_offset) => {
+          let val = LTerm::from_raw(self.code[cmd_offset]);
+          self.code[cmd_offset] = self.postprocess_fix_1_label(val)
+        },
+        &PatchLocation::PatchJtabElement(jtab, index) => {
+          let jtab_ptr = TuplePtrMut::from_pointer(jtab.box_ptr_mut());
+          unsafe {
+            let val = jtab_ptr.get_element_base0(index);
+            jtab_ptr.set_raw_word_base0(index,
+                                       self.postprocess_fix_1_label(val))
+          }
+        }
+      } // match
+    } // for ploc
+  }
+
+
+  /// Helper for `postprocess_fix_label`, takes a word from code memory or from
+  /// a jump table, resolves as if it was a label index, and returns a value
+  /// to be put back into memory.
+  fn postprocess_fix_1_label(&self, val: LTerm) -> Word {
+    // Convert from LTerm smallint to integer and then to labelid
+    let unfixed = val.small_get_s() as Word;
+
+    // Zero label id means no location, so we will store NIL [] there
+    if unfixed > 0 {
+      let unfixed_l = LabelId::Val(unfixed);
 
       // Lookup the label. Crash here if bad label.
-      //println!("len(labels)={} unfixedl={:?}", self.labels.len(), unfixed_l);
       let dst_offset = &self.labels[&unfixed_l];
 
       // Update code cell with special label value
-      self.code[cmd_offset] = self.create_jump_destination(dst_offset);
+      self.create_jump_destination(dst_offset)
+    } else {
+      // Update code cell with no-value
+      LTerm::nil().raw()
     }
   }
 
@@ -600,6 +638,7 @@ impl Loader {
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
       let ho_imp = HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif);
+
       self.lit_imports.push(ho_imp);
     }
 

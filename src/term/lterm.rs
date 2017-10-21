@@ -238,6 +238,13 @@ impl LTerm {
     primary::pointer(self.value)
   }
 
+
+  #[inline]
+  pub fn box_ptr_mut(&self) -> *mut Word {
+    assert!(self.is_box());
+    primary::pointer_mut(self.value)
+  }
+
   //
   // Small integer handling
   //
@@ -367,23 +374,17 @@ impl fmt::Display for LTerm {
               immediate::TAG_IMM2_ATOM =>
                 write!(f, "'{}'", atom::to_str(*self)),
 
-              immediate::TAG_IMM2_IMM3 =>
+              immediate::TAG_IMM2_IMM3 => {
+                let v3 = immediate::get_imm3_value(v);
 
                 match immediate::get_imm3_tag(v) {
-                  immediate::TAG_IMM3_XREG =>
-                    write!(f, "X({})", immediate::get_imm3_value(v)),
-
-                  immediate::TAG_IMM3_YREG =>
-                    write!(f, "Y({})", immediate::get_imm3_value(v)),
-
-                  immediate::TAG_IMM3_FPREG =>
-                    write!(f, "FP({})", immediate::get_imm3_value(v)),
-
-//                  immediate::Immediate3::Label =>
-//                    write!(f, "Label(0x{:04x})", immediate::imm3_value(v)),
-
+                  immediate::TAG_IMM3_XREG => write!(f, "X({})", v3),
+                  immediate::TAG_IMM3_YREG => write!(f, "Y({})", v3),
+                  immediate::TAG_IMM3_FPREG => write!(f, "FP({})", v3),
+                  immediate::TAG_IMM3_OPCODE => write!(f, "Opcode({})", v3),
                   _ => panic!("Immediate3 tag must be in range 0..3")
                 }
+              }
               _ => panic!("Immediate2 tag must be in range 0..3")
             },
           _ => panic!("Immediate1 tag must be in range 0..3")
