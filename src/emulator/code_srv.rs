@@ -4,6 +4,7 @@
 //!
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use emulator::code::CodePtr;
 use emulator::mfa;
@@ -11,13 +12,23 @@ use emulator::module;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 
+
 fn module() -> &'static str { "code_srv: " }
+
 
 pub struct CodeServer {
   // Mapping {atom(): module()}
   mods: BTreeMap<LTerm, module::Ptr>,
   search_path: Vec<String>,
 }
+
+
+lazy_static! {
+  static ref CODE_SRV: Mutex<CodeServer> = {
+    Mutex::new(CodeServer::new())
+  };
+}
+
 
 impl CodeServer {
   pub fn new() -> CodeServer {
@@ -27,6 +38,7 @@ impl CodeServer {
     }
   }
 
+
   /// Find module:function/arity
   pub fn lookup(&self, mfa: &mfa::MFArity) -> Hopefully<CodePtr> {
     let m = mfa.m;
@@ -35,13 +47,12 @@ impl CodeServer {
         let msg = format!("{}Module not found {}", module(), m);
         Err(Error::ModuleNotFound(msg))
       },
-      Some(mptr) => mptr.borrow().lookup(mfa)
+      Some(mptr) => mptr.lock().unwrap().lookup(mfa)
     }
   }
 
   /// Find the module file from search path and return the path or error.
-  pub fn find_module_file(&mut self, filename: &str) -> Hopefully<PathBuf>
-  {
+  pub fn find_module_file(&mut self, filename: &str) -> Hopefully<PathBuf> {
     match first_that_exists(&self.search_path, filename) {
       Some(found_first) => Ok(found_first),
       None => Err(Error::FileNotFound(filename.to_string()))
@@ -51,7 +62,7 @@ impl CodeServer {
   /// Notify the code server about the fact that a new module is ready to be
   /// added to the codebase.
   pub fn module_loaded(&mut self, mod_ptr: module::Ptr) {
-    let name = mod_ptr.borrow().name();
+    let name = mod_ptr.lock().unwrap().name();
     self.mods.insert(name, mod_ptr);
     ()
   }
@@ -68,4 +79,23 @@ fn first_that_exists(search_path: &[String],
     }
   }
   None
+}
+
+
+#[inline]
+pub fn lookup(mfa: &mfa::MFArity) -> Hopefully<CodePtr> {
+  let cs = CODE_SRV.lock().unwrap();
+  cs.lookup(mfa)
+}
+
+#[inline]
+pub fn find_module_file(filename: &str) -> Hopefully<PathBuf> {
+  let mut cs = CODE_SRV.lock().unwrap();
+  cs.find_module_file(filename)
+}
+
+#[inline]
+pub fn module_loaded(mod_ptr: module::Ptr) {
+  let mut cs = CODE_SRV.lock().unwrap();
+  cs.module_loaded(mod_ptr)
 }

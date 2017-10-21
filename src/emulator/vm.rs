@@ -28,7 +28,7 @@ pub struct VM {
   /// Pid counter increments every time a new process is spawned
   pid_counter: Word,
 
-  code_srv: code_srv::CodeServer,
+  //code_srv: code_srv::CodeServer,
 
   pub scheduler: Scheduler,
 }
@@ -37,7 +37,7 @@ impl VM {
   pub fn new() -> VM {
     VM {
       pid_counter: 0,
-      code_srv: code_srv::CodeServer::new(),
+      //code_srv: code_srv::CodeServer::new(),
       scheduler: Scheduler::new(),
     }
   }
@@ -68,17 +68,17 @@ impl VM {
   pub fn code_lookup(&mut self, mfarity: &MFArity) -> Hopefully<code::CodePtr>
   {
     // Try lookup once, then load if not found
-    match self.code_srv.lookup(mfarity) {
+    match code_srv::lookup(mfarity) {
       Ok(ip) => return Ok(ip),
       Err(_e) => {
         let mod_name = atom::to_str(mfarity.m);
-        let found_mod = self.code_srv.find_module_file(&mod_name).unwrap();
+        let found_mod = code_srv::find_module_file(&mod_name).unwrap();
 
         self.try_load_module(&found_mod)?;
       }
     };
     // Try lookup again
-    match self.code_srv.lookup(mfarity) {
+    match code_srv::lookup(mfarity) {
       Ok(ip) => Ok(ip),
       Err(_e) => {
         let mod_str = atom::to_str(mfarity.m);
@@ -102,7 +102,7 @@ impl VM {
     loader.load_stage2();
     match loader.load_finalize() {
       Ok(mod_ptr) => {
-        self.code_srv.module_loaded(Arc::clone(&mod_ptr));
+        code_srv::module_loaded(Arc::clone(&mod_ptr));
         Ok(mod_ptr)
       },
       Err(e) => Err(e)

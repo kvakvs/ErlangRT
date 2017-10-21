@@ -1,8 +1,8 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
-use std::cell::RefCell;
+//use std::cell::RefCell;
 use std::collections::BTreeMap;
-use std::sync;
+use std::sync::{Arc, Mutex};
 
 use defs::Word;
 use emulator::code::{CodePtr, CodeOffset, Code};
@@ -12,7 +12,7 @@ use emulator::mfa::MFArity;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 
-pub type Ptr = sync::Arc<RefCell<Module>>;
+pub type Ptr = Arc<Mutex<Module>>;
 //pub type Weak = sync::Weak<RefCell<Module>>;
 
 pub type FunTable = BTreeMap<FunArity, CodeOffset>;
@@ -33,7 +33,7 @@ pub struct Module {
 impl Module {
   /// Create an empty module wrapped in atomic refcounted refcell.
   pub fn new(name: LTerm) -> Ptr {
-    sync::Arc::new(RefCell::new(
+    Arc::new(Mutex::new(
       Module {
         code: Vec::new(),
         funs: BTreeMap::new(),

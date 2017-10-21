@@ -1,6 +1,7 @@
 //! Global Atom storage.
 //! Global is ugly, but necessary for now. If we ever create more than 1 VM,
 //! this will have to be shared somehow.
+
 use std::collections::BTreeMap;
 use std::sync::Mutex;
 

@@ -224,7 +224,7 @@ impl Loader {
 
     // Move funs into new module
     {
-      let mut mod1 = newmod.borrow_mut();
+      let mut mod1 = newmod.lock().unwrap();
       mem::swap(&mut self.funs, &mut mod1.funs);
       mem::swap(&mut self.code, &mut mod1.code);
       mem::swap(&mut self.lit_heap, &mut mod1.lit_heap);

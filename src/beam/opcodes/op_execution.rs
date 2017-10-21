@@ -6,6 +6,7 @@ use beam::opcodes::assert_arity;
 use defs::{DispatchResult};
 use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;
+use term::raw::rtuple::TuplePtr;
 //use term::lterm::LTerm;
 
 
@@ -58,18 +59,19 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
                             _heap: &mut Heap) -> DispatchResult {
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
   let _arity = ctx.fetch();
-  let export = ctx.fetch_term(); // {M,F,Arity} tuple or {M,F,-Arity} bif
-  // TODO: Get M:F/Arity
+  // {M,F,Arity} tuple or {M,F,-Arity} bif
+  let export = TuplePtr::from_pointer(ctx.fetch_term().box_ptr());
 
-  // TODO: is bif?
-  if true { //is_bif(export) {
-    // TODO: call bif
+  let arity_t = unsafe { export.get_element_base0(2) };
+  let arity = arity_t.small_get_s();
+  if arity < 0 { // arity < 0 for bif
+    panic!("{}call_ext_only: call_bif", module());
   } else {
-    // TODO: Call export properly
-  }
-  panic!("{}Incomplete call_ext_only implementation", module());
 
-  //DispatchResult::Normal
+    panic!("{}call_ext_only: call import", module());
+  }
+
+  DispatchResult::Normal
 }
 
 
