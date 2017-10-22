@@ -151,29 +151,30 @@ fn decode_atom_latin1(r: &mut BinaryReader) -> Hopefully<LTerm> {
 }
 
 
-fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
+fn decode_list(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
   let n_elem = r.read_u32be();
   if n_elem == 0 {
     return Ok(LTerm::nil())
   }
 
   // Using mutability build list forward creating many cells and linking them
-  let mut cell = heap.allocate_cons().unwrap();
+  let mut cell = hp.allocate_cons().unwrap();
   let cell0 = cell.clone();
 
   unsafe {
     for i in 0..n_elem {
-      let elem = decode_naked(r, heap).unwrap();
+      let elem = decode_naked(r, hp).unwrap();
       cell.set_hd(elem);
 
       if i + 1 < n_elem {
-        let new_cell = heap.allocate_cons().unwrap();
+        let new_cell = hp.allocate_cons().unwrap();
         cell.set_tl(new_cell.make_cons());
         cell = new_cell;
       }
     }
 
-    cell.set_tl(LTerm::nil());
+    let tl = decode_naked(r, hp)?;
+    cell.set_tl(tl);
   } // unsafe
 
   Ok(cell0.make_cons())
