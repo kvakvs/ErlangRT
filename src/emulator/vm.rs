@@ -2,44 +2,41 @@
 //! Implements virtual machine, as a collection of processes and their
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
-use std::path::PathBuf;
 
 use defs::Word;
-use emulator::atom;
-use emulator::code::CodePtr;
-use emulator::code_srv;
-use emulator::mfa::{MFArity, MFArgs};
-use emulator::module;
+use emulator::mfa::{MFArgs};
 use emulator::process::Process;
 use emulator::scheduler::{Prio, Scheduler};
-use fail::{Hopefully, Error};
+use fail::{Hopefully};
 use term::lterm::LTerm;
 
 
-fn module() -> &'static str { "vm: " }
+//fn module() -> &'static str { "vm: " }
 
-//
-// VM environment, heaps, atoms, tables, processes all goes here
-//
+///
+/// VM environment, heaps, tables, processes all goes here.
+/// Atoms are a global API in `atom.rs`.
+/// Code server is a global API in `code_srv.rs`.
+///
 pub struct VM {
   /// Pid counter increments every time a new process is spawned
   pid_counter: Word,
-
-  //code_srv: code_srv::CodeServer,
 
   pub scheduler: Scheduler,
 }
 
 impl VM {
+
+  /// Create a VM, multiple VMs can be created but atom table and code server
+  /// will be shared (global).
   pub fn new() -> VM {
     VM {
       pid_counter: 0,
-      //code_srv: code_srv::CodeServer::new(),
       scheduler: Scheduler::new(),
     }
   }
 
-  // Spawn a new process, create a new pid, register the process and jump to the MFA
+  /// Spawn a new process, create a new pid, register the process and jump to the MFA
   pub fn create_process(&mut self,
                         parent: LTerm,
                         mfargs: &MFArgs,
@@ -49,7 +46,7 @@ impl VM {
 
     let pid = LTerm::make_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
-    match Process::new(self, pid, parent, &mfarity, prio) {
+    match Process::new(pid, parent, &mfarity, prio) {
       Ok(p0) => {
         self.scheduler.add(pid, p0);
         Ok(pid)
@@ -59,7 +56,9 @@ impl VM {
   }
 
   /// Run the VM loop (one time slice), call this repeatedly to run forever.
-  /// Returns: false if VM quit, true if can continue
+  /// Time slice ends when a current process yields or when reduction count
+  /// reaches zero.
+  /// Returns: false if VM has quit, true if can continue.
   pub fn tick(&mut self) -> bool {
     self.dispatch()
   }

@@ -133,26 +133,14 @@ fn first_that_exists(search_path: &[String],
 }
 
 
-#[inline]
-pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
-  let cs = CODE_SRV.lock().unwrap();
-  cs.lookup(mfarity)
-}
+//#[inline]
+//pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+//  let cs = CODE_SRV.lock().unwrap();
+//  cs.lookup(mfarity)
+//}
 
 #[inline]
 pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
   let mut cs = CODE_SRV.lock().unwrap();
   cs.lookup_and_load(mfarity)
-}
-
-#[inline]
-pub fn find_module_file(filename: &str) -> Hopefully<PathBuf> {
-  let mut cs = CODE_SRV.lock().unwrap();
-  cs.find_module_file(filename)
-}
-
-#[inline]
-pub fn module_loaded(mod_ptr: module::Ptr) {
-  let mut cs = CODE_SRV.lock().unwrap();
-  cs.module_loaded(mod_ptr)
 }

@@ -1,16 +1,13 @@
 //! Module implements opcodes related to execution control: Calls, jumps,
 //! returns etc.
 
-//use term::lterm::LTerm;
 use beam::gen_op;
 use beam::opcodes::assert_arity;
 use defs::{DispatchResult};
 use emulator::code::CodePtr;
-//use emulator::code_srv;
 use emulator::heap::Heap;
 use emulator::heap::ho_import::HOImport;
 use emulator::runtime_ctx::Context;
-use term::raw::rtuple::TuplePtr;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }

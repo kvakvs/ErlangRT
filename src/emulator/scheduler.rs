@@ -1,10 +1,8 @@
 //! Code related to task scheduling and priorities.
-use std::collections::{VecDeque, HashMap, HashSet};
-//use std::sync;
+use std::collections::{VecDeque, HashMap};
 
 use defs::Word;
 use emulator::process;
-//use emulator::process::Process;
 use emulator::gen_atoms;
 use term::lterm::LTerm;
 
@@ -73,10 +71,10 @@ pub struct Scheduler {
   /// Currently selected process
   current: Option<LTerm>,
 
-  /// Wait set for infinitely suspended processes (in endless receive)
-  wait_inf: HashSet<LTerm>,
-  /// Wait set for timed suspended processes (waiting for a timer)
-  wait_timed: HashSet<LTerm>,
+//  /// Wait set for infinitely suspended processes (in endless receive)
+//  wait_inf: HashSet<LTerm>,
+//  /// Wait set for timed suspended processes (waiting for a timer)
+//  wait_timed: HashSet<LTerm>,
 
   /// Dict of pids to process boxes. Owned by the scheduler
   processes: HashMap<LTerm, process::Process>,
@@ -93,8 +91,8 @@ impl Scheduler {
       advantage_count: 0,
       current: None,
 
-      wait_inf: HashSet::new(),
-      wait_timed: HashSet::new(),
+//      wait_inf: HashSet::new(),
+//      wait_timed: HashSet::new(),
 
       processes: HashMap::new(),
     }

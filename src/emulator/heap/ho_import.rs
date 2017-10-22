@@ -21,9 +21,10 @@ pub struct HOImport {
 }
 
 
+#[allow(const_err)]
 static HOCLASS_IMPORT: HeapObjClass = HeapObjClass {
   obj_type: HeapObjType::Import,
-  dtor: |p: *mut Word| {}
+  dtor: |_ptr: *mut Word| {}
 };
 
 
