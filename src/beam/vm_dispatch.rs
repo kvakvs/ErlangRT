@@ -15,6 +15,7 @@ use emulator::runtime_ctx::Context;
 pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> DispatchResult {
   match op {
 
+    gen_op::OPCODE_FUNC_INFO => { return opcode_func_info(ctx, heap) },
     gen_op::OPCODE_CALL => { return opcode_call(ctx, heap) },
     gen_op::OPCODE_CALL_ONLY => { return opcode_call_only(ctx, heap) },
     gen_op::OPCODE_ALLOCATE => { return opcode_allocate(ctx, heap) },

@@ -91,3 +91,15 @@ pub fn opcode_return(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
 
   DispatchResult::Normal
 }
+
+
+#[inline]
+pub fn opcode_func_info(ctx: &mut Context, _hp: &mut Heap) -> DispatchResult {
+  assert_arity(gen_op::OPCODE_FUNC_INFO, 3);
+  let m = ctx.fetch_term();
+  let f = ctx.fetch_term();
+  let arity = ctx.fetch_term();
+
+  panic!("function_clause {}:{}/{}", m, f, arity)
+  //DispatchResult::Error
+}
