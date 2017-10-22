@@ -1,6 +1,8 @@
 use defs::Word;
 use term::lterm::LTerm;
 
+
+#[derive(Clone)]
 pub enum ConsPtrMut { Ptr(*mut Word) }
 
 

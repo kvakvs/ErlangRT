@@ -80,7 +80,7 @@ pub fn opcode_return(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
   if ctx.cp.is_null() {
     if hp.stack_depth() == 0 {
       // Process end of life: return on empty stack
-      panic!("{}Process exit: normal", module())
+      panic!("{}Process exit: normal; x0={}", module(), ctx.regs[0])
     } else {
       panic!("{}Return instruction with 0 in ctx.cp", module())
     }

@@ -70,6 +70,8 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   match term_tag {
     x if x == Tag::List as u8 => decode_list(r, heap),
 
+    x if x == Tag::String as u8 => decode_string(r, heap),
+
     x if x == Tag::AtomDeprecated as u8 => decode_atom_latin1(r),
 
     x if x == Tag::SmallInteger as u8 => decode_u8(r),
@@ -157,6 +159,7 @@ fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
 
   // Using mutability build list forward creating many cells and linking them
   let mut cell = heap.allocate_cons().unwrap();
+  let cell0 = cell.clone();
 
   unsafe {
     for i in 0..n_elem {
@@ -173,5 +176,35 @@ fn decode_list(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
     cell.set_tl(LTerm::nil());
   } // unsafe
 
-  Ok(cell.make_cons())
+  Ok(cell0.make_cons())
+}
+
+
+/// A string of bytes encoded as tag 107 (String) with 16-bit length.
+fn decode_string(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
+  let n_elem = r.read_u16be();
+  if n_elem == 0 {
+    return Ok(LTerm::nil())
+  }
+
+  // Using mutability build list forward creating many cells and linking them
+  let mut cell = heap.allocate_cons().unwrap();
+  let cell0 = cell.clone();
+
+  unsafe {
+    for i in 0..n_elem {
+      let elem = r.read_u8();
+      cell.set_hd(LTerm::make_small_u(elem as usize));
+
+      if i + 1 < n_elem {
+        let new_cell = heap.allocate_cons().unwrap();
+        cell.set_tl(new_cell.make_cons());
+        cell = new_cell;
+      }
+    }
+
+    cell.set_tl(LTerm::nil());
+  } // unsafe
+
+  Ok(cell0.make_cons())
 }
