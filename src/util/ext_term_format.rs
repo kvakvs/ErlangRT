@@ -20,7 +20,8 @@ enum Tag {
   SmallInteger = 97,
   Integer = 98,
   Float = 99,
-  AtomDeprecated = 100, // deprecated?
+  AtomDeprecated = 100,
+  // deprecated?
   Reference = 101,
   Port = 102,
   Pid = 103,
@@ -35,7 +36,8 @@ enum Tag {
   NewFun = 112,
   Export = 113,
   NewReference = 114,
-  SmallAtomDeprecated = 115, // deprecated?
+  SmallAtomDeprecated = 115,
+  // deprecated?
   Map = 116,
   Fun = 117,
   AtomUtf8 = 118,
@@ -57,7 +59,7 @@ pub fn decode(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   let etf_tag = r.read_u8();
   if etf_tag != Tag::ETF as u8 {
     let msg = format!("{}Expected ETF tag byte 131, got {}", module(), etf_tag);
-    return fail(msg)
+    return fail(msg);
   }
   decode_naked(r, heap)
 }
@@ -81,25 +83,25 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
     x if x == Tag::LargeTuple as u8 => {
       let size = r.read_u32be() as Word;
       decode_tuple(r, heap, size)
-    },
+    }
 
     x if x == Tag::SmallTuple as u8 => {
       let size = r.read_u8() as Word;
       decode_tuple(r, heap, size)
-    },
+    }
 
     x if x == Tag::LargeBig as u8 => {
       let size = r.read_u32be() as Word;
       decode_big(r, heap, size)
-    },
+    }
 
     x if x == Tag::SmallBig as u8 => {
       let size = r.read_u8() as Word;
       decode_big(r, heap, size)
-    },
+    }
 
     _ => {
-      let msg = format!("{}Don't know how to decode ETF value tag {}",
+      let msg = format!("{}Don't know how to decode ETF value tag 0x{:x}",
                         module(), term_tag);
       fail(msg)
     }
@@ -109,15 +111,14 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
 
 /// Given `size`, read digits for a bigint.
 fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
-                size: Word) -> Hopefully<LTerm> {
-  let sign = if r.read_u8() == 0 { num::bigint::Sign::Plus }
-      else { num::bigint::Sign::Minus };
+              size: Word) -> Hopefully<LTerm> {
+  let sign = if r.read_u8() == 0 { num::bigint::Sign::Plus } else { num::bigint::Sign::Minus };
   let digits = r.read_bytes(size).unwrap();
   let big = num::BigInt::from_bytes_le(sign, &digits);
 
   // Assert that the number fits into small
   if big.bits() < defs::WORD_BITS - 4 {
-    return Ok(LTerm::make_small_s(big.to_isize().unwrap()))
+    return Ok(LTerm::make_small_s(big.to_isize().unwrap()));
   }
 
   // Determine storage size in words
@@ -154,28 +155,28 @@ fn decode_atom_latin1(r: &mut BinaryReader) -> Hopefully<LTerm> {
 fn decode_list(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
   let n_elem = r.read_u32be();
   if n_elem == 0 {
-    return Ok(LTerm::nil())
+    return Ok(LTerm::nil());
   }
 
   // Using mutability build list forward creating many cells and linking them
   let mut cell = hp.allocate_cons().unwrap();
   let cell0 = cell.clone();
+  let n_elem_minus_one = n_elem - 1;
 
-  unsafe {
-    for i in 0..n_elem {
-      let elem = decode_naked(r, hp).unwrap();
-      cell.set_hd(elem);
+  for i in 0..n_elem {
+    let elem = decode_naked(r, hp)?;
+    unsafe { cell.set_hd(elem) }
 
-      if i + 1 < n_elem {
-        let new_cell = hp.allocate_cons().unwrap();
-        cell.set_tl(new_cell.make_cons());
-        cell = new_cell;
-      }
+    // Keep building forward
+    if i < n_elem_minus_one {
+      let new_cell = hp.allocate_cons().unwrap();
+      unsafe { cell.set_tl(new_cell.make_cons()) }
+      cell = new_cell;
     }
+  }
 
-    let tl = decode_naked(r, hp)?;
-    cell.set_tl(tl);
-  } // unsafe
+  let tl = decode_naked(r, hp)?;
+  unsafe { cell.set_tl(tl) }
 
   Ok(cell0.make_cons())
 }
@@ -185,27 +186,27 @@ fn decode_list(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
 fn decode_string(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   let n_elem = r.read_u16be();
   if n_elem == 0 {
-    return Ok(LTerm::nil())
+    return Ok(LTerm::nil());
   }
 
   // Using mutability build list forward creating many cells and linking them
-  let mut cell = heap.allocate_cons().unwrap();
+  let mut cell = heap.allocate_cons()?;
   let cell0 = cell.clone();
+  let n_elem_minus_one = n_elem - 1;
 
-  unsafe {
-    for i in 0..n_elem {
-      let elem = r.read_u8();
-      cell.set_hd(LTerm::make_small_u(elem as usize));
+  for i in 0..n_elem {
+    let elem = r.read_u8();
+    unsafe { cell.set_hd(LTerm::make_small_u(elem as usize)) }
 
-      if i + 1 < n_elem {
-        let new_cell = heap.allocate_cons().unwrap();
-        cell.set_tl(new_cell.make_cons());
-        cell = new_cell;
-      }
+    // Keep building forward
+    if i < n_elem_minus_one {
+      let new_cell = heap.allocate_cons()?;
+      unsafe { cell.set_tl(new_cell.make_cons()) }
+      cell = new_cell;
     }
+  }
 
-    cell.set_tl(LTerm::nil());
-  } // unsafe
+  unsafe { cell.set_tl(LTerm::nil()) }
 
   Ok(cell0.make_cons())
 }

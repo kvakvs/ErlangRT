@@ -180,7 +180,7 @@ impl Loader {
       //println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
         "Atom" => self.load_atoms_latin1(&mut r),
-        "Attr" => self.load_attributes(&mut r),
+        "Attr" => self.load_attributes(&mut r)?,
         "AtU8" => self.load_atoms_utf8(&mut r),
         "Code" => self.load_code(&mut r, chunk_sz as Word),
         "ExpT" => self.raw_exports = self.load_exports(&mut r),
@@ -252,9 +252,14 @@ impl Loader {
 
   /// Read Attr section: two terms (module attributes and compiler info) encoded
   /// as external term format.
-  fn load_attributes(&mut self, r: &mut BinaryReader) {
-    self.mod_attrs = etf::decode(r, &mut self.lit_heap).unwrap();
-    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap).unwrap();
+  fn load_attributes(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
+    self.mod_attrs = etf::decode(r, &mut self.lit_heap)?;
+    println!("modattrs {}", self.mod_attrs);
+
+//    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap)?;
+//    println!("compilerinfo {}", self.compiler_info);
+
+    Ok(())
   }
 
 

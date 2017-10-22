@@ -470,9 +470,9 @@ impl fmt::Display for LTerm {
         if self.is_cp() {
           write!(f, "CP({:p})", self.cp_get_ptr())
         } else {
-          write!(f, "Box(")?;
-          LTerm::format_header(*p, p, f)?;
-          write!(f, ")")
+          //write!(f, "Box(")?;
+          LTerm::format_header(*p, p, f)
+          //write!(f, ")")
         }
       },
 

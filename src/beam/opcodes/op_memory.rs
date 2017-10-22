@@ -37,7 +37,7 @@ pub fn opcode_allocate(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
 pub fn opcode_test_heap(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
   assert_arity(gen_op::OPCODE_TEST_HEAP, 2);
   let heap_need = ctx.fetch_term().small_get_u();
-  let live = ctx.fetch_term().small_get_u();
+  let _live = ctx.fetch_term().small_get_u();
 
   if !hp.have(heap_need) {
     // Heap has not enough, invoke GC and possibly fail
