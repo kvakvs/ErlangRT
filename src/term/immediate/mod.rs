@@ -32,6 +32,7 @@ pub fn make_atom_raw(val: Word) -> Word {
 }
 
 /// Same as `make_atom_raw` but compile-time for predefined atoms table
+#[inline]
 pub const fn make_atom_raw_const(val: Word) -> Word {
   combine_imm2_prefix_and_val_const(val, IMM2_ATOM_PREFIX)
 }

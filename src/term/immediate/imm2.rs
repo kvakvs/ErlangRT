@@ -71,16 +71,19 @@ pub const IMM2_SPECIAL_NIL_RAW: Word = IMM2_SPECIAL_PREFIX
 pub const IMM2_SPECIAL_NONVALUE_RAW: Word = IMM2_SPECIAL_PREFIX
     | (TAG_IMM2_SPECIAL_NONVALUE << IMM2_VALUE_FIRST);
 
+
 /// Get prefix bits BEFORE imm2 tag
 #[inline]
 pub fn get_imm2_prefix(val: Word) -> Word {
   val.get_bits(0..IMM2_TAG_FIRST)
 }
 
+
 #[inline]
 pub fn is_immediate2(val: Word) -> bool {
   get_imm2_prefix(val) == IMM2_PREFIX
 }
+
 
 /// Given a value raw preset bits, compose them together and form an imm2 `LTerm`
 #[inline]
@@ -91,6 +94,8 @@ pub fn combine_imm2_prefix_and_val(val: Word, prefix0: Word) -> Word {
   *prefix.set_bits(IMM2_VALUE_FIRST..IMM2_VALUE_LAST, val)
 }
 
+
+#[inline]
 pub const fn combine_imm2_prefix_and_val_const(val: Word, prefix0: Word) -> Word {
   prefix0 | (val << IMM2_VALUE_FIRST)
 }

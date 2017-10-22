@@ -7,7 +7,6 @@ use term::raw::rtuple;
 use term::raw::{ConsPtrMut, TuplePtrMut, BignumPtr};
 
 use num;
-use alloc::raw_vec::RawVec;
 use std::fmt;
 
 
@@ -22,7 +21,7 @@ pub enum DataPtr { Ptr(*const Word) }
 /// implicitly and will return error when capacity is exceeded. Organize a
 /// garbage collect call to get more memory TODO: gc on heap
 pub struct Heap {
-  data: RawVec<Word>,
+  data: Vec<Word>,
   /// Heap top, begins at 0 and grows up towards the stack top `stop`.
   htop: Word,
   /// Stack top, begins at the end of capacity and grows down.
@@ -42,18 +41,20 @@ impl fmt::Debug for Heap {
 impl Heap {
   pub fn new(capacity: Word) -> Heap {
     assert!(capacity > 0);
-    Heap {
-      data: RawVec::with_capacity(capacity),
+    let mut h = Heap {
+      data: Vec::with_capacity(capacity),
       htop: 0,
       stop: capacity,
       send: capacity,
-    }
+    };
+    unsafe { h.data.set_len(capacity) };
+    h
   }
 
 
   /// How many words do we have before it will require GC/growth.
   pub fn capacity(&self) -> usize {
-    self.data.cap()
+    self.data.capacity()
   }
 
 
@@ -66,14 +67,20 @@ impl Heap {
   // This is used by heap walkers such as "dump.rs"
   #[allow(dead_code)]
   pub fn begin(&self) -> *const Word {
-    self.data.ptr() as *const Word
+    &self.data[0] as *const Word
+  }
+
+
+  #[allow(dead_code)]
+  pub fn begin_mut(&mut self) -> *mut Word {
+    &mut self.data[0] as *mut Word
   }
 
 
   // This is used by heap walkers such as "dump.rs"
   #[allow(dead_code)]
   pub unsafe fn end(&self) -> *const Word {
-    let p = self.data.ptr() as *const Word;
+    let p = self.begin();
     p.offset(self.htop as isize)
   }
 
@@ -90,7 +97,7 @@ impl Heap {
     let raw_nil = LTerm::nil().raw();
     //    self.data.resize(pos + n, raw_nil);
     let new_chunk = unsafe {
-      self.data.ptr().offset(self.htop as isize)
+      self.begin_mut().offset(self.htop as isize)
     };
     unsafe {
       for i in 0..n {
@@ -136,7 +143,7 @@ impl Heap {
   #[allow(dead_code)]
   pub unsafe fn iter(&self) -> iter::HeapIterator {
     let last = self.htop as isize;
-    let begin = self.data.ptr() as *const Word;
+    let begin = self.begin() as *const Word;
     iter::HeapIterator::new(DataPtr::Ptr(begin),
                             DataPtr::Ptr(begin.offset(last)))
   }
@@ -167,7 +174,7 @@ impl Heap {
     // Clear the new cells
     let raw_nil = term::immediate::IMM2_SPECIAL_NIL_RAW;
     unsafe {
-      let p = self.data.ptr().offset(self.stop as isize);
+      let p = self.begin_mut().offset(self.stop as isize);
       for y in 0..need {
         *p.offset(y as isize) = raw_nil
       }
@@ -189,7 +196,7 @@ impl Heap {
   pub fn stack_push_unchecked(&mut self, val: Word) {
     self.stop -= 1;
     unsafe {
-      let p = self.data.ptr().offset(self.stop as isize);
+      let p = self.begin_mut().offset(self.stop as isize);
       *p = val
     }
   }
@@ -201,7 +208,7 @@ impl Heap {
     }
     let pos = index as isize + self.stop as isize + 1;
     unsafe {
-      let p = self.data.ptr().offset(pos);
+      let p = self.begin_mut().offset(pos);
       *p = val.raw()
     }
     Ok(())
@@ -214,7 +221,7 @@ impl Heap {
     }
     let pos = index as isize + self.stop as isize + 1;
     unsafe {
-      let p = self.data.ptr().offset(pos);
+      let p = self.begin().offset(pos);
       Ok(LTerm::from_raw(*p))
     }
   }
