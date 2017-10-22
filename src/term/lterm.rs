@@ -477,8 +477,26 @@ impl fmt::Display for LTerm {
       },
 
       primary::TAG_CONS => unsafe {
-        let raw_cons = self.cons_get_ptr();
-        write!(f, "[{} | {}]", raw_cons.hd(), raw_cons.tl())
+        write!(f, "[")?;
+
+        let mut raw_cons = self.cons_get_ptr();
+        loop {
+          write!(f, "{}", raw_cons.hd());
+          let tl = raw_cons.tl();
+          if tl.is_nil() {
+            // Proper list ends here, do not show the tail
+            break;
+          } else if tl.is_cons() {
+            // List continues, print a comma and follow the tail
+            write!(f, ", ")?;
+            raw_cons = tl.cons_get_ptr();
+          } else {
+            // Improper list, show tail
+            write!(f, "| {}", tl);
+            break
+          }
+        }
+        write!(f, "]")
       },
 
       primary::TAG_IMMED => self.format_immed(v, f),
