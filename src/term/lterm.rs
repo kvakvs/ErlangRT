@@ -349,7 +349,7 @@ impl LTerm {
     assert!(self.is_box(), "CP value must be boxed (have {})", self);
     assert_eq!(self.value & defs::TAG_CP, defs::TAG_CP,
             "CP value must have its top bit set (have 0x{:x})", self.value);
-    let untagged_p = self.value & (!defs::TAG_CP) & (!primary::PRIM_MASK);
+    let untagged_p = self.value & !(defs::TAG_CP | primary::PRIM_MASK);
     untagged_p as *const Word
   }
 }

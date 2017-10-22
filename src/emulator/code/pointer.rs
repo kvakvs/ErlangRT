@@ -2,6 +2,7 @@
 use defs::Word;
 use defs::TAG_CP;
 use term::immediate;
+use term::lterm::LTerm;
 
 /// Pointer to code location, can only be created to point to some opcode
 /// (instruction begin), and never to the data. During VM execution iterates
@@ -13,6 +14,11 @@ use term::immediate;
 pub enum CodePtr { Ptr(*const Word) }
 
 impl CodePtr {
+  #[inline]
+  pub fn from_cp(cp: LTerm) -> CodePtr {
+    CodePtr::from_ptr(cp.cp_get_ptr())
+  }
+
   #[cfg(debug_assertions)]
   pub fn from_ptr(p: *const Word) -> CodePtr {
     unsafe { assert!(immediate::is_immediate3(*p)); }

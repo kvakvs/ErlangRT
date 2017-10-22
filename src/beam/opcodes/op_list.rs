@@ -30,7 +30,7 @@ pub fn opcode_is_nonempty_list(ctx: &mut Context,
       ctx.regs[0] = gen_atoms::FALSE
     } else {
       // jump to fail label
-      ctx.ip = CodePtr::from_ptr(fail.cp_get_ptr())
+      ctx.ip = CodePtr::from_cp(fail)
     }
   }
 
