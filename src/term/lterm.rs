@@ -187,7 +187,7 @@ impl LTerm {
 
 
   /// Get a proxy object for read-only accesing the cons contents.
-  pub unsafe fn raw_cons(&self) -> ConsPtr {
+  pub unsafe fn cons_get_ptr(&self) -> ConsPtr {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer(v);
@@ -196,7 +196,7 @@ impl LTerm {
 
 
   /// Get a proxy object for looking and modifying cons contents.
-  pub unsafe fn raw_cons_mut(&self) -> ConsPtrMut {
+  pub unsafe fn cons_get_ptr_mut(&self) -> ConsPtrMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer_mut(v);
@@ -364,7 +364,7 @@ impl fmt::Display for LTerm {
       primary::TAG_BOX => write!(f, "Box({:?})", self.box_ptr()),
 
       primary::TAG_CONS => unsafe {
-        let raw_cons = self.raw_cons();
+        let raw_cons = self.cons_get_ptr();
         write!(f, "[{} | {}]", raw_cons.hd(), raw_cons.tl())
       },
 

@@ -55,8 +55,18 @@ impl Context {
   }
 
 
+  /// Fetch a word from code, assume it is an LTerm.
   #[inline]
   pub fn fetch_term(&mut self) -> LTerm { LTerm::from_raw(self.fetch()) }
+
+
+  /// Fetch a word from code, assume it is either an LTerm or a source X, Y or
+  /// FP register, then perform a load operation.
+  #[inline]
+  pub fn fetch_and_load(&mut self, hp: &heap::Heap) -> LTerm {
+    let src = LTerm::from_raw(self.fetch());
+    self.load(src, hp)
+  }
 
 
 //  /// Advance `self.ip` by `n` words.
