@@ -134,6 +134,7 @@ fn decode_tuple(r: &mut BinaryReader, heap: &mut Heap,
     let elem = decode_naked(r, heap).unwrap();
     unsafe { rtuple.set_element_base0(i, elem) }
   }
+  println!("ETF tuple {}", rtuple.make_tuple());
   Ok(rtuple.make_tuple())
 }
 

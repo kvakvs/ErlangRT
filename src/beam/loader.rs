@@ -14,7 +14,7 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
-//use util::print::dump_vec;
+use util::print::dump_vec;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
@@ -381,7 +381,7 @@ impl Loader {
   }
 
 
-  /// Give the `r`, reader positioned on the contents of "LitT" chunk,
+  /// Given the `r`, reader positioned on the contents of "LitT" chunk,
   /// decompress it and feed into `self.decode_literals/1`
   fn load_literals(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
     // Red uncompressed size and reserve some memory
@@ -399,6 +399,7 @@ impl Loader {
     assert_eq!(inflated.len(), uncomp_sz as usize, "LitT inflate failed");
 
     // Parse literal table
+    dump_vec(&inflated);
     self.decode_literals(inflated);
   }
 
@@ -413,15 +414,13 @@ impl Loader {
     let mut r = BinaryReader::from_bytes(inflated);
     let count = r.read_u32be();
     self.lit_tab.reserve(count as usize);
-    println!("Loading literal table: {} items", count);
 
     for _i in 0..count {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
-      println!("Loading literal table item {}", _i);
-      let lterm = etf::decode(&mut r, &mut self.lit_heap).unwrap();
-      println!("result {}", lterm);
-      self.lit_tab.push(lterm);
+      let literal = etf::decode(&mut r, &mut self.lit_heap).unwrap();
+      println!("ETF loaded term {}", literal);
+      self.lit_tab.push(literal);
     }
   }
 

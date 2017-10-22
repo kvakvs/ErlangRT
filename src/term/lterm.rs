@@ -352,6 +352,84 @@ impl LTerm {
     let untagged_p = self.value & !(defs::TAG_CP | primary::PRIM_MASK);
     untagged_p as *const Word
   }
+
+  //
+  // Formatting helpers
+  //
+  fn format_immed(&self, v: Word, f: &mut fmt::Formatter) -> fmt::Result {
+    match immediate::get_imm1_tag(v) {
+      immediate::TAG_IMM1_SMALL =>
+        write!(f, "{}", self.small_get_s()),
+
+      immediate::TAG_IMM1_PID =>
+        write!(f, "Pid({})", immediate::get_imm1_value(v)),
+
+      immediate::TAG_IMM1_PORT =>
+        write!(f, "Port({})", immediate::get_imm1_value(v)),
+
+      immediate::TAG_IMM1_IMM2 =>
+
+        match immediate::get_imm2_tag(v) {
+          immediate::TAG_IMM2_CATCH =>
+            write!(f, "Catch({})", immediate::get_imm2_value(v)),
+
+          immediate::TAG_IMM2_SPECIAL => {
+            if self.is_nil() {
+              write!(f, "[]")
+            } else if self.is_non_value() {
+              write!(f, "NON_VALUE")
+            } else {
+              write!(f, "Special(0x{:x})", immediate::get_imm2_value(v))
+            }
+          },
+
+          immediate::TAG_IMM2_ATOM =>
+            write!(f, "'{}'", atom::to_str(*self)),
+
+          immediate::TAG_IMM2_IMM3 => {
+            let v3 = immediate::get_imm3_value(v);
+
+            match immediate::get_imm3_tag(v) {
+              immediate::TAG_IMM3_XREG => write!(f, "X({})", v3),
+              immediate::TAG_IMM3_YREG => write!(f, "Y({})", v3),
+              immediate::TAG_IMM3_FPREG => write!(f, "FP({})", v3),
+              immediate::TAG_IMM3_OPCODE => write!(f, "Opcode({})", v3),
+              _ => panic!("Immediate3 tag must be in range 0..3")
+            }
+          }
+          _ => panic!("Immediate2 tag must be in range 0..3")
+        },
+      _ => panic!("Immediate1 tag must be in range 0..3")
+    }
+  }
+
+
+  fn format_header(v: Word, f: &mut fmt::Formatter) -> fmt::Result {
+    let arity = primary::header::get_arity(v);
+    let h_tag = primary::header::get_tag(v);
+
+    match h_tag {
+      primary::header::TAG_HEADER_TUPLE => {
+        write!(f, "Tuple[{}]", arity)
+      },
+      primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
+      primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
+      primary::header::TAG_HEADER_REF => write!(f, "Ref"),
+      primary::header::TAG_HEADER_FUN => write!(f, "Fun"),
+      primary::header::TAG_HEADER_FLOAT => write!(f, "Float"),
+      primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
+      primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
+      primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
+      primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
+      primary::header::TAG_HEADER_HEAPOBJ => write!(f, "HeapObj"),
+      primary::header::TAG_HEADER_EXTPID => write!(f, "ExtPid"),
+      primary::header::TAG_HEADER_EXTPORT => write!(f, "ExtPort"),
+      primary::header::TAG_HEADER_EXTREF => write!(f, "ExtRef"),
+
+      _ => panic!("Unexpected header tag {} value {}",
+                  h_tag, primary::get_value(v))
+    }
+  }
 }
 
 
@@ -361,100 +439,34 @@ impl fmt::Display for LTerm {
     let v = self.value;
 
     match primary::get_tag(v) {
-      primary::TAG_BOX => write!(f, "Box({:?})", self.box_ptr()),
+      primary::TAG_BOX => unsafe {
+        let p = self.box_ptr();
+        if self.is_cp() {
+          write!(f, "CP({:p})", self.cp_get_ptr())
+        } else {
+          write!(f, "Box(")?;
+          LTerm::format_header(*p, f)?;
+          write!(f, ")")
+        }
+      },
 
       primary::TAG_CONS => unsafe {
         let raw_cons = self.cons_get_ptr();
         write!(f, "[{} | {}]", raw_cons.hd(), raw_cons.tl())
       },
 
-      primary::TAG_IMMED =>
-        match immediate::get_imm1_tag(v) {
-          immediate::TAG_IMM1_SMALL =>
-            write!(f, "{}", self.small_get_s()),
+      primary::TAG_IMMED => self.format_immed(v, f),
 
-          immediate::TAG_IMM1_PID =>
-            write!(f, "Pid({})", immediate::get_imm1_value(v)),
-
-          immediate::TAG_IMM1_PORT =>
-            write!(f, "Port({})", immediate::get_imm1_value(v)),
-
-          immediate::TAG_IMM1_IMM2 =>
-
-            match immediate::get_imm2_tag(v) {
-              immediate::TAG_IMM2_CATCH =>
-                write!(f, "Catch({})", immediate::get_imm2_value(v)),
-
-              immediate::TAG_IMM2_SPECIAL => {
-                  if self.is_nil() {
-                    write!(f, "[]")
-                  } else if self.is_non_value() {
-                    write!(f, "NON_VALUE")
-                  } else {
-                    write!(f, "Special(0x{:x})", immediate::get_imm2_value(v))
-                  }
-                },
-
-              immediate::TAG_IMM2_ATOM =>
-                write!(f, "'{}'", atom::to_str(*self)),
-
-              immediate::TAG_IMM2_IMM3 => {
-                let v3 = immediate::get_imm3_value(v);
-
-                match immediate::get_imm3_tag(v) {
-                  immediate::TAG_IMM3_XREG => write!(f, "X({})", v3),
-                  immediate::TAG_IMM3_YREG => write!(f, "Y({})", v3),
-                  immediate::TAG_IMM3_FPREG => write!(f, "FP({})", v3),
-                  immediate::TAG_IMM3_OPCODE => write!(f, "Opcode({})", v3),
-                  _ => panic!("Immediate3 tag must be in range 0..3")
-                }
-              }
-              _ => panic!("Immediate2 tag must be in range 0..3")
-            },
-          _ => panic!("Immediate1 tag must be in range 0..3")
-        },
       primary::TAG_HEADER => {
-//        let hptr = primary::pointer(v);
-//        let hval = unsafe { *hptr };
-
-        let arity = primary::header::get_arity(v);
-
-        match primary::header::get_tag(v) {
-          primary::header::TAG_HEADER_TUPLE => {
-            write!(f, "Header: Tuple[{}]", arity)
-//            let raw_tuple = RawTuple::from_pointer(hptr);
-//            write!(f, "{{").unwrap();
-//            let arity = unsafe { raw_tuple.arity() };
-//            for i in 0..arity {
-//              let item = unsafe { raw_tuple.get_element(i) };
-//              write!(f, "{}", item).unwrap();
-//              if i + 1 < arity {
-//                write!(f, ", ").unwrap();
-//              }
-//            }
-//            write!(f, "}}")
-          },
-          primary::header::TAG_HEADER_BIGNEG => write!(f, "Header: BigNeg"),
-          primary::header::TAG_HEADER_BIGPOS => write!(f, "Header: BigPos"),
-          primary::header::TAG_HEADER_REF => write!(f, "Header: Ref"),
-          primary::header::TAG_HEADER_FUN => write!(f, "Header: Fun"),
-          primary::header::TAG_HEADER_FLOAT => write!(f, "Header: Float"),
-          primary::header::TAG_HEADER_EXPORT => write!(f, "Header: Export"),
-          primary::header::TAG_HEADER_REFCBIN => write!(f, "Header: RefcBin"),
-          primary::header::TAG_HEADER_HEAPBIN => write!(f, "Header: HeapBin"),
-          primary::header::TAG_HEADER_SUBBIN => write!(f, "Header: SubBin"),
-          primary::header::TAG_HEADER_EXTPID => write!(f, "Header: ExtPid"),
-          primary::header::TAG_HEADER_EXTPORT => write!(f, "Header: ExtPort"),
-          primary::header::TAG_HEADER_EXTREF => write!(f, "Header: ExtRef"),
-
-          _ => panic!("Unexpected header tag value {}",
-                      primary::get_value(v))
-        }
+        write!(f, "Header(")?;
+        LTerm::format_header(v, f)?;
+        write!(f, ")")
       },
+
       _ => panic!("Primary tag must be in range 0..3")
     }
   }
-}
+} // trait Display
 
 
 //
