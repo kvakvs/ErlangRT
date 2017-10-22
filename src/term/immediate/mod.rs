@@ -31,11 +31,13 @@ pub fn make_atom_raw(val: Word) -> Word {
   combine_imm2_prefix_and_val(val, IMM2_ATOM_PREFIX)
 }
 
+
 /// Same as `make_atom_raw` but compile-time for predefined atoms table
 #[inline]
 pub const fn make_atom_raw_const(val: Word) -> Word {
   combine_imm2_prefix_and_val_const(val, IMM2_ATOM_PREFIX)
 }
+
 
 /// Create a raw value for a pid term from process index
 #[inline]

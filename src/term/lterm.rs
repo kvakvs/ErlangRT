@@ -117,6 +117,11 @@ impl LTerm {
     self.primary_tag() == primary::TAG_CONS
   }
 
+  #[inline]
+  pub fn is_list(&self) -> bool {
+    self.is_cons() || self.is_nil()
+  }
+
   /// Check whether primary tag of a value is `TAG_HEADER`.
   #[inline]
   pub fn is_header(&self) -> bool {
@@ -135,12 +140,6 @@ impl LTerm {
   #[inline]
   pub fn from_raw(w: Word) -> LTerm {
     LTerm { value: w }
-  }
-
-
-  #[inline]
-  pub fn make_cp(p: *const Word) -> LTerm {
-    LTerm { value: (p as Word) | defs::TAG_CP }
   }
 
 
@@ -280,9 +279,7 @@ impl LTerm {
 
   #[inline]
   pub fn small_get_s(&self) -> SWord {
-    let n = immediate::get_imm1_value(self.value);
-    //return defs::unsafe_word_to_sword(n);
-    n as SWord
+    immediate::get_imm1_value_s(self.value)
   }
 
 
@@ -328,6 +325,33 @@ impl LTerm {
     TuplePtrMut::from_pointer(boxp)
   }
 
+
+  //
+  // Code Pointer manipulation.
+  // CP is tagged as Boxed + Top bit set.
+  //
+
+  #[inline]
+  pub fn make_cp(p: *const Word) -> LTerm {
+    let tagged_p = (p as Word) | defs::TAG_CP;
+    LTerm::make_box(tagged_p as *const Word)
+  }
+
+
+  #[inline]
+  pub fn is_cp(&self) -> bool {
+    self.is_box() && (self.value & defs::TAG_CP == defs::TAG_CP)
+  }
+
+
+  #[inline]
+  pub fn cp_get_ptr(&self) -> *const Word {
+    assert!(self.is_box(), "CP value must be boxed (have {})", self);
+    assert_eq!(self.value & defs::TAG_CP, defs::TAG_CP,
+            "CP value must have its top bit set (have 0x{:x})", self.value);
+    let untagged_p = self.value & (!defs::TAG_CP) & (!primary::PRIM_MASK);
+    untagged_p as *const Word
+  }
 }
 
 
@@ -440,6 +464,7 @@ impl fmt::Display for LTerm {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::ptr;
 
   #[test]
   fn test_small_unsigned() {
@@ -450,14 +475,18 @@ mod tests {
     assert_eq!(MAX_UNSIGNED_SMALL, s2.small_get_u());
   }
 
+
   #[test]
   fn test_small_signed_1() {
     let s2 = LTerm::make_small_s(1);
-    assert_eq!(1, s2.small_get_s());
+    let s2_out = s2.small_get_s();
+    assert_eq!(1, s2_out, "Expect 1, have 0x{:x}", s2_out);
 
     let s1 = LTerm::make_small_s(-1);
-    assert_eq!(-1, s1.small_get_s());
+    let s1_out = s1.small_get_s();
+    assert_eq!(-1, s1_out, "Expect -1, have 0x{:x}", s1_out);
   }
+
 
   #[test]
   fn test_small_signed_limits() {
@@ -466,5 +495,12 @@ mod tests {
 
     let s3 = LTerm::make_small_s(MIN_NEG_SMALL);
     assert_eq!(MIN_NEG_SMALL, s3.small_get_s());
+  }
+
+
+  #[test]
+  fn test_cp() {
+    let s1 = LTerm::make_cp(ptr::null());
+    assert_eq!(s1.cp_get_ptr(), ptr::null());
   }
 }

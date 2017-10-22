@@ -36,11 +36,7 @@ pub const MAX_FPREGS: Word = 32;
 
 /// For CP values the highest bit is set. CP values never appear on heap, or
 /// in registers, only in code or stack.
-#[cfg(target_pointer_width = "32")]
-pub const TAG_CP: Word = 1usize << 31;
-
-#[cfg(target_pointer_width = "64")]
-pub const TAG_CP: Word = 1usize << 63;
+pub const TAG_CP: Word = 1usize << (WORD_BITS-1);
 
 
 /// Represents either Word or a `BigInteger`

@@ -60,6 +60,7 @@ pub fn get_imm1_tag(val: Word) -> Word {
   t
 }
 
+
 /// Remove tag bits from imm1 value by shifting it right
 #[inline]
 pub fn get_imm1_value(val: Word) -> Word {
@@ -67,13 +68,25 @@ pub fn get_imm1_value(val: Word) -> Word {
   val.get_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST)
 }
 
+
+/// Remove tag bits from imm1 value by shifting it right. If the stored value
+/// was negative (had its highest bit set) we preserve the sign.
+#[inline]
+pub fn get_imm1_value_s(val: Word) -> SWord {
+  assert!(is_immediate1(val), "raw lterm {:x} is not immediate1", val);
+  //val.get_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST)
+  (val as SWord) >> IMM1_VALUE_FIRST
+}
+
+
 /// Given a value raw preset bits, compose them together and form an imm1 `LTerm`
 #[inline]
 pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
   let mut prefix = prefix0;
   assert!(prefix < (1 << IMM1_VALUE_FIRST));
   assert!(val < (1 << (IMM1_VALUE_LAST - IMM1_VALUE_FIRST)));
-  *prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val)
+  //*prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val)
+  prefix | (val << IMM1_VALUE_FIRST)
 }
 
 
@@ -88,5 +101,6 @@ pub fn combine_imm1_prefix_and_val_signed(val: SWord, prefix0: Word) -> Word {
           "val 0x{:X} must be <= MAX_SIG_SMALL 0x{:x}",
           val, defs::MAX_POS_SMALL);
 
-  *prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val as Word)
+  //*prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val as Word)
+  prefix | (val << IMM1_VALUE_FIRST) as Word
 }
