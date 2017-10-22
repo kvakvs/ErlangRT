@@ -74,3 +74,21 @@ pub fn opcode_get_list(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
 
   DispatchResult::Normal
 }
+
+
+#[inline]
+pub fn opcode_put_list(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
+  assert_arity(gen_op::OPCODE_PUT_LIST, 3);
+  let hd = ctx.fetch_and_load(hp); // take hd
+  let tl = ctx.fetch_and_load(hp); // take tl
+  let dst = ctx.fetch_term(); // put `[hd | tl]` into dst
+
+  unsafe {
+    let cons_p = hp.allocate_cons().unwrap();
+    cons_p.set_hd(hd);
+    cons_p.set_tl(tl);
+    ctx.store(cons_p.make_cons(), dst, hp);
+  }
+
+  DispatchResult::Normal
+}

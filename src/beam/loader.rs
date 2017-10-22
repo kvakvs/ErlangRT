@@ -413,10 +413,14 @@ impl Loader {
     let mut r = BinaryReader::from_bytes(inflated);
     let count = r.read_u32be();
     self.lit_tab.reserve(count as usize);
+    println!("Loading literal table: {} items", count);
+
     for _i in 0..count {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
+      println!("Loading literal table item {}", _i);
       let lterm = etf::decode(&mut r, &mut self.lit_heap).unwrap();
+      println!("result {}", lterm);
       self.lit_tab.push(lterm);
     }
   }

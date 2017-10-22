@@ -16,3 +16,4 @@ test_heap
 is_nonempty_list
 is_nil
 get_list
+put_list

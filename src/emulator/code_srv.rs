@@ -36,7 +36,10 @@ impl CodeServer {
   pub fn new() -> CodeServer {
     CodeServer {
       mods: BTreeMap::new(),
-      search_path: vec!["priv/".to_string()],
+      search_path: vec![
+        "priv/".to_string(),
+        // "/home/kv/r20/lib/erts-9.1/ebin/".to_string(),
+      ],
     }
   }
 

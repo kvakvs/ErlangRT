@@ -26,6 +26,7 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> 
     gen_op::OPCODE_IS_NONEMPTY_LIST => { return opcode_is_nonempty_list(ctx, heap) },
     gen_op::OPCODE_MOVE => { return opcode_move(ctx, heap) },
     gen_op::OPCODE_GET_LIST => { return opcode_get_list(ctx, heap) },
+    gen_op::OPCODE_PUT_LIST => { return opcode_put_list(ctx, heap) },
     gen_op::OPCODE_CALL_EXT_ONLY => { return opcode_call_ext_only(ctx, heap) },
     other => unknown_opcode(other, ctx),
   }

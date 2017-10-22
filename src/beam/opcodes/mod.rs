@@ -19,11 +19,13 @@ use emulator::runtime_ctx::Context;
 // TODO: Maybe #[inline] but now let compiler decide
 #[cfg(debug_assertions)]
 pub fn assert_arity(op: RawOpcode, val: Word) {
-  assert!(op < gen_op::OPCODE_MAX, "Opcode is too large");
-  assert_eq!(gen_op::ARITY_MAP[op as usize] as Word, val,
-             "Opcode {}={} arity is expected to be {}",
-             gen_op::opcode_name(op as u8), op, val);
+  debug_assert!(op < gen_op::OPCODE_MAX, "Opcode is too large");
+  debug_assert_eq!(gen_op::ARITY_MAP[op as usize] as Word, val,
+                   "Opcode {}={} arity is expected to be {}",
+                   gen_op::opcode_name(op as u8), op, val);
 }
+
+
 #[cfg(not(debug_assertions))]
 #[inline]
 pub fn assert_arity(_op: RawOpcode, _val: Word) {}
