@@ -2,6 +2,7 @@ use beam::gen_op;
 use beam::vm_dispatch::dispatch_op_inline;
 use defs::{DispatchResult};
 use emulator::code::{opcode};
+use emulator::disasm;
 use emulator::vm::VM;
 
 //use std::mem::transmute;
@@ -18,6 +19,11 @@ impl VM {
         Some(p) => self.scheduler.lookup_pid_mut(&p).unwrap()
       };
       let mut ctx = &mut curr_p.context;
+
+      if cfg!(debug_assertions) { unsafe {
+        print!("[exec] ");
+        disasm::disasm_op(ctx.ip.get_ptr());
+      }}
 
       // Take next opcode
       let op = opcode::from_memory_word(ctx.fetch());

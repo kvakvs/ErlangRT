@@ -12,3 +12,4 @@ move
 
 #====== List Operations ======
 is_nonempty_list
+is_nil

@@ -39,7 +39,7 @@ impl BinaryReader {
   }
 
   /// Begin reading from 0
-//  pub fn reset(&mut self) { self.pos = 0; }
+  pub fn reset(&mut self) { self.pos = 0; }
 
   /// Are we at the end of the buffer yet?
   pub fn eof(&self) -> bool { self.pos >= self.buf.len() }

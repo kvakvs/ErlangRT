@@ -82,7 +82,7 @@ pub fn get_imm1_value_s(val: Word) -> SWord {
 /// Given a value raw preset bits, compose them together and form an imm1 `LTerm`
 #[inline]
 pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
-  let mut prefix = prefix0;
+  let prefix = prefix0;
   assert!(prefix < (1 << IMM1_VALUE_FIRST));
   assert!(val < (1 << (IMM1_VALUE_LAST - IMM1_VALUE_FIRST)));
   //*prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val)
@@ -92,7 +92,7 @@ pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
 
 #[inline]
 pub fn combine_imm1_prefix_and_val_signed(val: SWord, prefix0: Word) -> Word {
-  let mut prefix = prefix0;
+  let prefix = prefix0;
   assert!(prefix < (1 << IMM1_VALUE_FIRST));
   assert!(val >= defs::MIN_NEG_SMALL,
           "val 0x{:x} must be >= MIN_SIG_SMALL 0x{:x}",

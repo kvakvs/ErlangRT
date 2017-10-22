@@ -4,6 +4,8 @@ use defs::TAG_CP;
 use term::immediate;
 use term::lterm::LTerm;
 
+use std::fmt;
+
 /// Pointer to code location, can only be created to point to some opcode
 /// (instruction begin), and never to the data. During VM execution iterates
 /// over args too, and no extra checks are made.
@@ -13,15 +15,38 @@ use term::lterm::LTerm;
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub enum CodePtr { Ptr(*const Word) }
 
+
+impl fmt::Display for CodePtr {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let CodePtr::Ptr(p) = *self;
+    write!(f, "CodePtr(0x{:x})", p as Word)
+  }
+}
+
+
 impl CodePtr {
+
+  #[inline]
+  pub fn get_ptr(&self) -> *const Word {
+    let CodePtr::Ptr(p) = *self;
+    p
+  }
+
+
   #[inline]
   pub fn from_cp(cp: LTerm) -> CodePtr {
     CodePtr::from_ptr(cp.cp_get_ptr())
   }
 
   #[cfg(debug_assertions)]
+  #[inline]
   pub fn from_ptr(p: *const Word) -> CodePtr {
-    unsafe { assert!(immediate::is_immediate3(*p)); }
+    unsafe {
+      // An extra unsafe safety check, this will fail if codeptr points to
+      // a random garbage
+      assert!(immediate::is_immediate3(*p),
+              "A CodePtr must always point to an imm3 tagged opcode");
+    }
     CodePtr::Ptr(p)
   }
 
@@ -31,12 +56,14 @@ impl CodePtr {
   }
 
 
+  #[inline]
   pub fn null() -> CodePtr {
     CodePtr::Ptr(::std::ptr::null())
   }
 
 
   /// Convert to tagged CP integer
+  #[inline]
   pub fn to_cp(&self) -> Word {
     let CodePtr::Ptr(p) = *self;
     let p1 = p as Word;
@@ -44,11 +71,12 @@ impl CodePtr {
   }
 
 
-//  pub fn offset(&self, n: isize) -> CodePtr {
-//    let CodePtr::Ptr(p) = *self;
-//    let new_p = unsafe { p.offset(n) };
-//    CodePtr::Ptr(new_p)
-//  }
+  #[inline]
+  pub fn offset(&self, n: isize) -> CodePtr {
+    let CodePtr::Ptr(p) = *self;
+    let new_p = unsafe { p.offset(n) };
+    CodePtr::Ptr(new_p)
+  }
 
 
   #[inline]

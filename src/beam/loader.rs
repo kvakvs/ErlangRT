@@ -422,16 +422,37 @@ impl Loader {
   }
 
 
-    /// Assume that loader raw structures are completed, and atoms are already
+  /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
   /// 'drained_code' is 'raw_code' moved out of 'self'
   fn postprocess_code_section(&mut self) {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw_code, &mut raw_code);
+
+    // Estimate code size and preallocate the code storage
+    // TODO: This step is not efficient and does double parse of all args
     let mut r = BinaryReader::from_bytes(raw_code);
 
+    let code_size = {
+      let mut s = 0usize;
+      while !r.eof() {
+        let op: opcode::RawOpcode = r.read_u8();
+        let arity = gen_op::opcode_arity(op) as usize;
+        for _i in 0..arity {
+          let _arg0 = compact_term::read(&mut r).unwrap();
+        }
+        s += arity + 1;
+      }
+      s
+    };
+    self.code.reserve(code_size);
+
+    let debug_code_start = self.code.as_ptr();
+    println!("Code_size {} code_start {:p}", code_size, debug_code_start);
+
     // Writing code unpacked to words here. Break at every new function_info.
+    r.reset();
     while !r.eof() {
       // Read the opcode from the code section
       let op: opcode::RawOpcode = r.read_u8();
@@ -464,23 +485,27 @@ impl Loader {
         // add nothing for line, but TODO: Record line contents
         x if x == gen_op::OPCODE_LINE => {}
 
-        x if x == gen_op::OPCODE_FUNC_INFO => {
-          // arg[0] mod name, arg[1] fun name, arg[2] arity
-          let funarity = FunArity {
-            f: args[1].to_lterm(&mut self.lit_heap),
-            arity: args[2].loadtime_word() as Arity
-          };
-          self.funs.insert(funarity, CodeOffset::Val(self.code.len()));
-        }
-
         // else push the op and convert all args to LTerms, also remember
         // code offsets for label values
         _ => {
+          if op == gen_op::OPCODE_FUNC_INFO {
+            // arg[0] mod name, arg[1] fun name, arg[2] arity
+            let funarity = FunArity {
+              f: args[1].to_lterm(&mut self.lit_heap),
+              arity: args[2].loadtime_word() as Arity
+            };
+            // Function code begins after the func_info opcode (1+3)
+            let fun_begin = self.code.len() + 4;
+            self.funs.insert(funarity, CodeOffset::Val(fun_begin));
+          }
+
           self.code.push(opcode::to_memory_word(op));
           self.postprocess_store_args(&args);
         } // case _
       } // match op
     } // while !r.eof
+
+    assert_eq!(debug_code_start, self.code.as_ptr(), "Must do no reallocations")
   }
 
 
