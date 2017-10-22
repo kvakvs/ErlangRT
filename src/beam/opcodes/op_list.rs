@@ -23,7 +23,7 @@ pub fn opcode_is_nonempty_list(ctx: &mut Context,
 
   let list = ctx.fetch_term();
 
-  if !list.is_cons() {
+  if list.is_nil() && !list.is_cons() {
     if !fail.is_nil() {
       // jump to fail label
       ctx.ip = CodePtr::from_cp(fail)
