@@ -10,6 +10,7 @@ func_info
 allocate
 allocate_zero
 move
+test_heap
 
 #====== List Operations ======
 is_nonempty_list

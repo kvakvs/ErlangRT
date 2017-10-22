@@ -148,11 +148,13 @@ impl Heap {
                             DataPtr::Ptr(begin.offset(last)))
   }
 
+
   //
   // Stack Operations
   //
 
-  pub fn stack_have(&self, need: Word) -> bool {
+  #[inline]
+  pub fn have(&self, need: Word) -> bool {
     self.htop + need <= self.stop
   }
 
