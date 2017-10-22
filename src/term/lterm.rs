@@ -16,6 +16,7 @@ use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
 
 use std::cmp::Ordering;
 use std::fmt;
+use std::ptr;
 
 
 /// A low-level term, packed conveniently in a Word, or containing a
@@ -404,14 +405,21 @@ impl LTerm {
   }
 
 
-  fn format_header(v: Word, f: &mut fmt::Formatter) -> fmt::Result {
+  /// Attempt to display contents of a tagged header word and the words which
+  /// follow it. Arg `p` if not null is used to fetch the following memory words
+  /// and display more detail.
+  fn format_header(v: Word, p: *const Word,
+                   f: &mut fmt::Formatter) -> fmt::Result {
     let arity = primary::header::get_arity(v);
     let h_tag = primary::header::get_tag(v);
 
     match h_tag {
-      primary::header::TAG_HEADER_TUPLE => {
-        write!(f, "Tuple[{}]", arity)
-      },
+      primary::header::TAG_HEADER_TUPLE =>
+        if p.is_null() {
+          write!(f, "Tuple[{}]", arity)
+        } else {
+          unsafe { LTerm::format_tuple(p, f) }
+        },
       primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
       primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
       primary::header::TAG_HEADER_REF => write!(f, "Ref"),
@@ -430,6 +438,24 @@ impl LTerm {
                   h_tag, primary::get_value(v))
     }
   }
+
+
+  /// Given `p`, a pointer to tuple header word, format tuple contents.
+  unsafe fn format_tuple(p: *const Word,
+                  f: &mut fmt::Formatter) -> fmt::Result {
+    let tptr = TuplePtr::from_pointer(p);
+
+    write!(f, "{{")?;
+
+    let arity = tptr.arity();
+    for i in 0..arity {
+      write!(f, "{}", tptr.get_element_base0(i))?;
+      if i < arity - 1 {
+        write!(f, ", ")?
+      }
+    }
+    write!(f, "}}")
+  }
 }
 
 
@@ -445,7 +471,7 @@ impl fmt::Display for LTerm {
           write!(f, "CP({:p})", self.cp_get_ptr())
         } else {
           write!(f, "Box(")?;
-          LTerm::format_header(*p, f)?;
+          LTerm::format_header(*p, p, f)?;
           write!(f, ")")
         }
       },
@@ -459,7 +485,7 @@ impl fmt::Display for LTerm {
 
       primary::TAG_HEADER => {
         write!(f, "Header(")?;
-        LTerm::format_header(v, f)?;
+        LTerm::format_header(v, ptr::null(), f)?;
         write!(f, ")")
       },
 

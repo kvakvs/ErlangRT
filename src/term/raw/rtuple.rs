@@ -4,6 +4,7 @@
 use defs::Word;
 use term::lterm::LTerm;
 use term::primary;
+use term::primary::header;
 
 /// Size of a tuple in memory with the header word (used for allocations).
 #[inline]
@@ -80,15 +81,16 @@ impl TuplePtr {
   }
 
 
-//  pub unsafe fn arity(&self) -> Word {
-//    primary::get_value(*self.p)
-//  }
+  pub unsafe fn arity(&self) -> Word {
+    let TuplePtr::Ptr(p) = *self;
+    header::get_arity(*p)
+  }
 
 
-//  pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
-//    let TuplePtr::Ptr(p) = *self;
-//    LTerm::from_raw(*p.offset(i as isize + 1))
-//  }
+  pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
+    let TuplePtr::Ptr(p) = *self;
+    LTerm::from_raw(*p.offset(i as isize + 1))
+  }
 
 
 //  /// Box the `self.p` pointer into `LTerm`.
