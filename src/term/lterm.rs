@@ -16,6 +16,7 @@ use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
 
 use std::cmp::Ordering;
 use std::fmt;
+use std::fmt::Write;
 use std::ptr;
 
 
@@ -204,6 +205,32 @@ impl LTerm {
     ConsPtrMut::from_pointer(boxp)
   }
 
+
+  /// Iterate through a string and check if it only contains small integers
+  /// and that each integer is in ASCII range.
+  pub unsafe fn cons_is_ascii_string(&self) -> bool {
+    // TODO: List iterator
+    let mut cons_p = self.cons_get_ptr();
+    loop {
+      let hd = cons_p.hd();
+      if !hd.is_small() {
+        return false
+      }
+
+      let hd_value = hd.small_get_s();
+      if hd_value < 32 || hd_value >= 127 {
+        return false
+      }
+
+      let tl = cons_p.tl();
+      if !tl.is_cons() {
+        // NIL [] tail is required for a true string
+        return tl.is_nil()
+      }
+      cons_p = tl.cons_get_ptr();
+    }
+  }
+
   //
   // Atom services - creation, checking
   //
@@ -359,8 +386,7 @@ impl LTerm {
   //
   fn format_immed(&self, v: Word, f: &mut fmt::Formatter) -> fmt::Result {
     match immediate::get_imm1_tag(v) {
-      immediate::TAG_IMM1_SMALL =>
-        write!(f, "{}", self.small_get_s()),
+      immediate::TAG_IMM1_SMALL => write!(f, "{}", self.small_get_s()),
 
       immediate::TAG_IMM1_PID =>
         write!(f, "Pid({})", immediate::get_imm1_value(v)),
@@ -456,6 +482,53 @@ impl LTerm {
     }
     write!(f, "}}")
   }
+
+
+  pub unsafe fn format_cons(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "[")?;
+
+    let mut raw_cons = self.cons_get_ptr();
+    loop {
+      write!(f, "{}", raw_cons.hd());
+      let tl = raw_cons.tl();
+      if tl.is_nil() {
+        // Proper list ends here, do not show the tail
+        break;
+      } else if tl.is_cons() {
+        // List continues, print a comma and follow the tail
+        write!(f, ", ")?;
+        raw_cons = tl.cons_get_ptr();
+      } else {
+        // Improper list, show tail
+        write!(f, "| {}", tl);
+        break
+      }
+    }
+    write!(f, "]")
+  }
+
+
+  pub unsafe fn format_cons_ascii(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "\"")?;
+
+    let mut raw_cons = self.cons_get_ptr();
+    loop {
+      write!(f, "{}", raw_cons.hd().small_get_u() as u8 as char);
+      let tl = raw_cons.tl();
+      if tl.is_nil() {
+        // Proper list ends here, do not show the tail
+        break;
+      } else if tl.is_cons() {
+        // List continues, follow the tail
+        raw_cons = tl.cons_get_ptr();
+      } else {
+        // Improper list, must not happen because we checked for proper NIL
+        // tail in cons_is_ascii_string. Let's do some panic!
+        panic!("Printing an improper list as ASCII string")
+      }
+    }
+    write!(f, "\"")
+  }
 }
 
 
@@ -477,26 +550,11 @@ impl fmt::Display for LTerm {
       },
 
       primary::TAG_CONS => unsafe {
-        write!(f, "[")?;
-
-        let mut raw_cons = self.cons_get_ptr();
-        loop {
-          write!(f, "{}", raw_cons.hd());
-          let tl = raw_cons.tl();
-          if tl.is_nil() {
-            // Proper list ends here, do not show the tail
-            break;
-          } else if tl.is_cons() {
-            // List continues, print a comma and follow the tail
-            write!(f, ", ")?;
-            raw_cons = tl.cons_get_ptr();
-          } else {
-            // Improper list, show tail
-            write!(f, "| {}", tl);
-            break
-          }
+        if self.cons_is_ascii_string() {
+          self.format_cons_ascii(f)
+        } else {
+          self.format_cons(f)
         }
-        write!(f, "]")
       },
 
       primary::TAG_IMMED => self.format_immed(v, f),
