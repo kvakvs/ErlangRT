@@ -186,7 +186,7 @@ impl Heap {
     self.stop -= need;
 
     // Clear the new cells
-    let raw_nil = term::immediate::IMM2_SPECIAL_NIL_RAW;
+    let raw_nil = LTerm::nil().raw();
     unsafe {
       let p = self.begin_mut().offset(self.stop as isize);
       for y in 0..need {

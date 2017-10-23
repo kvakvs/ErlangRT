@@ -424,7 +424,7 @@ impl Loader {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
       let literal = etf::decode(&mut r, &mut self.lit_heap).unwrap();
-      println!("ETF loaded term {}", literal);
+      //println!("ETF loaded term {}", literal);
       self.lit_tab.push(literal);
     }
   }
