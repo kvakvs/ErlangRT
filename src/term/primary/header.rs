@@ -49,6 +49,12 @@ const HEADER_TAG_BIGPOS_RAW: Word = (primary::TAG_HEADER as Word)
 const HEADER_TAG_HEAPOBJ_RAW: Word = (primary::TAG_HEADER as Word)
     | (TAG_HEADER_HEAPOBJ << HEADER_TAG_FIRST);
 
+//const HEADER_TAG_REFCBIN_RAW: Word = (primary::TAG_HEADER as Word)
+//    | (TAG_HEADER_REFCBIN << HEADER_TAG_FIRST);
+
+const HEADER_TAG_HEAPBIN_RAW: Word = (primary::TAG_HEADER as Word)
+    | (TAG_HEADER_HEAPBIN << HEADER_TAG_FIRST);
+
 
 #[inline]
 fn make_header_raw(val: Word, premade: Word) -> Word {
@@ -57,35 +63,51 @@ fn make_header_raw(val: Word, premade: Word) -> Word {
 }
 
 
+/// Header word for a heap block, saying that a TUPLE is stored here.
 #[inline]
 pub fn make_tuple_header_raw(sz: Word) -> Word {
   make_header_raw(sz, HEADER_TAG_TUPLE_RAW)
 }
 
 
-#[inline]
-pub fn make_bignum_neg_header_raw(sz: Word) -> Word {
-  make_header_raw(sz, HEADER_TAG_BIGNEG_RAW)
-}
-
-
+/// Header word for a heap block, saying that a HEAP OBJECT is stored here.
+/// Heap objects are java-like objects with vtable, and optional destructor.
 #[inline]
 pub fn make_heapobj_header_raw(sz: Word) -> Word {
   make_header_raw(sz, HEADER_TAG_HEAPOBJ_RAW)
 }
 
 
+/// Header word for a heap block, saying that a POSITIVE BIGNUM is stored here.
 #[inline]
 pub fn make_bignum_pos_header_raw(sz: Word) -> Word {
   make_header_raw(sz, HEADER_TAG_BIGPOS_RAW)
 }
 
+
+/// Header word for a heap block, saying that a NEGATIVE BIGNUM is stored here.
+#[inline]
+pub fn make_bignum_neg_header_raw(sz: Word) -> Word {
+  make_header_raw(sz, HEADER_TAG_BIGNEG_RAW)
+}
+
+
+/// Header word for a heap block, saying that a HEAP BINARY is stored here.
+#[inline]
+pub fn make_heapbin_header_raw(sz: Word) -> Word {
+  make_header_raw(sz, HEADER_TAG_HEAPBIN_RAW)
+}
+
+
+/// Given the first word of a heap block (the header) extract the type tag.
 #[inline]
 pub fn get_tag(v: Word) -> Word {
   assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
   v.get_bits(HEADER_TAG_FIRST..HEADER_TAG_LAST) as Word
 }
 
+
+/// Given the first word of a heap block (the header) extract the arity value.
 #[inline]
 pub fn get_arity(v: Word) -> Word {
   assert_eq!(primary::get_tag(v), primary::TAG_HEADER);

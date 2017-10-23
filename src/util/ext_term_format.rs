@@ -100,9 +100,13 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
       decode_big(r, heap, size)
     }
 
+    x if x == Tag::Binary as u8 => decode_binary(r, heap),
+
     _ => {
-      let msg = format!("{}Don't know how to decode ETF value tag 0x{:x}",
-                        module(), term_tag);
+      let msg = format!(
+        "Don't know how to decode ETF value tag 0x{:x} ({})",
+        term_tag, term_tag
+      );
       fail(msg)
     }
   }
@@ -112,27 +116,41 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
 /// Given `size`, read digits for a bigint.
 fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
               size: Word) -> Hopefully<LTerm> {
-  let sign = if r.read_u8() == 0 { num::bigint::Sign::Plus } else { num::bigint::Sign::Minus };
-  let digits = r.read_bytes(size).unwrap();
+  let sign = if r.read_u8() == 0 { num::bigint::Sign::Plus }
+      else { num::bigint::Sign::Minus };
+  let digits = r.read_bytes(size)?;
   let big = num::BigInt::from_bytes_le(sign, &digits);
 
   // Assert that the number fits into small
   if big.bits() < defs::WORD_BITS - 4 {
-    return Ok(LTerm::make_small_s(big.to_isize().unwrap()));
+    let b_signed = big.to_isize().unwrap();
+    return Ok(LTerm::make_small_s(b_signed));
   }
 
   // Determine storage size in words
-  let rbig = heap.allocate_big(&big).unwrap();
+  let rbig = heap.allocate_big(&big)?;
   Ok(rbig.make_bignum())
+}
+
+
+fn decode_binary(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
+  let n_bytes = r.read_u32be() as usize;
+  let data = r.read_bytes(n_bytes)?;
+
+  println!("dec bin nbytes={} data={} bytes", n_bytes, data.len());
+
+  let rbin = hp.allocate_binary(n_bytes as Word)?;
+  unsafe { rbin.store(&data) }
+  Ok(rbin.make_term())
 }
 
 
 /// Given arity, allocate a tuple and read its elements sequentially.
 fn decode_tuple(r: &mut BinaryReader, heap: &mut Heap,
                 size: Word) -> Hopefully<LTerm> {
-  let rtuple = heap.allocate_tuple(size).unwrap();
+  let rtuple = heap.allocate_tuple(size)?;
   for i in 0..size {
-    let elem = decode_naked(r, heap).unwrap();
+    let elem = decode_naked(r, heap)?;
     unsafe { rtuple.set_element_base0(i, elem) }
   }
   Ok(rtuple.make_tuple())

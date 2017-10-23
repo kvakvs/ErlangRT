@@ -18,7 +18,6 @@ pub enum TuplePtrMut { Ptr(*mut Word) }
 impl TuplePtrMut {
   /// Given a pointer initialize a tuple header here, hence unsafe. Return a
   /// `RawTuple` wrapper.
-  #[inline]
   pub unsafe fn create_at(p: *mut Word, arity: Word) -> TuplePtrMut {
     *p = primary::header::make_tuple_header_raw(arity);
     TuplePtrMut::from_pointer(p)

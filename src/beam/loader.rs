@@ -14,7 +14,7 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
-use util::print::dump_vec;
+//use util::print::dump_vec;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
@@ -114,8 +114,8 @@ pub struct Loader {
   lit_heap: Heap,
   /// Proplist of module attributes as loaded from "Attr" section
   mod_attrs: LTerm,
-  /// Compiler flags as loaded from "Attr" section
-  compiler_info: LTerm,
+  // /// Compiler flags as loaded from "Attr" section
+  // compiler_info: LTerm,
   /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
   lit_imports: Vec<LTerm>,
 }
@@ -142,7 +142,7 @@ impl Loader {
       replace_labels: Vec::new(),
       funs: BTreeMap::new(),
       mod_attrs: LTerm::nil(),
-      compiler_info: LTerm::nil(),
+      //compiler_info: LTerm::nil(),
       lit_imports: Vec::new(),
     }
   }
@@ -404,7 +404,7 @@ impl Loader {
     assert_eq!(inflated.len(), uncomp_sz as usize, "LitT inflate failed");
 
     // Parse literal table
-    dump_vec(&inflated);
+    //dump_vec(&inflated);
     self.decode_literals(inflated);
   }
 

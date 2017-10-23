@@ -16,7 +16,7 @@ use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::fmt::Write;
+//use std::fmt::Write;
 use std::ptr;
 
 
@@ -489,7 +489,7 @@ impl LTerm {
 
     let mut raw_cons = self.cons_get_ptr();
     loop {
-      write!(f, "{}", raw_cons.hd());
+      write!(f, "{}", raw_cons.hd())?;
       let tl = raw_cons.tl();
       if tl.is_nil() {
         // Proper list ends here, do not show the tail
@@ -500,7 +500,7 @@ impl LTerm {
         raw_cons = tl.cons_get_ptr();
       } else {
         // Improper list, show tail
-        write!(f, "| {}", tl);
+        write!(f, "| {}", tl)?;
         break
       }
     }
@@ -513,7 +513,7 @@ impl LTerm {
 
     let mut raw_cons = self.cons_get_ptr();
     loop {
-      write!(f, "{}", raw_cons.hd().small_get_u() as u8 as char);
+      write!(f, "{}", raw_cons.hd().small_get_u() as u8 as char)?;
       let tl = raw_cons.tl();
       if tl.is_nil() {
         // Proper list ends here, do not show the tail
