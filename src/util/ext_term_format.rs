@@ -135,9 +135,11 @@ fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
 
 fn decode_binary(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
   let n_bytes = r.read_u32be() as usize;
-  let data = r.read_bytes(n_bytes)?;
+  if n_bytes == 0 {
+    return Ok(LTerm::empty_binary())
+  }
 
-  println!("dec bin nbytes={} data={} bytes", n_bytes, data.len());
+  let data = r.read_bytes(n_bytes)?;
 
   let rbin = hp.allocate_binary(n_bytes as Word)?;
   unsafe { rbin.store(&data) }

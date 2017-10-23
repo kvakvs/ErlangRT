@@ -30,9 +30,13 @@ pub const TAG_IMM2_SPECIAL: Word = 3;
 pub const IMMEDIATE2_MAX: Word = 3;
 
 
-/// In heap memory NIL looks like 0x40404072
-pub const TAG_IMM2_SPECIAL_NIL: Word = 0x0101_0101;
-pub const TAG_IMM2_SPECIAL_NONVALUE: Word = 0x0303_0303;
+/// Values are pre-shifted to allow the 4 bits of header to line up with the 4
+/// bits shift, and so that they look exactly same when printed as hex.
+pub const TAG_IMM2_SPECIAL_NIL: Word = 0x0101_0101 << 4;
+pub const TAG_IMM2_SPECIAL_NONVALUE: Word = 0x0303_0303 << 4;
+pub const TAG_IMM2_SPECIAL_EMPTY_TUPLE: Word = 0x0505_0505 << 4;
+pub const TAG_IMM2_SPECIAL_EMPTY_BIN: Word = 0x0707_0707 << 4;
+
 
 /// Trim to have only immediate2 bits and return them as an convenient enum.
 #[inline]
@@ -42,6 +46,7 @@ pub fn get_imm2_tag(val: Word) -> Word {
   t
 }
 
+
 /// Remove tag bits from imm2 value by shifting it right
 #[inline]
 pub fn get_imm2_value(val: Word) -> Word {
@@ -49,13 +54,16 @@ pub fn get_imm2_value(val: Word) -> Word {
   val.get_bits(IMM2_VALUE_FIRST..IMM2_VALUE_LAST)
 }
 
+
 /// Precomposed bits for immediate2 values
 pub const IMM2_PREFIX: Word = IMM1_PREFIX
     | (TAG_IMM1_IMM2 << IMM1_TAG_FIRST);
 
+
 /// Precomposed bits for atom imm2
 pub const IMM2_ATOM_PREFIX: Word = IMM2_PREFIX
     | (TAG_IMM2_ATOM << IMM2_TAG_FIRST);
+
 
 //--- Imm2 values tagged special ---
 
@@ -70,6 +78,14 @@ pub const IMM2_SPECIAL_NIL_RAW: Word = IMM2_SPECIAL_PREFIX
 /// Precomposed bits for `NON_VALUE` constant
 pub const IMM2_SPECIAL_NONVALUE_RAW: Word = IMM2_SPECIAL_PREFIX
     | (TAG_IMM2_SPECIAL_NONVALUE << IMM2_VALUE_FIRST);
+
+/// Precomposed bits for `Empty tuple` constant
+pub const IMM2_SPECIAL_EMPTY_TUPLE_RAW: Word = IMM2_SPECIAL_PREFIX
+    | (TAG_IMM2_SPECIAL_EMPTY_TUPLE << IMM2_VALUE_FIRST);
+
+/// Precomposed bits for `Empty binary` constant
+pub const IMM2_SPECIAL_EMPTY_BIN_RAW: Word = IMM2_SPECIAL_PREFIX
+    | (TAG_IMM2_SPECIAL_EMPTY_BIN << IMM2_VALUE_FIRST);
 
 
 /// Get prefix bits BEFORE imm2 tag

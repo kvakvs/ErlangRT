@@ -5,7 +5,6 @@
 //! as compact as possible while maintaining an acceptable performance
 //!
 use term::immediate;
-use term::immediate::{IMM2_SPECIAL_NIL_RAW, IMM2_SPECIAL_NONVALUE_RAW};
 use term::primary;
 use term::raw::{ConsPtr, ConsPtrMut, TuplePtr, TuplePtrMut};
 use emulator::atom;
@@ -49,27 +48,20 @@ impl LTerm {
   #[inline]
   pub fn raw(&self) -> Word { self.value }
 
-  /// Create a NIL value.
-  #[inline]
-  pub fn nil() -> LTerm { LTerm { value: IMM2_SPECIAL_NIL_RAW } }
-
-  /// Check whether a value is a NIL \[ \]
-  #[inline]
-  pub fn is_nil(&self) -> bool {
-    self.value == IMM2_SPECIAL_NIL_RAW
-  }
 
   /// Create a NON_VALUE.
   #[inline]
   pub fn non_value() -> LTerm {
-    LTerm { value: IMM2_SPECIAL_NONVALUE_RAW }
+    LTerm { value: immediate::IMM2_SPECIAL_NONVALUE_RAW }
   }
+
 
   /// Check whether a value is a NON_VALUE.
   #[inline]
   pub fn is_non_value(&self) -> bool {
-    self.value == IMM2_SPECIAL_NONVALUE_RAW
+    self.value == immediate::IMM2_SPECIAL_NONVALUE_RAW
   }
+
 
   /// Check whether a value is NOT a NON_VALUE.
   #[inline]
@@ -77,11 +69,13 @@ impl LTerm {
     ! self.is_non_value()
   }
 
+
   /// Check whether a value is a local pid.
   #[inline]
   pub fn is_local_pid(&self) -> bool {
     immediate::is_pid_raw(self.value)
   }
+
 
   /// Get primary tag bits from a raw term
   #[inline]
@@ -180,6 +174,20 @@ impl LTerm {
   //
   // Cons, lists, list cells, heads, tails
   //
+
+  /// Create a NIL value.
+  #[inline]
+  pub fn nil() -> LTerm {
+    LTerm { value: immediate::IMM2_SPECIAL_NIL_RAW }
+  }
+
+
+  /// Check whether a value is a NIL \[ \]
+  #[inline]
+  pub fn is_nil(&self) -> bool {
+    self.value == immediate::IMM2_SPECIAL_NIL_RAW
+  }
+
 
   /// From a pointer to heap create a cons box
   #[inline]
@@ -317,7 +325,24 @@ impl LTerm {
   }
 
   //
-  // Headers, tuples etc, boxed stuff on heap and special stuff in code
+  // Binaries
+  //
+
+  /// Create an empty binary value.
+  #[inline]
+  pub fn empty_binary() -> LTerm {
+    LTerm { value: immediate::IMM2_SPECIAL_EMPTY_BIN_RAW }
+  }
+
+  /// Check whether a value is an empty binary.
+  #[inline]
+  pub fn is_empty_binary(&self) -> bool {
+    self.value == immediate::IMM2_SPECIAL_EMPTY_BIN_RAW
+  }
+
+
+  //
+  // Tuples
   //
 
   #[inline]
@@ -354,6 +379,19 @@ impl LTerm {
   }
 
 
+  /// Create an empty tuple value.
+  #[inline]
+  pub fn empty_tuple() -> LTerm {
+    LTerm { value: immediate::IMM2_SPECIAL_EMPTY_TUPLE_RAW }
+  }
+
+  /// Check whether a value is an empty tuple.
+  #[inline]
+  pub fn is_empty_tuple(&self) -> bool {
+    self.value == immediate::IMM2_SPECIAL_EMPTY_TUPLE_RAW
+  }
+
+
   //
   // Code Pointer manipulation.
   // CP is tagged as Boxed + Top bit set.
@@ -384,6 +422,7 @@ impl LTerm {
   //
   // Formatting helpers
   //
+
   fn format_immed(&self, v: Word, f: &mut fmt::Formatter) -> fmt::Result {
     match immediate::get_imm1_tag(v) {
       immediate::TAG_IMM1_SMALL => write!(f, "{}", self.small_get_s()),
@@ -405,6 +444,10 @@ impl LTerm {
               write!(f, "[]")
             } else if self.is_non_value() {
               write!(f, "NON_VALUE")
+            } else if self.is_empty_binary() {
+              write!(f, "<<>>")
+            } else if self.is_empty_tuple() {
+              write!(f, "{{}}")
             } else {
               write!(f, "Special(0x{:x})", immediate::get_imm2_value(v))
             }
