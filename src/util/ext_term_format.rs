@@ -1,4 +1,4 @@
-use defs::Word;
+use defs::{Word, SWord};
 use defs;
 use emulator::atom;
 use emulator::heap::Heap;
@@ -77,6 +77,7 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
     x if x == Tag::AtomDeprecated as u8 => decode_atom_latin1(r),
 
     x if x == Tag::SmallInteger as u8 => decode_u8(r),
+    x if x == Tag::Integer as u8 => decode_s32(r),
 
     x if x == Tag::Nil as u8 => Ok(LTerm::nil()),
 
@@ -162,6 +163,12 @@ fn decode_tuple(r: &mut BinaryReader, heap: &mut Heap,
 fn decode_u8(r: &mut BinaryReader) -> Hopefully<LTerm> {
   let val = r.read_u8();
   Ok(LTerm::make_small_u(val as Word))
+}
+
+
+fn decode_s32(r: &mut BinaryReader) -> Hopefully<LTerm> {
+  let val = r.read_u32be() as i32;
+  Ok(LTerm::make_small_s(val as SWord))
 }
 
 

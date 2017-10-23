@@ -250,8 +250,11 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
 
     // Read the remaining big endian bytes and convert to int
     let long_bytes = r.read_bytes(n_bytes).unwrap();
-    let sign = if long_bytes[0] & 0x80 == 0x80
-        { bigint::Sign::Minus } else { bigint::Sign::Plus };
+    let sign = if long_bytes[0] & 0x80 == 0x80 {
+      bigint::Sign::Minus
+    } else {
+      bigint::Sign::Plus
+    };
     let r = bigint::BigInt::from_bytes_be(sign, &long_bytes);
     Integral::from_big(r)
   } // if larger than 11 bits
