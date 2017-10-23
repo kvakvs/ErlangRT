@@ -1,7 +1,6 @@
 use defs::Word;
 use emulator::heap::iter;
 use fail::{Error, Hopefully};
-use term;
 use term::lterm::LTerm;
 use term::raw::rtuple;
 use term::raw::rbinary;

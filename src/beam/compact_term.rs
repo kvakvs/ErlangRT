@@ -289,7 +289,7 @@ mod tests {
 
   #[test]
   fn test_lit() {
-    try_parse(vec![0u8], fterm::FTerm::LoadTimeInt(0));
+    try_parse(vec![0u8], fterm::FTerm::SmallInt(0));
   }
 
   #[test]
@@ -317,23 +317,23 @@ mod tests {
 
   #[test]
   fn test_read_word_4bit() {
-    try_read_word(vec![0b10010000u8], Integral::Word(9));
-    try_read_word(vec![0b11110000u8], Integral::Word(15));
+    try_read_word(vec![0b10010000u8], Integral::Small(9));
+    try_read_word(vec![0b11110000u8], Integral::Small(15));
   }
 
   #[test]
   fn test_read_word_11bit() {
     try_read_word(vec![0b1000u8, 127],
-                  Integral::Word(127));
+                  Integral::Small(127));
     try_read_word(vec![0b10101000u8, 255],
-                  Integral::Word(0b101 * 256 + 255));
+                  Integral::Small(0b101 * 256 + 255));
     try_read_word(vec![0b11101000u8, 0b00001111],
-                  Integral::Word(0b111 * 256 + 0b00001111));
+                  Integral::Small(0b111 * 256 + 0b00001111));
   }
 
   #[test]
   fn test_read_word_16to64bit() {
     try_read_word(vec![0b00011000u8, 127, 1],
-                  Integral::Word(127 * 256 + 1));
+                  Integral::Small(127 * 256 + 1));
   }
 }

@@ -24,11 +24,21 @@ pub struct HOImport {
 #[allow(const_err)]
 static HOCLASS_IMPORT: HeapObjClass = HeapObjClass {
   obj_type: HeapObjType::Import,
-  dtor: |_ptr: *mut Word| {}
+  dtor: |_ptr: *mut Word| {},
+  fmt_str: HOImport::fmt_str
 };
 
 
 impl HOImport {
+  pub unsafe fn fmt_str(this0: *const Word) -> String {
+    let this = this0 as *mut HOImport;
+    let m = (*this).mfarity.m;
+    let f = (*this).mfarity.f;
+    let arity = (*this).mfarity.arity;
+    format!("Import({}:{}/{})@{:p}", m, f, arity, this0)
+  }
+
+
   #[inline]
   fn storage_size() -> usize {
     // Add 1 for header word

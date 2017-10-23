@@ -8,6 +8,7 @@ use term::immediate;
 use term::primary;
 use term::raw::{ConsPtr, ConsPtrMut, TuplePtr, TuplePtrMut};
 use emulator::atom;
+use emulator::heap::heapobj::HeapObjClass;
 
 use defs;
 use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
@@ -15,7 +16,6 @@ use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
 
 use std::cmp::Ordering;
 use std::fmt;
-//use std::fmt::Write;
 use std::ptr;
 
 
@@ -498,7 +498,12 @@ impl LTerm {
       primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
       primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
       primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
-      primary::header::TAG_HEADER_HEAPOBJ => write!(f, "HeapObj"),
+      primary::header::TAG_HEADER_HEAPOBJ => unsafe {
+        let ho_ptr = p.offset(1);
+        let hoclass = *(ho_ptr) as *const HeapObjClass;
+        let s = ((*hoclass).fmt_str)(ho_ptr) ;
+        write!(f, "{}", s)
+      },
       primary::header::TAG_HEADER_EXTPID => write!(f, "ExtPid"),
       primary::header::TAG_HEADER_EXTPORT => write!(f, "ExtPort"),
       primary::header::TAG_HEADER_EXTREF => write!(f, "ExtRef"),
@@ -622,6 +627,11 @@ impl fmt::Display for LTerm {
 mod tests {
   use super::*;
   use std::ptr;
+
+  #[test]
+  fn test_term_size() {
+    assert_eq!(mem::size_of::<LTerm>(), defs::WORD_BYTES);
+  }
 
   #[test]
   fn test_small_unsigned() {
