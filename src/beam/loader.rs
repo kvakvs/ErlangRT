@@ -481,10 +481,11 @@ impl Loader {
       match op {
         // add nothing for label, but record its location
         x if x == gen_op::OPCODE_LABEL => {
-          if let FTerm::LoadTimeInt(f) = args[0] {
+          if let FTerm::SmallInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
-            self.labels.insert(LabelId::Val(f), CodeOffset::Val(floc));
+            self.labels.insert(LabelId::Val(f as Word),
+                               CodeOffset::Val(floc));
           } else {
             op_badarg_panic(op, &args, 0);
           }

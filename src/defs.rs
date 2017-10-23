@@ -1,9 +1,6 @@
 //!
 //! Helper module defines types used everywhere in the VM runtime
 //!
-use num;
-use num::ToPrimitive;
-//use std::mem::transmute;
 use std::{usize, isize};
 
 pub type Word = usize;
@@ -38,22 +35,6 @@ pub const MAX_FPREGS: Word = 32;
 /// in registers, only in code or stack.
 pub const TAG_CP: Word = 1usize << (WORD_BITS-1);
 
-
-/// Represents either Word or a `BigInteger`
-#[derive(Debug, Eq, PartialEq)]
-pub enum Integral {
-  Word(Word),
-  BigInt(num::BigInt),
-}
-
-impl Integral {
-  pub fn from_big(big: num::BigInt) -> Integral {
-    if big.bits() < WORD_BITS {
-      return Integral::Word(big.to_usize().unwrap());
-    }
-    Integral::BigInt(big)
-  }
-}
 
 //pub fn unsafe_sword_to_word(n: SWord) -> Word {
 //  unsafe { transmute::<isize, usize> (n) }

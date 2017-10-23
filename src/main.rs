@@ -19,10 +19,10 @@ extern crate lazy_static;
 
 mod beam;
 mod bif;
+mod defs;
 mod emulator;
 mod fail;
 mod term;
-mod defs;
 mod util;
 
 use emulator::atom;
