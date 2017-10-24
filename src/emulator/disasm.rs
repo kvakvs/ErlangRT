@@ -27,17 +27,23 @@ pub unsafe fn disasm_op(ip0: *const Word) -> *const Word {
   ip = ip.offset(1);
 
   let n_args = gen_op::opcode_arity(op as u8) as Word;
-
-  for arg_index in 0..n_args {
-
-    let arg_raw = *ip.offset(arg_index as isize);
-    let arg = LTerm::from_raw(arg_raw);
-
-    print!("{} ", arg)
-  }
+  disasm_op_args(ip, n_args);
 
   println!();
 
   ip.offset(n_args as isize)
 }
 
+
+unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
+  for arg_index in 0..n_args {
+
+    let arg_raw = *ip.offset(arg_index as isize);
+    let arg = LTerm::from_raw(arg_raw);
+
+    print!("{}", arg);
+    if arg_index < n_args - 1 {
+      print!(", ")
+    }
+  }
+}
