@@ -2,6 +2,7 @@
 
 use std::mem::size_of;
 
+use fail::Hopefully;
 use defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
@@ -65,7 +66,7 @@ impl HOImport {
   }
 
 
-  pub fn resolve(&self) -> CodePtr {
-    code_srv::lookup_and_load(&self.mfarity).unwrap()
+  pub fn resolve(&self) -> Hopefully<CodePtr> {
+    code_srv::lookup_and_load(&self.mfarity)
   }
 }

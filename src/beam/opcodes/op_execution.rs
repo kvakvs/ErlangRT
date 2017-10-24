@@ -66,7 +66,7 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
     if (*import).is_bif {
       panic!("{}call_ext_only: call_bif", module());
     } else {
-      ctx.ip = (*import).resolve();
+      ctx.ip = (*import).resolve().unwrap()
     }
   }
 

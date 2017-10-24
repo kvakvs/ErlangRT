@@ -91,8 +91,8 @@ member(_, _) ->
       List2 :: [T],
       T :: term().
 
-reverse(_, _) ->
-    erlang:nif_error(undef).
+%reverse(_, _) ->
+%    erlang:nif_error(undef).
 
 %%% End of BIFs
 
@@ -153,9 +153,9 @@ reverse([A, B]) ->
 reverse([A, B | L]) ->
     lists:reverse(L, [B, A]).
 
-%reverse([H|T], Y) ->
-%    reverse(T, [H|Y]);
-%reverse([], X) -> X.
+reverse([H|T], Y) ->
+    reverse(T, [H|Y]);
+reverse([], X) -> X.
 
 
 %% nth(N, L) returns the N`th element of the list L
