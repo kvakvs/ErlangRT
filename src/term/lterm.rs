@@ -489,15 +489,15 @@ impl LTerm {
         } else {
           unsafe { LTerm::format_tuple(p, f) }
         },
-      primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
-      primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
+//      primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
+//      primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
       primary::header::TAG_HEADER_REF => write!(f, "Ref"),
       primary::header::TAG_HEADER_FUN => write!(f, "Fun"),
       primary::header::TAG_HEADER_FLOAT => write!(f, "Float"),
       primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
-      primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
-      primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
-      primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
+//      primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
+//      primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
+//      primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
       primary::header::TAG_HEADER_HEAPOBJ => unsafe {
         let ho_ptr = p.offset(1);
         let hoclass = *(ho_ptr) as *const HeapObjClass;

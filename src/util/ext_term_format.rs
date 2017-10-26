@@ -4,6 +4,7 @@ use defs;
 use emulator::atom;
 use emulator::heap::Heap;
 use emulator::heap::ho_binary::HOBinary;
+use emulator::heap::ho_bignum::HOBignum;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 use util::bin_reader::BinaryReader;
@@ -130,8 +131,8 @@ fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
   }
 
   // Determine storage size in words
-  let rbig = heap.allocate_big(&big)?;
-  Ok(rbig.make_bignum())
+  let rbig = unsafe { HOBignum::place_into(heap, big)? };
+  Ok(HOBignum::make_term(rbig))
 }
 
 

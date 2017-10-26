@@ -213,7 +213,7 @@ impl Loader {
   /// Call this to apply changes to the VM after module loading succeeded. The
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
-  pub fn load_stage2(&mut self) {
+  pub fn load_stage2(&mut self) -> Hopefully<()> {
     self.vm_atoms.reserve(self.raw_atoms.len());
     for a in &self.raw_atoms {
       self.vm_atoms.push(atom::from_str(a));
@@ -221,7 +221,9 @@ impl Loader {
 
     self.postprocess_code_section();
     self.postprocess_fix_labels();
-    self.postprocess_setup_imports();
+    self.postprocess_setup_imports()?;
+
+    Ok(())
   }
 
 
@@ -644,34 +646,19 @@ impl Loader {
 
   /// Analyze the code and for certain opcodes overwrite their import index
   /// args with direct pointer to import heap.
-  fn postprocess_setup_imports(&mut self) {
+  fn postprocess_setup_imports(&mut self) -> Hopefully<()> {
     // Step 1
     // Write imports onto literal heap as {Mod, Fun, Arity} triplets
     //
     self.lit_imports.reserve(self.raw_imports.len());
     for ri in &self.raw_imports {
-//      let imp_tuple = self.lit_heap.allocate_tuple(3).unwrap(); // {m,f,arity}
-//      unsafe {
-//        let mod_atom = self.vm_atoms[ri.mod_atom as usize - 1];
-//        imp_tuple.set_element_base0(0, mod_atom);
-//        let fun_atom = self.vm_atoms[ri.fun_atom as usize - 1];
-//        imp_tuple.set_element_base0(1, fun_atom);
-//
-//        // Encode BIF as negative arity in the `export` {M,F,A} tuple
-//        let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
-//        let arity = if bif::is_bif(&mf_arity) {
-//          LTerm::make_small_s(-(ri.arity as SWord))
-//        } else {
-//          LTerm::make_small_s(ri.arity as SWord)
-//        };
-//        imp_tuple.set_element_base0(2, arity);
-//      }
-//      self.lit_imports.push(imp_tuple.make_tuple());
       let mod_atom = self.vm_atoms[ri.mod_atom_i as usize - 1];
       let fun_atom = self.vm_atoms[ri.fun_atom_i as usize - 1];
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
-      let ho_imp = HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif);
+      let ho_imp = unsafe {
+        HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif)?
+      };
 
       self.lit_imports.push(ho_imp);
     }
@@ -706,6 +693,7 @@ impl Loader {
         _ => {}
       }
     }
+    Ok(())
   }
 
 

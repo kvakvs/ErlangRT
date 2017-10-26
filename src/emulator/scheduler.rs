@@ -187,10 +187,10 @@ impl Scheduler {
 
       if next_pid.is_some() {
         let next_pid1 = next_pid.unwrap();
-        {
-          let next_p = self.lookup_pid(&next_pid1).unwrap();
-          println!("{} next() queue {}", module(), next_p.pid);
-        }
+//        {
+//          let next_p = self.lookup_pid(&next_pid1).unwrap();
+//          println!("{} next() queue {}", module(), next_p.pid);
+//        }
 
         self.current = Some(next_pid1)
       }

@@ -18,7 +18,6 @@ pub fn opcode_is_nonempty_list(ctx: &mut Context,
   assert_arity(gen_op::OPCODE_IS_NONEMPTY_LIST, 2);
   let fail = ctx.fetch_term(); // jump if not a list
 
-  println!("ctx.ip: {}", ctx.ip);
   assert!(fail.is_cp() || fail.is_nil());
 
   let list = ctx.fetch_and_load(hp);

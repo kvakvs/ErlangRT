@@ -107,16 +107,14 @@ impl CodeServer {
   {
     // Delegate the loading task to BEAM or another loader
     let mut loader = loader::Loader::new();
+
     // Phase 1: Preload data structures
-    loader.load(mod_file_path).unwrap();
-    loader.load_stage2();
-    match loader.load_finalize() {
-      Ok(mod_ptr) => {
-        self.module_loaded(Arc::clone(&mod_ptr));
-        Ok(mod_ptr)
-      },
-      Err(e) => Err(e)
-    }
+    loader.load(mod_file_path)?;
+    loader.load_stage2()?;
+
+    let mod_ptr = loader.load_finalize()?;
+    self.module_loaded(Arc::clone(&mod_ptr));
+    Ok(mod_ptr)
   }
 
 }

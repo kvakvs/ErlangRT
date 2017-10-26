@@ -1,6 +1,7 @@
 pub mod dump;
 pub mod heap_impl;
 pub mod heapobj;
+pub mod ho_bignum;
 pub mod ho_binary;
 pub mod ho_import;
 pub mod iter;
