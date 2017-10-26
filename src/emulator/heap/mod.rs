@@ -1,10 +1,12 @@
 pub mod dump;
 pub mod heap_impl;
 pub mod heapobj;
+pub mod ho_binary;
 pub mod ho_import;
 pub mod iter;
 
 use defs::Word;
+
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: Word = 8192;

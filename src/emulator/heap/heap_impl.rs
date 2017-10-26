@@ -3,8 +3,7 @@ use emulator::heap::iter;
 use fail::{Error, Hopefully};
 use term::lterm::LTerm;
 use term::raw::rtuple;
-use term::raw::rbinary;
-use term::raw::{ConsPtrMut, TuplePtrMut, BignumPtr, BinaryPtrMut};
+use term::raw::{ConsPtrMut, TuplePtrMut, BignumPtr};
 
 use num;
 use std::fmt;
@@ -133,17 +132,6 @@ impl Heap {
   pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
     match self.allocate(BignumPtr::storage_size(big)) {
       Ok(p) => unsafe { Ok(BignumPtr::create_at(p, big)) },
-      Err(e) => Err(e) // repack inner Err into outer Err
-    }
-  }
-
-
-  /// Allocate words on heap enough to store a binary of requested size. A
-  /// pointer to binary is returned which manages heap placement automatically
-  /// (i.e. heapbin or procbin etc).
-  pub fn allocate_binary(&mut self, nbytes: Word) -> Hopefully<BinaryPtrMut> {
-    match self.allocate(rbinary::storage_size(nbytes)) {
-      Ok(p) => unsafe { Ok(BinaryPtrMut::create_at(p, nbytes)) },
       Err(e) => Err(e) // repack inner Err into outer Err
     }
   }

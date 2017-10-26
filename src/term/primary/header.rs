@@ -52,8 +52,8 @@ const HEADER_TAG_HEAPOBJ_RAW: Word = (primary::TAG_HEADER as Word)
 //const HEADER_TAG_REFCBIN_RAW: Word = (primary::TAG_HEADER as Word)
 //    | (TAG_HEADER_REFCBIN << HEADER_TAG_FIRST);
 
-const HEADER_TAG_HEAPBIN_RAW: Word = (primary::TAG_HEADER as Word)
-    | (TAG_HEADER_HEAPBIN << HEADER_TAG_FIRST);
+//const HEADER_TAG_HEAPBIN_RAW: Word = (primary::TAG_HEADER as Word)
+//    | (TAG_HEADER_HEAPBIN << HEADER_TAG_FIRST);
 
 
 #[inline]
@@ -93,10 +93,10 @@ pub fn make_bignum_neg_header_raw(sz: Word) -> Word {
 
 
 /// Header word for a heap block, saying that a HEAP BINARY is stored here.
-#[inline]
-pub fn make_heapbin_header_raw(sz: Word) -> Word {
-  make_header_raw(sz, HEADER_TAG_HEAPBIN_RAW)
-}
+//#[inline]
+//pub fn make_heapbin_header_raw(sz: Word) -> Word {
+//  make_header_raw(sz, HEADER_TAG_HEAPBIN_RAW)
+//}
 
 
 /// Given the first word of a heap block (the header) extract the type tag.

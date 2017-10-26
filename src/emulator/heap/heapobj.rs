@@ -8,11 +8,13 @@ use defs::Word;
 pub enum HeapObjType {
   /// Maps to `emulator::heap::ho_import::HOImport`
   Import,
+  Binary,
+  //Bignum,
 }
 
 /// Used to identify heap object type on heap
 pub struct HeapObjClass {
   pub obj_type: HeapObjType,
-  pub dtor: fn(this: *mut Word) -> (),
+  pub dtor: unsafe fn(this: *mut Word) -> (),
   pub fmt_str: unsafe fn(this: *const Word) -> String,
 }

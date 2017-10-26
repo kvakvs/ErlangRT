@@ -25,12 +25,18 @@ pub struct HOImport {
 #[allow(const_err)]
 static HOCLASS_IMPORT: HeapObjClass = HeapObjClass {
   obj_type: HeapObjType::Import,
-  dtor: |_ptr: *mut Word| {},
-  fmt_str: HOImport::fmt_str
+  dtor: HOImport::dtor,
+  fmt_str: HOImport::fmt_str,
 };
 
 
 impl HOImport {
+
+  /// Destructor.
+  pub unsafe fn dtor(_this: *mut Word) {
+  }
+
+
   pub unsafe fn fmt_str(this0: *const Word) -> String {
     let this = this0 as *mut HOImport;
     let m = (*this).mfarity.m;

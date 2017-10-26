@@ -1,10 +1,11 @@
+//use term::raw::RawBignum;
 use defs::{Word, SWord};
 use defs;
 use emulator::atom;
 use emulator::heap::Heap;
+use emulator::heap::ho_binary::HOBinary;
 use fail::{Hopefully, Error};
 use term::lterm::LTerm;
-//use term::raw::RawBignum;
 use util::bin_reader::BinaryReader;
 
 use num;
@@ -142,9 +143,11 @@ fn decode_binary(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
 
   let data = r.read_bytes(n_bytes)?;
 
-  let rbin = hp.allocate_binary(n_bytes as Word)?;
-  unsafe { rbin.store(&data) }
-  Ok(rbin.make_term())
+  unsafe {
+    let rbin = HOBinary::place_into(hp, n_bytes as Word)?;
+    HOBinary::store(rbin, &data);
+    return Ok(HOBinary::make_term(rbin))
+  }
 }
 
 
