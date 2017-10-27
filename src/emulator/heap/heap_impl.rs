@@ -85,7 +85,7 @@ impl Heap {
 
 
   /// Expand heap to host `n` words of data
-  pub fn allocate(&mut self, n: Word) -> Hopefully<*mut Word> {
+  pub fn allocate(&mut self, n: Word, init_nil: bool) -> Hopefully<*mut Word> {
     let pos = self.htop;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n >= self.stop {
@@ -94,15 +94,18 @@ impl Heap {
 
     // Assume we can grow the data without reallocating
     let raw_nil = LTerm::nil().raw();
-    //    self.data.resize(pos + n, raw_nil);
     let new_chunk = unsafe {
       self.begin_mut().offset(self.htop as isize)
     };
-    unsafe {
-      for i in 0..n {
-        *new_chunk.offset(i as isize) = raw_nil
+
+    if init_nil {
+      unsafe {
+        for i in 0..n {
+          *new_chunk.offset(i as isize) = raw_nil
+        }
       }
     }
+
     self.htop += n;
 
     Ok(new_chunk)
@@ -111,7 +114,7 @@ impl Heap {
 
   /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
   pub fn allocate_cons(&mut self) -> Hopefully<ConsPtrMut> {
-    match self.allocate(2) {
+    match self.allocate(2, false) {
       Ok(p) => Ok(ConsPtrMut::from_pointer(p)),
       Err(e) => Err(e) // repack inner Err into outer Err
     }
@@ -120,7 +123,7 @@ impl Heap {
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
   pub fn allocate_tuple(&mut self, size: Word) -> Hopefully<TuplePtrMut> {
-    match self.allocate(rtuple::storage_size(size)) {
+    match self.allocate(rtuple::storage_size(size), false) {
       Ok(p) => unsafe { Ok(TuplePtrMut::create_at(p, size)) },
       Err(e) => Err(e) // repack inner Err into outer Err
     }

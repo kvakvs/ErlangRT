@@ -1,6 +1,8 @@
 use defs::Word;
 use term::lterm::LTerm;
 
+use std::ptr;
+
 
 #[derive(Clone)]
 pub enum ConsPtrMut { Ptr(*mut Word) }
@@ -46,6 +48,7 @@ impl ConsPtrMut {
 impl ConsPtr {
   #[inline]
   pub fn from_pointer(p: *const Word) -> ConsPtr {
+    assert_ne!(p, ptr::null());
     ConsPtr::Ptr(p)
   }
 
@@ -58,12 +61,14 @@ impl ConsPtr {
   /// Peek into the cons, and get head value.
   pub unsafe fn hd(&self) -> LTerm {
     let ConsPtr::Ptr(p) = *self;
+//    assert_ne!(p, ptr::null());
     LTerm::from_raw(*p)
   }
 
   /// Peek into the cons, and get tail value.
   pub unsafe fn tl(&self) -> LTerm {
     let ConsPtr::Ptr(p) = *self;
+//    assert_ne!(p, ptr::null());
     LTerm::from_raw(*p.offset(1))
   }
 }

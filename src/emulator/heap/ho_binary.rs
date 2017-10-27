@@ -8,7 +8,6 @@ use emulator::heap::Heap;
 use emulator::heap::heapobj::*;
 use fail::Hopefully;
 use term::lterm::LTerm;
-use term::primary::header;
 
 
 pub enum HOBinaryType {
@@ -20,9 +19,9 @@ pub enum HOBinaryType {
 
 /// Heap object `HOBinary` is placed on heap by the VM and might transform 
 /// itself to contain binary either locally or refer to it
+#[allow(dead_code)]
 pub struct HOBinary {
-  pub header_word: Word,
-  pub class_ptr: *const HeapObjClass,
+  hobj: HeapObjHeader,
   pub n_bytes: Word,
   pub flavour: HOBinaryType,
 }
@@ -71,12 +70,14 @@ impl HOBinary {
                            n_bytes: Word) -> Hopefully<*mut HOBinary>
   {
     let n_words = HOBinary::storage_size(n_bytes);
-    let this = hp.allocate(n_words)? as *mut HOBinary;
+    let this = hp.allocate(n_words, false)? as *mut HOBinary;
 
-    (*this).header_word = header::make_heapobj_header_raw(n_words);
-    (*this).class_ptr = &HOCLASS_BINARY;
-    (*this).n_bytes = n_bytes;
-    (*this).flavour = HOBinaryType::Heap;
+    ptr::write(this,
+               HOBinary {
+                 hobj: HeapObjHeader::new(n_words, &HOCLASS_BINARY),
+                 n_bytes,
+                 flavour: HOBinaryType::Heap,
+               });
 
     return Ok(this)
   }

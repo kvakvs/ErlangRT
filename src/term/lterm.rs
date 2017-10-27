@@ -192,6 +192,7 @@ impl LTerm {
   /// From a pointer to heap create a cons box
   #[inline]
   pub fn make_cons(ptr: *const Word) -> LTerm {
+//    assert_ne!(ptr, ptr::null());
     LTerm { value: primary::make_cons_raw(ptr) }
   }
 
@@ -201,6 +202,7 @@ impl LTerm {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS);
     let boxp = primary::pointer(v);
+    assert_ne!(boxp, ptr::null(), "null cons 0x{:x}", self.value);
     ConsPtr::from_pointer(boxp)
   }
 

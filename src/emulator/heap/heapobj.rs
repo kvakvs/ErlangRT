@@ -4,6 +4,8 @@
 //! 2. (p+1) A `HeapObjClass` pointer which is used to call methods on a heap object.
 //! 3. (p+2...) The data
 use defs::Word;
+use term::primary::header;
+
 
 pub enum HeapObjType {
   /// Maps to `emulator::heap::ho_import::HOImport`
@@ -11,6 +13,23 @@ pub enum HeapObjType {
   Binary,
   //Bignum,
 }
+
+
+pub struct HeapObjHeader {
+  pub header_word: Word,
+  pub class_ptr: *const HeapObjClass,
+}
+
+
+impl HeapObjHeader {
+  pub fn new(n_words: Word, cls: *const HeapObjClass) -> HeapObjHeader {
+    HeapObjHeader {
+      header_word: header::make_heapobj_header_raw(n_words),
+      class_ptr: cls,
+    }
+  }
+}
+
 
 /// Used to identify heap object type on heap
 pub struct HeapObjClass {

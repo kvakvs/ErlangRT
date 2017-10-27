@@ -1,6 +1,7 @@
 //! Heap object which stores an import - Mod, Fun, Arity and a bif flag.
 
 use std::mem::size_of;
+use std::ptr;
 
 use fail::Hopefully;
 use defs::{WORD_BYTES, Word};
@@ -10,14 +11,13 @@ use emulator::heap::Heap;
 use emulator::heap::heapobj::*;
 use emulator::mfa::MFArity;
 use term::lterm::LTerm;
-use term::primary::header;
 
 
 /// Heap object `HOImport` is placed on lit heap by the BEAM loader, VM would
 /// deref it using boxed term pointer and feed to `code_srv` for resolution.
+#[allow(dead_code)]
 pub struct HOImport {
-  pub header_word: Word,
-  pub class_ptr: *const HeapObjClass,
+  hobj: HeapObjHeader,
   pub mfarity: MFArity,
   pub is_bif: bool,
 }
@@ -56,13 +56,15 @@ impl HOImport {
                            mfarity: MFArity,
                            is_bif: bool) -> Hopefully<LTerm>
   {
-    let nwords = HOImport::storage_size();
-    let this = hp.allocate(nwords)? as *mut HOImport;
+    let n_words = HOImport::storage_size();
+    let this = hp.allocate(n_words, false)? as *mut HOImport;
 
-    (*this).header_word = header::make_heapobj_header_raw(nwords);
-    (*this).class_ptr = &HOCLASS_IMPORT;
-    (*this).mfarity = mfarity;
-    (*this).is_bif = is_bif;
+    ptr::write(this,
+               HOImport {
+                 hobj: HeapObjHeader::new(n_words, &HOCLASS_IMPORT),
+                 mfarity,
+                 is_bif,
+               });
     Ok(LTerm::make_box(this as *const Word))
   }
 
