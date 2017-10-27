@@ -503,7 +503,9 @@ impl LTerm {
       primary::header::TAG_HEADER_HEAPOBJ => unsafe {
         let ho_ptr = p.offset(1);
         let hoclass = *(ho_ptr) as *const HeapObjClass;
-        let s = ((*hoclass).fmt_str)(ho_ptr) ;
+        // Starting word of the heap object (the primary header word) becomes
+        // `this` pointer for the heapobject, hence passing `p`.
+        let s = ((*hoclass).fmt_str)(p) ;
         write!(f, "{}", s)
       },
       primary::header::TAG_HEADER_EXTPID => write!(f, "ExtPid"),
