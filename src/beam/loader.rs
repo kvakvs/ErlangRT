@@ -23,7 +23,7 @@ use emulator::atom;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
-use emulator::disasm;
+//use emulator::disasm;
 use emulator::funarity::FunArity;
 use emulator::heap::ho_import::HOImport;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};

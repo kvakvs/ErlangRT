@@ -9,6 +9,7 @@ func_info
 #====== Memory and Stack ======
 allocate
 allocate_zero
+deallocate
 move
 test_heap
 

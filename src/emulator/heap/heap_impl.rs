@@ -89,7 +89,7 @@ impl Heap {
     let pos = self.htop;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n >= self.stop {
-      return Err(Error::HeapIsFull)
+      return Err(Error::HeapIsFull);
     }
 
     // Assume we can grow the data without reallocating
@@ -130,14 +130,14 @@ impl Heap {
   }
 
 
-//  /// Allocate words on heap enough to store bignum digits and copy the given
-//  /// bignum to memory, return the pointer.
-//  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
-//    match self.allocate(BignumPtr::storage_size(big)) {
-//      Ok(p) => unsafe { Ok(BignumPtr::create_at(p, big)) },
-//      Err(e) => Err(e) // repack inner Err into outer Err
-//    }
-//  }
+  //  /// Allocate words on heap enough to store bignum digits and copy the given
+  //  /// bignum to memory, return the pointer.
+  //  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
+  //    match self.allocate(BignumPtr::storage_size(big)) {
+  //      Ok(p) => unsafe { Ok(BignumPtr::create_at(p, big)) },
+  //      Err(e) => Err(e) // repack inner Err into outer Err
+  //    }
+  //  }
 
 
   /// Create a constant iterator for walking the heap.
@@ -161,14 +161,14 @@ impl Heap {
   }
 
 
-//  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
-//    // Check if heap top is too close to stack top, then fail
-//    if !self.stack_have(need) {
-//      return Err(Error::HeapIsFull)
-//    }
-//    self.stack_alloc_unchecked(need);
-//    Ok(())
-//  }
+  //  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
+  //    // Check if heap top is too close to stack top, then fail
+  //    if !self.stack_have(need) {
+  //      return Err(Error::HeapIsFull)
+  //    }
+  //    self.stack_alloc_unchecked(need);
+  //    Ok(())
+  //  }
 
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
@@ -187,13 +187,13 @@ impl Heap {
 
 
   // TODO: Add unsafe push without range checks (batch check+multiple push)
-//  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
-//    if !self.stack_have(1) {
-//      return Err(Error::HeapIsFull)
-//    }
-//    self.stack_push_unchecked(val);
-//    Ok(())
-//  }
+  //  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
+  //    if !self.stack_have(1) {
+  //      return Err(Error::HeapIsFull)
+  //    }
+  //    self.stack_push_unchecked(val);
+  //    Ok(())
+  //  }
 
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
@@ -208,7 +208,7 @@ impl Heap {
 
   pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> Hopefully<()> {
     if self.send - self.stop > index + 1 {
-      return Err(Error::StackIndexRange)
+      return Err(Error::StackIndexRange);
     }
     let pos = index as isize + self.stop as isize + 1;
     unsafe {
@@ -221,7 +221,7 @@ impl Heap {
 
   pub fn stack_get_y(&self, index: Word) -> Hopefully<LTerm> {
     if self.send - self.stop > index + 1 {
-      return Err(Error::StackIndexRange)
+      return Err(Error::StackIndexRange);
     }
     let pos = index as isize + self.stop as isize + 1;
     unsafe {
@@ -232,5 +232,17 @@ impl Heap {
 
 
   pub fn stack_depth(&self) -> Word { self.send - self.stop }
+
+
+  /// Take `cp` from stack top and deallocate `n+1` words of stack.
+  pub fn stack_deallocate(&mut self, n: Word) -> LTerm {
+    assert!(self.stop + n + 1 <= self.send,
+            "Failed to dealloc {}+1 words (s_top {}, s_end {})",
+            n, self.stop, self.send);
+    let cp = LTerm::from_raw(self.data[self.stop]);
+    assert!(cp.is_cp());
+    self.stop += n + 1;
+    cp
+  }
 }
 

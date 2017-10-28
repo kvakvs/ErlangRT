@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+//use std::cmp::Ordering;
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;

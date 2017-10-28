@@ -96,12 +96,12 @@ fn eq_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 }
 
 
-fn eq_floats(a: LTerm, b: LTerm) -> bool {
+fn eq_floats(_a: LTerm, _b: LTerm) -> bool {
   panic!("TODO: eq_floats")
 }
 
 
-fn eq_numbers_not_exact(a: LTerm, b: LTerm) -> bool {
+fn eq_numbers_not_exact(_a: LTerm, _b: LTerm) -> bool {
   panic!("TODO: eq_numbers_not_exact")
 }
 
@@ -152,7 +152,7 @@ fn eq_terms_primary(a: LTerm, b: LTerm) -> EqResult {
 }
 
 
-fn eq_terms_immed(a: LTerm, b: LTerm) -> bool {
+fn eq_terms_immed(_a: LTerm, _b: LTerm) -> bool {
   panic!("TODO: eq_terms_immed")
 }
 
@@ -185,11 +185,12 @@ unsafe fn eq_terms_cons(a: LTerm, b: LTerm) -> EqResult {
       return EqResult::CompareNested(atl, btl, continue_op)
     }
 
+    // Take the next linked cons cell and continue comparing
     aa = atl.cons_get_ptr();
     bb = btl.cons_get_ptr();
   }
 }
 
-fn eq_terms_box(a: LTerm, b: LTerm) -> EqResult {
+fn eq_terms_box(_a: LTerm, _b: LTerm) -> EqResult {
   panic!("TODO: eq_terms_box")
 }
