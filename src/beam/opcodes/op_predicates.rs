@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use beam::gen_op;
 use beam::opcodes::assert_arity;
 use defs::{DispatchResult};
@@ -17,7 +19,7 @@ pub fn opcode_is_eq_exact(ctx: &mut Context,
   let a = ctx.fetch_term();
   let b = ctx.fetch_term();
 
-  if !compare::compare_terms(a, b, true) {
+  if compare::compare_terms(a, b, true) != Ordering::Equal {
     ctx.ip = CodePtr::from_cp(on_false)
   }
 

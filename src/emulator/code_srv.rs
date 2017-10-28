@@ -80,7 +80,7 @@ impl CodeServer {
     match self.lookup(mfarity) {
       Ok(ip) => return Ok(ip),
       Err(_e) => {
-        let mod_name = atom::to_str(mfarity.m);
+        let mod_name = atom::to_str(mfarity.m)?;
         let found_mod = self.find_module_file(&mod_name).unwrap();
 
         self.try_load_module(&found_mod)?;
@@ -90,8 +90,8 @@ impl CodeServer {
     match self.lookup(mfarity) {
       Ok(ip) => Ok(ip),
       Err(_e) => {
-        let mod_str = atom::to_str(mfarity.m);
-        let fun_str = atom::to_str(mfarity.f);
+        let mod_str = atom::to_str(mfarity.m)?;
+        let fun_str = atom::to_str(mfarity.f)?;
         let msg = format!("{}Func undef: {}:{}/{}",
                           module(), mod_str, fun_str, mfarity.arity);
         Err(Error::FunctionNotFound(msg))

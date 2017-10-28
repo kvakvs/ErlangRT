@@ -480,8 +480,12 @@ impl LTerm {
             }
           },
 
-          immediate::TAG_IMM2_ATOM =>
-            write!(f, "'{}'", atom::to_str(*self)),
+          immediate::TAG_IMM2_ATOM => {
+            match atom::to_str(*self) {
+              Ok(s) => write!(f, "'{}'", s),
+              Err(_e) => write!(f, "Atom?"),
+            }
+          },
 
           immediate::TAG_IMM2_IMM3 => {
             let v3 = immediate::get_imm3_value(v);

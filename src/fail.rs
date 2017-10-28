@@ -15,6 +15,7 @@ pub enum Error {
   ModuleNotFound(String),
   FunctionNotFound(String),
   //--- Memory allocation events and errors ---
+  AtomNotExist(String),
   HeapIsFull,
   StackIndexRange,
 }
