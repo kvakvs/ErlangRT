@@ -21,7 +21,7 @@ pub fn opcode_call(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
   debug_assert!(location.is_box(),
                 "Call location must be a box (have {})", location);
 
-  ctx.cp = ctx.ip.offset(-3); // step arity + opcode back
+  ctx.cp = ctx.ip; // step arity + opcode back
   ctx.ip = CodePtr::from_cp(location);
 
   DispatchResult::Normal

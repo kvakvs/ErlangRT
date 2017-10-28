@@ -72,6 +72,7 @@ impl CodePtr {
 
 
   #[inline]
+  #[allow(dead_code)]
   pub fn offset(&self, n: isize) -> CodePtr {
     let CodePtr::Ptr(p) = *self;
     let new_p = unsafe { p.offset(n) };
@@ -106,6 +107,7 @@ impl CodePtrMut {
 
   /// Read word at the code pointer.
   #[inline]
+  #[allow(dead_code)]
   pub unsafe fn read_0(&self) -> Word {
     let CodePtrMut::Ptr(p) = *self;
     *p

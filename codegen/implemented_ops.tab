@@ -17,3 +17,6 @@ is_nonempty_list
 is_nil
 get_list
 put_list
+
+#====== Comparisons and Predicates ======
+is_eq_exact

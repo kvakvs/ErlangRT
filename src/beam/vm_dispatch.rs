@@ -22,6 +22,7 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, heap: &mut Heap) -> 
     gen_op::OPCODE_ALLOCATE_ZERO => { return opcode_allocate_zero(ctx, heap) },
     gen_op::OPCODE_TEST_HEAP => { return opcode_test_heap(ctx, heap) },
     gen_op::OPCODE_RETURN => { return opcode_return(ctx, heap) },
+    gen_op::OPCODE_IS_EQ_EXACT => { return opcode_is_eq_exact(ctx, heap) },
     gen_op::OPCODE_IS_NIL => { return opcode_is_nil(ctx, heap) },
     gen_op::OPCODE_IS_NONEMPTY_LIST => { return opcode_is_nonempty_list(ctx, heap) },
     gen_op::OPCODE_MOVE => { return opcode_move(ctx, heap) },

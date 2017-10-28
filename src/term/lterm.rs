@@ -293,6 +293,13 @@ impl LTerm {
   }
 
 
+  /// Check whether both `a` and `b` are small terms.
+  #[inline]
+  pub fn are_both_small(a: LTerm, b: LTerm) -> bool {
+    immediate::is_small_raw(a.value & b.value)
+  }
+
+
   #[inline]
   pub fn make_small_u(n: Word) -> LTerm {
     assert!(n <= MAX_UNSIGNED_SMALL,
@@ -419,6 +426,24 @@ impl LTerm {
             "CP value must have its top bit set (have 0x{:x})", self.value);
     let untagged_p = self.value & !(defs::TAG_CP | primary::PRIM_MASK);
     untagged_p as *const Word
+  }
+
+  //
+  // Float
+  //
+
+  /// Check whether a value contains a pointer to a float box. Unsafe (i.e.
+  /// will dereference the box pointer).
+  pub unsafe fn is_float(&self) -> bool {
+    // For a value to be float it must be a box, which points to heap word with
+    // primary header bits having value `TAG_HEADER_FLOAT` and primary tag bits
+    // having value `primary::TAG_HEADER`.
+    if !self.is_box() {
+      return false
+    }
+    let p = self.box_ptr();
+    let box_tag = primary::header::get_tag(*p);
+    box_tag == primary::header::TAG_HEADER_FLOAT
   }
 
   //

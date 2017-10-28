@@ -9,6 +9,20 @@ use defs::Word;
 use term::lterm::LTerm;
 use emulator::gen_atoms;
 
+
+/// Defines atom properties (length, compare helper integer)
+struct Atom {
+  /// Length of utf8-encoded atom name.
+  len: i16,
+  /// Length of latin1-encoded atom otherwise -1
+  latin1_chars: i16,
+  /// First 4 bytes used for comparisons
+  ord0: u32,
+  /// Pointer to atom name (static).
+  name: *const u8,
+}
+
+
 /// Lookup table for atom to atom index and back. Declared static for use by
 /// printing and atom loading facilities without having to pass the VM pointer
 /// all the way down.
@@ -20,6 +34,8 @@ struct AtomStorage {
   atoms_r: Mutex<Vec<String>>,
 }
 
+
+/// Stores atom lookup tables.
 impl AtomStorage {
   pub fn add_init_atoms(&mut self) {
     let mut atoms_ = self.atoms.lock().unwrap();

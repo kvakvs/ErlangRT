@@ -1,12 +1,15 @@
+//! Opcodes group of modules provides inline implementations of BEAM opcodes.
 pub mod op_data;
 pub mod op_execution;
 pub mod op_list;
 pub mod op_memory;
+pub mod op_predicates;
 
 pub use beam::opcodes::op_data::*;
 pub use beam::opcodes::op_execution::*;
 pub use beam::opcodes::op_list::*;
 pub use beam::opcodes::op_memory::*;
+pub use beam::opcodes::op_predicates::*;
 
 
 use beam::gen_op;
