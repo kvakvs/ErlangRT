@@ -196,13 +196,21 @@ impl Heap {
   //  }
 
 
+  #[allow(dead_code)]
+  pub fn stack_info(&self) {
+    println!("Stack (s_top {}, s_end {})",
+             self.stop, self.send)
+  }
+
+
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
   pub fn stack_push_unchecked(&mut self, val: Word) {
     self.stop -= 1;
-    unsafe {
-      let p = self.begin_mut().offset(self.stop as isize);
-      *p = val
-    }
+    self.data[self.stop] = val;
+//    unsafe {
+//      let p = self.begin_mut().offset(self.stop as isize);
+//      *p = val
+//    }
   }
 
 
@@ -210,11 +218,12 @@ impl Heap {
     if self.send - self.stop > index + 1 {
       return Err(Error::StackIndexRange);
     }
-    let pos = index as isize + self.stop as isize + 1;
-    unsafe {
-      let p = self.begin_mut().offset(pos);
-      *p = val.raw()
-    }
+//    let pos = index as isize + self.stop as isize + 1;
+    self.data[index + self.stop + 1] = val.raw();
+//    unsafe {
+//      let p = self.begin_mut().offset(pos);
+//      *p = val.raw()
+//    }
     Ok(())
   }
 

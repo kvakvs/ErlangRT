@@ -43,8 +43,8 @@ impl CodePtr {
   pub fn from_ptr(p: *const Word) -> CodePtr {
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
-      // a random garbage
-      assert!(immediate::is_immediate3(*p),
+      // a random garbage. Or may be a null.
+      assert!(p.is_null() || immediate::is_immediate3(*p),
               "A CodePtr must always point to an imm3 tagged opcode");
     }
     CodePtr::Ptr(p)
@@ -66,8 +66,9 @@ impl CodePtr {
   #[inline]
   pub fn to_cp(&self) -> Word {
     let CodePtr::Ptr(p) = *self;
-    let p1 = p as Word;
-    p1 | TAG_CP
+    LTerm::make_cp(p).raw()
+//    let p1 = p as Word;
+//    p1 | TAG_CP
   }
 
 

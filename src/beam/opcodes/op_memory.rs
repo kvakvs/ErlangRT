@@ -1,6 +1,6 @@
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use defs::{DispatchResult};
+use defs::DispatchResult;
 use emulator::code::CodePtr;
 use emulator::heap::Heap;
 use emulator::runtime_ctx::Context;
@@ -13,16 +13,18 @@ pub fn opcode_allocate_zero(ctx: &mut Context, hp: &mut Heap) -> DispatchResult 
   let stack_need = ctx.fetch_term().small_get_u();
   let _live = ctx.fetch_term();
 
-  if stack_need > 0 {
-    if !hp.have(stack_need + 1) {
-      // Stack has not enough, invoke GC and possibly fail
-      panic!("TODO GC here or fail");
-    } else {
-      // Stack has enough words, we can allocate unchecked
+  if hp.have(stack_need + 1) {
+    // Stack has enough words, we can allocate unchecked
+    if stack_need > 0 {
       hp.stack_alloc_unchecked(stack_need);
-      hp.stack_push_unchecked(ctx.cp.to_cp());
     }
+    hp.stack_push_unchecked(ctx.cp.to_cp());
+  } else {
+    // Stack has not enough, invoke GC and possibly fail
+    panic!("TODO GC here or fail");
   }
+
+  // hp.stack_info();
   DispatchResult::Normal
 }
 
