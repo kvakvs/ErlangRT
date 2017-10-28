@@ -12,12 +12,12 @@ use term::compare;
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
 #[inline]
 pub fn opcode_is_eq_exact(ctx: &mut Context,
-                          _hp: &mut Heap) -> DispatchResult {
+                          hp: &mut Heap) -> DispatchResult {
   assert_arity(gen_op::OPCODE_IS_EQ_EXACT, 3);
 
   let on_false = ctx.fetch_term();
-  let a = ctx.fetch_term();
-  let b = ctx.fetch_term();
+  let a = ctx.fetch_and_load(hp);
+  let b = ctx.fetch_and_load(hp);
 
   if compare::eq_terms(a, b, true) == false {
     ctx.ip = CodePtr::from_cp(on_false)

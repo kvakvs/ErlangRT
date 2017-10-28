@@ -29,7 +29,7 @@ pub fn eq_terms(a: LTerm, b: LTerm, exact: bool) -> bool {
     return eq_floats(a, b)
   }
 
-  eq_terms_primary(a, b_is_float)
+  eq_terms_primary(a, b)
 }
 
 
@@ -86,4 +86,17 @@ fn eq_terms_primary(a: LTerm, b: LTerm) -> bool {
     },
     _ => panic!("Primary tag {} eq_terms unsupported", a_prim_tag)
   }
+}
+
+
+fn eq_terms_immed(a: LTerm, b: LTerm) -> bool {
+  panic!("TODO: eq_terms_immed")
+}
+
+fn eq_terms_cons(a: LTerm, b: LTerm) -> bool {
+  panic!("TODO: eq_terms_cons")
+}
+
+fn eq_terms_box(a: LTerm, b: LTerm) -> bool {
+  panic!("TODO: eq_terms_box")
 }
