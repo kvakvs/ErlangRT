@@ -19,7 +19,7 @@ pub fn opcode_is_eq_exact(ctx: &mut Context,
   let a = ctx.fetch_term();
   let b = ctx.fetch_term();
 
-  if compare::compare_terms(a, b, true) != Ordering::Equal {
+  if compare::eq_terms(a, b, true) == false {
     ctx.ip = CodePtr::from_cp(on_false)
   }
 

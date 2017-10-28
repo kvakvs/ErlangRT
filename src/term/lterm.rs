@@ -293,13 +293,6 @@ impl LTerm {
   }
 
 
-  /// Check whether both `a` and `b` are small terms.
-  #[inline]
-  pub fn are_both_small(a: LTerm, b: LTerm) -> bool {
-    immediate::is_small_raw(a.value & b.value)
-  }
-
-
   #[inline]
   pub fn make_small_u(n: Word) -> LTerm {
     assert!(n <= MAX_UNSIGNED_SMALL,

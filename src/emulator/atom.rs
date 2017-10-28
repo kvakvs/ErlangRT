@@ -16,16 +16,19 @@ use emulator::gen_atoms;
 /// Defines atom properties (length, compare helper integer)
 pub struct Atom {
   /// Length of utf8-encoded atom name.
-  len: u16,
+  pub len: u16,
   // /// Length of latin1-encoded atom otherwise -1
   //latin1_chars: i16,
   /// First 4 bytes used for comparisons
-  ord0: u32,
+  pub ord0: u32,
   // TODO: Allocate these on atom heap or as a sequence of static blocks
-  name: String,
+  pub name: String,
 }
 
+
 impl Atom {
+  /// Create and fill atom description structure, it will exist forever on the
+  /// atom table in `AtomStorage`.
   pub fn new(s: &str) -> Atom {
     let b = s.as_bytes();
     let mut ord0 = 0u32;
@@ -56,7 +59,7 @@ impl Atom {
 
 
 /// A quick way to find an atom index by its string.
-type StrLookup = BTreeMap<String, Word>;
+type StrLookup = BTreeMap<String, usize>;
 
 /// A quick way to find an atom by its index.
 type IndexLookup = Vec<Atom>;
