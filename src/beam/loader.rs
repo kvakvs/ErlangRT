@@ -219,7 +219,8 @@ impl Loader {
       self.vm_atoms.push(atom::from_str(a));
     }
 
-    self.postprocess_code_section();
+    self.postprocess_parse_raw_code();
+    //unsafe { disasm::disasm(self.code.as_slice(), None) }
     self.postprocess_fix_labels();
     self.postprocess_setup_imports()?;
 
@@ -435,13 +436,15 @@ impl Loader {
   /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
   /// 'drained_code' is 'raw_code' moved out of 'self'
-  fn postprocess_code_section(&mut self) {
+  fn postprocess_parse_raw_code(&mut self) {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw_code, &mut raw_code);
 
+    //
     // Estimate code size and preallocate the code storage
     // TODO: This step is not efficient and does double parse of all args
+    //
     let mut r = BinaryReader::from_bytes(raw_code);
 
     let code_size = {
@@ -459,9 +462,11 @@ impl Loader {
     self.code.reserve(code_size);
 
     let debug_code_start = self.code.as_ptr();
-    println!("Code_size {} code_start {:p}", code_size, debug_code_start);
+    //println!("Code_size {} code_start {:p}", code_size, debug_code_start);
 
+    //
     // Writing code unpacked to words here. Break at every new function_info.
+    //
     r.reset();
     while !r.eof() {
       // Read the opcode from the code section
@@ -511,7 +516,7 @@ impl Loader {
           }
 
           self.code.push(opcode::to_memory_word(op));
-          self.postprocess_store_args(&args);
+          self.store_opcode_args(&args);
         } // case _
       } // match op
     } // while !r.eof
@@ -524,7 +529,7 @@ impl Loader {
   /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
   /// container of terms. `LoadTimeLabel` get special treatment as we try to
   /// resolve them into an offset.
-  fn postprocess_store_args(&mut self, args: &[FTerm]) {
+  fn store_opcode_args(&mut self, args: &[FTerm]) {
     for a in args {
       match *a {
         // Ext list is special so we convert it and its contents to lterm
@@ -670,7 +675,7 @@ impl Loader {
       code::iter::create_mut(&mut self.code)
     };
     for cp in c_iter {
-      let curr_opcode = unsafe { opcode::from_memory_word(cp.read_0()) };
+      let curr_opcode = opcode::from_memory_ptr(cp.ptr());
       match curr_opcode {
         gen_op::OPCODE_MAKE_FUN2 => {
           // arg[0] is export

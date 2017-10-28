@@ -85,7 +85,7 @@ impl Iterator for CodeIteratorMut {
   fn next(&mut self) -> Option<Self::Item> {
     let CodePtrMut::Ptr(p) = self.p;
 
-    let current_op = unsafe { opcode::from_memory_word(*p) };
+    let current_op = opcode::from_memory_ptr(p);
     let arity = gen_op::opcode_arity(current_op);
 
     // Step forward over opcode and `arity` words (args)
@@ -107,7 +107,7 @@ impl Iterator for CodeIteratorMut {
 /// Create am iterator for walking and modifying the code.
 pub unsafe fn create_mut(code: &mut Vec<Word>) -> CodeIteratorMut {
   let begin = &mut code[0] as *mut Word;
-  let last = begin.offset(code.len() as isize);
+  let end = begin.offset(code.len() as isize);
   CodeIteratorMut::new(CodePtrMut::Ptr(begin),
-                       CodePtrMut::Ptr(last))
+                       CodePtrMut::Ptr(end))
 }

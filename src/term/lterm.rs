@@ -631,6 +631,7 @@ impl fmt::Display for LTerm {
 mod tests {
   use super::*;
   use std::ptr;
+  use std::mem;
 
   #[test]
   fn test_term_size() {

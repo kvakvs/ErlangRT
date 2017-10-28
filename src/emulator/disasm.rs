@@ -20,7 +20,7 @@ pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>) {
 pub unsafe fn disasm_op(ip0: *const Word) -> *const Word {
   let mut ip = ip0;
 
-  let op = opcode::from_memory_word(*ip);
+  let op = opcode::from_memory_ptr(ip);
   assert!(op < gen_op::OPCODE_MAX);
 
   print!("{:p}: {} ", ip, gen_op::opcode_name(op as u8));

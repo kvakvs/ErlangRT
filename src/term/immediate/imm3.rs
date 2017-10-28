@@ -46,6 +46,7 @@ pub const IMMEDIATE3_MAX: Word = 3;
 #[inline]
 pub fn get_imm3_tag(val: Word) -> Word {
   let t: Word = val.get_bits(IMM3_TAG_FIRST..IMM3_TAG_LAST);
+//  let t: Word = (val >> IMM3_TAG_FIRST) & 0;
   assert!(t <= IMMEDIATE3_MAX);
   t
 }
@@ -54,7 +55,8 @@ pub fn get_imm3_tag(val: Word) -> Word {
 #[inline]
 pub fn get_imm3_value(val: Word) -> Word {
   assert!(is_immediate3(val));
-  val.get_bits(IMM3_VALUE_FIRST..IMM3_VALUE_LAST)
+  //val.get_bits(IMM3_VALUE_FIRST..IMM3_VALUE_LAST)
+  val >> IMM3_VALUE_FIRST
 }
 
 /// Precomposed bits to use with immediate3 tags and values

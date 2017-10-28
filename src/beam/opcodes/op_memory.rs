@@ -9,17 +9,18 @@ use emulator::runtime_ctx::Context;
 #[inline]
 pub fn opcode_allocate_zero(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
   assert_arity(gen_op::OPCODE_ALLOCATE_ZERO, 2);
-  let stack_need_t = ctx.fetch_term();
-  let stack_need = stack_need_t.small_get_u();
+  let stack_need = ctx.fetch_term().small_get_u();
+  let _live = ctx.fetch_term();
 
-  if !hp.have(stack_need + 1) {
-    // Stack has not enough, invoke GC and possibly fail
-    let _live = ctx.fetch_term();
-    panic!("TODO GC here or fail");
-  } else {
-    // Stack has enough words, we can allocate unchecked
-    hp.stack_alloc_unchecked(stack_need);
-    hp.stack_push_unchecked(ctx.cp.to_cp());
+  if stack_need > 0 {
+    if !hp.have(stack_need + 1) {
+      // Stack has not enough, invoke GC and possibly fail
+      panic!("TODO GC here or fail");
+    } else {
+      // Stack has enough words, we can allocate unchecked
+      hp.stack_alloc_unchecked(stack_need);
+      hp.stack_push_unchecked(ctx.cp.to_cp());
+    }
   }
   DispatchResult::Normal
 }

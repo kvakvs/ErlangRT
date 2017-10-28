@@ -36,6 +36,8 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 #[inline]
 #[cfg(debug_assertions)]
 pub fn from_memory_word(m: Word) -> RawOpcode {
+  assert_eq!(immediate::get_imm3_tag(m), immediate::TAG_IMM3_OPCODE,
+             "Opcode 0x{:x} from code memory must be tagged as IMM3_OPCODE", m);
   let raw = immediate::get_imm3_value(m);
   debug_assert!(raw <= gen_op::OPCODE_MAX as Word);
   raw as RawOpcode
@@ -44,6 +46,47 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 
 #[inline]
 #[cfg(not(debug_assertions))]
-pub fn to_memory_word(m: Word) -> RawOpcode {
+pub fn from_memory_word(m: Word) -> RawOpcode {
   m as RawOpcode
+}
+
+
+/// Debug version: Load an opcode and assert that it is decorated as Immediate3.
+#[inline]
+#[cfg(debug_assertions)]
+pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
+  let m = unsafe { *p };
+  assert_eq!(immediate::get_imm3_tag(m), immediate::TAG_IMM3_OPCODE,
+             "Opcode 0x{:x} from code memory {:p} must be tagged as IMM3_OPCODE",
+             m, p);
+  let raw = immediate::get_imm3_value(m);
+  debug_assert!(raw <= gen_op::OPCODE_MAX as Word);
+  raw as RawOpcode
+}
+
+
+/// Release version. Load an opcode.
+#[inline]
+#[cfg(not(debug_assertions))]
+pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
+  unsafe { *p as RawOpcode }
+}
+
+//
+// Testing section
+//
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use std::ptr;
+
+  #[test]
+  fn test_opcode_word() {
+    for i in 0..gen_op::OPCODE_MAX {
+      let memw = to_memory_word(i);
+      let opc = from_memory_word(memw);
+      assert_eq!(opc, i);
+    }
+  }
 }

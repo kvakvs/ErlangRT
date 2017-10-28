@@ -97,7 +97,15 @@ pub enum CodePtrMut { Ptr(*mut Word) }
 
 impl CodePtrMut {
 
+  /// Quick access to the contained pointer.
+  #[inline]
+  pub fn ptr(&self) -> *const Word {
+    let CodePtrMut::Ptr(p) = *self;
+    p
+  }
+
   /// Read word at the code pointer.
+  #[inline]
   pub unsafe fn read_0(&self) -> Word {
     let CodePtrMut::Ptr(p) = *self;
     *p
@@ -105,6 +113,7 @@ impl CodePtrMut {
 
 
   /// Read `n`-th word from code pointer.
+  #[inline]
   pub unsafe fn read_n(&self, n: isize) -> Word {
     let CodePtrMut::Ptr(p) = *self;
     *(p.offset(n))
@@ -112,8 +121,10 @@ impl CodePtrMut {
 
 
   /// Write `n`-th word at the code pointer.
+  #[inline]
   pub unsafe fn write_n(&self, n: isize, val: Word) {
     let CodePtrMut::Ptr(p) = *self;
     *(p.offset(n)) = val
   }
+
 }
