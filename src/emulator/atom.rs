@@ -95,10 +95,9 @@ impl AtomStorage {
   fn register_atom(atoms: &mut MutexGuard<StrLookup>,
                    atoms_r: &mut MutexGuard<IndexLookup>,
                    s: &str) -> Word {
-    let a = Atom::new(s);
     let index = atoms_r.len();
     atoms.insert(s.to_string(), index);
-    atoms_r.push(a);
+    atoms_r.push(Atom::new(s));
     index
   }
 }
@@ -136,8 +135,6 @@ pub fn from_str(val: &str) -> LTerm {
 
 pub fn to_str(a: LTerm) -> Hopefully<String> {
   assert!(a.is_atom());
-//  let atoms_r = ATOMS.atoms_r.lock().unwrap();
-//  atoms_r[a.atom_index()].name.as_str()
   let p = lookup(a);
   if p.is_null() {
     return Err(Error::AtomNotExist(format!("index {}", a.atom_index())))
@@ -150,7 +147,7 @@ pub fn lookup(a: LTerm) -> *const Atom {
   assert!(a.is_atom());
   let atoms_r = ATOMS.atoms_r.lock().unwrap();
   let index = a.atom_index();
-  if index < atoms_r.len() {
+  if index >= atoms_r.len() {
     return ptr::null()
   }
   &atoms_r[index] as *const Atom

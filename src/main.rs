@@ -42,12 +42,16 @@ fn main() {
 
   let mut beam = VM::new();
 
-  let mfa = MFArgs::new(atom::from_str("test"),
-                        atom::from_str("start"),
-                        Vec::new());
-  let _rootp = beam.create_process(LTerm::nil(),
-                                   &mfa,
-                                   Prio::Normal).unwrap();
+  let mfa = MFArgs::new(
+    atom::from_str("test"),
+    atom::from_str("start"),
+    Vec::new()
+  );
+  let _rootp = beam.create_process(
+    LTerm::nil(),
+    &mfa,
+    Prio::Normal
+  ).unwrap();
 
   println!("Process created. Entering main loop...");
   while beam.tick() {}
