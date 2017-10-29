@@ -34,7 +34,6 @@ pub const TAG_IMM3_XREG: Word = 0;
 pub const TAG_IMM3_YREG: Word = 1;
 pub const TAG_IMM3_FPREG: Word = 2;
 
-#[cfg(debug_assertions)]
 pub const TAG_IMM3_OPCODE: Word = 3;
 
 

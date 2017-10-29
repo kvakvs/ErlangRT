@@ -43,8 +43,8 @@ fn main() {
   let mut beam = VM::new();
 
   let mfa = MFArgs::new(
+    atom::from_str("test2"),
     atom::from_str("test"),
-    atom::from_str("start"),
     Vec::new()
   );
   let _rootp = beam.create_process(

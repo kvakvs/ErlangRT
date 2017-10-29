@@ -45,7 +45,7 @@ impl CodePtr {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
       assert!(p.is_null() || immediate::is_immediate3(*p),
-              "A CodePtr must always point to an imm3 tagged opcode");
+              "A CodePtr must be null or point to an imm3 tagged opcode");
     }
     CodePtr::Ptr(p)
   }

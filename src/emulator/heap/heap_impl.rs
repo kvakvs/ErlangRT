@@ -214,8 +214,14 @@ impl Heap {
   }
 
 
+  /// Check whether `y+1`-th element can be found in stack
+  pub fn stack_have_y(&self, y: Word) -> bool {
+    self.send - self.stop >= y + 1
+  }
+
+
   pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> Hopefully<()> {
-    if self.send - self.stop > index + 1 {
+    if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange);
     }
 //    let pos = index as isize + self.stop as isize + 1;
@@ -229,14 +235,16 @@ impl Heap {
 
 
   pub fn stack_get_y(&self, index: Word) -> Hopefully<LTerm> {
-    if self.send - self.stop > index + 1 {
+    if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange);
     }
-    let pos = index as isize + self.stop as isize + 1;
-    unsafe {
-      let p = self.begin().offset(pos);
-      Ok(LTerm::from_raw(*p))
-    }
+    let pos = index + self.stop + 1;
+    Ok(LTerm::from_raw(self.data[pos]))
+//    let pos = index as isize + self.stop as isize + 1;
+//    unsafe {
+//      let p = self.begin().offset(pos);
+//      Ok(LTerm::from_raw(*p))
+//    }
   }
 
 
