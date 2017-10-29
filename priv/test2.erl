@@ -1,9 +1,7 @@
 -module(test2).
--export([test/0
-        ]).
+-export([test/0]).
 
 test() ->
-    [
     [5,4,3,2,1] = rev([1,2,3,4,5]),
     0 = recurse(10),
     false = test_eq(),
@@ -19,8 +17,7 @@ test() ->
     test_try_catch(),
     test_try_of_catch(),
     test_mochijson(),
-    test_apply(lists, erlang),
-    done].
+    test_apply(lists, erlang).
 
 %%-----------------------------------------------
 test_apply(X, Y) ->
@@ -33,7 +30,7 @@ test_try_catch() ->
     end.
 
 test_try_of_catch() ->
-    try self() of 
+    try self() of
       X when is_pid(X) -> erlang:error(hello);
       Y -> not_ok
     catch error:E -> E = hello
@@ -86,8 +83,8 @@ test_extcalls() ->
 
 test_eq() ->
     [1,2,3,4] == rev([1,2,3,4]).
-    
-test_list_ops() -> 
+
+test_list_ops() ->
     X = [1,2,3,4,5],
     5 = my_last2(X),
     4 = my_but_last2(X),

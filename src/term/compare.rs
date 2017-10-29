@@ -93,6 +93,13 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
     return EqResult::Concluded(cmp_floats(a, b))
   }
 
+  // If types don't compare equal, we can stop comparing here?
+  // TODO: Except when we compare numbers
+//  let order = cmp_type_order(a, b);
+//  if order != Ordering::Equal {
+//    return EqResult::Concluded(order);
+//  }
+
   cmp_terms_primary(a, b)
 }
 
