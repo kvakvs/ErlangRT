@@ -13,9 +13,13 @@ use emulator::runtime_ctx::Context;
 fn module() -> &'static str { "opcodes::op_execution: " }
 
 
+/// Perform a call to a `location` in code, storing address of the next opcode
+/// in `ctx.cp`.
 #[inline]
 pub fn opcode_call(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
+  // Structure: call(arity:int, loc:CP)
   assert_arity(gen_op::OPCODE_CALL, 2);
+
   let _arity = ctx.fetch(); // skip arity
   let location = ctx.fetch_term();
   debug_assert!(location.is_box(),
@@ -28,9 +32,13 @@ pub fn opcode_call(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
 }
 
 
+/// Perform a call to a `location` in code, the `ctx.cp` is not updated.
+/// Behaves like a jump?
 #[inline]
 pub fn opcode_call_only(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
+  // Structure: call_only(arity:int, loc:cp)
   assert_arity(gen_op::OPCODE_CALL_ONLY, 2);
+
   let _arity = ctx.fetch(); // skip arity
   let location = ctx.fetch_term();
   debug_assert!(location.is_box(),
@@ -50,14 +58,15 @@ pub fn opcode_call_only(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
 //}
 
 
-/// Performs a tail recursive call to a Destination mfarity (a tuple
-/// `{Mod, Fun, Arity}`) which can point to an exported function or a BIF.
-/// Does not update the CP register with a return address, making return skip
-/// over the current code location.
+/// Performs a tail recursive call to a Destination mfarity (a `HOImport`
+/// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
+/// point to an external function or a BIF. Does not update the `ctx.cp`.
 #[inline]
 pub fn opcode_call_ext_only(ctx: &mut Context,
                             _heap: &mut Heap) -> DispatchResult {
+  // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
+
   let _arity = ctx.fetch();
   // {M,F,Arity} tuple or {M,F,-Arity} bif
   let import = HOImport::from_term(ctx.fetch_term());
@@ -74,9 +83,13 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
 }
 
 
+/// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
+/// the process has no more code to execute and will end with reason `normal`.
 #[inline]
 pub fn opcode_return(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
+  // Structure: return()
   assert_arity(gen_op::OPCODE_RETURN, 0);
+
   if ctx.cp.is_null() {
     if hp.stack_depth() == 0 {
       // Process end of life: return on empty stack
