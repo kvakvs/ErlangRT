@@ -3,13 +3,14 @@
 use std::mem::size_of;
 use std::ptr;
 
-use fail::Hopefully;
 use defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
 use emulator::heap::Heap;
 use emulator::heap::heapobj::*;
 use emulator::mfa::MFArity;
+use fail::Hopefully;
+use term::classify::TermClass;
 use term::lterm::LTerm;
 
 
@@ -28,6 +29,7 @@ static HOCLASS_IMPORT: HeapObjClass = HeapObjClass {
   obj_type: HeapObjType::Import,
   dtor: HOImport::dtor,
   fmt_str: HOImport::fmt_str,
+  term_class: TermClass::Special_,
 };
 
 

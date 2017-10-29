@@ -1,7 +1,8 @@
 use emulator::atom;
 
-//use std::cmp::{Ordering};
+use std::cmp::{Ordering};
 use term::lterm::LTerm;
+use term::classify;
 use term::primary;
 
 
@@ -18,7 +19,7 @@ enum ContinueCompare {
 
 enum EqResult {
   /// Equality result is concluded to be the `bool` value.
-  Concluded(bool),
+  Concluded(Ordering),
   /// Equality is not concluded, but comparing these two terms will give the
   /// result (equivalent to `goto tailrecur_ne` in Erlang/OTP). This happens
   /// when a beginning elements of a nested structure compares equal but some
@@ -29,7 +30,7 @@ enum EqResult {
 
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
-pub fn eq_terms(a: LTerm, b: LTerm, exact: bool) -> bool {
+pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
   // Comparison might want to recurse, to avoid stack growth, do a switch here
   // and continue comparing. We grow `stack` instead of a CPU stack.
   let mut stack = Vec::<ContinueCompare>::new();
@@ -38,10 +39,10 @@ pub fn eq_terms(a: LTerm, b: LTerm, exact: bool) -> bool {
   loop {
     let eq_result = match op {
       ContinueCompare::AnyType(a1, b1) => {
-        eq_terms_any_type(a1, b1, exact)
+        cmp_terms_any_type(a1, b1, exact)
       }
       ContinueCompare::Cons(a2, b2) => unsafe {
-        eq_terms_cons(a2, b2)
+        cmp_terms_cons(a2, b2)
       },
     };
 
@@ -69,10 +70,10 @@ pub fn eq_terms(a: LTerm, b: LTerm, exact: bool) -> bool {
 }
 
 
-fn eq_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
+fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
-    return EqResult::Concluded(eq_atoms(a, b));
+    return EqResult::Concluded(cmp_atoms(a, b));
   }
 
   let a_is_small = a.is_small();
@@ -80,34 +81,34 @@ fn eq_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   if a_is_small && b_is_small {
     let a_small = a.small_get_s();
     let b_small = b.small_get_s();
-    return EqResult::Concluded(a_small.eq(&b_small));
+    return EqResult::Concluded(a_small.cmp(&b_small));
   }
 
   let a_is_float = unsafe { a.is_float() };
   let b_is_float = unsafe { b.is_float() };
   // If not exact then allow comparing float to int/bigint
   if !exact && (a_is_float || a_is_small) && (b_is_float || b_is_small) {
-    return EqResult::Concluded(eq_numbers_not_exact(a, b));
+    return EqResult::Concluded(cmp_numbers_not_exact(a, b));
   } else if a_is_float && b_is_float {
-    return EqResult::Concluded(eq_floats(a, b))
+    return EqResult::Concluded(cmp_floats(a, b))
   }
 
-  eq_terms_primary(a, b)
+  cmp_terms_primary(a, b)
 }
 
 
-fn eq_floats(_a: LTerm, _b: LTerm) -> bool {
+fn cmp_floats(_a: LTerm, _b: LTerm) -> Ordering {
   panic!("TODO: eq_floats")
 }
 
 
-fn eq_numbers_not_exact(_a: LTerm, _b: LTerm) -> bool {
+fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
   panic!("TODO: eq_numbers_not_exact")
 }
 
 
 /// Compare two atoms for equality.
-fn eq_atoms(a: LTerm, b: LTerm) -> bool {
+fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
   let atom_a = atom::lookup(a);
   debug_assert!(atom_a.is_null() == false);
 
@@ -116,43 +117,54 @@ fn eq_atoms(a: LTerm, b: LTerm) -> bool {
 
   // This should really be safe, as pointers to Atom exist statically forever
   unsafe {
-    if (*atom_a).len == (*atom_b).len {
-      return (*atom_a).name == (*atom_b).name;
+    let a_len = (*atom_a).len;
+    let b_len = (*atom_b).len;
+    if a_len == b_len {
+      return (*atom_a).name.cmp(&(*atom_b).name);
     }
+    a_len.cmp(&b_len)
   }
+}
 
-  false
+
+/// Compare order of two types without looking into their value.
+fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
+  let aclass = classify::classify_term(a);
+  let bclass = classify::classify_term(b);
+  aclass.cmp(&bclass)
 }
 
 
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
-fn eq_terms_primary(a: LTerm, b: LTerm) -> EqResult {
+fn cmp_terms_primary(a: LTerm, b: LTerm) -> EqResult {
   let a_val = a.raw();
   let a_prim_tag = primary::get_tag(a_val);
 
   let b_val = b.raw();
   let b_prim_tag = primary::get_tag(b_val);
   if b_prim_tag != a_prim_tag {
-    return EqResult::Concluded(false); // different primary types - not equal
+    // different primary types, compare their classes
+    // This can be optimized a little but is there any value in optimization?
+    return EqResult::Concluded(cmp_type_order(a, b));
   }
 
   match a_prim_tag {
     primary::TAG_IMMED => {
-      return EqResult::Concluded(eq_terms_immed(a, b))
+      return EqResult::Concluded(cmp_terms_immed(a, b))
     },
     primary::TAG_CONS => unsafe {
-      return eq_terms_cons(a, b)
+      return cmp_terms_cons(a, b)
     },
     primary::TAG_BOX => {
-      return eq_terms_box(a, b)
+      return cmp_terms_box(a, b)
     },
     _ => panic!("Primary tag {} eq_terms unsupported", a_prim_tag)
   }
 }
 
 
-fn eq_terms_immed(_a: LTerm, _b: LTerm) -> bool {
+fn cmp_terms_immed(_a: LTerm, _b: LTerm) -> Ordering {
   panic!("TODO: eq_terms_immed")
 }
 
@@ -160,7 +172,7 @@ fn eq_terms_immed(_a: LTerm, _b: LTerm) -> bool {
 /// Compare two boxed or immediate terms. In case when nested terms need to be
 /// recursively compared, we return `EqResult::CompareNested` to change the
 /// values `a` and `b` and perform another comparison without growing the stack.
-unsafe fn eq_terms_cons(a: LTerm, b: LTerm) -> EqResult {
+unsafe fn cmp_terms_cons(a: LTerm, b: LTerm) -> EqResult {
   let mut aa = a.cons_get_ptr();
   let mut bb = b.cons_get_ptr();
   loop {
@@ -177,7 +189,7 @@ unsafe fn eq_terms_cons(a: LTerm, b: LTerm) -> EqResult {
     let atl = aa.tl();
     let btl = bb.tl();
     if atl.raw() == btl.raw() {
-      return EqResult::Concluded(true)
+      return EqResult::Concluded(Ordering::Equal)
     }
     if !atl.is_list() || !btl.is_list() {
       // Just do a regular compare of `a.tl` vs `b.tl`
@@ -191,6 +203,7 @@ unsafe fn eq_terms_cons(a: LTerm, b: LTerm) -> EqResult {
   }
 }
 
-fn eq_terms_box(_a: LTerm, _b: LTerm) -> EqResult {
+
+fn cmp_terms_box(_a: LTerm, _b: LTerm) -> EqResult {
   panic!("TODO: eq_terms_box")
 }

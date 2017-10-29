@@ -8,6 +8,7 @@ use defs::{WORD_BYTES, Word};
 use emulator::heap::Heap;
 use emulator::heap::heapobj::*;
 use fail::Hopefully;
+use term::classify::TermClass;
 use term::lterm::LTerm;
 
 
@@ -29,6 +30,7 @@ static HOCLASS_BIGNUM: HeapObjClass = HeapObjClass {
   obj_type: HeapObjType::Binary,
   dtor: HOBignum::dtor,
   fmt_str: HOBignum::fmt_str,
+  term_class: TermClass::Number,
 };
 
 

@@ -518,7 +518,7 @@ impl LTerm {
       primary::header::TAG_HEADER_REF => write!(f, "Ref"),
       primary::header::TAG_HEADER_FUN => write!(f, "Fun"),
       primary::header::TAG_HEADER_FLOAT => write!(f, "Float"),
-      primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
+//      primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
 //      primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
 //      primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
 //      primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),

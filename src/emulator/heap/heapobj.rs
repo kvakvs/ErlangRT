@@ -5,6 +5,7 @@
 //! 3. (p+2...) The data
 use defs::Word;
 use term::primary::header;
+use term::classify::TermClass;
 
 
 pub enum HeapObjType {
@@ -36,4 +37,6 @@ pub struct HeapObjClass {
   pub obj_type: HeapObjType,
   pub dtor: unsafe fn(this: *mut Word) -> (),
   pub fmt_str: unsafe fn(this: *const Word) -> String,
+  /// For comparisons, a class for this term or `TermClass::Special_`
+  pub term_class: TermClass,
 }

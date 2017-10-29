@@ -1,5 +1,5 @@
 //!
-//! Implements two types of Erlang values:
+//! Term package implements two types of Erlang values:
 //!
 //! * FTerm (or Friendly Term) - a typesafe Rust enum which represents most of
 //!     possible values for load-time processing.
@@ -8,10 +8,11 @@
 //!
 //! As well as operations on terms, such as arithmetic or comparisons.
 //!
-pub mod compare;
-pub mod fterm;
-pub mod immediate;
-pub mod integral;
-pub mod lterm;
-pub mod primary;
-pub mod raw;
+pub mod classify; // term ordering (for comparisons)
+pub mod compare; // term comparisons (less, equal, greater)
+pub mod fterm; // friendly term as Rust enum
+pub mod immediate; // immediate term value, subset of lterm
+pub mod integral; // integral value (small or bignum) for fterms
+pub mod lterm; // low level packed term
+pub mod primary; // primary tag and header tag handling for packed lterms
+pub mod raw; // access helpers for some raw heap structures

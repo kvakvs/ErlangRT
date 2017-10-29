@@ -215,6 +215,7 @@ impl Heap {
 
 
   /// Check whether `y+1`-th element can be found in stack
+  #[inline]
   pub fn stack_have_y(&self, y: Word) -> bool {
     self.send - self.stop >= y + 1
   }
