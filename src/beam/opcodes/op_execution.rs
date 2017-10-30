@@ -21,7 +21,9 @@ pub fn opcode_call(ctx: &mut Context,
   // Structure: call(arity:int, loc:CP)
   assert_arity(gen_op::OPCODE_CALL, 2);
 
-  let _arity = ctx.fetch(); // skip arity
+  let arity = ctx.fetch_term();
+  ctx.live = arity.small_get_u();
+
   let location = ctx.fetch_term();
   debug_assert!(location.is_box(),
                 "Call location must be a box (have {})", location);
@@ -41,7 +43,9 @@ pub fn opcode_call_only(ctx: &mut Context,
   // Structure: call_only(arity:int, loc:cp)
   assert_arity(gen_op::OPCODE_CALL_ONLY, 2);
 
-  let _arity = ctx.fetch(); // skip arity
+  let arity = ctx.fetch_term();
+  ctx.live = arity.small_get_u();
+
   let location = ctx.fetch_term();
   debug_assert!(location.is_box(),
                 "Call location must be a box (have {})", location);
@@ -50,14 +54,6 @@ pub fn opcode_call_only(ctx: &mut Context,
 
   DispatchResult::Normal
 }
-
-
-//#[inline]
-//pub fn opcode_call_last(_ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
-//  assert_arity(gen_op::OPCODE_CALL_LAST, 3);
-//  panic!("notimpl call_last");
-//  DispatchResult::Normal
-//}
 
 
 /// Performs a tail recursive call to a Destination mfarity (a `HOImport`
@@ -69,7 +65,9 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
 
-  let _arity = ctx.fetch();
+  let arity = ctx.fetch_term();
+  ctx.live = arity.small_get_u();
+
   // HOImport object on heap which contains m:f/arity
   let import = HOImport::from_term(ctx.fetch_term());
 

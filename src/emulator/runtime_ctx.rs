@@ -27,6 +27,8 @@ pub struct Context {
 
   /// Current state of X registers.
   pub regs: [LTerm; MAX_XREGS],
+  /// How many X registers are currently used.
+  pub live: Word,
 
   /// Current state of Y registers.
   pub fpregs: [Float; MAX_FPREGS],
@@ -35,18 +37,18 @@ pub struct Context {
 
 impl Context {
 
-//  /// For swapping out of a process, copy pointers and `live` amount of X
-//  /// registers.
-//  pub fn clone_ctx(&self, live: Word) -> Context {
-//    let mut c = Context {
-//      ip: self.ip,
-//      cp: self.cp,
-//      regs: [LTerm::nil(); MAX_XREGS],
-//      fpregs: self.fpregs,
-//    };
-//    c.regs[0..live].clone_from_slice(&self.regs[0..live]);
-//    c
-//  }
+  /// For swapping in/out with a process, copy pointers and `live` amount of X
+  /// registers.
+  pub fn copy_from(&mut self, other: &Context) {
+    self.ip = other.ip;
+    self.cp = other.cp;
+
+    let live = other.live;
+    self.live = live;
+    self.regs[0..live].clone_from_slice(&other.regs[0..live]);
+
+    self.fpregs = other.fpregs;
+  }
 
 
   pub fn new(ip: CodePtr) -> Context {
@@ -55,6 +57,7 @@ impl Context {
       fpregs: [0.0; MAX_FPREGS],
       ip,
       regs: [LTerm::non_value(); MAX_XREGS],
+      live: 0,
     }
   }
 
