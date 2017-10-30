@@ -1,10 +1,12 @@
 //! Opcodes group of modules provides inline implementations of BEAM opcodes.
+pub mod op_bif;
 pub mod op_data;
 pub mod op_execution;
 pub mod op_list;
 pub mod op_memory;
 pub mod op_predicates;
 
+pub use beam::opcodes::op_bif::*;
 pub use beam::opcodes::op_data::*;
 pub use beam::opcodes::op_execution::*;
 pub use beam::opcodes::op_list::*;
@@ -36,7 +38,7 @@ pub fn assert_arity(_op: RawOpcode, _val: Word) {}
 
 /// Display an error about opcode not supported/not implemented.
 pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {
-  println!("Emulator state:\n{}", ctx);
+  println!("{}", ctx);
   panic!("vm_dispatch: Opcode {:?} '{}' not implemented",
          op, gen_op::opcode_name(op))
 }

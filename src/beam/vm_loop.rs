@@ -18,7 +18,7 @@ impl VM {
         None => return false,
         Some(p) => self.scheduler.lookup_pid_mut(&p).unwrap()
       };
-      let mut ctx = &mut curr_p.context;
+      let mut ctx = curr_p.context.clone_ctx(curr_p.live);
 
       if cfg!(debug_assertions) { unsafe {
         print!("[exec] ");
@@ -31,12 +31,14 @@ impl VM {
               "Opcode too big (wrong memory address?) got 0x{:x}", op);
 
       // Handle next opcode
-      match dispatch_op_inline(op, &mut ctx, &mut curr_p.heap) {
-        DispatchResult::Yield => return true,
+      match dispatch_op_inline(op, &mut ctx, curr_p) {
+        DispatchResult::Yield => {
+          curr_p.context = ctx.clone();
+          return true
+        },
         DispatchResult::Error => return false,
         DispatchResult::Normal => {}, // keep looping
       }
     } // end loop
   }
-
 }

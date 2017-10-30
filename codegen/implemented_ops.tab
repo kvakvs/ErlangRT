@@ -5,6 +5,11 @@ call_only
 call_ext_only
 return
 func_info
+# gc_bif1
+# gc_bif2
+bif0
+# bif1
+# bif2
 
 #====== Memory and Stack ======
 allocate

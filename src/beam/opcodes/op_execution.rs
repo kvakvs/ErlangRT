@@ -3,10 +3,10 @@
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use defs::{DispatchResult};
+use defs::DispatchResult;
 use emulator::code::CodePtr;
-use emulator::heap::Heap;
 use emulator::heap::ho_import::HOImport;
+use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 
 
@@ -16,7 +16,8 @@ fn module() -> &'static str { "opcodes::op_execution: " }
 /// Perform a call to a `location` in code, storing address of the next opcode
 /// in `ctx.cp`.
 #[inline]
-pub fn opcode_call(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
+pub fn opcode_call(ctx: &mut Context,
+                   _curr_p: &mut Process) -> DispatchResult {
   // Structure: call(arity:int, loc:CP)
   assert_arity(gen_op::OPCODE_CALL, 2);
 
@@ -35,7 +36,8 @@ pub fn opcode_call(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
 /// Perform a call to a `location` in code, the `ctx.cp` is not updated.
 /// Behaves like a jump?
 #[inline]
-pub fn opcode_call_only(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
+pub fn opcode_call_only(ctx: &mut Context,
+                        _curr_p: &mut Process) -> DispatchResult {
   // Structure: call_only(arity:int, loc:cp)
   assert_arity(gen_op::OPCODE_CALL_ONLY, 2);
 
@@ -63,12 +65,12 @@ pub fn opcode_call_only(ctx: &mut Context, _heap: &mut Heap) -> DispatchResult {
 /// point to an external function or a BIF. Does not update the `ctx.cp`.
 #[inline]
 pub fn opcode_call_ext_only(ctx: &mut Context,
-                            _heap: &mut Heap) -> DispatchResult {
+                            _curr_p: &mut Process) -> DispatchResult {
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
 
   let _arity = ctx.fetch();
-  // {M,F,Arity} tuple or {M,F,-Arity} bif
+  // HOImport object on heap which contains m:f/arity
   let import = HOImport::from_term(ctx.fetch_term());
 
   unsafe {
@@ -86,12 +88,13 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
 /// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
 /// the process has no more code to execute and will end with reason `normal`.
 #[inline]
-pub fn opcode_return(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
+pub fn opcode_return(ctx: &mut Context,
+                     curr_p: &mut Process) -> DispatchResult {
   // Structure: return()
   assert_arity(gen_op::OPCODE_RETURN, 0);
 
   if ctx.cp.is_null() {
-    if hp.stack_depth() == 0 {
+    if curr_p.heap.stack_depth() == 0 {
       // Process end of life: return on empty stack
       panic!("{}Process exit: normal; x0={}", module(), ctx.regs[0])
     } else {
@@ -107,7 +110,7 @@ pub fn opcode_return(ctx: &mut Context, hp: &mut Heap) -> DispatchResult {
 
 
 #[inline]
-pub fn opcode_func_info(ctx: &mut Context, _hp: &mut Heap) -> DispatchResult {
+pub fn opcode_func_info(ctx: &mut Context, _curr_p: &mut Process) -> DispatchResult {
   assert_arity(gen_op::OPCODE_FUNC_INFO, 3);
   let m = ctx.fetch_term();
   let f = ctx.fetch_term();

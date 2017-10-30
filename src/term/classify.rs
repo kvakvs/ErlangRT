@@ -16,6 +16,7 @@ fn module() -> &'static str { "classify: " }
 /// `number` < `atom` < `reference` < `fun` < `port` < `pid` < `tuple` < `map`
 /// < `nil` < `list` < `bit string`.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
+#[allow(dead_code)]
 pub enum TermClass {
   Number,
   Atom,

@@ -19,13 +19,13 @@ use beam::gen_op;
 use beam::opcodes::*;
 use defs::{{DispatchResult}};
 use emulator::code::opcode::RawOpcode;
-use emulator::heap::Heap;
+use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 
 
 #[inline]
 pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, \
-heap: &mut Heap) -> DispatchResult {{
+curr_p: &mut Process) -> DispatchResult {{
   match op {{
 """.format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
@@ -33,7 +33,7 @@ heap: &mut Heap) -> DispatchResult {{
         op = tables.ops[opcode]
         if op.name in tables.implemented_ops:
             print("    gen_op::OPCODE_{opcode} => "
-                  "{{ return opcode_{lowercase}(ctx, heap) }},"
+                  "return opcode_{lowercase}(ctx, curr_p),"
                   "".format(opcode=op.name.upper(), lowercase=op.name))
 
     print("""\

@@ -2,17 +2,15 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 //!
+
+use defs::Word;
+use emulator::code_srv;
 use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa::MFArity;
-use emulator::code_srv;
 use emulator::runtime_ctx;
 use emulator::scheduler;
 use fail::Hopefully;
 use term::lterm::LTerm;
-
-
-//pub type Ptr = sync::Arc<sync::RwLock<Process>>;
-//pub type Weak = sync::Weak<sync::RwLock<Process>>;
 
 
 pub struct Process {
@@ -31,8 +29,11 @@ pub struct Process {
   /// (updated by the vm loop)
   pub timeslice_result: scheduler::SliceResult,
   pub fail_value: LTerm,
+
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
+  /// How many X registers in the context are currently used
+  pub live: Word,
 
   pub heap: Heap,
 }
@@ -55,8 +56,10 @@ impl Process {
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
           fail_value: LTerm::non_value(),
-          context: runtime_ctx::Context::new(ip),
           heap: Heap::new(DEFAULT_PROC_HEAP),
+
+          context: runtime_ctx::Context::new(ip),
+          live: 0,
         };
         Ok(p)
         //Ok(sync::Arc::new(sync::RwLock::new(p)))

@@ -1,11 +1,13 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
-use defs::Word;
-use defs;
+
+use bif::BifFn;
+use defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
 use emulator::code::{CodePtr};
 use emulator::heap;
-use term::lterm::LTerm;
+use emulator::process::Process;
 use term::immediate;
+use term::lterm::LTerm;
 
 use std::fmt;
 
@@ -24,20 +26,35 @@ pub struct Context {
   pub cp: CodePtr,
 
   /// Current state of X registers.
-  pub regs: [LTerm; defs::MAX_XREGS],
+  pub regs: [LTerm; MAX_XREGS],
 
   /// Current state of Y registers.
-  pub fpregs: [defs::Float; defs::MAX_FPREGS],
+  pub fpregs: [Float; MAX_FPREGS],
 }
 
 
 impl Context {
+
+//  /// For swapping out of a process, copy pointers and `live` amount of X
+//  /// registers.
+//  pub fn clone_ctx(&self, live: Word) -> Context {
+//    let mut c = Context {
+//      ip: self.ip,
+//      cp: self.cp,
+//      regs: [LTerm::nil(); MAX_XREGS],
+//      fpregs: self.fpregs,
+//    };
+//    c.regs[0..live].clone_from_slice(&self.regs[0..live]);
+//    c
+//  }
+
+
   pub fn new(ip: CodePtr) -> Context {
     Context {
       cp: CodePtr::null(),
-      fpregs: [0.0; defs::MAX_FPREGS],
+      fpregs: [0.0; MAX_FPREGS],
       ip,
-      regs: [LTerm::non_value(); defs::MAX_XREGS],
+      regs: [LTerm::non_value(); MAX_XREGS],
     }
   }
 
@@ -117,6 +134,17 @@ impl Context {
     panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
   }
 
+
+  /// Generic bif0,1,2 application. Bif0 cannot have a fail label but bif1 and
+  /// bif2 can, so on exception a jump will be performed.
+  pub fn call_bif<T>(&self, curr_p: &mut Process, bif_fn: BifFn,
+                     fail_label: LTerm, args: *const Word,
+                     dst: LTerm) -> DispatchResult
+  {
+    (bif_fn)(curr_p, args);
+    DispatchResult::Normal
+  }
+
 }
 
 
@@ -127,6 +155,9 @@ impl fmt::Display for Context {
       str_regs += &format!("{}; ", v)
     }
 
-    writeln!(f, "ip: {:?}, cp: {:?}\nregs[..10]: {}", self.ip, self.cp, str_regs)
+    writeln!(f, concat!(
+        "Emulator state:\n",
+        "ip: {:?}, cp: {:?}\nregs[..10]: {}"
+      ), self.ip, self.cp, str_regs)
   }
 }

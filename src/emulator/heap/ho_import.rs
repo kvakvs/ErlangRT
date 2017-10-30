@@ -3,6 +3,7 @@
 use std::mem::size_of;
 use std::ptr;
 
+use bif::{BifFn, find_bif};
 use defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
@@ -77,7 +78,15 @@ impl HOImport {
   }
 
 
+  /// Lookup a function, referred by this object and possibly attempt code
+  /// loading if the module was missing. Return a code pointer.
   pub fn resolve(&self) -> Hopefully<CodePtr> {
     code_srv::lookup_and_load(&self.mfarity)
+  }
+
+
+  /// Assuming that this object refers to a BIF function, perform a BIF lookup.
+  pub fn resolve_bif(&self) -> Hopefully<BifFn> {
+    find_bif(&self.mfarity)
   }
 }
