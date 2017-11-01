@@ -1,24 +1,15 @@
 //! Module implements opcodes related to calling built-in functions (BIF).
 
-use std::ptr;
+//use std::ptr;
 
 //use bif::BifFn;
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use defs::{Word, DispatchResult};
+use defs::{DispatchResult};
 use emulator::heap::ho_import::HOImport;
 use emulator::process::Process;
-use emulator::runtime_ctx::Context;
+use emulator::runtime_ctx::{Context, call_bif};
 use term::lterm::LTerm;
-
-
-/// An info struct used to call bif with 0 args
-struct Bif0CallInfo {}
-
-impl Bif0CallInfo {
-  const HAVE_FAIL_LABEL: bool = false;
-  const NUM_ARGS: Word = 0;
-}
 
 
 /// Call a bif m:f/0 using `import` stored on heap, there is no way it can fail,
@@ -31,15 +22,15 @@ pub fn opcode_bif0(ctx: &mut Context,
 
   // HOImport object on heap which contains m:f/arity
   let import = HOImport::from_term(ctx.fetch_term());
-  let bif_ptr = unsafe {
-    (*import).resolve_bif().unwrap()
-  };
-
   let dst = ctx.fetch_term();
+  let bif_fn = unsafe { (*import ).resolve_bif() };
+  call_bif(ctx,
+           curr_p,
+           bif_fn,
+           LTerm::nil(),
+           0,
+           dst,
+           false);
 
-  ctx.call_bif::<Bif0CallInfo>(curr_p,
-                               bif_ptr,
-                               LTerm::nil(),
-                               ptr::null(),
-                               dst)
+  DispatchResult::Normal
 }

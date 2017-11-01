@@ -11,10 +11,23 @@ fn module() -> &'static str { "classify: " }
 
 /// Enum defines term classification for order comparisons. Use `cmp` on this
 /// enum to get relative order for two terms. Enum values are listed in
-/// comparison order according to "Term Comparisons" at
-/// http://erlang.org/doc/reference_manual/expressions.html
-/// `number` < `atom` < `reference` < `fun` < `port` < `pid` < `tuple` < `map`
-/// < `nil` < `list` < `bit string`.
+/// comparison order according to
+/// [Term Comparisons](http://erlang.org/doc/reference_manual/expressions.html)
+///
+/// The order from the documentation is:
+///
+/// * `number` is less than
+/// * `atom` is less than
+/// * `reference` is less than
+/// * `fun` is less than
+/// * `port` is less than
+/// * `pid` is less than
+/// * `tuple` is less than
+/// * `map` is less than
+/// * `nil` is less than
+/// * `list` is less than
+/// * `bit string` (`binary`).
+///
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum TermClass {
