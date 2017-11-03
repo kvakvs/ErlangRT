@@ -23,7 +23,9 @@ pub fn opcode_bif0(ctx: &mut Context,
   // HOImport object on heap which contains m:f/arity
   let import = HOImport::from_term(ctx.fetch_term());
   let dst = ctx.fetch_term();
-  let bif_fn = unsafe { (*import ).resolve_bif() };
+  let bif_fn = unsafe {
+    (*import ).resolve_bif()
+  };
   call_bif(ctx,
            curr_p,
            bif_fn,

@@ -13,6 +13,14 @@ use fail::Hopefully;
 use term::lterm::LTerm;
 
 
+pub enum ErrorType {
+  None,
+  Exit,
+  Throw,
+  Error,
+}
+
+
 pub struct Process {
   pub pid: LTerm,
   //parent_pid: LTerm,
@@ -36,7 +44,14 @@ pub struct Process {
   pub live: Word,
 
   pub heap: Heap,
+
+  //
+  // Error handling
+  //
+  pub error_type: ErrorType,
+  pub error_reason: LTerm,
 }
+
 
 impl Process {
   // Call this only from VM, the new process must be immediately registered
@@ -60,6 +75,9 @@ impl Process {
 
           context: runtime_ctx::Context::new(ip),
           live: 0,
+
+          error_type: ErrorType::None,
+          error_reason: LTerm::nil(),
         };
         Ok(p)
         //Ok(sync::Arc::new(sync::RwLock::new(p)))
@@ -68,11 +86,13 @@ impl Process {
     }
   }
 
+
   /// Returns true if there was an error or exception during the last timeslice.
   #[inline]
   pub fn is_failed(&self) -> bool {
     self.fail_value.is_value()
   }
+
 
   #[allow(dead_code)]
   pub fn jump(&mut self, mfarity: &MFArity) -> Hopefully<()> {
@@ -84,5 +104,35 @@ impl Process {
       },
       Err(e) => Err(e)
     }
+  }
+
+
+  pub fn exit(&mut self, rsn: LTerm) -> LTerm {
+    self.set_error(ErrorType::Exit, rsn)
+  }
+
+
+  pub fn throw(&mut self, rsn: LTerm) -> LTerm {
+    self.set_error(ErrorType::Throw, rsn)
+  }
+
+
+  pub fn error(&mut self, rsn: LTerm) -> LTerm {
+    self.set_error(ErrorType::Error, rsn)
+  }
+
+
+  /// Sets error state from an opcode or a BIF. VM will hopefully check this
+  /// immediately and finish the process or catch the error.
+  fn set_error(&mut self, t: ErrorType, rsn: LTerm) -> LTerm {
+    self.error_type = t;
+    self.error_reason = rsn;
+    LTerm::non_value()
+  }
+
+
+  pub fn clear_error(&mut self) {
+    self.error_type = ErrorType::None;
+    self.error_reason = LTerm::nil();
   }
 }

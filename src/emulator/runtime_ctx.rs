@@ -175,15 +175,23 @@ pub fn call_bif(ctx: &mut Context,
                 dst: LTerm,
                 gc: bool) -> DispatchResult
 {
-  let bif_callable = bif_fn.unwrap();
-  let bif_result = {
-    let args = &ctx.regs[0..n_args];
-    (bif_callable)(curr_p, args)
+  let bif_result = match bif_fn {
+    Ok(f) => {
+      let args = &ctx.regs[0..n_args];
+      // Apply the BIF call
+      (f)(curr_p, args)
+    },
+    Err(e) => {
+      let rsn = LTerm::nil(); // TODO make proper error value here
+      curr_p.exit(rsn) // will set bif_result to LTerm::non_value()
+    },
   };
+
   match bif_result {
     // Check error
     t if t.is_non_value() => {
-      // On error and if fail label is a CP, perform a go to
+      // On error and if fail label is a CP, perform a goto
+      // Assume that error is already written to `reason` in process
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
