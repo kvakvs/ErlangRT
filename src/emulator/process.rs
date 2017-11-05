@@ -12,15 +12,29 @@ use emulator::scheduler;
 use fail::Hopefully;
 use term::lterm::LTerm;
 
+use std::fmt;
+
 
 #[allow(dead_code)]
-pub enum ErrorType {
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum ProcessError {
   None,
-  Exit,
-  Throw,
-  Error,
+  Exit(LTerm),
+  Throw(LTerm),
+  Error(LTerm),
 }
 
+
+impl fmt::Display for ProcessError {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match *self {
+      ProcessError::None => write!(f, "NoError"),
+      ProcessError::Exit(t) => write!(f, "exit({})", t),
+      ProcessError::Throw(t) => write!(f, "throw({})", t),
+      ProcessError::Error(t) => write!(f, "error({})", t),
+    }
+  }
+}
 
 pub struct Process {
   pub pid: LTerm,
@@ -34,10 +48,6 @@ pub struct Process {
   pub prio: scheduler::Prio,
   /// Current scheduler queue where this process is registered
   pub current_queue: scheduler::Queue,
-  /// Record result of last scheduled timeslice for this process
-  /// (updated by the vm loop)
-  pub timeslice_result: scheduler::SliceResult,
-  pub fail_value: LTerm,
 
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
@@ -49,8 +59,10 @@ pub struct Process {
   //
   // Error handling
   //
-  pub error_type: ErrorType,
-  pub error_reason: LTerm,
+  /// Record result of last scheduled timeslice for this process
+  /// (updated by the vm loop)
+  pub timeslice_result: scheduler::SliceResult,
+  pub error: ProcessError,
 }
 
 
@@ -71,14 +83,12 @@ impl Process {
           prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
-          fail_value: LTerm::non_value(),
           heap: Heap::new(DEFAULT_PROC_HEAP),
 
           context: runtime_ctx::Context::new(ip),
           live: 0,
 
-          error_type: ErrorType::None,
-          error_reason: LTerm::nil(),
+          error: ProcessError::None,
         };
         Ok(p)
         //Ok(sync::Arc::new(sync::RwLock::new(p)))
@@ -91,7 +101,7 @@ impl Process {
   /// Returns true if there was an error or exception during the last timeslice.
   #[inline]
   pub fn is_failed(&self) -> bool {
-    self.fail_value.is_value()
+    self.error != ProcessError::None
   }
 
 
@@ -109,31 +119,30 @@ impl Process {
 
 
   pub fn exit(&mut self, rsn: LTerm) -> LTerm {
-    self.set_error(ErrorType::Exit, rsn)
+    self.set_error(ProcessError::Exit(rsn))
   }
 
 
   pub fn throw(&mut self, rsn: LTerm) -> LTerm {
-    self.set_error(ErrorType::Throw, rsn)
+    self.set_error(ProcessError::Throw(rsn))
   }
 
 
   pub fn error(&mut self, rsn: LTerm) -> LTerm {
-    self.set_error(ErrorType::Error, rsn)
+    self.set_error(ProcessError::Error(rsn))
   }
 
 
   /// Sets error state from an opcode or a BIF. VM will hopefully check this
   /// immediately and finish the process or catch the error.
-  fn set_error(&mut self, t: ErrorType, rsn: LTerm) -> LTerm {
-    self.error_type = t;
-    self.error_reason = rsn;
+  fn set_error(&mut self, e: ProcessError) -> LTerm {
+    println!("Process {} failed {}", self.pid, e);
+    self.error = e;
     LTerm::non_value()
   }
 
 
   pub fn clear_error(&mut self) {
-    self.error_type = ErrorType::None;
-    self.error_reason = LTerm::nil();
+    self.error = ProcessError::None;
   }
 }

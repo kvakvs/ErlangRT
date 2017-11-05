@@ -2,7 +2,7 @@
 use std::collections::{VecDeque, HashMap};
 
 use defs::Word;
-use emulator::process;
+use emulator::process::{Process, ProcessError};
 use emulator::gen_atoms;
 use term::lterm::LTerm;
 
@@ -77,7 +77,7 @@ pub struct Scheduler {
 //  wait_timed: HashSet<LTerm>,
 
   /// Dict of pids to process boxes. Owned by the scheduler
-  processes: HashMap<LTerm, process::Process>,
+  processes: HashMap<LTerm, Process>,
 }
 
 
@@ -101,7 +101,7 @@ impl Scheduler {
 
   /// Register a process `proc_` in the process table and also queue it for
   /// execution. This is invoked by vm when a new process is spawned.
-  pub fn add(&mut self, pid: LTerm, proc_: process::Process) {
+  pub fn add(&mut self, pid: LTerm, proc_: Process) {
     self.processes.insert(pid, proc_);
     self.queue(pid);
   }
@@ -144,15 +144,15 @@ impl Scheduler {
           self.current = None
         },
         SliceResult::Finished => {
-          self.exit_process(curr_pid, gen_atoms::NORMAL)
+          self.exit_process(curr_pid, ProcessError::Exit(gen_atoms::NORMAL))
         },
         SliceResult::Exception => {
-          let fail_value = {
+          let p_error = {
             let curr = self.lookup_pid(&curr_pid).unwrap();
             assert!(curr.is_failed());
-            curr.fail_value
+            curr.error
           };
-          self.exit_process(curr_pid, fail_value);
+          self.exit_process(curr_pid, p_error);
           self.current = None
         },
         SliceResult::Wait => {},
@@ -201,19 +201,20 @@ impl Scheduler {
 
 
   /// Get a read-only process, if it exists. Return `None` if we are sorry.
-  pub fn lookup_pid(&self, pid: &LTerm) -> Option<&process::Process> {
+  pub fn lookup_pid(&self, pid: &LTerm) -> Option<&Process> {
     assert!(pid.is_local_pid());
     self.processes.get(pid)
   }
 
   /// Get a reference to process, if it exists. Return `None` if we are sorry.
-  pub fn lookup_pid_mut(&mut self, pid: &LTerm) -> Option<&mut process::Process> {
+  pub fn lookup_pid_mut(&mut self, pid: &LTerm) -> Option<&mut Process> {
     assert!(pid.is_local_pid());
     self.processes.get_mut(pid)
   }
 
 
-  pub fn exit_process(&mut self, pid: LTerm, reason: LTerm) {
+  pub fn exit_process(&mut self, pid: LTerm,
+                      e: ProcessError) {
     // assert that process is not in any queue
     {
       let p = self.lookup_pid_mut(&pid).unwrap();
@@ -229,8 +230,8 @@ impl Scheduler {
     // TODO: notify links
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
-    println!("{}Scheduler::exit_process {} reason={}, result x0=?",
-             module(), pid, reason //, p.runtime_ctx.regs[0]
+    println!("{}Scheduler::exit_process {} e={}, result x0=?",
+             module(), pid, e //, p.runtime_ctx.regs[0]
             );
 
     //  m_inf_wait.erase(p);

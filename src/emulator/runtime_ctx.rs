@@ -183,6 +183,8 @@ pub fn call_bif(ctx: &mut Context,
     LTerm::nil()
   };
 
+  let live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
+
   // HOImport object on heap which contains m:f/arity
   let import = HOImport::from_term(ctx.fetch_term());
 
@@ -211,6 +213,8 @@ pub fn call_bif(ctx: &mut Context,
     },
   };
 
+  println!("BIF{} gc={} call result {}", n_args, gc, bif_result);
+
   match bif_result {
     // Check error
     t if t.is_non_value() => {
@@ -219,13 +223,14 @@ pub fn call_bif(ctx: &mut Context,
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
+      DispatchResult::Error
     },
     val => {
       // if dst is not NIL, store the result in it
       if !dst.is_nil() {
         ctx.store(val, dst, &mut curr_p.heap)
       }
+      DispatchResult::Normal
     },
   }
-  DispatchResult::Normal
 }

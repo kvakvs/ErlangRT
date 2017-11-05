@@ -5,8 +5,8 @@ use emulator::code::{opcode, CodePtr};
 use emulator::disasm;
 use emulator::runtime_ctx::Context;
 use emulator::vm::VM;
+use emulator::scheduler::SliceResult;
 
-//use std::mem::transmute;
 
 impl VM {
   /// Take a process from scheduler.
@@ -37,13 +37,21 @@ impl VM {
       match dispatch_op_inline(op, &mut ctx, curr_p) {
         DispatchResult::Yield => {
           curr_p.context.copy_from(&ctx); // swapout
+          curr_p.timeslice_result = SliceResult::Yield;
           return true
         },
         DispatchResult::Error => {
           curr_p.context.copy_from(&ctx); // swapout
+//          let pid = curr_p.pid;
+//          let exc_type = curr_p.error_type;
+//          let exit_reason = curr_p.error_reason;
+//          self.scheduler.exit_process(pid, exc_type, exit_reason);
+          curr_p.timeslice_result = SliceResult::Exception;
           return false
         },
-        DispatchResult::Normal => {}, // keep looping
+        DispatchResult::Normal => {
+          curr_p.timeslice_result = SliceResult::None;
+        }, // keep looping
       }
     } // end loop
   }
