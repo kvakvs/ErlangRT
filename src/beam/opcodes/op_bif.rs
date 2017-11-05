@@ -1,15 +1,10 @@
 //! Module implements opcodes related to calling built-in functions (BIF).
 
-//use std::ptr;
-
-//use bif::BifFn;
 use beam::gen_op;
 use beam::opcodes::assert_arity;
 use defs::{DispatchResult};
-use emulator::heap::ho_import::HOImport;
 use emulator::process::Process;
 use emulator::runtime_ctx::{Context, call_bif};
-use term::lterm::LTerm;
 
 
 /// Call a bif m:f/0 using `import` stored on heap, there is no way it can fail,
@@ -19,20 +14,58 @@ pub fn opcode_bif0(ctx: &mut Context,
                    curr_p: &mut Process) -> DispatchResult {
   // Structure: bif0(import:boxed, dst:dst)
   assert_arity(gen_op::OPCODE_BIF0, 2);
+  call_bif(ctx, curr_p, 0, false);
+  DispatchResult::Normal
+}
 
-  // HOImport object on heap which contains m:f/arity
-  let import = HOImport::from_term(ctx.fetch_term());
-  let dst = ctx.fetch_term();
-  let bif_fn = unsafe {
-    (*import ).resolve_bif()
-  };
-  call_bif(ctx,
-           curr_p,
-           bif_fn,
-           LTerm::nil(),
-           0,
-           dst,
-           false);
 
+#[inline]
+pub fn opcode_bif1(ctx: &mut Context,
+                   curr_p: &mut Process) -> DispatchResult {
+  // Structure: bif1(fail:cp, import:boxed, arg1:lterm, dst:dst)
+  assert_arity(gen_op::OPCODE_BIF1, 4);
+  call_bif(ctx, curr_p, 1, false);
+  DispatchResult::Normal
+}
+
+
+#[inline]
+pub fn opcode_bif2(ctx: &mut Context,
+                   curr_p: &mut Process) -> DispatchResult {
+  // Structure: bif1(fail:cp, import:boxed, arg1..2:lterm, dst:dst)
+  assert_arity(gen_op::OPCODE_BIF2, 5);
+  call_bif(ctx, curr_p, 2, false);
+  DispatchResult::Normal
+}
+
+
+#[inline]
+pub fn opcode_gc_bif1(ctx: &mut Context,
+                   curr_p: &mut Process) -> DispatchResult {
+  // Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:lterm, dst:dst)
+  assert_arity(gen_op::OPCODE_GC_BIF1, 5);
+  call_bif(ctx, curr_p, 1, true);
+  DispatchResult::Normal
+}
+
+
+#[inline]
+pub fn opcode_gc_bif2(ctx: &mut Context,
+                      curr_p: &mut Process) -> DispatchResult {
+  // Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:lterm,
+  //                    arg2:lterm, dst:dst)
+  assert_arity(gen_op::OPCODE_GC_BIF2, 6);
+  call_bif(ctx, curr_p, 2, true);
+  DispatchResult::Normal
+}
+
+
+#[inline]
+pub fn opcode_gc_bif3(ctx: &mut Context,
+                      curr_p: &mut Process) -> DispatchResult {
+  // Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:lterm,
+  //                    arg2:lterm, arg3:lterm, dst:dst)
+  assert_arity(gen_op::OPCODE_GC_BIF2, 7);
+  call_bif(ctx, curr_p, 3, true);
   DispatchResult::Normal
 }

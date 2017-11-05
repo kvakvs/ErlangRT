@@ -1,16 +1,17 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 
-use bif::BifFn;
 use defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
 use emulator::code::CodePtr;
+use emulator::gen_atoms;
+use emulator::heap::ho_import::HOImport;
 use emulator::heap;
 use emulator::process::Process;
-use fail::Hopefully;
 use term::immediate;
 use term::lterm::LTerm;
 
 use std::fmt;
+use std::slice;
 
 
 fn module() -> &'static str { "runtime_ctx: " }
@@ -169,20 +170,43 @@ impl fmt::Display for Context {
 // Inline to allow const folding optimization
 pub fn call_bif(ctx: &mut Context,
                 curr_p: &mut Process,
-                bif_fn: Hopefully<BifFn>,
-                fail_label: LTerm,
                 n_args: Word,
-                dst: LTerm,
                 gc: bool) -> DispatchResult
 {
+  //
+  // Fetch args
+  //
+  let fail_label = if n_args != 0 || gc {
+    // bif0 is special and has no fail label, others do
+    ctx.fetch_term()
+  } else {
+    LTerm::nil()
+  };
+
+  // HOImport object on heap which contains m:f/arity
+  let import = HOImport::from_term(ctx.fetch_term());
+
+  let p_args = ctx.ip.get_ptr() as *const LTerm;
+  if n_args > 0 {
+    ctx.ip = ctx.ip.offset(n_args as isize);
+  }
+
+  let dst = ctx.fetch_term();
+  // End arguments
+  //
+
+  let bif_fn = unsafe {
+    (*import ).resolve_bif()
+  };
+
   let bif_result = match bif_fn {
     Ok(f) => {
-      let args = &ctx.regs[0..n_args];
       // Apply the BIF call
+      let args = unsafe { slice::from_raw_parts(p_args, n_args) };
       (f)(curr_p, args)
     },
-    Err(e) => {
-      let rsn = LTerm::nil(); // TODO make proper error value here
+    Err(_e) => {
+      let rsn = gen_atoms::UNDEF; // TODO make proper error value here
       curr_p.exit(rsn) // will set bif_result to LTerm::non_value()
     },
   };

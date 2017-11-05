@@ -13,6 +13,7 @@ use fail::Hopefully;
 use term::lterm::LTerm;
 
 
+#[allow(dead_code)]
 pub enum ErrorType {
   None,
   Exit,
