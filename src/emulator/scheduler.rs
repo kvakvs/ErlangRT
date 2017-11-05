@@ -206,6 +206,7 @@ impl Scheduler {
     self.processes.get(pid)
   }
 
+
   /// Get a reference to process, if it exists. Return `None` if we are sorry.
   pub fn lookup_pid_mut(&mut self, pid: &LTerm) -> Option<&mut Process> {
     assert!(pid.is_local_pid());
@@ -213,8 +214,7 @@ impl Scheduler {
   }
 
 
-  pub fn exit_process(&mut self, pid: LTerm,
-                      e: ProcessError) {
+  pub fn exit_process(&mut self, pid: LTerm, e: ProcessError) {
     // assert that process is not in any queue
     {
       let p = self.lookup_pid_mut(&pid).unwrap();
@@ -230,7 +230,7 @@ impl Scheduler {
     // TODO: notify links
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
-    println!("{}Scheduler::exit_process {} e={}, result x0=?",
+    println!("{}exit_process {} e={}, result x0=?",
              module(), pid, e //, p.runtime_ctx.regs[0]
             );
 

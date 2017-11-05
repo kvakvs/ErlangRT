@@ -7,6 +7,8 @@ use emulator::runtime_ctx::Context;
 use emulator::vm::VM;
 use emulator::scheduler::SliceResult;
 
+fn module() -> &'static str { "vm_loop: " }
+
 
 impl VM {
   /// Take a process from scheduler.
@@ -42,12 +44,8 @@ impl VM {
         },
         DispatchResult::Error => {
           curr_p.context.copy_from(&ctx); // swapout
-//          let pid = curr_p.pid;
-//          let exc_type = curr_p.error_type;
-//          let exit_reason = curr_p.error_reason;
-//          self.scheduler.exit_process(pid, exc_type, exit_reason);
           curr_p.timeslice_result = SliceResult::Exception;
-          return false
+          return true
         },
         DispatchResult::Normal => {
           curr_p.timeslice_result = SliceResult::None;

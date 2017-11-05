@@ -14,8 +14,7 @@ pub fn opcode_bif0(ctx: &mut Context,
                    curr_p: &mut Process) -> DispatchResult {
   // Structure: bif0(import:boxed, dst:dst)
   assert_arity(gen_op::OPCODE_BIF0, 2);
-  call_bif(ctx, curr_p, 0, false);
-  DispatchResult::Normal
+  call_bif(ctx, curr_p, 0, false)
 }
 
 
@@ -24,8 +23,7 @@ pub fn opcode_bif1(ctx: &mut Context,
                    curr_p: &mut Process) -> DispatchResult {
   // Structure: bif1(fail:cp, import:boxed, arg1:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_BIF1, 4);
-  call_bif(ctx, curr_p, 1, false);
-  DispatchResult::Normal
+  call_bif(ctx, curr_p, 1, false)
 }
 
 
@@ -34,8 +32,7 @@ pub fn opcode_bif2(ctx: &mut Context,
                    curr_p: &mut Process) -> DispatchResult {
   // Structure: bif1(fail:cp, import:boxed, arg1..2:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_BIF2, 5);
-  call_bif(ctx, curr_p, 2, false);
-  DispatchResult::Normal
+  call_bif(ctx, curr_p, 2, false)
 }
 
 
@@ -44,8 +41,7 @@ pub fn opcode_gc_bif1(ctx: &mut Context,
                    curr_p: &mut Process) -> DispatchResult {
   // Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_GC_BIF1, 5);
-  call_bif(ctx, curr_p, 1, true);
-  DispatchResult::Normal
+  call_bif(ctx, curr_p, 1, true)
 }
 
 
@@ -55,8 +51,7 @@ pub fn opcode_gc_bif2(ctx: &mut Context,
   // Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:lterm,
   //                    arg2:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_GC_BIF2, 6);
-  call_bif(ctx, curr_p, 2, true);
-  DispatchResult::Normal
+  call_bif(ctx, curr_p, 2, true)
 }
 
 
@@ -66,6 +61,5 @@ pub fn opcode_gc_bif3(ctx: &mut Context,
   // Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:lterm,
   //                    arg2:lterm, arg3:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_GC_BIF2, 7);
-  call_bif(ctx, curr_p, 3, true);
-  DispatchResult::Normal
+  call_bif(ctx, curr_p, 3, true)
 }

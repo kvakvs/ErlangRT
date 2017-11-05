@@ -15,6 +15,9 @@ use term::lterm::LTerm;
 use std::fmt;
 
 
+fn module() -> &'static str { "process: " }
+
+
 #[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ProcessError {
@@ -136,7 +139,7 @@ impl Process {
   /// Sets error state from an opcode or a BIF. VM will hopefully check this
   /// immediately and finish the process or catch the error.
   fn set_error(&mut self, e: ProcessError) -> LTerm {
-    println!("Process {} failed {}", self.pid, e);
+    println!("{}{} set_error {}", module(), self.pid, e);
     self.error = e;
     LTerm::non_value()
   }
