@@ -2,6 +2,8 @@
 # takes: atoms.tab
 # Prints a Rust source file predefined atom values (preregistered by
 # emulator::atom during the startup)
+
+from typing import List, Dict
 import erlangrt.genop as genop
 
 
@@ -22,49 +24,38 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use term::immediate;
+use term::immediate::{{make_atom_raw_const}};
 use term::lterm::LTerm;
 
 """.format(otp=conf.__class__.__name__))
 
-    all_atoms = []
-    uniq_atoms = set()
-    i = 0
-
-    for a in tables.atom_tab:
-        a_name = a.text
-        if a_name in uniq_atoms:
-            continue
-        uniq_atoms.add(a_name)
-        all_atoms.append(AddAtom(atom=a_name,
-                                 cname=genop.enum_name(a_name),
-                                 atom_id=i))
-        i += 1
-
-    for a in tables.bif_tab:
-        a_name = a.atom
-        if a_name in uniq_atoms:
-            continue
-        uniq_atoms.add(a_name)
-        all_atoms.append(AddAtom(atom=a_name,
-                                 cname=genop.enum_name(a.cname).upper(),
-                                 atom_id=i))
-        i += 1
+    # all_atoms = []  # type: Dict[str, genop.Atom]
+    # uniq_atoms = set()
 
     #
     # Print convenient atom constants
     #
-    for a in all_atoms:
+    atom_keys = list(tables.atom_dict.keys())
+    atom_keys.sort()
+
+    i = 0
+    for akey in atom_keys:
+        a = tables.atom_dict[akey]
         print("pub const {cname}: LTerm = LTerm {{ "
-              "value: immediate::make_atom_raw_const({index}) }};"
-              "".format(cname=a.cname, index=a.atom_id))
+              "value: make_atom_raw_const({index}) }};"
+              "".format(cname=a.cname, index=i))
+        i += 1
 
     #
     # Print initialization vector
     #
+    i = 0
     print("\npub static ATOM_INIT_NAMES: &'static [&'static str] = &[")
-    for a in all_atoms:
-        print('  "{atext}", // id={aid}'.format(atext=a.atom, aid=a.atom_id))
+    for akey in atom_keys:
+        a = tables.atom_dict[akey]
+        print('  "{atext}", // id={aid}'.format(atext=a.text, aid=i))
+        i += 1
+
     print("];")
 
 

@@ -1,3 +1,7 @@
+#--- Symbols
+- sym_minus
++ sym_plus
+
 #--- A
 apply
 

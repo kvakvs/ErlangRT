@@ -33,12 +33,13 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
 """.format(otp=conf.__class__.__name__))
 
     for bif in tables.bif_tab:
+        fun_atom = tables.atom_dict[bif.atom_str]  # type: genop.Atom
         print("    BifTabItem {{ m: gen_atoms::{mod}, "
               "f: gen_atoms::{fun}, arity: {arity},"
               "\n        func: bif::{biftype}_{fun_name}_{arity} }},"
               "".format(cname=bif.cname,
                         mod=genop.enum_name(bif.mod).upper(),
-                        fun=genop.enum_name(bif.cname).upper(),
+                        fun=fun_atom.cname.upper(),
                         fun_name=genop.c_fun_name(bif.cname),
                         biftype=bif.biftype,
                         arity=bif.arity))

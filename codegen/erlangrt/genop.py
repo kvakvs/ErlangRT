@@ -2,7 +2,8 @@
 # returns list of dicts{name:str(), arity:int(), opcode:int()}
 
 import string
-from typing import *
+from sys import stderr
+from typing import Union, List, Dict
 
 
 class OTPConfig:
@@ -84,12 +85,15 @@ def c_fun_name(name: str) -> str:
 
 
 class Bif:
-    def __init__(self, atom: str, arity: int, cname: int, mod: str,
+    def __init__(self, atom: str, arity: int, cname: str, mod: str,
                  biftype=None):
         self.arity = arity
-        self.atom = atom
+
+        atom = atom.strip("'")
+        self.atom_str = atom
+
         self.biftype = biftype  # None, ubif (no heap), gcbif (use heap), bif
-        self.cname = cname
+        self.cname = cname.upper()
         self.mod = mod
 
 
@@ -114,14 +118,14 @@ class OTPTables:
         self.bif_tab = []
 
         self.atom_tab = []  # type: List[Atom]
+        self.atom_dict = {}  # type: Dict[str, Atom]
         self.atom_id = 1
         # maps atom string to integer
         self.atom_id_tab = {}  # type: Dict[str, int]
-        # Dict[int, {atom, id}] - maps atom id to atom record
         self.id_atom_tab = {}  # type: Dict[int, Atom]
 
         self.load_opcodes()
-        self.load_bifs()
+        self.load_atoms_and_bifs()
 
     def load_opcodes(self):
         """ Read the GENOP_TAB file and produce a dict of ops
@@ -191,32 +195,50 @@ class OTPTables:
             return
         a.id = self.atom_id
         self.atom_tab.append(a)
+        self.atom_dict[a.text] = a
 
         self.atom_id_tab[a.text] = self.atom_id  # name to id map
         self.id_atom_tab[self.atom_id] = a  # id to atom map
         self.atom_id += 1
 
-    def load_bifs(self):
+    def load_atoms_and_bifs(self):
+        """ Load the otp19 or otp20 bif.tab, depending on the self.conf
+        """
+        # Load atoms table and get rid of lines commented with '#'
         atoms = self.filter_comments(
-            open(self.conf.atoms_tab).read().split("\n"))
+            open(self.conf.atoms_tab).read().split("\n")
+        )
 
         for a in atoms:
-            self.atom_add(Atom(atom=a, cname=a.upper()))
+            a = a.split()
+            if len(a) == 1:
+                self.atom_add(Atom(atom=a[0], cname=a[0].upper()))
+            else:
+                new_a = Atom(atom=a[0], cname=a[1].upper())
+                # stderr.write("atom/2 %s %s" % (new_a.text, new_a.cname))
+                self.atom_add(new_a)
 
+        # Load bifs table and get rid of lines commented with '#'
         bifs = self.filter_comments(
             open(self.conf.bif_tab).read().split("\n"))
-        bif_tab0 = []
+
+        bif_tab0 = []  # type: List[Bif]
         for bline in bifs:
+            # Parse bif.tab line with the help of the OTP version config
+            # and accumulate Bif() objects in bif_tab0
             bif = self.conf.parse_bif_line(bline)
             bif_tab0.append(bif)
 
-            if self.is_printable(bline[0]):
-                self.atom_add(Atom(atom=bline[0], cname=bline[0].upper()))
-            else:
-                self.atom_add(Atom(atom=bline[0], cname=bif.cname))
+            # stderr.write("+bif %s %s\n" % (bif.atom_str, bif.cname))
+            self.atom_add(Atom(atom=bif.atom_str, cname=bif.cname))
+
+            # if self.is_printable(bline[0]):
+            #     self.atom_add(Atom(atom=bline[0], cname=bline[0].upper()))
+            # else:
+            #     self.atom_add(Atom(atom=bline[0], cname=bif.cname))
 
         # sort by (atom_text, arity) if atom ids equal
         self.bif_tab = sorted(
             bif_tab0,
-            key=lambda b0: (b0.atom, b0.arity)
+            key=lambda b0: (b0.atom_str, b0.arity)
         )
