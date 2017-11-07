@@ -2,7 +2,7 @@
 use std::collections::{VecDeque, HashMap};
 
 use defs::Word;
-use emulator::process::{Process, ProcessError};
+use emulator::process::{Process, ProcessError, ExceptionType};
 use emulator::gen_atoms;
 use term::lterm::LTerm;
 
@@ -139,13 +139,18 @@ impl Scheduler {
 
       match timeslice_result {
         SliceResult::Yield |
+
         SliceResult::None => {
           self.queue(curr_pid);
           self.current = None
         },
+
         SliceResult::Finished => {
-          self.exit_process(curr_pid, ProcessError::Exit(gen_atoms::NORMAL))
+          let err = ProcessError::Exception(ExceptionType::Exit,
+                                            gen_atoms::NORMAL);
+          self.exit_process(curr_pid, err)
         },
+
         SliceResult::Exception => {
           let p_error = {
             let curr = self.lookup_pid(&curr_pid).unwrap();
@@ -155,6 +160,7 @@ impl Scheduler {
           self.exit_process(curr_pid, p_error);
           self.current = None
         },
+
         SliceResult::Wait => {},
       }
     } // if self.current

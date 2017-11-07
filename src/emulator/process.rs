@@ -18,13 +18,19 @@ use std::fmt;
 fn module() -> &'static str { "process: " }
 
 
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum ExceptionType {
+  Throw,
+  Error,
+  Exit,
+}
+
+
 #[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ProcessError {
   None,
-  Exit(LTerm),
-  Throw(LTerm),
-  Error(LTerm),
+  Exception(ExceptionType, LTerm),
 }
 
 
@@ -32,9 +38,13 @@ impl fmt::Display for ProcessError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
       ProcessError::None => write!(f, "NoError"),
-      ProcessError::Exit(t) => write!(f, "exit({})", t),
-      ProcessError::Throw(t) => write!(f, "throw({})", t),
-      ProcessError::Error(t) => write!(f, "error({})", t),
+      ProcessError::Exception(exc, t) => {
+        match exc {
+          ExceptionType::Exit => write!(f, "exit({})", t),
+          ExceptionType::Throw => write!(f, "throw({})", t),
+          ExceptionType::Error => write!(f, "error({})", t),
+        }
+      },
     }
   }
 }
@@ -121,18 +131,8 @@ impl Process {
   }
 
 
-  pub fn exit(&mut self, rsn: LTerm) -> LTerm {
-    self.set_error(ProcessError::Exit(rsn))
-  }
-
-
-  pub fn throw(&mut self, rsn: LTerm) -> LTerm {
-    self.set_error(ProcessError::Throw(rsn))
-  }
-
-
-  pub fn error(&mut self, rsn: LTerm) -> LTerm {
-    self.set_error(ProcessError::Error(rsn))
+  pub fn exception(&mut self, exc: ExceptionType, rsn: LTerm) -> LTerm {
+    self.set_error(ProcessError::Exception(exc, rsn))
   }
 
 

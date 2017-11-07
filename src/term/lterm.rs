@@ -301,16 +301,18 @@ impl LTerm {
   }
 
 
+  /// Check whether a signed value `n` will fit into small integer range.
+  #[inline]
+  pub fn fits_small(n: SWord) -> bool {
+    n >= MIN_NEG_SMALL && n <= MAX_POS_SMALL
+  }
+
+
   #[inline]
   pub fn make_small_s(n: SWord) -> LTerm {
     // TODO: Do the proper min neg small
-    assert!(n >= MIN_NEG_SMALL,
-            "make_small_s: n=0x{:x} must be >= MIN_NEG_SMALL 0x{:x}",
-            n, MIN_NEG_SMALL);
-    assert!(n <= MAX_POS_SMALL,
-            "make_small_s: n=0x{:x} must be <= MAX_POS_SMALL 0x{:x}",
-            n, MAX_POS_SMALL);
-    //let un = defs::unsafe_sword_to_word(n);
+    assert!(LTerm::fits_small(n),
+            "make_small_s: n=0x{:x} does not fit small range", n);
     LTerm { value: immediate::make_small_raw(n) }
   }
 

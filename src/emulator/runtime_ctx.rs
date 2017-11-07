@@ -9,6 +9,7 @@ use emulator::heap;
 use emulator::process::Process;
 use term::immediate;
 use term::lterm::LTerm;
+use bif::BifResult;
 
 use std::fmt;
 use std::slice;
@@ -203,29 +204,34 @@ pub fn call_bif(ctx: &mut Context,
 
   let bif_result = match bif_fn {
     Ok(f) => {
-      // Apply the BIF call
+      // Make a slice from the args
       let args = unsafe { slice::from_raw_parts(p_args, n_args) };
+      // Apply the BIF call and check BifResult
       (f)(curr_p, args)
     },
-    Err(_e) => {
-      let rsn = gen_atoms::UNDEF; // TODO make proper error value here
-      curr_p.exit(rsn) // will set bif_result to LTerm::non_value()
+    Err(e) => {
+      BifResult::Fail(e)
     },
   };
 
-  println!("BIF{} gc={} call result {}", n_args, gc, bif_result);
+  println!("BIF{} gc={} call result {:?}", n_args, gc, bif_result);
 
   match bif_result {
-    // Check error
-    t if t.is_non_value() => {
-      // On error and if fail label is a CP, perform a goto
-      // Assume that error is already written to `reason` in process
+    // On error and if fail label is a CP, perform a goto
+    // Assume that error is already written to `reason` in process
+    BifResult::Exception(e, rsn) => {
+      curr_p.exception(e, rsn);
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
       DispatchResult::Error
     },
-    val => {
+
+    BifResult::Fail(f) => {
+      panic!("{}bif call failed with {:?}", module(), f)
+    },
+
+    BifResult::Value(val) => {
       // if dst is not NIL, store the result in it
       if !dst.is_nil() {
         ctx.store(val, dst, &mut curr_p.heap)
