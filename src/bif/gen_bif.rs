@@ -21,6 +21,8 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
 
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SYM_MINUS, arity: 2,
         func: bif::ubif_sminus_2_2 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SYM_EQ_EQ, arity: 2,
+        func: bif::ubif_seqeq_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SELF, arity: 0,
         func: bif::ubif_self_0 },
 ];

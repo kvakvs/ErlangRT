@@ -6,11 +6,13 @@ use term::lterm::LTerm;
 
 
 pub mod gen_bif; // generated
-pub mod bif_process;
 pub mod bif_arith;
+pub mod bif_compare;
+pub mod bif_process;
 
-pub use bif::bif_process::*;
 pub use bif::bif_arith::*;
+pub use bif::bif_compare::*;
+pub use bif::bif_process::*;
 
 
 /// Returned by all BIFs to indicate an error, a value, or another condition.

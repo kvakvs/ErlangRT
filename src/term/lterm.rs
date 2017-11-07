@@ -19,6 +19,9 @@ use std::fmt;
 use std::ptr;
 
 
+fn module() -> &'static str { "lterm: " }
+
+
 /// A low-level term, packed conveniently in a Word, or containing a
 /// pointer to heap.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -205,7 +208,8 @@ impl LTerm {
   /// Get a proxy object for read-only accesing the cons contents.
   pub fn cons_get_ptr(&self) -> ConsPtr {
     let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::TAG_CONS);
+    assert_eq!(primary::get_tag(v), primary::TAG_CONS,
+               "{}cons_get_ptr: A cons is expected", module());
     let boxp = primary::pointer(v);
     assert_ne!(boxp, ptr::null(), "null cons 0x{:x}", self.value);
     ConsPtr::from_pointer(boxp)
@@ -215,7 +219,8 @@ impl LTerm {
   /// Get a proxy object for looking and modifying cons contents.
   pub fn cons_get_ptr_mut(&self) -> ConsPtrMut {
     let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::TAG_CONS);
+    assert_eq!(primary::get_tag(v), primary::TAG_CONS,
+               "{}cons_get_ptr_mut: A cons is expected", module());
     let boxp = primary::pointer_mut(v);
     ConsPtrMut::from_pointer(boxp)
   }

@@ -1,6 +1,7 @@
 #--- Symbols
 - sym_minus
 + sym_plus
+== sym_eq_eq
 
 #--- A
 apply
