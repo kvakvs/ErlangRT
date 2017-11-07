@@ -205,9 +205,21 @@ pub fn call_bif(ctx: &mut Context,
   let bif_result = match bif_fn {
     Ok(f) => {
       // Make a slice from the args
-      let args = unsafe { slice::from_raw_parts(p_args, n_args) };
+      let mut args = [LTerm::const_nil(); 4];
+      {
+        let heap = &curr_p.heap;
+        for i in 0..n_args {
+          args[i] = ctx.load(unsafe { *p_args.offset(i as isize) },
+                             heap);
+        }
+      }
+
+      // Take n_args elements from args
+      let args1 = unsafe {
+        slice::from_raw_parts(&args[0], n_args)
+      };
       // Apply the BIF call and check BifResult
-      (f)(curr_p, args)
+      (f)(curr_p, args1)
     },
     Err(e) => {
       BifResult::Fail(e)

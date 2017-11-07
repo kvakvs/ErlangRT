@@ -182,6 +182,11 @@ impl LTerm {
   }
 
 
+  pub const fn const_nil() -> LTerm {
+    LTerm { value: immediate::IMM2_SPECIAL_NIL_RAW }
+  }
+
+
   /// Check whether a value is a NIL \[ \]
   #[inline]
   pub fn is_nil(&self) -> bool {
