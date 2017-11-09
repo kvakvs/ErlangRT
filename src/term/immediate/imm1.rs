@@ -52,6 +52,14 @@ pub fn get_imm1_prefix(val: Word) -> Word {
   val.get_bits(0..IMM1_TAG_FIRST)
 }
 
+
+/// Get prefix bits BEFORE imm1 tag plus the tag itself (for raw comparisons)
+#[inline]
+pub fn get_imm1_prefix_and_tag(val: Word) -> Word {
+  val.get_bits(0..IMM1_VALUE_FIRST)
+}
+
+
 /// Trim the immediate1 bits and return them as an convenient enum.
 #[inline]
 pub fn get_imm1_tag(val: Word) -> Word {

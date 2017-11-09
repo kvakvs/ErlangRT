@@ -19,17 +19,6 @@ pub const IMM3_TAG_LAST: u8 = 8;
 pub const IMM3_VALUE_FIRST: u8 = IMM3_TAG_LAST;
 pub const IMM3_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 
-//#[repr(usize)]
-//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-//#[allow(dead_code)]
-//pub enum Immediate3 {
-//  XReg = 0,
-//  YReg = 1,
-//  FPReg = 2,
-//  /// Not used. Label offsets in code are represented by signed small LTerm
-//  Label = 3,
-//}
-
 pub const TAG_IMM3_XREG: Word = 0;
 pub const TAG_IMM3_YREG: Word = 1;
 pub const TAG_IMM3_FPREG: Word = 2;
@@ -44,11 +33,16 @@ pub const IMMEDIATE3_MAX: Word = 3;
 /// Trim to have only immediate3 bits and return them as an convenient enum.
 #[inline]
 pub fn get_imm3_tag(val: Word) -> Word {
-  let t: Word = val.get_bits(IMM3_TAG_FIRST..IMM3_TAG_LAST);
-//  let t: Word = (val >> IMM3_TAG_FIRST) & 0;
-  assert!(t <= IMMEDIATE3_MAX);
-  t
+  val.get_bits(IMM3_TAG_FIRST..IMM3_TAG_LAST)
 }
+
+
+// /// Get prefix bits BEFORE imm1 tag plus the tag itself (for raw comparisons)
+//#[inline]
+//pub fn get_imm3_prefix_and_tag(val: Word) -> Word {
+//  val.get_bits(0..IMM3_VALUE_FIRST)
+//}
+
 
 /// Remove tag bits from imm3 value by shifting it right
 #[inline]
