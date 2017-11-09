@@ -19,6 +19,7 @@ fn module() -> &'static str { "process: " }
 
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[allow(dead_code)]
 pub enum ExceptionType {
   Throw,
   Error,
@@ -145,7 +146,7 @@ impl Process {
   }
 
 
-  pub fn clear_error(&mut self) {
-    self.error = ProcessError::None;
-  }
+//  pub fn clear_error(&mut self) {
+//    self.error = ProcessError::None;
+//  }
 }

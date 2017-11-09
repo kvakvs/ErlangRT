@@ -91,7 +91,8 @@ pub const IMM2_SPECIAL_EMPTY_BIN_RAW: Word = IMM2_SPECIAL_PREFIX
 /// Get prefix bits BEFORE imm2 tag
 #[inline]
 pub fn get_imm2_prefix(val: Word) -> Word {
-  val.get_bits(0..IMM2_TAG_FIRST)
+  val.get_bits(0..IMM2_VALUE_FIRST)
+//  val & ((1 << IMM2_TAG_FIRST) - 1)
 }
 
 

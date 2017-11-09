@@ -17,6 +17,7 @@ pub use bif::bif_process::*;
 
 /// Returned by all BIFs to indicate an error, a value, or another condition.
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum BifResult {
   /// Totally legit result was returned.
   Value(LTerm),

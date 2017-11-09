@@ -7,7 +7,7 @@ use emulator::runtime_ctx::Context;
 use emulator::vm::VM;
 use emulator::scheduler::SliceResult;
 
-fn module() -> &'static str { "vm_loop: " }
+//fn module() -> &'static str { "vm_loop: " }
 
 
 impl VM {

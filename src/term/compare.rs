@@ -41,8 +41,8 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
       ContinueCompare::AnyType(a1, b1) => {
         cmp_terms_any_type(a1, b1, exact)
       }
-      ContinueCompare::Cons(a2, b2) => unsafe {
-        cmp_terms_cons(a2, b2)
+      ContinueCompare::Cons(a2, b2) => {
+        cmp_terms_any_type(a2, b2, exact)
       },
     };
 
@@ -73,6 +73,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
+    println!("two atoms: {} <-> {}", a, b);
     return EqResult::Concluded(cmp_atoms(a, b));
   }
 
@@ -116,18 +117,22 @@ fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
 
 /// Compare two atoms for equality.
 fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
-  let atom_a = atom::lookup(a);
-  debug_assert!(atom_a.is_null() == false);
+  assert!(!a.is_nil());
+  let atomp_a = atom::lookup(a);
+  debug_assert!(atomp_a.is_null() == false,
+                "cmp_atoms: atom lookup {} failed", a);
 
-  let atom_b = atom::lookup(b);
-  debug_assert!(atom_b.is_null() == false);
+  assert!(!b.is_nil());
+  let atomp_b = atom::lookup(b);
+  debug_assert!(atomp_b.is_null() == false,
+                "cmp_atoms: atom lookup {} failed", b);
 
   // This should really be safe, as pointers to Atom exist statically forever
   unsafe {
-    let a_len = (*atom_a).len;
-    let b_len = (*atom_b).len;
+    let a_len = (*atomp_a).len;
+    let b_len = (*atomp_b).len;
     if a_len == b_len {
-      return (*atom_a).name.cmp(&(*atom_b).name);
+      return (*atomp_a).name.cmp(&(*atomp_b).name);
     }
     a_len.cmp(&b_len)
   }

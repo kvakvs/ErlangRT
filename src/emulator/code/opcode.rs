@@ -79,7 +79,6 @@ pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use std::ptr;
 
   #[test]
   fn test_opcode_word() {

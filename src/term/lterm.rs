@@ -668,6 +668,15 @@ mod tests {
   use std::mem;
 
   #[test]
+  fn test_nil_is_not_atom() {
+    // Some obscure bit mishandling made nil be recognized as atom
+    let n = LTerm::nil();
+    assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
+            n, n.raw(), immediate::get_imm2_prefix(n.raw()),
+            immediate::IMM2_ATOM_PREFIX);
+  }
+
+  #[test]
   fn test_term_size() {
     assert_eq!(mem::size_of::<LTerm>(), defs::WORD_BYTES);
   }

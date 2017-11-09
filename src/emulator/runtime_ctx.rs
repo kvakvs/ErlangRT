@@ -3,7 +3,6 @@
 
 use defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
 use emulator::code::CodePtr;
-use emulator::gen_atoms;
 use emulator::heap::ho_import::HOImport;
 use emulator::heap;
 use emulator::process::Process;
@@ -184,7 +183,7 @@ pub fn call_bif(ctx: &mut Context,
     LTerm::nil()
   };
 
-  let live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
+  let _live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
 
   // HOImport object on heap which contains m:f/arity
   let import = HOImport::from_term(ctx.fetch_term());
