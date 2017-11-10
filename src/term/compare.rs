@@ -4,6 +4,7 @@ use std::cmp::{Ordering};
 use term::lterm::LTerm;
 use term::classify;
 use term::primary;
+use term::immediate;
 
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
@@ -166,7 +167,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm) -> EqResult {
       return EqResult::Concluded(cmp_terms_immed(a, b))
     },
     primary::TAG_CONS => unsafe {
-      return cmp_terms_cons(a, b)
+      return cmp_cons(a, b)
     },
     primary::TAG_BOX => {
       return cmp_terms_box(a, b)
@@ -176,15 +177,122 @@ fn cmp_terms_primary(a: LTerm, b: LTerm) -> EqResult {
 }
 
 
-fn cmp_terms_immed(_a: LTerm, _b: LTerm) -> Ordering {
-  panic!("TODO: eq_terms_immed")
+fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
+  let av = a.raw();
+  let bv = b.raw();
+
+  if a.is_nil() || a.is_empty_tuple() || a.is_empty_binary() {
+    if a.raw() == b.raw() {
+      return Ordering::Equal;
+    }
+  }
+
+  if a.is_immediate1() {
+    if a.is_local_port() {
+      if b.is_local_port() {
+        panic!("TODO: cmp local vs local port")
+      } else if b.is_external_port() {
+        panic!("TODO: cmp local vs ext port")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    }
+
+    if a.is_local_pid() {
+      if b.is_local_pid() {
+        panic!("TODO: cmp local vs local pid")
+      } else if b.is_external_pid() {
+        panic!("TODO: cmp local vs ext pid")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    }
+  }
+
+  if a.is_cons() {
+    if !b.is_cons() {
+      return cmp_mixed_types(a, b)
+    }
+
+    panic!("TODO: invoke cmp_cons correctly from here")
+    //return cmp_cons(a, b)
+  }
+
+  if a.is_box() {
+    if a.is_tuple() {
+      if b.is_tuple() {
+        panic!("TODO: cmp tuple vs tuple")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    } else if a.is_map() {
+      if a.is_flat_map() {
+        if !b.is_flat_map() {
+          if b.is_hash_map() {
+            return a.map_size().cmp(b.map_size())
+          }
+        } else {
+          // Compare two flat maps
+          panic!("TODO: cmp flatmap vs flatmap (+exact)")
+        }
+      } else {
+        if !b.is_hash_map() {
+          if b.is_flat_map() {
+            return a.map_size().cmp(b.map_size())
+          }
+        } else {
+          // Compare two hash maps
+          panic!("TODO: cmp flatmap vs flatmap (+exact)")
+        }
+      }
+      //Hashmap compare strategy:
+      //Phase 1. While keys are identical
+      //    Do synchronous stepping through leafs of both trees in hash
+      //    order. Maintain value compare result of minimal key.
+      //
+      //Phase 2. If key diff was found in phase 1
+      //    Ignore values from now on.
+      //    Continue iterate trees by always advancing the one
+      //    lagging behind hash-wise. Identical keys are skipped.
+      //    A minimal key can only be candidate as tie-breaker if we
+      //    have passed that hash value in the other tree (which means
+      //    the key did not exist in the other tree).
+    } else if a.is_float() {
+      if !b.is_float() {
+        return cmp_mixed_types(a, b)
+      } else {
+        return a.double_get().cmp(b.double_get())
+      }
+    }
+  }
+
+  // if both are immediate3, it is hard to distunguish because all imm3 values
+  // are special
+  if a.is_immediate3() && b.is_immediate3() {
+    let a3t = immediate::get_imm3_tag(av);
+    let b3t = immediate::get_imm3_tag(bv);
+    // If imm3 tags are same, we can conclude with comparing their values
+    if a3t == b3t {
+      let a3v = immediate::get_imm3_value(av);
+      let b3v = immediate::get_imm3_value(bv);
+      return a3v.cmp(&b3v);
+    }
+    return a3t.cmp(&b3t);
+  }
+
+  panic!("TODO: eq_terms_immed {} {}", a, b)
+}
+
+
+fn cmp_mixed_types(a: LTerm, b: LTerm) -> Ordering {
+  panic!("TODO: cmp_mixed_types(a, b)")
 }
 
 
 /// Compare two boxed or immediate terms. In case when nested terms need to be
 /// recursively compared, we return `EqResult::CompareNested` to change the
 /// values `a` and `b` and perform another comparison without growing the stack.
-unsafe fn cmp_terms_cons(a: LTerm, b: LTerm) -> EqResult {
+unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
   let mut aa = a.cons_get_ptr();
   let mut bb = b.cons_get_ptr();
   loop {

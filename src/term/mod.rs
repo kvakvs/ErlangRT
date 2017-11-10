@@ -8,6 +8,7 @@
 //!
 //! As well as operations on terms, such as arithmetic or comparisons.
 //!
+pub mod arith; // simple operations on numeric terms
 pub mod classify; // term ordering (for comparisons)
 pub mod compare; // term comparisons (less, equal, greater)
 pub mod fterm; // friendly term as Rust enum
