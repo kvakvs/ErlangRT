@@ -257,12 +257,75 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
       //    A minimal key can only be candidate as tie-breaker if we
       //    have passed that hash value in the other tree (which means
       //    the key did not exist in the other tree).
-    } else if a.is_float() {
-      if !b.is_float() {
+    } else if unsafe { a.is_float() } {
+      if !unsafe { b.is_float() } {
+        // TODO: If b is integer and we don't do exact comparison?
         return cmp_mixed_types(a, b)
       } else {
         return a.double_get().cmp(b.double_get())
       }
+    } else if a.is_bignum() {
+      if !b.is_bignum() {
+        return cmp_mixed_types(a, b)
+      }
+    } else if a.is_export() {
+      if !b.is_export() {
+        return cmp_mixed_types(a, b)
+      }
+      // Compare two exports: from utils.c line ~2918
+      // cmp atoms a.module and b.module
+      // cmp atoms a.fn and b.fn
+      // cmp arity
+      panic!("TODO compare 2 exports")
+    } else if a.is_header() {
+      if !a.is_fun() {
+        return cmp_mixed_types(a, b)
+      }
+      // Compare 2 function objects: from utils.c line ~2937
+      // compare a.module, b.module
+      // compare old_index
+      // compare old_uniq
+      // compare num_Free
+      panic!("TODO compare 2 fun objects")
+    } else if a.is_external_pid() {
+      if b.is_local_pid() {
+        panic!("TODO compare ext vs local pid")
+      } else if b.is_external_pid() {
+        panic!("TODO compare ext vs ext pid")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    } else if a.is_external_port() {
+      if b.is_local_port() {
+        panic!("TODO compare ext vs local port")
+      } else if b.is_external_port() {
+        panic!("TODO compare ext vs ext port")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    } else if a.is_local_ref() {
+      if b.is_local_ref() {
+        panic!("TODO compare local vs local ref")
+      } else if b.is_external_ref() {
+        panic!("TODO compare local vs ext ref")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    } else if a.is_external_ref() {
+      if b.is_local_ref() {
+        panic!("TODO compare ext vs local ref")
+      } else if b.is_external_ref() {
+        panic!("TODO compare ext vs ext ref")
+      } else {
+        return cmp_mixed_types(a, b)
+      }
+    } else {
+      // must be a binary
+      assert!(a.is_binary());
+      if !b.is_binary() {
+        return cmp_mixed_types(a, b)
+      }
+      panic!("TODO cmp binaries")
     }
   }
 
@@ -284,6 +347,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
 }
 
 
+/// Deeper comparison of two values with different types
 fn cmp_mixed_types(a: LTerm, b: LTerm) -> Ordering {
   panic!("TODO: cmp_mixed_types(a, b)")
 }

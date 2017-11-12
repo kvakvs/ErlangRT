@@ -36,6 +36,7 @@ pub const TAG_HEADER_HEAPOBJ: Word = 11;
 pub const TAG_HEADER_EXTPID: Word = 12;
 pub const TAG_HEADER_EXTPORT: Word = 13;
 pub const TAG_HEADER_EXTREF: Word = 14;
+pub const TAG_HEADER_MAP: Word = 14;
 
 const HEADER_TAG_TUPLE_RAW: Word = (primary::TAG_HEADER as Word)
       | (TAG_HEADER_TUPLE << HEADER_TAG_FIRST);

@@ -365,11 +365,16 @@ impl LTerm {
   }
 
 
-  pub fn header_arity(&self) -> Word {
+  pub fn header_get_arity(&self) -> Word {
     assert!(self.is_header());
-    primary::get_value(self.value)
+    primary::header::get_arity(self.value)
   }
 
+
+  pub fn header_get_type(&self) -> Word {
+    assert!(self.is_header());
+    primary::header::get_tag(self.value)
+  }
 
   /// Get a proxy object for read-only accesing the cons contents.
   pub unsafe fn raw_tuple(&self) -> TuplePtr {
