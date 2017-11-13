@@ -1,10 +1,11 @@
 use term::immediate;
 use term::primary;
 //use defs::Word;
+use term::lterm::boxed_term::BoxedTerm;
 
 
 pub trait BinaryTerm {
-  fn is_binary(&self) -> bool;
+  unsafe fn is_binary(&self) -> bool;
   fn is_empty_binary(&self) -> bool;
 }
 

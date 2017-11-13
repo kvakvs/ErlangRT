@@ -2,6 +2,7 @@ use term::raw::{TuplePtr, TuplePtrMut};
 use term::primary;
 use term::immediate;
 use defs::Word;
+use term::lterm::boxed_term::BoxedTerm;
 
 
 pub trait TupleTerm {
@@ -14,12 +15,25 @@ pub trait TupleTerm {
   /// Create an empty tuple value.
   fn empty_tuple() -> super::LTerm;
 
+  /// Check whether a value is a tuple on heap or an empty tuple.
+  unsafe fn is_tuple(&self) -> bool;
+
   /// Check whether a value is an empty tuple.
   fn is_empty_tuple(&self) -> bool;
 }
 
 
 impl TupleTerm for super::LTerm {
+
+  unsafe fn is_tuple(&self) -> bool {
+    if self.is_empty_tuple() { return true; }
+    if !self.is_box() { return false }
+
+    let p = self.box_ptr();
+    let box_tag = primary::header::get_tag(*p);
+    box_tag == primary::header::TAG_HEADER_TUPLE
+  }
+
 
   /// Get a proxy object for read-only accesing the cons contents.
   unsafe fn raw_tuple(&self) -> TuplePtr {

@@ -262,7 +262,9 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
         // TODO: If b is integer and we don't do exact comparison?
         return cmp_mixed_types(a, b)
       } else {
-        return a.double_get().cmp(b.double_get())
+        let af = unsafe { a.float_get() };
+        let bf = unsafe { b.float_get() };
+        return af.partial_cmp(&bf).unwrap()
       }
     } else if a.is_bignum() {
       if !b.is_bignum() {
@@ -321,8 +323,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
       }
     } else {
       // must be a binary
-      assert!(a.is_binary());
-      if !b.is_binary() {
+      assert!(unsafe { a.is_binary() });
+      if !unsafe { b.is_binary() } {
         return cmp_mixed_types(a, b)
       }
       panic!("TODO cmp binaries")

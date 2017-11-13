@@ -1,6 +1,6 @@
 //! Functions to manipulate an LTerm as a float. Part of LTerm impl.
 
-//use defs::Word;
+use defs::Float;
 //use term::immediate;
 use term::primary;
 use term::lterm::boxed_term::BoxedTerm;
@@ -8,6 +8,7 @@ use term::lterm::boxed_term::BoxedTerm;
 
 pub trait FloatTerm {
   unsafe fn is_float(&self) -> bool;
+  unsafe fn float_get(&self) -> Float;
 }
 
 
@@ -27,4 +28,7 @@ impl FloatTerm for super::LTerm {
     box_tag == primary::header::TAG_HEADER_FLOAT
   }
 
+  unsafe fn float_get(&self) -> Float {
+    panic!("TODO float get")
+  }
 }
