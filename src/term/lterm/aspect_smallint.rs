@@ -2,7 +2,7 @@ use defs::{SWord, Word, MAX_UNSIGNED_SMALL, MIN_NEG_SMALL, MAX_POS_SMALL};
 use term::immediate;
 
 
-pub trait SmallintTerm {
+pub trait SmallintAspect {
   /// Check whether a value is a small integer.
   fn is_small(&self) -> bool;
   fn small_get_s(&self) -> SWord;
@@ -10,7 +10,7 @@ pub trait SmallintTerm {
 }
 
 
-impl SmallintTerm for super::LTerm {
+impl SmallintAspect for super::LTerm {
 
   #[inline]
   fn is_small(&self) -> bool {

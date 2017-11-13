@@ -23,7 +23,7 @@ use std::fmt;
 use std::ptr;
 
 
-fn module() -> &'static str { "lterm: " }
+//fn module() -> &'static str { "lterm: " }
 
 
 /// A low-level term, packed conveniently in a Word, or containing a

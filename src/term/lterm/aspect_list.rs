@@ -5,7 +5,7 @@ use defs::Word;
 use term::immediate;
 use term::primary;
 use term::raw::{ConsPtr, ConsPtrMut};
-use term::lterm::aspect_smallint::SmallintTerm;
+use term::lterm::aspect_smallint::SmallintAspect;
 
 use std::ptr;
 
@@ -14,7 +14,7 @@ fn module() -> &'static str { "lterm/cons_term: " }
 
 
 /// Represents cons/list/NIL aspects of an LTerm.
-pub trait ConsTerm {
+pub trait ListAspect {
   /// Check whether primary tag of a value is `TAG_CONS`.
   fn is_cons(&self) -> bool;
 
@@ -35,7 +35,7 @@ pub trait ConsTerm {
 }
 
 
-impl ConsTerm for super::LTerm {
+impl ListAspect for super::LTerm {
   #[inline]
   fn is_cons(&self) -> bool {
     self.primary_tag() == primary::TAG_CONS

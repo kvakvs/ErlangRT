@@ -4,17 +4,17 @@
 use defs::Word;
 use defs;
 use term::primary;
-use term::lterm::aspect_boxed::{BoxedTerm, make_box};
+use term::lterm::aspect_boxed::{BoxedAspect, make_box};
 
 
 /// Represents operations on LTerm which contains/is a CP value.
-pub trait CPTerm {
+pub trait CpAspect {
   fn is_cp(&self) -> bool;
   fn cp_get_ptr(&self) -> *const Word;
 }
 
 
-impl CPTerm for super::LTerm {
+impl CpAspect for super::LTerm {
   #[inline]
   fn is_cp(&self) -> bool {
     self.is_box() && (self.value & defs::TAG_CP == defs::TAG_CP)

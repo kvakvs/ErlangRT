@@ -5,7 +5,7 @@ use defs::Word;
 use term::primary;
 
 
-pub trait BoxedTerm {
+pub trait BoxedAspect {
   /// Check whether primary tag of a value is `TAG_BOX`.
   fn is_box(&self) -> bool;
 
@@ -15,7 +15,7 @@ pub trait BoxedTerm {
 }
 
 
-impl BoxedTerm for super::LTerm {
+impl BoxedAspect for super::LTerm {
 
   #[inline]
   fn is_box(&self) -> bool {

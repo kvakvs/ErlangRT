@@ -3,16 +3,16 @@
 use defs::Float;
 //use term::immediate;
 use term::primary;
-use term::lterm::aspect_boxed::BoxedTerm;
+use term::lterm::aspect_boxed::BoxedAspect;
 
 
-pub trait FloatTerm {
+pub trait FloatAspect {
   unsafe fn is_float(&self) -> bool;
   unsafe fn float_get(&self) -> Float;
 }
 
 
-impl FloatTerm for super::LTerm {
+impl FloatAspect for super::LTerm {
 
   /// Check whether a value contains a pointer to a float box. Unsafe (i.e.
   /// will dereference the box pointer).

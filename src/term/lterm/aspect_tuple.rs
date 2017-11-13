@@ -2,10 +2,10 @@ use term::raw::{TuplePtr, TuplePtrMut};
 use term::primary;
 use term::immediate;
 use defs::Word;
-use term::lterm::aspect_boxed::BoxedTerm;
+use term::lterm::aspect_boxed::BoxedAspect;
 
 
-pub trait TupleTerm {
+pub trait TupleAspect {
   /// Get a proxy object for read-only accesing the cons contents.
   unsafe fn raw_tuple(&self) -> TuplePtr;
 
@@ -23,7 +23,7 @@ pub trait TupleTerm {
 }
 
 
-impl TupleTerm for super::LTerm {
+impl TupleAspect for super::LTerm {
 
   unsafe fn is_tuple(&self) -> bool {
     if self.is_empty_tuple() { return true; }

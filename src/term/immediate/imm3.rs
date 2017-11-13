@@ -26,8 +26,8 @@ pub const TAG_IMM3_FPREG: Word = 2;
 pub const TAG_IMM3_OPCODE: Word = 3;
 
 
-/// Max value for the `Immediate3` enum (for assertions).
-pub const IMMEDIATE3_MAX: Word = 3;
+// /// Max value for the `Immediate3` enum (for assertions).
+//pub const IMMEDIATE3_MAX: Word = 3;
 
 
 /// Trim to have only immediate3 bits and return them as an convenient enum.

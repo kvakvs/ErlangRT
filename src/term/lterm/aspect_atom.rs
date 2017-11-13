@@ -4,7 +4,7 @@ use defs::Word;
 use term::immediate;
 
 
-pub trait AtomTerm {
+pub trait AtomAspect {
   /// Check whether a value is a runtime atom.
   fn is_atom(&self) -> bool;
   /// For an atom value, get index.
@@ -12,7 +12,7 @@ pub trait AtomTerm {
 }
 
 
-impl AtomTerm for super::LTerm {
+impl AtomAspect for super::LTerm {
   #[inline]
   fn is_atom(&self) -> bool {
     immediate::is_atom_raw(self.value)

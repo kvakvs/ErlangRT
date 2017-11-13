@@ -1,16 +1,16 @@
 use term::immediate;
 use term::primary;
 //use defs::Word;
-use term::lterm::aspect_boxed::BoxedTerm;
+use term::lterm::aspect_boxed::BoxedAspect;
 
 
-pub trait BinaryTerm {
+pub trait BinaryAspect {
   unsafe fn is_binary(&self) -> bool;
   fn is_empty_binary(&self) -> bool;
 }
 
 
-impl BinaryTerm for super::LTerm {
+impl BinaryAspect for super::LTerm {
 
   unsafe fn is_binary(&self) -> bool {
     if self.is_empty_binary() { return true }
