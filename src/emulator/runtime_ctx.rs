@@ -3,7 +3,7 @@
 
 use defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
 use emulator::code::CodePtr;
-use emulator::heap::ho_import::HOImport;
+use term::raw::ho_import::HOImport;
 use emulator::heap;
 use emulator::process::Process;
 use term::immediate;

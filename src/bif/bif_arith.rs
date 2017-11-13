@@ -1,5 +1,5 @@
 use bif::BifResult;
-use emulator::heap::ho_bignum::HOBignum;
+use term::raw::ho_bignum::HOBignum;
 use emulator::process::Process;
 use term::lterm::*;
 

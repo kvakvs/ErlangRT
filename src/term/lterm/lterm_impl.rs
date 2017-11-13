@@ -8,7 +8,7 @@ use term::immediate;
 use term::primary;
 use term::raw::{TuplePtr};
 use emulator::atom;
-use emulator::heap::heapobj::HeapObjClass;
+use term::raw::heapobj::HeapObjClass;
 
 use defs::{Word};
 use term::lterm::aspect_binary::*;

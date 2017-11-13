@@ -4,7 +4,7 @@ use defs::Word;
 use term::immediate;
 use term::lterm::*;
 use term::primary;
-use emulator::heap::heapobj::HeapObjClass;
+use term::raw::heapobj::HeapObjClass;
 
 
 fn module() -> &'static str { "classify: " }

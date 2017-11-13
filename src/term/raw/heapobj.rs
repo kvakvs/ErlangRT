@@ -16,6 +16,9 @@ pub enum HeapObjType {
 }
 
 
+/// Everything on heap has a header word, this is to simplify traversing the
+/// heap by GC. Now more complex objects also have a class pointer which
+/// allows accessing features for that object.
 pub struct HeapObjHeader {
   pub header_word: Word,
   pub class_ptr: *const HeapObjClass,
@@ -23,6 +26,7 @@ pub struct HeapObjHeader {
 
 
 impl HeapObjHeader {
+  /// Initialise heap object fields
   pub fn new(n_words: Word, cls: *const HeapObjClass) -> HeapObjHeader {
     HeapObjHeader {
       header_word: header::make_heapobj_header_raw(n_words),

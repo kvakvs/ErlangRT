@@ -8,7 +8,7 @@ use defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
 use emulator::heap::Heap;
-use emulator::heap::heapobj::*;
+use term::raw::heapobj::*;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
 use term::classify::TermClass;

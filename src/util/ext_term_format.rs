@@ -3,10 +3,10 @@ use defs::{Word, SWord};
 use defs;
 use emulator::atom;
 use emulator::heap::Heap;
-use emulator::heap::ho_binary::HOBinary;
-use emulator::heap::ho_bignum::HOBignum;
 use fail::{Hopefully, Error};
 use term::lterm::*;
+use term::raw::ho_bignum::HOBignum;
+use term::raw::ho_binary::HOBinary;
 use util::bin_reader::BinaryReader;
 
 use num;

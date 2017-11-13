@@ -5,10 +5,10 @@ use beam::gen_op;
 use beam::opcodes::assert_arity;
 use defs::DispatchResult;
 use emulator::code::CodePtr;
-use emulator::heap::ho_import::HOImport;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 use term::lterm::*;
+use term::raw::ho_import::HOImport;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }

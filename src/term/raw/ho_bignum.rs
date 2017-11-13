@@ -6,7 +6,7 @@ use num::bigint::BigInt;
 
 use defs::{WORD_BYTES, Word};
 use emulator::heap::Heap;
-use emulator::heap::heapobj::*;
+use term::raw::heapobj::*;
 use fail::Hopefully;
 use term::classify::TermClass;
 use term::lterm::*;
