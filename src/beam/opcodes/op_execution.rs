@@ -8,6 +8,7 @@ use emulator::code::CodePtr;
 use emulator::heap::ho_import::HOImport;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use term::lterm::*;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }

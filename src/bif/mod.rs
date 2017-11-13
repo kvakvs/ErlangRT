@@ -2,7 +2,7 @@
 use emulator::mfa::MFArity;
 use emulator::process::{Process, ExceptionType};
 use fail::{Hopefully, Error};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 pub mod gen_bif; // generated

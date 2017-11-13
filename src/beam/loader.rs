@@ -31,7 +31,7 @@ use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
 use term::fterm::FTerm;
-use term::lterm::LTerm;
+use term::lterm::*;
 use term::raw::TuplePtrMut;
 use util::bin_reader::BinaryReader;
 use util::ext_term_format as etf;
@@ -141,8 +141,8 @@ impl Loader {
       labels: BTreeMap::new(),
       replace_labels: Vec::new(),
       funs: BTreeMap::new(),
-      mod_attrs: LTerm::nil(),
-      //compiler_info: LTerm::nil(),
+      mod_attrs: nil(),
+      //compiler_info: nil(),
       lit_imports: Vec::new(),
     }
   }
@@ -586,7 +586,7 @@ impl Loader {
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId::Val(label_id) = l;
-        LTerm::make_small_u(label_id).raw()
+        smallint_term::make_small_u(label_id).raw()
       }
     }
   }
@@ -644,7 +644,7 @@ impl Loader {
       self.create_jump_destination(dst_offset)
     } else {
       // Update code cell with no-value
-      LTerm::nil().raw()
+      nil().raw()
     }
   }
 

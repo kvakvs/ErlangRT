@@ -6,13 +6,14 @@
 //!
 use term::immediate;
 use term::primary;
-use term::raw::{ConsPtr, ConsPtrMut, TuplePtr, TuplePtrMut};
+use term::raw::{TuplePtr, TuplePtrMut};
 use emulator::atom;
 use emulator::heap::heapobj::HeapObjClass;
 
 use defs;
-use defs::{Word, SWord, MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL};
-//type Word = defs::Word;
+use defs::{Word};
+use term::lterm::list_term::*;
+use term::lterm::boxed_term::*;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -104,23 +105,6 @@ impl LTerm {
     immediate::is_immediate3(self.value)
   }
 
-  /// Check whether primary tag of a value is `TAG_BOX`.
-  #[inline]
-  pub fn is_box(&self) -> bool {
-    self.primary_tag() == primary::TAG_BOX
-  }
-
-  /// Check whether primary tag of a value is `TAG_CONS`.
-  #[inline]
-  pub fn is_cons(&self) -> bool {
-    self.primary_tag() == primary::TAG_CONS
-  }
-
-  #[inline]
-  pub fn is_list(&self) -> bool {
-    self.is_cons() || self.is_nil()
-  }
-
   /// Check whether primary tag of a value is `TAG_HEADER`.
   #[inline]
   pub fn is_header(&self) -> bool {
@@ -168,175 +152,7 @@ impl LTerm {
 //    LTerm { value: immediate::make_label_raw(n) }
 //  }
 
-  /// From a pointer to heap create a generic box
-  #[inline]
-  pub fn make_box(ptr: *const Word) -> LTerm {
-    LTerm { value: primary::make_box_raw(ptr) }
-  }
 
-  //
-  // Cons, lists, list cells, heads, tails
-  //
-
-  /// Create a NIL value.
-  #[inline]
-  pub fn nil() -> LTerm {
-    LTerm { value: immediate::IMM2_SPECIAL_NIL_RAW }
-  }
-
-
-  pub const fn const_nil() -> LTerm {
-    LTerm { value: immediate::IMM2_SPECIAL_NIL_RAW }
-  }
-
-
-  /// Check whether a value is a NIL \[ \]
-  #[inline]
-  pub fn is_nil(&self) -> bool {
-    self.value == immediate::IMM2_SPECIAL_NIL_RAW
-  }
-
-
-  /// From a pointer to heap create a cons box
-  #[inline]
-  pub fn make_cons(ptr: *const Word) -> LTerm {
-//    assert_ne!(ptr, ptr::null());
-    LTerm { value: primary::make_cons_raw(ptr) }
-  }
-
-
-  /// Get a proxy object for read-only accesing the cons contents.
-  pub fn cons_get_ptr(&self) -> ConsPtr {
-    let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::TAG_CONS,
-               "{}cons_get_ptr: A cons is expected", module());
-    let boxp = primary::pointer(v);
-    assert_ne!(boxp, ptr::null(), "null cons 0x{:x}", self.value);
-    ConsPtr::from_pointer(boxp)
-  }
-
-
-  /// Get a proxy object for looking and modifying cons contents.
-  pub fn cons_get_ptr_mut(&self) -> ConsPtrMut {
-    let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::TAG_CONS,
-               "{}cons_get_ptr_mut: A cons is expected", module());
-    let boxp = primary::pointer_mut(v);
-    ConsPtrMut::from_pointer(boxp)
-  }
-
-
-  /// Iterate through a string and check if it only contains small integers
-  /// and that each integer is in ASCII range.
-  pub unsafe fn cons_is_ascii_string(&self) -> bool {
-    // TODO: List iterator
-    let mut cons_p = self.cons_get_ptr();
-    loop {
-      let hd = cons_p.hd();
-      if !hd.is_small() {
-        return false
-      }
-
-      let hd_value = hd.small_get_s();
-      if hd_value < 32 || hd_value >= 127 {
-        return false
-      }
-
-      let tl = cons_p.tl();
-      if !tl.is_cons() {
-        // NIL [] tail is required for a true string
-        return tl.is_nil()
-      }
-      cons_p = tl.cons_get_ptr();
-    }
-  }
-
-  //
-  // Atom services - creation, checking
-  //
-
-  /// From atom index create an atom. To create from string use vm::new_atom
-  #[inline]
-  pub fn make_atom(index: Word) -> LTerm {
-    LTerm { value: immediate::make_atom_raw(index) }
-  }
-
-
-  /// Check whether a value is a runtime atom.
-  #[inline]
-  pub fn is_atom(&self) -> bool {
-    immediate::is_atom_raw(self.value)
-  }
-
-
-  /// For an atom value, get index.
-  pub fn atom_index(&self) -> Word {
-    assert!(self.is_atom());
-    immediate::get_imm2_value(self.value)
-  }
-
-  //
-  // Box services - boxing, unboxing, checking
-  //
-
-  #[inline]
-  pub fn box_ptr(&self) -> *const Word {
-    assert!(self.is_box());
-    primary::pointer(self.value)
-  }
-
-
-  #[inline]
-  pub fn box_ptr_mut(&self) -> *mut Word {
-    assert!(self.is_box());
-    primary::pointer_mut(self.value)
-  }
-
-  //
-  // Small integer handling
-  //
-
-  /// Check whether a value is a small integer.
-  #[inline]
-  pub fn is_small(&self) -> bool {
-    immediate::is_small_raw(self.value)
-  }
-
-
-  #[inline]
-  pub fn make_small_u(n: Word) -> LTerm {
-    assert!(n <= MAX_UNSIGNED_SMALL,
-            "make_small_u n=0x{:x} <= limit=0x{:x}", n, MAX_UNSIGNED_SMALL);
-    LTerm { value: immediate::make_small_raw(n as SWord) }
-  }
-
-
-  /// Check whether a signed value `n` will fit into small integer range.
-  #[inline]
-  pub fn fits_small(n: SWord) -> bool {
-    n >= MIN_NEG_SMALL && n <= MAX_POS_SMALL
-  }
-
-
-  #[inline]
-  pub fn make_small_s(n: SWord) -> LTerm {
-    // TODO: Do the proper min neg small
-    assert!(LTerm::fits_small(n),
-            "make_small_s: n=0x{:x} does not fit small range", n);
-    LTerm { value: immediate::make_small_raw(n) }
-  }
-
-
-  #[inline]
-  pub fn small_get_s(&self) -> SWord {
-    immediate::get_imm1_value_s(self.value)
-  }
-
-
-  #[inline]
-  pub fn small_get_u(&self) -> Word {
-    immediate::get_imm1_value(self.value)
-  }
 
   //
   // Binaries
@@ -675,7 +491,7 @@ mod tests {
   #[test]
   fn test_nil_is_not_atom() {
     // Some obscure bit mishandling made nil be recognized as atom
-    let n = LTerm::nil();
+    let n = nil();
     assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
             n, n.raw(), immediate::get_imm2_prefix(n.raw()),
             immediate::IMM2_ATOM_PREFIX);

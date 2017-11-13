@@ -9,7 +9,7 @@ use std::sync::{Mutex, MutexGuard};
 
 use fail::{Hopefully, Error};
 use defs::Word;
-use term::lterm::LTerm;
+use term::lterm::*;
 use emulator::gen_atoms;
 
 
@@ -123,7 +123,7 @@ pub fn from_str(val: &str) -> LTerm {
   let mut atoms = ATOMS.atoms.lock().unwrap();
 
   if atoms.contains_key(val) {
-    return LTerm::make_atom(atoms[val]);
+    return make_atom(atoms[val]);
   }
 
   let mut atoms_r = ATOMS.atoms_r.lock().unwrap();
@@ -132,7 +132,7 @@ pub fn from_str(val: &str) -> LTerm {
     &mut atoms, &mut atoms_r, val
   );
 
-  LTerm::make_atom(index)
+  make_atom(index)
 }
 
 

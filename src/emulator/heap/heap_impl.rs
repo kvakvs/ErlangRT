@@ -1,7 +1,7 @@
 use defs::Word;
 use emulator::heap::iter;
 use fail::{Error, Hopefully};
-use term::lterm::LTerm;
+use term::lterm::*;
 use term::raw::rtuple;
 use term::raw::{ConsPtrMut, TuplePtrMut};
 
@@ -93,7 +93,7 @@ impl Heap {
     }
 
     // Assume we can grow the data without reallocating
-    let raw_nil = LTerm::nil().raw();
+    let raw_nil = nil().raw();
     let new_chunk = unsafe {
       self.begin_mut().offset(self.htop as isize)
     };
@@ -176,7 +176,7 @@ impl Heap {
     self.stop -= need;
 
     // Clear the new cells
-    let raw_nil = LTerm::nil().raw();
+    let raw_nil = nil().raw();
     unsafe {
       let p = self.begin_mut().offset(self.stop as isize);
       for y in 0..need {

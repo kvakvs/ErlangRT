@@ -7,7 +7,7 @@ use emulator::heap::ho_import::HOImport;
 use emulator::heap;
 use emulator::process::Process;
 use term::immediate;
-use term::lterm::LTerm;
+use term::lterm::*;
 use bif::BifResult;
 
 use std::fmt;
@@ -180,7 +180,7 @@ pub fn call_bif(ctx: &mut Context,
     // bif0 is special and has no fail label, others do
     ctx.fetch_term()
   } else {
-    LTerm::nil()
+    nil()
   };
 
   let _live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
@@ -204,7 +204,7 @@ pub fn call_bif(ctx: &mut Context,
   let bif_result = match bif_fn {
     Ok(f) => {
       // Make a slice from the args
-      let mut args = [LTerm::const_nil(); 4];
+      let mut args = [const_nil(); 4];
       {
         let heap = &curr_p.heap;
         for i in 0..n_args {

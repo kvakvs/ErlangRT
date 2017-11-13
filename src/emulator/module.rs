@@ -10,7 +10,7 @@ use emulator::funarity::FunArity;
 use emulator::heap::{Heap};
 use emulator::mfa::MFArity;
 use fail::{Hopefully, Error};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 pub type Ptr = Arc<Mutex<Module>>;
 //pub type Weak = sync::Weak<RefCell<Module>>;

@@ -8,7 +8,7 @@ use emulator::heap::Heap;
 use emulator::heap::heapobj::*;
 use fail::Hopefully;
 use term::classify::TermClass;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 pub enum HOBinaryType {
@@ -103,7 +103,7 @@ impl HOBinary {
 
   #[inline]
   pub fn make_term(this: *const HOBinary) -> LTerm {
-    LTerm::make_box(this as *const Word)
+    make_box(this as *const Word)
   }
 
 

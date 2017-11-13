@@ -6,7 +6,7 @@ use emulator::heap::Heap;
 use emulator::heap::ho_binary::HOBinary;
 use emulator::heap::ho_bignum::HOBignum;
 use fail::{Hopefully, Error};
-use term::lterm::LTerm;
+use term::lterm::*;
 use util::bin_reader::BinaryReader;
 
 use num;
@@ -81,7 +81,7 @@ pub fn decode_naked(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
     x if x == Tag::SmallInteger as u8 => decode_u8(r),
     x if x == Tag::Integer as u8 => decode_s32(r),
 
-    x if x == Tag::Nil as u8 => Ok(LTerm::nil()),
+    x if x == Tag::Nil as u8 => Ok(nil()),
 
     x if x == Tag::LargeTuple as u8 => {
       let size = r.read_u32be() as Word;
@@ -186,7 +186,7 @@ fn decode_atom_latin1(r: &mut BinaryReader) -> Hopefully<LTerm> {
 fn decode_list(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
   let n_elem = r.read_u32be();
   if n_elem == 0 {
-    return Ok(LTerm::nil());
+    return Ok(nil());
   }
 
   // Using mutability build list forward creating many cells and linking them
@@ -217,7 +217,7 @@ fn decode_list(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
 fn decode_string(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
   let n_elem = r.read_u16be();
   if n_elem == 0 {
-    return Ok(LTerm::nil());
+    return Ok(nil());
   }
 
   // Using mutability build list forward creating many cells and linking them
@@ -237,7 +237,7 @@ fn decode_string(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
     }
   }
 
-  unsafe { cell.set_tl(LTerm::nil()) }
+  unsafe { cell.set_tl(nil()) }
 
   Ok(cell0.make_cons())
 }

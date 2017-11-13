@@ -12,7 +12,7 @@ use emulator::code::CodePtr;
 use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 fn module() -> &'static str { "code_srv: " }

@@ -2,7 +2,7 @@
 use defs::Word;
 //use defs::TAG_CP;
 use term::immediate;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 use std::fmt;
 

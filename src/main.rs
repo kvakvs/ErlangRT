@@ -1,4 +1,4 @@
-//!
+
 //! `ErlangRT` is an alternative Erlang BEAM Runtime written in Rust
 //!
 
@@ -29,7 +29,9 @@ use emulator::atom;
 use emulator::scheduler::Prio;
 use emulator::mfa::MFArgs;
 use emulator::vm::VM;
-use term::lterm::LTerm;
+use term::lterm::*;
+//use term::lterm::list_term;
+
 
 /// Entry point for the command-line interface
 fn main() {
@@ -48,7 +50,7 @@ fn main() {
     Vec::new()
   );
   let _rootp = beam.create_process(
-    LTerm::nil(),
+    list_term::nil(),
     &mfa,
     Prio::Normal
   ).unwrap();

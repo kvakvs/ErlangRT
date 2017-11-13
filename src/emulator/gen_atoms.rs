@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 
 use term::immediate::{make_atom_raw_const};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 pub const SYM_PLUS: LTerm = LTerm { value: make_atom_raw_const(0) };

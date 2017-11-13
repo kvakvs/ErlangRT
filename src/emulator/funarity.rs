@@ -3,7 +3,7 @@
 //!
 use defs::Arity;
 //use fail::Hopefully;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 use std::cmp::Ordering;
 use std::fmt;

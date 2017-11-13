@@ -8,7 +8,7 @@ use emulator::mfa::{MFArgs};
 use emulator::process::Process;
 use emulator::scheduler::{Prio, Scheduler};
 use fail::{Hopefully};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 //fn module() -> &'static str { "vm: " }

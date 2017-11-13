@@ -10,7 +10,7 @@ use emulator::mfa::MFArity;
 use emulator::runtime_ctx;
 use emulator::scheduler;
 use fail::Hopefully;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 use std::fmt;
 
@@ -93,7 +93,7 @@ impl Process {
       Ok(ip) => {
         let p = Process {
           pid,
-          //parent_pid: LTerm::nil(),
+          //parent_pid: nil(),
           prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,

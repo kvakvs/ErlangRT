@@ -1,7 +1,7 @@
 use bif::BifResult;
 use emulator::heap::ho_bignum::HOBignum;
 use emulator::process::Process;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 use num;
 
@@ -34,8 +34,8 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> BifResult
   // Both a and b are small, we've got an easy time
   let iresult = a.small_get_s() - b.small_get_s();
   // Even better: the result is also a small
-  if LTerm::fits_small(iresult) {
-    return BifResult::Value(LTerm::make_small_s(iresult))
+  if fits_small(iresult) {
+    return BifResult::Value(make_small_s(iresult))
   }
   // We're out of luck - the result is not a small, but we have BigInt!
   let big = num::BigInt::from(iresult);

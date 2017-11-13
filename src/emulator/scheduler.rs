@@ -4,7 +4,7 @@ use std::collections::{VecDeque, HashMap};
 use defs::Word;
 use emulator::process::{Process, ProcessError, ExceptionType};
 use emulator::gen_atoms;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 fn module() -> &'static str { "scheduler: " }

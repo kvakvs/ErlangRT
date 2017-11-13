@@ -12,7 +12,7 @@ use emulator::heap::heapobj::*;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
 use term::classify::TermClass;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 /// Heap object `HOImport` is placed on lit heap by the BEAM loader, VM would
@@ -68,7 +68,7 @@ impl HOImport {
                  mfarity,
                  is_bif,
                });
-    Ok(LTerm::make_box(this as *const Word))
+    Ok(make_box(this as *const Word))
   }
 
 

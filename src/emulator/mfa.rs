@@ -1,7 +1,7 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
-use term::lterm::LTerm;
+use term::lterm::*;
 use defs::Arity;
 use emulator::funarity::FunArity;
 

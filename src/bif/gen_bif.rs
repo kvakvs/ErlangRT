@@ -5,7 +5,7 @@
 
 use defs::Arity;
 use emulator::gen_atoms;
-use term::lterm::LTerm;
+use term::lterm::*;
 use bif;
 
 

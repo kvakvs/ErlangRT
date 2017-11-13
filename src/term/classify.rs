@@ -2,7 +2,7 @@
 
 use defs::Word;
 use term::immediate;
-use term::lterm::LTerm;
+use term::lterm::*;
 use term::primary;
 use emulator::heap::heapobj::HeapObjClass;
 

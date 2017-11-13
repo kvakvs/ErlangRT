@@ -1,6 +1,6 @@
 //! Define `HeapIterator` which can step over the heap
 use emulator::heap::*;
-//use term::lterm::LTerm;
+//use term::lterm::*;
 use term::primary;
 
 

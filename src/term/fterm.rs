@@ -7,7 +7,7 @@
 //!
 use defs;
 use defs::{Word, SWord};
-use term::lterm::LTerm;
+use term::lterm::*;
 use emulator::heap::Heap;
 
 use num::bigint::BigInt;
@@ -93,7 +93,7 @@ impl FTerm {
       FTerm::FP_(i) => LTerm::make_fpreg(i),
       FTerm::SmallInt(i) => LTerm::make_small_s(i),
       //FTerm::LoadTimeInt(i) => LTerm::make_small_s(i),
-      FTerm::Nil => LTerm::nil(),
+      FTerm::Nil => nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
     }
   }

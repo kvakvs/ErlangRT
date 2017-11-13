@@ -1,7 +1,7 @@
 use emulator::atom;
 
 use std::cmp::{Ordering};
-use term::lterm::LTerm;
+use term::lterm::*;
 use term::classify;
 use term::primary;
 use term::immediate;
@@ -102,7 +102,7 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 //    return EqResult::Concluded(order);
 //  }
 
-  cmp_terms_primary(a, b)
+  cmp_terms_primary(a, b, exact)
 }
 
 
@@ -150,7 +150,7 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
-fn cmp_terms_primary(a: LTerm, b: LTerm) -> EqResult {
+fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   let a_val = a.raw();
   let a_prim_tag = primary::get_tag(a_val);
 
@@ -164,7 +164,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm) -> EqResult {
 
   match a_prim_tag {
     primary::TAG_IMMED => {
-      return EqResult::Concluded(cmp_terms_immed(a, b))
+      return EqResult::Concluded(cmp_terms_immed(a, b, exact))
     },
     primary::TAG_CONS => unsafe {
       return cmp_cons(a, b)

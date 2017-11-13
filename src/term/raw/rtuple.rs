@@ -2,7 +2,7 @@
 //! on heap.
 
 use defs::Word;
-use term::lterm::LTerm;
+use term::lterm::*;
 use term::primary;
 use term::primary::header;
 

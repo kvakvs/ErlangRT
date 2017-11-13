@@ -1,7 +1,7 @@
 use emulator::gen_atoms;
 use bif::BifResult;
 use emulator::process::Process;
-use term::lterm::LTerm;
+use term::lterm::*;
 use term::compare::cmp_terms;
 
 use std::cmp::{Ordering};

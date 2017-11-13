@@ -9,7 +9,7 @@ use emulator::heap::Heap;
 use emulator::heap::heapobj::*;
 use fail::Hopefully;
 use term::classify::TermClass;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 
 /// Heap object `HOBignum` is placed on heap by the VM and contains a signed
@@ -90,6 +90,6 @@ impl HOBignum {
   //  }
   #[inline]
   pub fn make_term(this: *const HOBignum) -> LTerm {
-    LTerm::make_box(this as *const Word)
+    make_box(this as *const Word)
   }
 }

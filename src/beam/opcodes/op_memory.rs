@@ -4,6 +4,7 @@ use defs::DispatchResult;
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use term::lterm::*;
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.

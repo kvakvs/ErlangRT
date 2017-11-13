@@ -7,6 +7,7 @@ use defs::DispatchResult;
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use term::lterm::*;
 
 
 fn module() -> &'static str { "opcodes::op_list: " }

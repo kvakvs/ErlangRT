@@ -1,5 +1,5 @@
 use defs::Word;
-use term::lterm::LTerm;
+use term::lterm::*;
 
 use std::ptr;
 

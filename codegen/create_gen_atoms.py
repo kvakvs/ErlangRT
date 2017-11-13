@@ -25,7 +25,7 @@ def main():
 #![allow(dead_code)]
 
 use term::immediate::{{make_atom_raw_const}};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 """.format(otp=conf.__class__.__name__))
 
