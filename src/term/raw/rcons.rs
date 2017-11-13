@@ -30,7 +30,7 @@ impl ConsPtrMut {
 
   pub fn make_cons(&self) -> LTerm {
     let ConsPtrMut::Ptr(p) = *self;
-    LTerm::make_cons(p)
+    make_cons(p)
   }
 
 //  /// Peek into the cons, and get head value.

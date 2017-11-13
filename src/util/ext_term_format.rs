@@ -127,7 +127,7 @@ fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
   // Assert that the number fits into small
   if big.bits() < defs::WORD_BITS - 4 {
     let b_signed = big.to_isize().unwrap();
-    return Ok(LTerm::make_small_s(b_signed));
+    return Ok(make_small_s(b_signed));
   }
 
   // Determine storage size in words
@@ -166,13 +166,13 @@ fn decode_tuple(r: &mut BinaryReader, heap: &mut Heap,
 
 fn decode_u8(r: &mut BinaryReader) -> Hopefully<LTerm> {
   let val = r.read_u8();
-  Ok(LTerm::make_small_u(val as Word))
+  Ok(make_small_u(val as Word))
 }
 
 
 fn decode_s32(r: &mut BinaryReader) -> Hopefully<LTerm> {
   let val = r.read_u32be() as i32;
-  Ok(LTerm::make_small_s(val as SWord))
+  Ok(make_small_s(val as SWord))
 }
 
 
@@ -227,7 +227,7 @@ fn decode_string(r: &mut BinaryReader, heap: &mut Heap) -> Hopefully<LTerm> {
 
   for i in 0..n_elem {
     let elem = r.read_u8();
-    unsafe { cell.set_hd(LTerm::make_small_u(elem as usize)) }
+    unsafe { cell.set_hd(make_small_u(elem as usize)) }
 
     // Keep building forward
     if i < n_elem_minus_one {

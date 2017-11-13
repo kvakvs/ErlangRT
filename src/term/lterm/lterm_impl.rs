@@ -6,7 +6,7 @@
 //!
 use term::immediate;
 use term::primary;
-use term::raw::{TuplePtr, TuplePtrMut};
+use term::raw::{TuplePtr};
 use emulator::atom;
 use emulator::heap::heapobj::HeapObjClass;
 
@@ -14,6 +14,7 @@ use defs;
 use defs::{Word};
 use term::lterm::list_term::*;
 use term::lterm::boxed_term::*;
+use term::lterm::smallint_term::*;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -175,12 +176,6 @@ impl LTerm {
   // Tuples
   //
 
-  #[inline]
-  pub fn make_tuple_header(arity: Word) -> LTerm {
-    LTerm { value: primary::header::make_tuple_header_raw(arity) }
-  }
-
-
   pub fn header_get_arity(&self) -> Word {
     assert!(self.is_header());
     primary::header::get_arity(self.value)
@@ -192,39 +187,6 @@ impl LTerm {
     primary::header::get_tag(self.value)
   }
 
-  /// Get a proxy object for read-only accesing the cons contents.
-  pub unsafe fn raw_tuple(&self) -> TuplePtr {
-    let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
-    assert_eq!(primary::header::get_tag(v),
-               primary::header::TAG_HEADER_TUPLE);
-    let boxp = primary::pointer(v);
-    TuplePtr::from_pointer(boxp)
-  }
-
-
-  /// Get a proxy object for looking and modifying cons contents.
-  pub unsafe fn raw_tuple_mut(&self) -> TuplePtrMut {
-    let v = self.value;
-    assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
-    assert_eq!(primary::header::get_tag(v),
-               primary::header::TAG_HEADER_TUPLE);
-    let boxp = primary::pointer_mut(v);
-    TuplePtrMut::from_pointer(boxp)
-  }
-
-
-  /// Create an empty tuple value.
-  #[inline]
-  pub fn empty_tuple() -> LTerm {
-    LTerm { value: immediate::IMM2_SPECIAL_EMPTY_TUPLE_RAW }
-  }
-
-  /// Check whether a value is an empty tuple.
-  #[inline]
-  pub fn is_empty_tuple(&self) -> bool {
-    self.value == immediate::IMM2_SPECIAL_EMPTY_TUPLE_RAW
-  }
 
 
   //
@@ -235,7 +197,7 @@ impl LTerm {
   #[inline]
   pub fn make_cp(p: *const Word) -> LTerm {
     let tagged_p = (p as Word) | defs::TAG_CP;
-    LTerm::make_box(tagged_p as *const Word)
+    make_box(tagged_p as *const Word)
   }
 
 

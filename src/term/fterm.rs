@@ -87,11 +87,11 @@ impl FTerm {
   /// Some terms cannot be converted, consider checking `to_lterm_vec()`
   pub fn to_lterm(&self, _heap: &mut Heap) -> LTerm {
     match *self {
-      FTerm::Atom(i) => LTerm::make_atom(i),
+      FTerm::Atom(i) => make_atom(i),
       FTerm::X_(i) => LTerm::make_xreg(i),
       FTerm::Y_(i) => LTerm::make_yreg(i),
       FTerm::FP_(i) => LTerm::make_fpreg(i),
-      FTerm::SmallInt(i) => LTerm::make_small_s(i),
+      FTerm::SmallInt(i) => make_small_s(i),
       //FTerm::LoadTimeInt(i) => LTerm::make_small_s(i),
       FTerm::Nil => nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
