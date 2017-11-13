@@ -1,9 +1,11 @@
 use term::immediate;
-use term::primary;
+//use term::primary;
 //use defs::Word;
 use term::lterm::aspect_boxed::BoxedAspect;
+use term::raw::ho_binary::HOBinary;
 
 
+/// Implements features of LTerm related to binary values.
 pub trait BinaryAspect {
   unsafe fn is_binary(&self) -> bool;
   fn is_empty_binary(&self) -> bool;
@@ -16,10 +18,8 @@ impl BinaryAspect for super::LTerm {
     if self.is_empty_binary() { return true }
     if !self.is_box() { return false }
 
-    let p = self.box_ptr();
-    let box_tag = primary::header::get_tag(*p);
-    //box_tag == primary::header::TAG_HEADER_HEAPOBJ
-    panic!("TODO: Organize check via heapobj in a nice way, generalize")
+    // from_term should be efficient enough (only type cast and one comparison)
+    HOBinary::from_term(self).is_some()
   }
 
 

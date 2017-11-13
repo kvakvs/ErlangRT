@@ -72,6 +72,7 @@ impl TupleAspect for super::LTerm {
 
 
 #[inline]
+#[allow(dead_code)]
 pub fn make_tuple_header(arity: Word) -> super::LTerm {
   super::LTerm { value: primary::header::make_tuple_header_raw(arity) }
 }

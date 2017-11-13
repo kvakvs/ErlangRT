@@ -9,10 +9,10 @@ use term::classify::TermClass;
 
 
 pub enum HeapObjType {
-  /// Maps to `emulator::heap::ho_import::HOImport`
+  /// Type maps to `term::raw::ho_import::HOImport` heap obj class.
   Import,
   Binary,
-  //Bignum,
+//  Bignum,
 }
 
 

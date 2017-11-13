@@ -86,11 +86,17 @@ impl HOBinary {
 
 
   /// Given a term, unbox it and convert to a `HOBinary` const pointer.
-//  #[inline]
-//  pub fn from_term(t: LTerm) -> *const HOBinary {
-//    let p = t.box_ptr();
-//    p as *const HOBinary
-//  }
+  /// Returns None if not a binary.
+  #[inline]
+  pub unsafe fn from_term(t: &LTerm) -> Option<*const HOBinary> {
+    let p = t.box_ptr();
+    let p1 = p as *const HOBinary;
+    if (*p1).hobj.class_ptr != &HOCLASS_BINARY {
+      None
+    } else {
+      Some(p1)
+    }
+  }
 
 
   /// Given a term, unbox it and convert to a `HOBinary` mut pointer.

@@ -177,7 +177,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 }
 
 
-fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
+fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
   let av = a.raw();
   let bv = b.raw();
 
@@ -352,7 +352,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
 
 
 /// Deeper comparison of two values with different types
-fn cmp_mixed_types(a: LTerm, b: LTerm) -> Ordering {
+fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Ordering {
   panic!("TODO: cmp_mixed_types(a, b)")
 }
 
