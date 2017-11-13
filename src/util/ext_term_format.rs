@@ -139,7 +139,7 @@ fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
 fn decode_binary(r: &mut BinaryReader, hp: &mut Heap) -> Hopefully<LTerm> {
   let n_bytes = r.read_u32be() as usize;
   if n_bytes == 0 {
-    return Ok(LTerm::empty_binary())
+    return Ok(empty_binary())
   }
 
   let data = r.read_bytes(n_bytes)?;

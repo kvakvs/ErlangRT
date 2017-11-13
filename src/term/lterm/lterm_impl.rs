@@ -10,11 +10,13 @@ use term::raw::{TuplePtr};
 use emulator::atom;
 use emulator::heap::heapobj::HeapObjClass;
 
-use defs;
 use defs::{Word};
-use term::lterm::list_term::*;
+use term::lterm::binary_term::*;
 use term::lterm::boxed_term::*;
+use term::lterm::cp_term::*;
+use term::lterm::list_term::*;
 use term::lterm::smallint_term::*;
+use term::lterm::tuple_term::*;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -154,24 +156,6 @@ impl LTerm {
 //  }
 
 
-
-  //
-  // Binaries
-  //
-
-  /// Create an empty binary value.
-  #[inline]
-  pub fn empty_binary() -> LTerm {
-    LTerm { value: immediate::IMM2_SPECIAL_EMPTY_BIN_RAW }
-  }
-
-  /// Check whether a value is an empty binary.
-  #[inline]
-  pub fn is_empty_binary(&self) -> bool {
-    self.value == immediate::IMM2_SPECIAL_EMPTY_BIN_RAW
-  }
-
-
   //
   // Tuples
   //
@@ -187,52 +171,6 @@ impl LTerm {
     primary::header::get_tag(self.value)
   }
 
-
-
-  //
-  // Code Pointer manipulation.
-  // CP is tagged as Boxed + Top bit set.
-  //
-
-  #[inline]
-  pub fn make_cp(p: *const Word) -> LTerm {
-    let tagged_p = (p as Word) | defs::TAG_CP;
-    make_box(tagged_p as *const Word)
-  }
-
-
-  #[inline]
-  pub fn is_cp(&self) -> bool {
-    self.is_box() && (self.value & defs::TAG_CP == defs::TAG_CP)
-  }
-
-
-  #[inline]
-  pub fn cp_get_ptr(&self) -> *const Word {
-    assert!(self.is_box(), "CP value must be boxed (have {})", self);
-    assert_eq!(self.value & defs::TAG_CP, defs::TAG_CP,
-            "CP value must have its top bit set (have 0x{:x})", self.value);
-    let untagged_p = self.value & !(defs::TAG_CP | primary::PRIM_MASK);
-    untagged_p as *const Word
-  }
-
-  //
-  // Float
-  //
-
-  /// Check whether a value contains a pointer to a float box. Unsafe (i.e.
-  /// will dereference the box pointer).
-  pub unsafe fn is_float(&self) -> bool {
-    // For a value to be float it must be a box, which points to heap word with
-    // primary header bits having value `TAG_HEADER_FLOAT` and primary tag bits
-    // having value `primary::TAG_HEADER`.
-    if !self.is_box() {
-      return false
-    }
-    let p = self.box_ptr();
-    let box_tag = primary::header::get_tag(*p);
-    box_tag == primary::header::TAG_HEADER_FLOAT
-  }
 
   //
   // Formatting helpers
@@ -498,7 +436,7 @@ mod tests {
 
   #[test]
   fn test_cp() {
-    let s1 = LTerm::make_cp(ptr::null());
+    let s1 = make_cp(ptr::null());
     assert_eq!(s1.cp_get_ptr(), ptr::null());
   }
 }

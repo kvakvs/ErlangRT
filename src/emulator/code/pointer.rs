@@ -66,7 +66,7 @@ impl CodePtr {
   #[inline]
   pub fn to_cp(&self) -> Word {
     let CodePtr::Ptr(p) = *self;
-    LTerm::make_cp(p).raw()
+    make_cp(p).raw()
 //    let p1 = p as Word;
 //    p1 | TAG_CP
   }

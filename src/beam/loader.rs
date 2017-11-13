@@ -597,7 +597,7 @@ impl Loader {
   fn create_jump_destination(&self, dst_offset: &CodeOffset) -> Word {
     let &CodeOffset::Val(offs) = dst_offset;
     let ptr = &self.code[offs] as *const Word;
-    LTerm::make_cp(ptr).raw()
+    make_cp(ptr).raw()
   }
 
 
