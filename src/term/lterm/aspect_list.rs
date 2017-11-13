@@ -5,7 +5,7 @@ use defs::Word;
 use term::immediate;
 use term::primary;
 use term::raw::{ConsPtr, ConsPtrMut};
-use term::lterm::smallint_term::SmallintTerm;
+use term::lterm::aspect_smallint::SmallintTerm;
 
 use std::ptr;
 

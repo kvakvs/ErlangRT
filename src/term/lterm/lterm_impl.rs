@@ -11,12 +11,12 @@ use emulator::atom;
 use emulator::heap::heapobj::HeapObjClass;
 
 use defs::{Word};
-use term::lterm::binary_term::*;
-use term::lterm::boxed_term::*;
-use term::lterm::cp_term::*;
-use term::lterm::list_term::*;
-use term::lterm::smallint_term::*;
-use term::lterm::tuple_term::*;
+use term::lterm::aspect_binary::*;
+use term::lterm::aspect_boxed::*;
+use term::lterm::aspect_cp::*;
+use term::lterm::aspect_list::*;
+use term::lterm::aspect_smallint::*;
+use term::lterm::aspect_tuple::*;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -74,13 +74,6 @@ impl LTerm {
   #[inline]
   pub fn is_value(&self) -> bool {
     ! self.is_non_value()
-  }
-
-
-  /// Check whether a value is a local pid.
-  #[inline]
-  pub fn is_local_pid(&self) -> bool {
-    immediate::is_pid_raw(self.value)
   }
 
 

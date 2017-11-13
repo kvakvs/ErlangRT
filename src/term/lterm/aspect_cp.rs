@@ -4,7 +4,7 @@
 use defs::Word;
 use defs;
 use term::primary;
-use term::lterm::boxed_term::{BoxedTerm, make_box};
+use term::lterm::aspect_boxed::{BoxedTerm, make_box};
 
 
 /// Represents operations on LTerm which contains/is a CP value.

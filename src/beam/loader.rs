@@ -586,7 +586,7 @@ impl Loader {
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId::Val(label_id) = l;
-        smallint_term::make_small_u(label_id).raw()
+        aspect_smallint::make_small_u(label_id).raw()
       }
     }
   }

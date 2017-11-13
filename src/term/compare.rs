@@ -219,8 +219,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
   }
 
   if a.is_box() {
-    if a.is_tuple() {
-      if b.is_tuple() {
+    if unsafe { a.is_tuple() } {
+      if unsafe { b.is_tuple() } {
         panic!("TODO: cmp tuple vs tuple")
       } else {
         return cmp_mixed_types(a, b)
@@ -229,7 +229,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
       if a.is_flat_map() {
         if !b.is_flat_map() {
           if b.is_hash_map() {
-            return a.map_size().cmp(b.map_size())
+            let b_size = b.map_size();
+            return a.map_size().cmp(&b_size)
           }
         } else {
           // Compare two flat maps
@@ -238,7 +239,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, exact: bool) -> Ordering {
       } else {
         if !b.is_hash_map() {
           if b.is_flat_map() {
-            return a.map_size().cmp(b.map_size())
+            let b_size = b.map_size();
+            return a.map_size().cmp(&b_size)
           }
         } else {
           // Compare two hash maps

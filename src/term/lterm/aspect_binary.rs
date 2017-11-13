@@ -1,7 +1,7 @@
 use term::immediate;
 use term::primary;
 //use defs::Word;
-use term::lterm::boxed_term::BoxedTerm;
+use term::lterm::aspect_boxed::BoxedTerm;
 
 
 pub trait BinaryTerm {

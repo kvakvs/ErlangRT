@@ -50,7 +50,7 @@ fn main() {
     Vec::new()
   );
   let _rootp = beam.create_process(
-    list_term::nil(),
+    aspect_list::nil(),
     &mfa,
     Prio::Normal
   ).unwrap();

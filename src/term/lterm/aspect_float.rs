@@ -3,7 +3,7 @@
 use defs::Float;
 //use term::immediate;
 use term::primary;
-use term::lterm::boxed_term::BoxedTerm;
+use term::lterm::aspect_boxed::BoxedTerm;
 
 
 pub trait FloatTerm {

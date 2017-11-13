@@ -2,7 +2,7 @@ use term::raw::{TuplePtr, TuplePtrMut};
 use term::primary;
 use term::immediate;
 use defs::Word;
-use term::lterm::boxed_term::BoxedTerm;
+use term::lterm::aspect_boxed::BoxedTerm;
 
 
 pub trait TupleTerm {
