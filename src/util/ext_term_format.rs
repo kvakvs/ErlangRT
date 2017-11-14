@@ -1,6 +1,6 @@
 //use term::raw::RawBignum;
-use defs::{Word, SWord};
-use defs;
+use rt_defs::{Word, SWord};
+use rt_defs;
 use emulator::atom;
 use emulator::heap::Heap;
 use fail::{Hopefully, Error};
@@ -125,7 +125,7 @@ fn decode_big(r: &mut BinaryReader, heap: &mut Heap,
   let big = num::BigInt::from_bytes_le(sign, &digits);
 
   // Assert that the number fits into small
-  if big.bits() < defs::WORD_BITS - 4 {
+  if big.bits() < rt_defs::WORD_BITS - 4 {
     let b_signed = big.to_isize().unwrap();
     return Ok(make_small_s(b_signed));
   }

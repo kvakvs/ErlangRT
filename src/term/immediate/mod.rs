@@ -13,8 +13,8 @@ mod imm1;
 mod imm2;
 mod imm3;
 
-use defs;
-use defs::{Word, SWord};
+use rt_defs;
+use rt_defs::{Word, SWord};
 
 pub use self::imm1::*;
 pub use self::imm2::*;
@@ -55,7 +55,7 @@ pub fn make_small_raw(val: SWord) -> Word {
 
 #[inline]
 pub fn make_xreg_raw(x: Word) -> Word {
-  assert!(x < defs::MAX_XREGS);
+  assert!(x < rt_defs::MAX_XREGS);
   create_imm3(x, IMM3_XREG_PREFIX)
 }
 
@@ -68,7 +68,7 @@ pub fn make_yreg_raw(x: Word) -> Word {
 
 #[inline]
 pub fn make_fpreg_raw(x: Word) -> Word {
-  assert!(x < defs::MAX_FPREGS);
+  assert!(x < rt_defs::MAX_FPREGS);
   create_imm3(x, IMM3_FPREG_PREFIX)
 }
 

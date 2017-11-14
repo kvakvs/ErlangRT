@@ -4,7 +4,7 @@ use std::mem::size_of;
 use std::ptr;
 
 use bif::{BifFn, find_bif};
-use defs::{WORD_BYTES, Word};
+use rt_defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
 use emulator::heap::Heap;

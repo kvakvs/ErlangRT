@@ -1,7 +1,7 @@
 //! Functions to manipulate an LTerm as an Erlang CONS cell (two words on heap,
 //! which contain a head and a tail). Part of LTerm impl.
 
-use defs::Word;
+use rt_defs::Word;
 use term::immediate;
 use term::primary;
 use term::raw::{ConsPtr, ConsPtrMut};

@@ -7,7 +7,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::cmp::min;
 
-use defs::Word;
+use rt_defs::Word;
 use fail::{Hopefully, Error};
 
 fn module() -> &'static str { "File reader: " }

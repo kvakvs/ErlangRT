@@ -4,7 +4,7 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
-use defs::Word;
+use rt_defs::Word;
 use emulator::code::{CodePtr, CodeOffset, Code};
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap};

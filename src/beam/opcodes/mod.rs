@@ -15,7 +15,7 @@ pub use beam::opcodes::op_predicates::*;
 
 
 use beam::gen_op;
-use defs::Word;
+use rt_defs::Word;
 use emulator::code::opcode::RawOpcode;
 use emulator::runtime_ctx::Context;
 

@@ -1,6 +1,6 @@
 //! Module defines pointer types for readonly code and mutable code.
-use defs::Word;
-//use defs::TAG_CP;
+use rt_defs::Word;
+//use rt_defs::TAG_CP;
 use term::immediate;
 use term::lterm::*;
 

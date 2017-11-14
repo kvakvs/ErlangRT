@@ -1,6 +1,6 @@
 //! Module defines `CodeIterator` which can step over the code
 use beam::gen_op;
-use defs::Word;
+use rt_defs::Word;
 use emulator::code::opcode;
 use emulator::code::pointer::{CodePtr, CodePtrMut};
 

@@ -1,7 +1,7 @@
 //! `RawTuple` and `RawTupleMut` define pointer which refers to a `HeapTuple` 
 //! on heap.
 
-use defs::Word;
+use rt_defs::Word;
 use term::lterm::*;
 use term::primary;
 use term::primary::header;

@@ -6,8 +6,8 @@
 //! Max value for imm1 is 64-4=60, or 32-4=28 bits.
 //!
 use term::primary;
-use defs;
-use defs::{Word, SWord};
+use rt_defs;
+use rt_defs::{Word, SWord};
 //use term::immediate::primary::PRIM_TAG_LAST;
 
 use bit_field::BitField;
@@ -18,7 +18,7 @@ pub const IMM1_TAG_LAST: u8 = 4;
 
 /// Bit position for the value after imm1 tag
 pub const IMM1_VALUE_FIRST: u8 = IMM1_TAG_LAST;
-pub const IMM1_VALUE_LAST: u8 = defs::WORD_BITS as u8;
+pub const IMM1_VALUE_LAST: u8 = rt_defs::WORD_BITS as u8;
 
 #[allow(dead_code)]
 pub const SMALL_BITS: Word = (IMM1_VALUE_LAST - IMM1_VALUE_FIRST) as Word;
@@ -102,12 +102,12 @@ pub fn combine_imm1_prefix_and_val(val: Word, prefix0: Word) -> Word {
 pub fn combine_imm1_prefix_and_val_signed(val: SWord, prefix0: Word) -> Word {
   let prefix = prefix0;
   assert!(prefix < (1 << IMM1_VALUE_FIRST));
-  assert!(val >= defs::MIN_NEG_SMALL,
+  assert!(val >= rt_defs::MIN_NEG_SMALL,
           "val 0x{:x} must be >= MIN_SIG_SMALL 0x{:x}",
-          val, defs::MIN_NEG_SMALL);
-  assert!(val <= defs::MAX_POS_SMALL,
+          val, rt_defs::MIN_NEG_SMALL);
+  assert!(val <= rt_defs::MAX_POS_SMALL,
           "val 0x{:X} must be <= MAX_SIG_SMALL 0x{:x}",
-          val, defs::MAX_POS_SMALL);
+          val, rt_defs::MAX_POS_SMALL);
 
   //*prefix.set_bits(IMM1_VALUE_FIRST..IMM1_VALUE_LAST, val as Word)
   prefix | (val << IMM1_VALUE_FIRST) as Word

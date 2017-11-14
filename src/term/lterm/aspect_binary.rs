@@ -1,6 +1,6 @@
 use term::immediate;
 //use term::primary;
-//use defs::Word;
+//use rt_defs::Word;
 use term::lterm::aspect_boxed::BoxedAspect;
 use term::raw::ho_binary::HOBinary;
 

@@ -1,5 +1,5 @@
 //! Debug tool to display Erlang heap contents.
-//use defs::Word;
+//use rt_defs::Word;
 use emulator::heap::{Heap, DataPtr};
 use term::lterm::*;
 //use term::raw::{RawConsMut, RawTupleMut, RawBignum};

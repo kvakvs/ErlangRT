@@ -5,8 +5,8 @@
 //!
 //! Max value for imm2 is 64-6=58, or 32-6=26 bits.
 //!
-use defs;
-use defs::Word;
+use rt_defs;
+use rt_defs::Word;
 use term::immediate::imm1::*;
 
 use bit_field::BitField;
@@ -17,7 +17,7 @@ pub const IMM2_TAG_LAST: u8 = 6;
 
 /// Bit position for the value after imm1 tag
 pub const IMM2_VALUE_FIRST: u8 = IMM2_TAG_LAST;
-pub const IMM2_VALUE_LAST: u8 = defs::WORD_BITS as u8;
+pub const IMM2_VALUE_LAST: u8 = rt_defs::WORD_BITS as u8;
 
 
 pub const TAG_IMM2_ATOM: Word = 0;

@@ -1,4 +1,4 @@
-use defs::Word;
+use rt_defs::Word;
 use emulator::heap::iter;
 use fail::{Error, Hopefully};
 use term::lterm::*;

@@ -3,7 +3,7 @@
 //! 1. (p+0) A header tag with arity which delimits the object size.
 //! 2. (p+1) A `HeapObjClass` pointer which is used to call methods on a heap object.
 //! 3. (p+2...) The data
-use defs::Word;
+use rt_defs::Word;
 use term::primary::header;
 use term::classify::TermClass;
 

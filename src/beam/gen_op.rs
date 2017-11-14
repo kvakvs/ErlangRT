@@ -3,7 +3,7 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use defs::Word;
+use rt_defs::Word;
 use emulator::code::opcode::RawOpcode;
 
 

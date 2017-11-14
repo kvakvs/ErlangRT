@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use std::sync::{Mutex, MutexGuard};
 
 use fail::{Hopefully, Error};
-use defs::Word;
+use rt_defs::Word;
 use term::lterm::*;
 use emulator::gen_atoms;
 

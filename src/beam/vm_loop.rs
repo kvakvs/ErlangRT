@@ -1,6 +1,6 @@
 use beam::gen_op;
 use beam::vm_dispatch::dispatch_op_inline;
-use defs::{DispatchResult};
+use rt_defs::{DispatchResult};
 use emulator::code::{opcode, CodePtr};
 use emulator::disasm;
 use emulator::runtime_ctx::Context;

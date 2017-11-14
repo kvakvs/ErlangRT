@@ -2,7 +2,7 @@ pub mod dump;
 pub mod heap_impl;
 pub mod iter;
 
-use defs::Word;
+use rt_defs::Word;
 
 
 /// Default heap size for constants (literals) when loading a module.

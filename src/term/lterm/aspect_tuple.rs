@@ -1,7 +1,7 @@
 use term::raw::{TuplePtr, TuplePtrMut};
 use term::primary;
 use term::immediate;
-use defs::Word;
+use rt_defs::Word;
 use term::lterm::aspect_boxed::BoxedAspect;
 
 

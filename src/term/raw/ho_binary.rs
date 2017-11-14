@@ -3,7 +3,7 @@
 use std::mem::size_of;
 use std::ptr;
 
-use defs::{WORD_BYTES, Word};
+use rt_defs::{WORD_BYTES, Word};
 use emulator::heap::Heap;
 use term::raw::heapobj::*;
 use fail::Hopefully;

@@ -1,7 +1,7 @@
 //! Module implements decoder for compact term format used in BEAM files.
 //! http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding
 
-use defs::{Word, SWord};
+use rt_defs::{Word, SWord};
 use fail::{Hopefully, Error};
 use term::fterm;
 use term::integral::Integral;
@@ -172,7 +172,7 @@ fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
   let fp: f64 = unsafe {
     std::mem::transmute::<u64, f64>(fp_bytes)
   };
-  Ok(fterm::FTerm::Float(fp as defs::Float))
+  Ok(fterm::FTerm::Float(fp as rt_defs::Float))
 }
 
 

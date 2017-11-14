@@ -1,0 +1,6 @@
+[package]
+name = "rt_defs"
+version = "0.1.0"
+authors = ["Dmytro Lytovchenko <dmytro.lytovchenko@gmail.com>"]
+
+[dependencies]

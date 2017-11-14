@@ -9,8 +9,8 @@
 //!
 pub mod header;
 
-use defs;
-use defs::Word;
+use rt_defs;
+use rt_defs::Word;
 
 use bit_field::BitField;
 
@@ -22,7 +22,7 @@ pub const PRIM_MASK: Word = 0b11;
 
 /// Bit position for the value after the primary tag.
 pub const PRIM_VALUE_FIRST: u8 = PRIM_TAG_LAST;
-pub const PRIM_VALUE_LAST: u8 = defs::WORD_BITS as u8;
+pub const PRIM_VALUE_LAST: u8 = rt_defs::WORD_BITS as u8;
 
 
 /// Marks something special on heap, never appears as a `LTerm` value in

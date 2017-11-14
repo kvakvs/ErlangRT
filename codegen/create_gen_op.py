@@ -14,7 +14,7 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use defs::Word;
+use rt_defs::Word;
 use emulator::code::opcode::RawOpcode;
 
 

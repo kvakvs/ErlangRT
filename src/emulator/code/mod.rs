@@ -3,7 +3,7 @@ pub mod opcode;
 pub mod pointer;
 pub mod iter;
 
-use defs::Word;
+use rt_defs::Word;
 
 use std::collections::BTreeMap;
 

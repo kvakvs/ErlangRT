@@ -2,7 +2,7 @@
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
 use term::lterm::*;
-use defs::Arity;
+use rt_defs::Arity;
 use emulator::funarity::FunArity;
 
 use std::fmt;

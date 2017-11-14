@@ -5,8 +5,8 @@
 //! there's an memory cost, but we don't care yet. This is only used at the
 //! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
-use defs;
-use defs::{Word, SWord};
+use rt_defs;
+use rt_defs::{Word, SWord};
 use term::lterm::*;
 use emulator::heap::Heap;
 
@@ -34,7 +34,7 @@ pub enum FTerm {
   Tuple(Vec<FTerm>),
   /// zero sized tuple
   Tuple0,
-  Float(defs::Float),
+  Float(rt_defs::Float),
 
   //
   // Internal values not visible in the user data
@@ -69,7 +69,7 @@ impl FTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
   pub fn from_word(s: SWord) -> FTerm {
-    if s >= defs::MIN_NEG_SMALL && s <= defs::MAX_POS_SMALL  {
+    if s >= rt_defs::MIN_NEG_SMALL && s <= rt_defs::MAX_POS_SMALL  {
       return FTerm::SmallInt(s as SWord)
     }
     FTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))

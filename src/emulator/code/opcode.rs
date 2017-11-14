@@ -2,7 +2,7 @@
 //! may be used when running in debug mode for extra safety checks, in release
 //! no checks are done and simple opcode is stored.
 //!
-use defs::Word;
+use rt_defs::Word;
 use beam::gen_op;
 
 #[cfg(debug_assertions)]

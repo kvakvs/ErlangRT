@@ -1,4 +1,4 @@
-use defs::Word;
+use rt_defs::Word;
 use term::lterm::*;
 
 use std::ptr;

@@ -3,7 +3,7 @@
 //! heap, stack, registers, and message queue.
 //!
 
-use defs::Word;
+use rt_defs::Word;
 use emulator::code_srv;
 use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa::MFArity;

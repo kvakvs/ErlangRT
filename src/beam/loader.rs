@@ -19,7 +19,7 @@ use compress::zlib;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
-use defs::{Word, Arity};
+use rt_defs::{Word, Arity};
 use emulator::atom;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};

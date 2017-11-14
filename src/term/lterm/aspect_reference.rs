@@ -1,7 +1,7 @@
 //! Functions to manipulate an LTerm as an boxed pointer to an Erlang Reference
 //! either local or external. Part of LTerm impl.
 
-//use defs::Word;
+//use rt_defs::Word;
 //use term::immediate;
 
 

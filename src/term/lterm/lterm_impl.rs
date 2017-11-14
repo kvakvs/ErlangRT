@@ -10,7 +10,7 @@ use term::raw::{TuplePtr};
 use emulator::atom;
 use term::raw::heapobj::HeapObjClass;
 
-use defs::{Word};
+use rt_defs::{Word};
 use term::lterm::aspect_binary::*;
 use term::lterm::aspect_boxed::*;
 use term::lterm::aspect_cp::*;
@@ -399,7 +399,7 @@ mod tests {
 
   #[test]
   fn test_term_size() {
-    assert_eq!(mem::size_of::<LTerm>(), defs::WORD_BYTES);
+    assert_eq!(mem::size_of::<LTerm>(), rt_defs::WORD_BYTES);
   }
 
   #[test]

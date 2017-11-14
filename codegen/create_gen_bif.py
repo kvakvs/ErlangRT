@@ -15,7 +15,7 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use defs::Arity;
+use rt_defs::Arity;
 use emulator::gen_atoms;
 use term::lterm::*;
 use bif;

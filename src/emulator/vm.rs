@@ -3,7 +3,7 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
 
-use defs::Word;
+use rt_defs::Word;
 use emulator::mfa::{MFArgs};
 use emulator::process::Process;
 use emulator::scheduler::{Prio, Scheduler};

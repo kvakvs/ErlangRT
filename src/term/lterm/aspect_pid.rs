@@ -1,7 +1,7 @@
 //! Functions to manipulate an LTerm as an Erlang Pid (immediate or a box)
 //! either local or external. Part of LTerm impl.
 
-//use defs::Word;
+//use rt_defs::Word;
 use term::immediate;
 
 

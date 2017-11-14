@@ -1,6 +1,6 @@
 //! Type-safe Erlang integer used during code loading time.
 //!
-use defs::{SWord, WORD_BITS};
+use rt_defs::{SWord, WORD_BITS};
 
 use num;
 use num::ToPrimitive;

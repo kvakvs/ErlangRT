@@ -1,7 +1,7 @@
 //!
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
-use defs::Arity;
+use rt_defs::Arity;
 //use fail::Hopefully;
 use term::lterm::*;
 

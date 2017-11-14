@@ -1,6 +1,6 @@
 //! Term ordering and classification.
 
-use defs::Word;
+use rt_defs::Word;
 use term::immediate;
 use term::lterm::*;
 use term::primary;
