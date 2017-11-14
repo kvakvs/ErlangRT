@@ -5,7 +5,7 @@ use rt_defs::{Word, SWord};
 use fail::{Hopefully, Error};
 use term::fterm;
 use term::integral::Integral;
-use util::bin_reader::BinaryReader;
+use rt_util::bin_reader::BinaryReader;
 
 use num::bigint;
 use num::ToPrimitive;

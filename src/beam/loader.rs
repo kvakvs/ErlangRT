@@ -14,12 +14,9 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
-//use emulator::disasm;
-//use util::print::dump_vec;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
-use rt_defs::{Word, Arity};
 use emulator::atom;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
@@ -29,11 +26,12 @@ use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
+use rt_defs::{Word, Arity};
+use rt_util::bin_reader::{BinaryReader, ReadError};
 use term::fterm::FTerm;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
 use term::raw::TuplePtrMut;
-use util::bin_reader::BinaryReader;
 use util::ext_term_format as etf;
 
 
@@ -171,8 +169,8 @@ impl Loader {
       let chunk_h = match r.read_str_latin1(4) {
         Ok(s) => s,
         // EOF is not an error
-        Err(Error::CodeLoadingPrematureEOF) => break,
-        Err(e) => return Err(e)
+        Err(ReadError::PrematureEOF) => break,
+        Err(e) => return Err(Error::CodeLoading(e))
       };
       let chunk_sz = r.read_u32be();
       let pos_begin = r.pos();

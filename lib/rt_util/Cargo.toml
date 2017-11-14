@@ -1,0 +1,7 @@
+[package]
+name = "rt_util"
+version = "0.1.0"
+authors = ["Dmytro Lytovchenko <dmytro.lytovchenko@gmail.com>"]
+
+[dependencies]
+bytes = "0.4.5"

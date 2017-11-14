@@ -12,14 +12,15 @@ dev_build = []
 
 
 [dependencies]
-bytes = "0.4.5"
-num = "0.1.40"
 bit_field = "0.7.0"
+bytes = "0.4.5"
+clippy = {version = "*", optional = true}
 compress = "0.1.2"
 lazy_static = "0.2"
-clippy = {version = "*", optional = true}
+num = "0.1.40"
 
 rt_defs = { path = "lib/rt_defs" }
+rt_util = { path = "lib/rt_util" }
 
 
 [profile.release]

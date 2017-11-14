@@ -7,7 +7,7 @@ use fail::{Hopefully, Error};
 use term::lterm::*;
 use term::raw::ho_bignum::HOBignum;
 use term::raw::ho_binary::HOBinary;
-use util::bin_reader::BinaryReader;
+use rt_util::bin_reader::BinaryReader;
 
 use num;
 use num::ToPrimitive;

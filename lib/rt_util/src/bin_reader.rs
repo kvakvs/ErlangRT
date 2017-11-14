@@ -1,14 +1,37 @@
 extern crate bytes;
 
-use bytes::ByteOrder;
-use std::str;
+use self::bytes::ByteOrder;
+
+use std::cmp::min;
+use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
-use std::cmp::min;
+use std::str;
 
-use rt_defs::Word;
-use fail::{Hopefully, Error};
+type Word = usize;
+
+//use fail::{Hopefully, Error};
+
+#[derive(Debug)]
+pub enum ReadError {
+  ReadFailed(String),
+  PrematureEOF,
+}
+
+
+impl fmt::Display for ReadError {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &ReadError::ReadFailed(ref s) => write!(f, "ReadFailed({})", s),
+      &ReadError::PrematureEOF => write!(f, "PrematureEOF"),
+    }
+  }
+}
+
+
+pub type Hopefully<T> = Result<T, ReadError>;
+
 
 fn module() -> &'static str { "File reader: " }
 
@@ -55,7 +78,7 @@ impl BinaryReader {
 
     let msg = format!("{}Expected: {:?} actual {:?}",
                       module(), sample, actual);
-    Err(Error::CodeLoadingFailed(msg))
+    Err(ReadError::ReadFailed(msg))
   }
 
   /// From the buffer take 2 bytes and interpret them as big endian u16.
@@ -84,7 +107,7 @@ impl BinaryReader {
   pub fn read_bytes(&mut self, size: Word) -> Hopefully<Vec<u8>> {
     if self.buf.len() < self.pos + size {
       // panic!("premature EOF");
-      return Err(Error::CodeLoadingPrematureEOF);
+      return Err(ReadError::PrematureEOF);
     }
 
     let r = Vec::from(&self.buf[self.pos..self.pos + size]);
@@ -100,7 +123,7 @@ impl BinaryReader {
       Ok(v) => Ok(v.to_string()),
       Err(e) => {
         let msg = format!("{}Invalid UTF-8 sequence: {}", module(), e);
-        Err(Error::CodeLoadingFailed(msg))
+        Err(ReadError::ReadFailed(msg))
       },
     }
   }

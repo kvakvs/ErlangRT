@@ -8,15 +8,16 @@
 //#![cfg_attr(feature="clippy", feature(plugin))]
 //#![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate compress;
-extern crate bytes;
-extern crate num;
 extern crate bit_field;
+extern crate bytes;
+extern crate compress;
+extern crate num;
 
 #[macro_use]
 extern crate lazy_static;
 
 extern crate rt_defs;
+extern crate rt_util;
 
 mod beam;
 mod bif;
