@@ -1,8 +1,9 @@
-//use defs::Word;
 use emulator::mfa::MFArity;
 use emulator::process::{Process, ExceptionType};
 use fail::{Hopefully, Error};
 use term::lterm::*;
+
+use std::fmt;
 
 
 pub mod gen_bif; // generated
@@ -16,7 +17,6 @@ pub use bif::bif_process::*;
 
 
 /// Returned by all BIFs to indicate an error, a value, or another condition.
-#[derive(Debug)]
 #[allow(dead_code)]
 pub enum BifResult {
   /// Totally legit result was returned.
@@ -25,6 +25,17 @@ pub enum BifResult {
   Exception(ExceptionType, LTerm),
   /// Something has failed in the runtime.
   Fail(Error),
+}
+
+
+impl fmt::Display for BifResult {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &BifResult::Value(t) => write!(f, "Value({})", t),
+      &BifResult::Exception(et, rsn) => write!(f, "Exc({:?}, {})", et, rsn),
+      &BifResult::Fail(ref e) => write!(f, "{:?}", e),
+    }
+  }
 }
 
 

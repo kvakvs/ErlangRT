@@ -38,6 +38,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
   let mut op = ContinueCompare::AnyType(a, b);
 
   loop {
+    // TODO: optimize me, identical code branches
     let eq_result = match op {
       ContinueCompare::AnyType(a1, b1) => {
         cmp_terms_any_type(a1, b1, exact)
@@ -50,9 +51,10 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
     match eq_result {
       EqResult::Concluded(result) => {
         if stack.is_empty() {
-          //println!("eq {} {} concluded {}", a, b, result);
+          println!("comparison {} {} concluded {:?}", a, b, result);
           return result
         } else {
+          println!("comparison {} {} got intermediate result {:?}", a, b, result);
           op = stack.pop().unwrap();
           continue
         } // stack not empty
@@ -72,9 +74,10 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
 
 
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
+  println!("cmp any type {} {}", a, b);
+
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
-    println!("two atoms: {} <-> {}", a, b);
     return EqResult::Concluded(cmp_atoms(a, b));
   }
 
@@ -363,11 +366,14 @@ fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Ordering {
 unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
   let mut aa = a.cons_get_ptr();
   let mut bb = b.cons_get_ptr();
+
   loop {
     // Check the heads
     let ahd = aa.hd();
     let bhd = bb.hd();
-    if ahd.raw() != bhd.raw() {
+
+    if LTerm::is_same(ahd, bhd) == false {
+      println!("cmp_cons ahd {} bhd {}", ahd, bhd);
       // Recurse into a.hd and b.hd, but push a.tl and b.tl to continue
       let continue_op = ContinueCompare::Cons(aa.tl(), bb.tl());
       return EqResult::CompareNested(ahd, bhd, continue_op)
@@ -376,7 +382,8 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     // See the tails
     let atl = aa.tl();
     let btl = bb.tl();
-    if atl.raw() == btl.raw() {
+
+    if LTerm::is_same(atl, btl) {
       return EqResult::Concluded(Ordering::Equal)
     }
     if !atl.is_list() || !btl.is_list() {

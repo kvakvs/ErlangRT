@@ -225,7 +225,7 @@ pub fn call_bif(ctx: &mut Context,
     },
   };
 
-  println!("BIF{} gc={} call result {:?}", n_args, gc, bif_result);
+  println!("BIF{} gc={} call result {}", n_args, gc, bif_result);
 
   match bif_result {
     // On error and if fail label is a CP, perform a goto

@@ -329,6 +329,13 @@ impl LTerm {
     }
     write!(f, "\"")
   }
+
+
+  /// Raw compare two term values.
+  #[inline]
+  pub fn is_same(a: LTerm, b: LTerm) -> bool {
+    a.raw() == b.raw()
+  }
 }
 
 
