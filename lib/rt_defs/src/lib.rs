@@ -1,6 +1,12 @@
 //!
 //! Helper module defines types used everywhere in the VM runtime
 //!
+pub mod heap;
+
+extern crate num;
+
+//------------------------------------------------------------------------------
+
 use std::{usize, isize};
 
 pub type Word = usize;

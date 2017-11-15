@@ -32,7 +32,7 @@ use term::fterm::FTerm;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
 use term::raw::TuplePtrMut;
-use util::ext_term_format as etf;
+use rt_util::ext_term_format as etf;
 
 
 pub fn module() -> &'static str { "beam::loader: " }
@@ -254,7 +254,8 @@ impl Loader {
   /// Read Attr section: two terms (module attributes and compiler info) encoded
   /// as external term format.
   fn load_attributes(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
-    self.mod_attrs = etf::decode(r, &mut self.lit_heap)?;
+    let tb = TermBuilder::new(&mut self.lit_heap);
+    self.mod_attrs = etf::decode(r, tb)?;
     println!("modattrs {}", self.mod_attrs);
 
 //    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap)?;
@@ -424,7 +425,8 @@ impl Loader {
     for _i in 0..count {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
-      let literal = etf::decode(&mut r, &mut self.lit_heap).unwrap();
+      let tb = TermBuilder::new(&mut self.lit_heap);
+      let literal = etf::decode(&mut r, tb).unwrap();
       //println!("ETF loaded term {}", literal);
       self.lit_tab.push(literal);
     }

@@ -3,6 +3,7 @@
 //!
 use beam::compact_term::CTError;
 use rt_util::bin_reader;
+use rt_util::ext_term_format;
 
 use std::convert::From;
 
@@ -10,7 +11,7 @@ use std::convert::From;
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),
-  ReadExternalTerm(String),
+  ReadExternalTerm(ext_term_format::ETFError),
 
   //--- Code loading ---
   CodeLoading(bin_reader::ReadError),
@@ -31,7 +32,11 @@ pub enum Error {
 
 
 impl From<bin_reader::ReadError> for Error {
-  fn from(br_err: bin_reader::ReadError) -> Self { Error::CodeLoading(br_err) }
+  fn from(e: bin_reader::ReadError) -> Self { Error::CodeLoading(e) }
+}
+
+impl From<ext_term_format::ETFError> for Error {
+  fn from(e: ext_term_format::ETFError) -> Self { Error::ReadExternalTerm(e) }
 }
 
 

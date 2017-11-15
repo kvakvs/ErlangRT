@@ -5,3 +5,6 @@ authors = ["Dmytro Lytovchenko <dmytro.lytovchenko@gmail.com>"]
 
 [dependencies]
 bytes = "0.4.5"
+num = "0.1.40"
+
+rt_defs = { path = "../rt_defs" }

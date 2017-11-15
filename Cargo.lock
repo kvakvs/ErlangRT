@@ -291,12 +291,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rt_defs"
 version = "0.1.0"
+dependencies = [
+ "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "rt_util"
 version = "0.1.0"
 dependencies = [
  "bytes 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rt_defs 0.1.0",
 ]
 
 [[package]]

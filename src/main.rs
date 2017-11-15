@@ -24,7 +24,6 @@ mod bif;
 mod emulator;
 mod fail;
 mod term;
-mod util;
 
 use emulator::atom;
 use emulator::scheduler::Prio;
