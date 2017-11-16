@@ -1,19 +1,14 @@
-use rt_defs::Word;
 use emulator::heap::iter;
-use fail::{Error, Hopefully};
+//use rt_defs::heap::iter::IHeapIterator;
+use rt_defs::heap::ptr::DataPtr;
+use rt_defs::heap::{IHeap, HeapError};
+use rt_defs::stack::IStack;
+use rt_defs::Word;
 use term::lterm::*;
 use term::raw::rtuple;
 use term::raw::{ConsPtrMut, TuplePtrMut};
 
-//use num;
 use std::fmt;
-
-
-#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
-pub enum DataPtr { Ptr(*const Word) }
-
-//#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
-//pub enum DataPtrMut { Ptr(*mut Word) }
 
 
 /// A heap structure which grows upwards with allocations. Cannot expand
@@ -32,7 +27,7 @@ pub struct Heap {
 
 impl fmt::Debug for Heap {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "Heap{{ cap: {}, used: {} }}", self.capacity(), self.htop())
+    write!(f, "Heap{{ cap: {}, used: {} }}", self.heap_capacity(), self.htop())
   }
 }
 
@@ -49,53 +44,54 @@ impl Heap {
     unsafe { h.data.set_len(capacity) };
     h
   }
+}
 
 
+impl IHeap for Heap {
   /// How many words do we have before it will require GC/growth.
-  pub fn capacity(&self) -> usize {
+  fn heap_capacity(&self) -> usize {
     self.data.capacity()
   }
 
 
   /// How many words are used.
-  pub fn htop(&self) -> usize {
+  fn htop(&self) -> usize {
     self.htop
   }
 
 
-  // This is used by heap walkers such as "dump.rs"
-  #[allow(dead_code)]
-  pub fn begin(&self) -> *const Word {
+  /// This is used by heap walkers such as "dump.rs"
+  fn heap_begin(&self) -> *const Word {
     &self.data[0] as *const Word
   }
 
 
-  #[allow(dead_code)]
-  pub fn begin_mut(&mut self) -> *mut Word {
+  fn heap_begin_mut(&mut self) -> *mut Word {
     &mut self.data[0] as *mut Word
   }
 
 
-  // This is used by heap walkers such as "dump.rs"
-  #[allow(dead_code)]
-  pub unsafe fn end(&self) -> *const Word {
-    let p = self.begin();
+  /// This is used by heap walkers such as "dump.rs"
+  unsafe fn heap_end(&self) -> *const Word {
+    let p = self.heap_begin();
     p.offset(self.htop as isize)
   }
 
 
   /// Expand heap to host `n` words of data
-  pub fn allocate(&mut self, n: Word, init_nil: bool) -> Hopefully<*mut Word> {
+  fn heap_allocate(&mut self, n: Word, init_nil: bool)
+    -> Result<*mut Word, HeapError>
+  {
     let pos = self.htop;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n >= self.stop {
-      return Err(Error::HeapIsFull);
+      return Err(HeapError::HeapIsFull);
     }
 
     // Assume we can grow the data without reallocating
     let raw_nil = nil().raw();
     let new_chunk = unsafe {
-      self.begin_mut().offset(self.htop as isize)
+      self.heap_begin_mut().offset(self.htop as isize)
     };
 
     if init_nil {
@@ -112,24 +108,6 @@ impl Heap {
   }
 
 
-  /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
-  pub fn allocate_cons(&mut self) -> Hopefully<ConsPtrMut> {
-    match self.allocate(2, false) {
-      Ok(p) => Ok(ConsPtrMut::from_pointer(p)),
-      Err(e) => Err(e) // repack inner Err into outer Err
-    }
-  }
-
-
-  /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
-  pub fn allocate_tuple(&mut self, size: Word) -> Hopefully<TuplePtrMut> {
-    match self.allocate(rtuple::storage_size(size), false) {
-      Ok(p) => unsafe { Ok(TuplePtrMut::create_at(p, size)) },
-      Err(e) => Err(e) // repack inner Err into outer Err
-    }
-  }
-
-
   //  /// Allocate words on heap enough to store bignum digits and copy the given
   //  /// bignum to memory, return the pointer.
   //  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
@@ -140,23 +118,26 @@ impl Heap {
   //  }
 
 
-  /// Create a constant iterator for walking the heap.
-  // This is used by heap walkers such as "dump.rs"
-  #[allow(dead_code)]
-  pub unsafe fn iter(&self) -> iter::HeapIterator {
-    let last = self.htop as isize;
-    let begin = self.begin() as *const Word;
-    iter::HeapIterator::new(DataPtr::Ptr(begin),
-                            DataPtr::Ptr(begin.offset(last)))
-  }
-
-
-  //
-  // Stack Operations
-  //
-
   #[inline]
-  pub fn have(&self, need: Word) -> bool {
+  fn heap_have(&self, need: Word) -> bool {
+    self.htop + need <= self.stop
+  }
+}
+
+
+/// Create a constant iterator for walking the heap.
+/// This is used by heap walkers such as "dump.rs"
+pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
+  let last = hp.htop as isize;
+  let begin = hp.heap_begin() as *const Word;
+  iter::HeapIterator::new(DataPtr(begin),
+                          DataPtr(begin.offset(last)))
+}
+
+
+impl IStack<LTerm> for Heap {
+  #[inline]
+  fn stack_have(&self, need: Word) -> bool {
     self.htop + need <= self.stop
   }
 
@@ -172,13 +153,13 @@ impl Heap {
 
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  pub fn stack_alloc_unchecked(&mut self, need: Word) {
+  fn stack_alloc_unchecked(&mut self, need: Word) {
     self.stop -= need;
 
     // Clear the new cells
     let raw_nil = nil().raw();
     unsafe {
-      let p = self.begin_mut().offset(self.stop as isize);
+      let p = self.heap_begin_mut().offset(self.stop as isize);
       for y in 0..need {
         *p.offset(y as isize) = raw_nil
       }
@@ -196,64 +177,50 @@ impl Heap {
   //  }
 
 
-  #[allow(dead_code)]
-  pub fn stack_info(&self) {
+  //#[allow(dead_code)]
+  fn stack_info(&self) {
     println!("Stack (s_top {}, s_end {})",
              self.stop, self.send)
   }
 
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
-  pub fn stack_push_unchecked(&mut self, val: Word) {
+  fn stack_push_unchecked(&mut self, val: Word) {
     self.stop -= 1;
     self.data[self.stop] = val;
-//    unsafe {
-//      let p = self.begin_mut().offset(self.stop as isize);
-//      *p = val
-//    }
   }
 
 
   /// Check whether `y+1`-th element can be found in stack
   #[inline]
-  pub fn stack_have_y(&self, y: Word) -> bool {
+  fn stack_have_y(&self, y: Word) -> bool {
     self.send - self.stop >= y + 1
   }
 
 
-  pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> Hopefully<()> {
+  fn stack_set_y(&mut self, index: Word, val: LTerm) -> Result<(), HeapError> {
     if !self.stack_have_y(index) {
-      return Err(Error::StackIndexRange);
+      return Err(HeapError::StackIndexRange);
     }
-//    let pos = index as isize + self.stop as isize + 1;
     self.data[index + self.stop + 1] = val.raw();
-//    unsafe {
-//      let p = self.begin_mut().offset(pos);
-//      *p = val.raw()
-//    }
     Ok(())
   }
 
 
-  pub fn stack_get_y(&self, index: Word) -> Hopefully<LTerm> {
+  fn stack_get_y(&self, index: Word) -> Result<LTerm, HeapError> {
     if !self.stack_have_y(index) {
-      return Err(Error::StackIndexRange);
+      return Err(HeapError::StackIndexRange);
     }
     let pos = index + self.stop + 1;
     Ok(LTerm::from_raw(self.data[pos]))
-//    let pos = index as isize + self.stop as isize + 1;
-//    unsafe {
-//      let p = self.begin().offset(pos);
-//      Ok(LTerm::from_raw(*p))
-//    }
   }
 
 
-  pub fn stack_depth(&self) -> Word { self.send - self.stop }
+  fn stack_depth(&self) -> Word { self.send - self.stop }
 
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
-  pub fn stack_deallocate(&mut self, n: Word) -> LTerm {
+  fn stack_deallocate(&mut self, n: Word) -> LTerm {
     assert!(self.stop + n + 1 <= self.send,
             "Failed to dealloc {}+1 words (s_top {}, s_end {})",
             n, self.stop, self.send);
@@ -264,3 +231,22 @@ impl Heap {
   }
 }
 
+
+/// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
+pub fn allocate_cons(hp: IHeap) -> Result<ConsPtrMut, HeapError> {
+  match hp.heap_allocate(2, false) {
+    Ok(p) => Ok(ConsPtrMut::from_pointer(p)),
+    Err(e) => Err(e) // repack inner Err into outer Err
+  }
+}
+
+
+/// Allocate `size+1` cells and form a tuple in memory, return the pointer.
+pub fn allocate_tuple(hp: IHeap, size: Word)
+  -> Result<TuplePtrMut, HeapError>
+{
+  match hp.heap_allocate(rtuple::storage_size(size), false) {
+    Ok(p) => unsafe { Ok(TuplePtrMut::create_at(p, size)) },
+    Err(e) => Err(e) // repack inner Err into outer Err
+  }
+}

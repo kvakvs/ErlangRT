@@ -1,6 +1,6 @@
 //! Define `HeapIterator` which can step over the heap
-use emulator::heap::*;
-//use term::lterm::*;
+use rt_defs::heap::iter::IHeapIterator;
+use rt_defs::heap::ptr::DataPtr;
 use term::primary;
 
 
@@ -26,11 +26,9 @@ impl HeapIterator {
 }
 
 
-impl Iterator for HeapIterator {
-  type Item = DataPtr;
-
-  fn next(&mut self) -> Option<Self::Item> {
-    let DataPtr::Ptr(p) = self.p;
+impl IHeapIterator<DataPtr> for HeapIterator {
+  fn next(&mut self) -> Option<DataPtr> {
+    let DataPtr(p) = self.p;
 
     // Peek inside *p to see if we're at a header, and if so - step over it
     // using header arity. Otherwise step by 1 cell
@@ -41,7 +39,7 @@ impl Iterator for HeapIterator {
       1isize
     };
 
-    let next_p = unsafe { DataPtr::Ptr(p.offset(size)) };
+    let next_p = unsafe { DataPtr(p.offset(size)) };
 
     let end = self.end;
     if next_p >= end {

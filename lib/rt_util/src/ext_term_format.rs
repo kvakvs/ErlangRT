@@ -8,7 +8,7 @@ use rt_defs;
 //use term::raw::ho_bignum::HOBignum;
 //use term::raw::ho_binary::HOBinary;
 use bin_reader::{BinaryReader, ReadError};
-use term_builder::ITermBuilder;
+use rt_defs::term_builder::ITermBuilder;
 
 use num;
 use num::ToPrimitive;

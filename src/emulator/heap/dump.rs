@@ -1,18 +1,24 @@
 //! Debug tool to display Erlang heap contents.
-//use rt_defs::Word;
-use emulator::heap::{Heap, DataPtr};
+use emulator::heap::{Heap, heap_iter};
+use rt_defs::heap::iter::IHeapIterator;
+use rt_defs::heap::ptr::DataPtr;
+use rt_defs::heap::{IHeap};
 use term::lterm::*;
-//use term::raw::{RawConsMut, RawTupleMut, RawBignum};
 use term::primary;
 
 
 impl Heap {
+
   /// Print heap contents
   #[allow(dead_code)]
   // This function is not used sometimes, this is fine
   pub unsafe fn dump(&self) {
-    for data_p in self.iter() {
-      let DataPtr::Ptr(addr) = data_p;
+    let mut data_p = heap_iter(self);
+    loop {
+      let DataPtr(addr) = match data_p.next() {
+        Some(p0) => p0,
+        None => break,
+      };
       let v = *addr;
       let mut output = String::new();
 
@@ -30,7 +36,7 @@ impl Heap {
       match primary::get_tag(v) {
         x if x == primary::TAG_BOX || x == primary::TAG_CONS => {
           let p = primary::pointer(v);
-          if p < self.begin() || p >= self.end() {
+          if p < self.heap_begin() || p >= self.heap_end() {
             output += " <- heap bounds!";
           }
         }

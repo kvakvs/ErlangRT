@@ -1,12 +1,12 @@
 //! Module implements opcodes related to lists manipulation.
 
-//use term::raw::rcons::ConsPtr;
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use rt_defs::DispatchResult;
 use emulator::code::CodePtr;
+use emulator::heap::{allocate_cons};
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use rt_defs::DispatchResult;
 use term::lterm::*;
 
 
@@ -104,7 +104,7 @@ pub fn opcode_put_list(ctx: &mut Context,
   let dst = ctx.fetch_term(); // put `[hd | tl]` into dst
 
   unsafe {
-    let cons_p = hp.allocate_cons().unwrap();
+    let cons_p = allocate_cons(&mut hp).unwrap();
     cons_p.set_hd(hd);
     cons_p.set_tl(tl);
     ctx.store(cons_p.make_cons(), dst, hp);

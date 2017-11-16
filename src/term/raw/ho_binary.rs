@@ -3,6 +3,7 @@
 use std::mem::size_of;
 use std::ptr;
 
+use rt_defs::heap::{IHeap};
 use rt_defs::{WORD_BYTES, Word};
 use emulator::heap::Heap;
 use term::raw::heapobj::*;
@@ -72,7 +73,7 @@ impl HOBinary {
                            n_bytes: Word) -> Hopefully<*mut HOBinary>
   {
     let n_words = HOBinary::storage_size(n_bytes);
-    let this = hp.allocate(n_words, false)? as *mut HOBinary;
+    let this = hp.heap_allocate(n_words, false)? as *mut HOBinary;
 
     ptr::write(this,
                HOBinary {

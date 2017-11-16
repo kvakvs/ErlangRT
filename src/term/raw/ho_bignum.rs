@@ -4,6 +4,7 @@ use std::mem::size_of;
 use std::ptr;
 use num::bigint::BigInt;
 
+use rt_defs::heap::{IHeap};
 use rt_defs::{WORD_BYTES, Word};
 use emulator::heap::Heap;
 use term::raw::heapobj::*;
@@ -62,7 +63,7 @@ impl HOBignum {
                            value: BigInt) -> Hopefully<*mut HOBignum>
   {
     let n_words = HOBignum::storage_size();
-    let this = hp.allocate(n_words, false)? as *mut HOBignum;
+    let this = hp.heap_allocate(n_words, false)? as *mut HOBignum;
 
     ptr::write(this,
                HOBignum {

@@ -4,6 +4,7 @@
 use beam::compact_term::CTError;
 use rt_util::bin_reader;
 use rt_util::ext_term_format;
+use rt_defs::heap::HeapError;
 
 use std::convert::From;
 
@@ -26,7 +27,7 @@ pub enum Error {
 
   //--- Memory allocation events and errors ---
   AtomNotExist(String),
-  HeapIsFull,
+  HeapError(HeapError),
   StackIndexRange,
 }
 
@@ -37,6 +38,10 @@ impl From<bin_reader::ReadError> for Error {
 
 impl From<ext_term_format::ETFError> for Error {
   fn from(e: ext_term_format::ETFError) -> Self { Error::ReadExternalTerm(e) }
+}
+
+impl From<HeapError> for Error {
+  fn from(e: HeapError) -> Self { Error::HeapError(e) }
 }
 
 

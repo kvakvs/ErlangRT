@@ -1,9 +1,11 @@
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use rt_defs::DispatchResult;
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use rt_defs::DispatchResult;
+use rt_defs::heap::IHeap;
+use rt_defs::stack::IStack;
 use term::lterm::*;
 
 
@@ -18,7 +20,7 @@ pub fn opcode_allocate_zero(ctx: &mut Context,
   let _live = ctx.fetch_term();
 
   let hp = &mut curr_p.heap;
-  if hp.have(stack_need + 1) {
+  if hp.stack_have(stack_need + 1) {
     // Stack has enough words, we can allocate unchecked
     if stack_need > 0 {
       hp.stack_alloc_unchecked(stack_need);
@@ -70,7 +72,7 @@ pub fn opcode_test_heap(ctx: &mut Context,
   let heap_need = ctx.fetch_term().small_get_u();
   let _live = ctx.fetch_term().small_get_u();
 
-  if !curr_p.heap.have(heap_need) {
+  if !curr_p.heap.heap_have(heap_need) {
     // Heap has not enough, invoke GC and possibly fail
     panic!("TODO GC here or fail");
   }

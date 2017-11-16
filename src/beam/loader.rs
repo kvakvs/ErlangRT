@@ -22,17 +22,18 @@ use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
 use emulator::funarity::FunArity;
-use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
+use emulator::heap::{Heap, DEFAULT_LIT_HEAP, allocate_tuple};
 use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
 use rt_defs::{Word, Arity};
 use rt_util::bin_reader::{BinaryReader, ReadError};
+use rt_util::ext_term_format as etf;
 use term::fterm::FTerm;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
 use term::raw::TuplePtrMut;
-use rt_util::ext_term_format as etf;
+use term::term_builder::TermBuilder;
 
 
 pub fn module() -> &'static str { "beam::loader: " }
@@ -254,8 +255,8 @@ impl Loader {
   /// Read Attr section: two terms (module attributes and compiler info) encoded
   /// as external term format.
   fn load_attributes(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
-    let tb = TermBuilder::new(&mut self.lit_heap);
-    self.mod_attrs = etf::decode(r, tb)?;
+    let mut tb = TermBuilder::new(&mut self.lit_heap);
+    self.mod_attrs = etf::decode(r, &mut tb)?;
     println!("modattrs {}", self.mod_attrs);
 
 //    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap)?;
@@ -425,9 +426,10 @@ impl Loader {
     for _i in 0..count {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
-      let tb = TermBuilder::new(&mut self.lit_heap);
-      let literal = etf::decode(&mut r, tb).unwrap();
-      //println!("ETF loaded term {}", literal);
+
+      let mut tb = TermBuilder::new(&mut self.lit_heap);
+      let literal = etf::decode(&mut r, &mut tb).unwrap();
+
       self.lit_tab.push(literal);
     }
   }
@@ -535,7 +537,7 @@ impl Loader {
         // Ext list is special so we convert it and its contents to lterm
         FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
-          let heap_jtab = self.lit_heap.allocate_tuple(jtab.len()).unwrap();
+          let heap_jtab = allocate_tuple(&mut self.lit_heap, jtab.len()).unwrap();
           self.code.push(heap_jtab.make_tuple().raw());
 
           // Each value convert to LTerm and also push forming a tuple

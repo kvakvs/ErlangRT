@@ -1,5 +1,3 @@
-//use rt_defs::heap::IHeap;
-
 use num;
 
 
@@ -14,27 +12,6 @@ pub trait ITupleBuilder<TermType: Copy> {
 /// A forward list builder (works by setting head element in a cons and then
 /// allocating another cons for a tail or closing it with a NIL)
 pub trait IListBuilder<TermType: Copy> {
-  //// Using mutability build list forward creating many cells and linking them
-  //let cell0 = cell.clone();
-  //let n_elem_minus_one = n_elem - 1;
-  //
-  //for i in 0..n_elem {
-  //let elem = decode_naked(r, hp)?;
-  //unsafe { cell.set_hd(elem) }
-  //
-  //// Keep building forward
-  //if i < n_elem_minus_one {
-  //let new_cell = hp.allocate_cons().unwrap();
-  //unsafe { cell.set_tl(new_cell.make_cons()) }
-  //cell = new_cell;
-  //}
-  //}
-  //
-  //let tl = decode_naked(r, hp)?;
-  //unsafe { cell.set_tl(tl) }
-  //
-  //Ok(cell0.make_cons())
-
   /// Sets head of the current element pointer. Call `next()` to create another
   /// cons cell or call `end()` to close it with a NIL value.
   unsafe fn set(&mut self, val: TermType);
@@ -56,29 +33,27 @@ pub trait IListBuilder<TermType: Copy> {
 /// A generic trait used to decouple external term format parser from the
 /// term implementation in ErlangRT.
 pub trait ITermBuilder<TermType: Copy> {
-  //let rbig = unsafe { HOBignum::place_into(heap, big)? };
-  //Ok(HOBignum::make_term(rbig))
+  /// Build a bignum object from a `num::BigInt`.
   fn create_bignum(&self, n: num::BigInt) -> TermType;
 
-  //unsafe {
-  //let rbin = HOBinary::place_into(hp, n_bytes as Word)?;
-  //HOBinary::store(rbin, &data);
-  //return Ok(HOBinary::make_term(rbin))
-  //}
+  /// Build a binary from bytes.
   fn create_binary(&mut self, b: &[u8]) -> TermType;
 
-  //atom::from_str(&val)
+  /// Create an atom from a string or return an existing atom.
   fn create_atom_str(&self, a: &str) -> TermType;
 
+  /// Create a NIL \[\] term.
   fn create_nil(&self) -> TermType;
 
+  /// Create a small signed integer (immediate).
   fn create_small_s(&self, n: isize) -> TermType;
 
+  /// Create a {} term.
   fn create_empty_binary(&self) -> TermType;
 
-  //hp.allocate_tuple(size)?
+  /// Get a proxy object for building a tuple.
   fn create_tuple_builder(&mut self, sz: usize) -> Box<ITupleBuilder<TermType>>;
 
-  // hp.allocate_cons().unwrap();
+  /// Get a proxy object for building a list (forward builder).
   fn create_list_builder(&mut self) -> Box<IListBuilder<TermType>>;
 }

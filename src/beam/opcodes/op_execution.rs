@@ -3,10 +3,11 @@
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use rt_defs::DispatchResult;
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use rt_defs::DispatchResult;
+use rt_defs::stack::IStack;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
 

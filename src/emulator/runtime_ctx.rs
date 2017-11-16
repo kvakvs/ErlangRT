@@ -1,14 +1,15 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 
-use rt_defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
+use bif::BifResult;
 use emulator::code::CodePtr;
-use term::raw::ho_import::HOImport;
 use emulator::heap;
 use emulator::process::Process;
+use rt_defs::stack::IStack;
+use rt_defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
 use term::immediate;
 use term::lterm::*;
-use bif::BifResult;
+use term::raw::ho_import::HOImport;
 
 use std::fmt;
 use std::slice;

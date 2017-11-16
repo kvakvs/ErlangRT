@@ -4,15 +4,16 @@ use std::mem::size_of;
 use std::ptr;
 
 use bif::{BifFn, find_bif};
-use rt_defs::{WORD_BYTES, Word};
 use emulator::code::CodePtr;
 use emulator::code_srv;
 use emulator::heap::Heap;
-use term::raw::heapobj::*;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
+use rt_defs::heap::IHeap;
+use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;
+use term::raw::heapobj::*;
 
 
 /// Heap object `HOImport` is placed on lit heap by the BEAM loader, VM would
@@ -60,7 +61,7 @@ impl HOImport {
                            is_bif: bool) -> Hopefully<LTerm>
   {
     let n_words = HOImport::storage_size();
-    let this = hp.allocate(n_words, false)? as *mut HOImport;
+    let this = hp.heap_allocate(n_words, false)? as *mut HOImport;
 
     ptr::write(this,
                HOImport {
