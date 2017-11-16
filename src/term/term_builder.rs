@@ -1,6 +1,6 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
-use rt_defs::heap::IHeap;
+use emulator::heap::Heap;
 use emulator::atom;
 use term::lterm::LTerm;
 use term::lterm::aspect_list::{nil};
@@ -15,7 +15,7 @@ pub struct TupleBuilder {}
 
 
 impl ITupleBuilder<LTerm> for TupleBuilder {
-  unsafe fn set_element_base0(&mut self, i: usize, val: LTerm) {
+  unsafe fn set_element_base0(&mut self, _i: usize, _val: LTerm) {
     unimplemented!()
   }
 
@@ -29,7 +29,7 @@ impl ITupleBuilder<LTerm> for TupleBuilder {
 pub struct ListBuilder {}
 
 impl IListBuilder<LTerm> for ListBuilder {
-  unsafe fn set(&mut self, val: LTerm) {
+  unsafe fn set(&mut self, _val: LTerm) {
     unimplemented!()
   }
 
@@ -37,7 +37,7 @@ impl IListBuilder<LTerm> for ListBuilder {
     unimplemented!()
   }
 
-  unsafe fn end(&mut self, tl: LTerm) {
+  unsafe fn end(&mut self, _tl: LTerm) {
     unimplemented!()
   }
 
@@ -52,18 +52,18 @@ pub struct TermBuilder {}
 
 
 impl TermBuilder {
-  pub fn new(hp: &mut IHeap) -> TermBuilder {
+  pub fn new(_hp: &mut Heap) -> TermBuilder {
     TermBuilder{}
   }
 }
 
 
 impl ITermBuilder<LTerm> for TermBuilder {
-  fn create_bignum(&self, n: num::BigInt) -> LTerm {
+  fn create_bignum(&self, _n: num::BigInt) -> LTerm {
     unimplemented!()
   }
 
-  fn create_binary(&mut self, b: &[u8]) -> LTerm {
+  fn create_binary(&mut self, _b: &[u8]) -> LTerm {
     unimplemented!()
   }
 
@@ -77,7 +77,7 @@ impl ITermBuilder<LTerm> for TermBuilder {
     nil()
   }
 
-  fn create_small_s(&self, n: isize) -> LTerm {
+  fn create_small_s(&self, _n: isize) -> LTerm {
     unimplemented!()
   }
 
@@ -86,7 +86,7 @@ impl ITermBuilder<LTerm> for TermBuilder {
     empty_binary()
   }
 
-  fn create_tuple_builder(&mut self, sz: usize) -> Box<ITupleBuilder<LTerm>> {
+  fn create_tuple_builder(&mut self, _sz: usize) -> Box<ITupleBuilder<LTerm>> {
     unimplemented!()
   }
 

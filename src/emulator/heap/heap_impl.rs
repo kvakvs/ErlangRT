@@ -233,7 +233,9 @@ impl IStack<LTerm> for Heap {
 
 
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
-pub fn allocate_cons(hp: IHeap) -> Result<ConsPtrMut, HeapError> {
+pub fn allocate_cons(hp: &mut Heap)
+  -> Result<ConsPtrMut, HeapError>
+{
   match hp.heap_allocate(2, false) {
     Ok(p) => Ok(ConsPtrMut::from_pointer(p)),
     Err(e) => Err(e) // repack inner Err into outer Err
@@ -242,7 +244,7 @@ pub fn allocate_cons(hp: IHeap) -> Result<ConsPtrMut, HeapError> {
 
 
 /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
-pub fn allocate_tuple(hp: IHeap, size: Word)
+pub fn allocate_tuple(hp: &mut Heap, size: Word)
   -> Result<TuplePtrMut, HeapError>
 {
   match hp.heap_allocate(rtuple::storage_size(size), false) {
