@@ -1,11 +1,14 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
-use emulator::heap::Heap;
 use emulator::atom;
-use term::lterm::LTerm;
-use term::lterm::aspect_list::{nil};
-use term::lterm::aspect_binary::{empty_binary};
+use emulator::heap::Heap;
+use rt_defs::heap::IHeap;
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
+use rt_defs::Word;
+use term::lterm::aspect_binary::{empty_binary};
+use term::lterm::aspect_list::{nil};
+use term::lterm::LTerm;
+use term::raw::rcons::ConsPtrMut;
 
 use num;
 
@@ -26,11 +29,19 @@ impl ITupleBuilder<LTerm> for TupleBuilder {
 
 
 /// A forward list builder implementation for LTerm and ERT VM.
-pub struct ListBuilder {}
+pub struct ListBuilder {
+  p: ConsPtrMut,
+}
+
+impl ListBuilder {
+  pub fn new(p: *mut Word) -> ListBuilder {
+    ListBuilder { p: ConsPtrMut::from_pointer(p) }
+  }
+}
 
 impl IListBuilder<LTerm> for ListBuilder {
-  unsafe fn set(&mut self, _val: LTerm) {
-    unimplemented!()
+  unsafe fn set(&mut self, val: LTerm) {
+    self.p.set_hd(val)
   }
 
   unsafe fn next(&mut self) {
@@ -48,49 +59,56 @@ impl IListBuilder<LTerm> for ListBuilder {
 
 
 /// Term Builder implementation for LTerm and ERT VM.
-pub struct TermBuilder {}
+pub struct TermBuilder<'a> {
+  heap: &'a mut Heap,
+}
 
 
-impl TermBuilder {
-  pub fn new(_hp: &mut Heap) -> TermBuilder {
-    TermBuilder{}
+impl<'a> TermBuilder<'a> {
+  pub fn new(hp: &mut Heap) -> TermBuilder {
+    TermBuilder { heap: hp }
   }
 }
 
 
-impl ITermBuilder<LTerm> for TermBuilder {
-  fn create_bignum(&self, _n: num::BigInt) -> LTerm {
+impl<'a> ITermBuilder for TermBuilder<'a> {
+  type TermT = LTerm;
+  type TupleBuilderT = TupleBuilder;
+  type ListBuilderT = ListBuilder;
+
+  fn create_bignum(&self, _n: num::BigInt) -> Self::TermT {
     unimplemented!()
   }
 
-  fn create_binary(&mut self, _b: &[u8]) -> LTerm {
+  fn create_binary(&mut self, _b: &[u8]) -> Self::TermT {
     unimplemented!()
   }
 
   #[inline]
-  fn create_atom_str(&self, a: &str) -> LTerm {
+  fn create_atom_str(&self, a: &str) -> Self::TermT {
     atom::from_str(a)
   }
 
   #[inline]
-  fn create_nil(&self) -> LTerm {
+  fn create_nil(&self) -> Self::TermT {
     nil()
   }
 
-  fn create_small_s(&self, _n: isize) -> LTerm {
+  fn create_small_s(&self, _n: isize) -> Self::TermT {
     unimplemented!()
   }
 
   #[inline]
-  fn create_empty_binary(&self) -> LTerm {
+  fn create_empty_binary(&self) -> Self::TermT {
     empty_binary()
   }
 
-  fn create_tuple_builder(&mut self, _sz: usize) -> Box<ITupleBuilder<LTerm>> {
+  fn create_tuple_builder(&mut self, _sz: usize) -> Self::TupleBuilderT {
     unimplemented!()
   }
 
-  fn create_list_builder(&mut self) -> Box<IListBuilder<LTerm>> {
-    unimplemented!()
+  fn create_list_builder(&mut self) -> Self::ListBuilderT {
+    let p = self.heap.heap_allocate(2, true).unwrap();
+    ListBuilder::new(p)
   }
 }

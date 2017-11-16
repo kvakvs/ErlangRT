@@ -5,31 +5,31 @@ use std::ptr;
 
 
 #[derive(Clone)]
-pub enum ConsPtrMut { Ptr(*mut Word) }
+pub struct ConsPtrMut(pub *mut Word);
 
 
-pub enum ConsPtr { Ptr(*const Word) }
+pub struct ConsPtr(pub *const Word);
 
 
 impl ConsPtrMut {
 
   #[inline]
   pub fn from_pointer(p: *mut Word) -> ConsPtrMut {
-    ConsPtrMut::Ptr(p)
+    ConsPtrMut(p)
   }
 
   pub unsafe fn set_hd(&self, val: LTerm) {
-    let ConsPtrMut::Ptr(p) = *self;
+    let ConsPtrMut(p) = *self;
     *p = val.raw()
   }
 
   pub unsafe fn set_tl(&self, val: LTerm) {
-    let ConsPtrMut::Ptr(p) = *self;
+    let ConsPtrMut(p) = *self;
     *p.offset(1) = val.raw()
   }
 
   pub fn make_cons(&self) -> LTerm {
-    let ConsPtrMut::Ptr(p) = *self;
+    let ConsPtrMut(p) = *self;
     make_cons(p)
   }
 
@@ -49,7 +49,7 @@ impl ConsPtr {
   #[inline]
   pub fn from_pointer(p: *const Word) -> ConsPtr {
     assert_ne!(p, ptr::null());
-    ConsPtr::Ptr(p)
+    ConsPtr(p)
   }
 
 //  pub fn raw_pointer(&self) -> *const Word { self.p }
@@ -60,14 +60,14 @@ impl ConsPtr {
 
   /// Peek into the cons, and get head value.
   pub unsafe fn hd(&self) -> LTerm {
-    let ConsPtr::Ptr(p) = *self;
+    let ConsPtr(p) = *self;
 //    assert_ne!(p, ptr::null());
     LTerm::from_raw(*p)
   }
 
   /// Peek into the cons, and get tail value.
   pub unsafe fn tl(&self) -> LTerm {
-    let ConsPtr::Ptr(p) = *self;
+    let ConsPtr(p) = *self;
 //    assert_ne!(p, ptr::null());
     LTerm::from_raw(*p.offset(1))
   }
