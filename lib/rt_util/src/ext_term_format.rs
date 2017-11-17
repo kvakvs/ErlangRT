@@ -157,7 +157,7 @@ fn decode_big<TermBuilderT: ITermBuilder>(
   }
 
   // Determine storage size in words
-  Ok(tb.create_bignum(big))
+  Ok(unsafe { tb.create_bignum(big) })
 }
 
 
@@ -171,7 +171,7 @@ fn decode_binary<TermBuilderT: ITermBuilder>(
   }
 
   let data = r.read_bytes(n_bytes)?;
-  Ok(tb.create_binary(&data))
+  Ok(unsafe { tb.create_binary(&data) })
 }
 
 

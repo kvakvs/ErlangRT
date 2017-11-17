@@ -12,7 +12,7 @@ pub fn storage_size(size: Word) -> Word { size + 1 }
 
 
 /// Represents a pointer to raw tuple in mutable memory.
-pub enum TuplePtrMut { Ptr(*mut Word) }
+pub struct TuplePtrMut(*mut Word);
 
 
 impl TuplePtrMut {
@@ -27,12 +27,12 @@ impl TuplePtrMut {
   /// Given a pointer to an already initialized tuple, just return a wrapper.
   #[inline]
   pub fn from_pointer(p: *mut Word) -> TuplePtrMut {
-    TuplePtrMut::Ptr(p)
+    TuplePtrMut(p)
   }
 
 
   pub unsafe fn arity(&self) -> Word {
-    let TuplePtrMut::Ptr(p) = *self;
+    let TuplePtrMut(p) = *self;
     primary::get_value(*p)
   }
 
@@ -41,7 +41,7 @@ impl TuplePtrMut {
   #[inline]
   pub unsafe fn set_element_base0(&self, i: Word, val: LTerm) {
     assert!(i < self.arity());
-    let TuplePtrMut::Ptr(p) = *self;
+    let TuplePtrMut(p) = *self;
     *p.offset(i as isize + 1) = val.raw()
   }
 
@@ -50,44 +50,44 @@ impl TuplePtrMut {
   #[inline]
   pub unsafe fn set_raw_word_base0(&self, i: Word, val: Word) {
     assert!(i < self.arity());
-    let TuplePtrMut::Ptr(p) = *self;
+    let TuplePtrMut(p) = *self;
     *p.offset(i as isize + 1) = val
   }
 
 
   pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
-    let TuplePtrMut::Ptr(p) = *self;
+    let TuplePtrMut(p) = *self;
     LTerm::from_raw(*p.offset(i as isize + 1))
   }
 
 
   /// Box the `self.p` pointer into `LTerm`.
   pub fn make_tuple(&self) -> LTerm {
-    let TuplePtrMut::Ptr(p) = *self;
+    let TuplePtrMut(p) = *self;
     make_box(p)
   }
 }
 
 
 /// Represents raw layout of tuple in read-only memory.
-pub enum TuplePtr { Ptr(*const Word) }
+pub struct TuplePtr(*const Word);
 
 
 impl TuplePtr {
   /// Given a pointer to an already initialized tuple, just return a wrapper.
   pub fn from_pointer(p: *const Word) -> TuplePtr {
-    TuplePtr::Ptr(p as *const Word)
+    TuplePtr(p as *const Word)
   }
 
 
   pub unsafe fn arity(&self) -> Word {
-    let TuplePtr::Ptr(p) = *self;
+    let TuplePtr(p) = *self;
     header::get_arity(*p)
   }
 
 
   pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
-    let TuplePtr::Ptr(p) = *self;
+    let TuplePtr(p) = *self;
     LTerm::from_raw(*p.offset(i as isize + 1))
   }
 

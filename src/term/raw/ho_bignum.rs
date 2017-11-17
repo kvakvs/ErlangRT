@@ -89,6 +89,8 @@ impl HOBignum {
   //    let p = t.box_ptr_mut();
   //    p as *mut HOBignum
   //  }
+
+  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
   #[inline]
   pub fn make_term(this: *const HOBignum) -> LTerm {
     make_box(this as *const Word)

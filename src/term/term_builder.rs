@@ -1,41 +1,62 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
 use emulator::atom;
-use emulator::heap::Heap;
+use emulator::heap::{Heap, allocate_tuple};
 use rt_defs::heap::IHeap;
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
-use rt_defs::Word;
-use term::lterm::aspect_binary::{empty_binary};
-use term::lterm::aspect_list::{nil};
+use term::lterm::aspect_binary::empty_binary;
+use term::lterm::aspect_list::nil;
+use term::lterm::aspect_smallint::make_small_s;
 use term::lterm::LTerm;
 use term::raw::rcons::ConsPtrMut;
+use term::raw::rtuple::TuplePtrMut;
+use term::raw::ho_bignum::HOBignum;
+use term::raw::ho_binary::HOBinary;
 
 use num;
 
 
 /// A specific tuple builder implementation for LTerm and ERT VM.
-pub struct TupleBuilder {}
+pub struct TupleBuilder {
+  p: TuplePtrMut
+}
+
+impl TupleBuilder {
+  pub fn new(p: TuplePtrMut) -> TupleBuilder {
+    TupleBuilder { p }
+  }
+}
 
 
 impl ITupleBuilder<LTerm> for TupleBuilder {
-  unsafe fn set_element_base0(&mut self, _i: usize, _val: LTerm) {
-    unimplemented!()
+  unsafe fn set_element_base0(&mut self, i: usize, val: LTerm) {
+    self.p.set_element_base0(i, val)
   }
 
   fn make_term(&self) -> LTerm {
-    unimplemented!()
+    self.p.make_tuple()
   }
 }
 
-
 /// A forward list builder implementation for LTerm and ERT VM.
 pub struct ListBuilder {
+  // first cell where the building started
+  p0: ConsPtrMut,
+  // current (last) cell
   p: ConsPtrMut,
+  // because i can't into lifetimes :( but it lives short anyway
+  heap: *mut Heap,
 }
 
 impl ListBuilder {
-  pub fn new(p: *mut Word) -> ListBuilder {
-    ListBuilder { p: ConsPtrMut::from_pointer(p) }
+  unsafe fn new(heap: *mut Heap) -> ListBuilder {
+    let p = (*heap).heap_allocate(2, true).unwrap();
+
+    ListBuilder {
+      p: ConsPtrMut::from_pointer(p),
+      p0: ConsPtrMut::from_pointer(p),
+      heap,
+    }
   }
 }
 
@@ -45,43 +66,53 @@ impl IListBuilder<LTerm> for ListBuilder {
   }
 
   unsafe fn next(&mut self) {
-    unimplemented!()
+    let new_cell = ConsPtrMut::from_pointer(
+      (*self.heap).heap_allocate(2, true).unwrap()
+    );
+    self.p.set_tl(new_cell.make_cons());
+    self.p = new_cell
   }
 
   unsafe fn end(&mut self, _tl: LTerm) {
-    unimplemented!()
+    self.p.set_tl(nil())
   }
 
   fn make_term(&self) -> LTerm {
-    unimplemented!()
+    self.p0.make_cons()
   }
 }
 
 
 /// Term Builder implementation for LTerm and ERT VM.
-pub struct TermBuilder<'a> {
-  heap: &'a mut Heap,
+pub struct TermBuilder {
+  // because i can't into lifetimes :( but it lives short anyway
+  heap: *mut Heap,
 }
 
 
-impl<'a> TermBuilder<'a> {
+impl TermBuilder {
   pub fn new(hp: &mut Heap) -> TermBuilder {
-    TermBuilder { heap: hp }
+    TermBuilder { heap: hp as *mut Heap }
   }
 }
 
 
-impl<'a> ITermBuilder for TermBuilder<'a> {
+impl ITermBuilder for TermBuilder {
   type TermT = LTerm;
   type TupleBuilderT = TupleBuilder;
   type ListBuilderT = ListBuilder;
 
-  fn create_bignum(&self, _n: num::BigInt) -> Self::TermT {
-    unimplemented!()
+  unsafe fn create_bignum(&self, n: num::BigInt) -> Self::TermT {
+    let ref_heap = self.heap.as_mut().unwrap();
+    let big_p = HOBignum::place_into(ref_heap, n).unwrap();
+    HOBignum::make_term(big_p)
   }
 
-  fn create_binary(&mut self, _b: &[u8]) -> Self::TermT {
-    unimplemented!()
+  unsafe fn create_binary(&mut self, b: &[u8]) -> Self::TermT {
+    let ref_heap = self.heap.as_mut().unwrap();
+    let rbin = HOBinary::place_into(ref_heap, b.len()).unwrap();
+    HOBinary::store(rbin, b);
+    HOBinary::make_term(rbin)
   }
 
   #[inline]
@@ -94,8 +125,9 @@ impl<'a> ITermBuilder for TermBuilder<'a> {
     nil()
   }
 
-  fn create_small_s(&self, _n: isize) -> Self::TermT {
-    unimplemented!()
+  #[inline]
+  fn create_small_s(&self, n: isize) -> Self::TermT {
+    make_small_s(n)
   }
 
   #[inline]
@@ -103,12 +135,14 @@ impl<'a> ITermBuilder for TermBuilder<'a> {
     empty_binary()
   }
 
-  fn create_tuple_builder(&mut self, _sz: usize) -> Self::TupleBuilderT {
-    unimplemented!()
+  fn create_tuple_builder(&mut self, sz: usize) -> Self::TupleBuilderT {
+    let ref_heap = unsafe { self.heap.as_mut() }.unwrap();
+    let raw_tuple = allocate_tuple(ref_heap, sz).unwrap();
+    TupleBuilder::new(raw_tuple)
   }
 
+
   fn create_list_builder(&mut self) -> Self::ListBuilderT {
-    let p = self.heap.heap_allocate(2, true).unwrap();
-    ListBuilder::new(p)
+    unsafe { ListBuilder::new(self.heap) }
   }
 }

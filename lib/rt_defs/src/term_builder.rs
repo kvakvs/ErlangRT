@@ -39,10 +39,10 @@ pub trait ITermBuilder {
   type ListBuilderT: IListBuilder<Self::TermT>;
 
   /// Build a bignum object from a `num::BigInt`.
-  fn create_bignum(&self, n: num::BigInt) -> Self::TermT;
+  unsafe fn create_bignum(&self, n: num::BigInt) -> Self::TermT;
 
   /// Build a binary from bytes.
-  fn create_binary(&mut self, b: &[u8]) -> Self::TermT;
+  unsafe fn create_binary(&mut self, b: &[u8]) -> Self::TermT;
 
   /// Create an atom from a string or return an existing atom.
   fn create_atom_str(&self, a: &str) -> Self::TermT;

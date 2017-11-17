@@ -108,6 +108,7 @@ impl HOBinary {
 //  }
 
 
+  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
   #[inline]
   pub fn make_term(this: *const HOBinary) -> LTerm {
     make_box(this as *const Word)
@@ -116,7 +117,7 @@ impl HOBinary {
 
   /// Given a byte array, copy it to the binary's memory (depending on
   /// the binary type).
-  pub unsafe fn store(this: *mut HOBinary, data: &Vec<u8>) {
+  pub unsafe fn store(this: *mut HOBinary, data: &[u8]) {
     let data_len = data.len();
     if data_len == 0 {
       return
