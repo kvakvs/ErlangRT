@@ -384,9 +384,13 @@ impl fmt::Display for LTerm {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
   use std::ptr;
   use std::mem;
+
+  use rt_defs::{MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL, WORD_BYTES};
+  use super::*;
+  use term::lterm::aspect_smallint::*;
+  use term::lterm::aspect_atom::*;
 
   #[test]
   fn test_nil_is_not_atom() {
@@ -399,26 +403,26 @@ mod tests {
 
   #[test]
   fn test_term_size() {
-    assert_eq!(mem::size_of::<LTerm>(), rt_defs::WORD_BYTES);
+    assert_eq!(mem::size_of::<LTerm>(), WORD_BYTES);
   }
 
   #[test]
   fn test_small_unsigned() {
-    let s1 = LTerm::make_small_u(1);
+    let s1 = make_small_u(1);
     assert_eq!(1, s1.small_get_u());
 
-    let s2 = LTerm::make_small_u(MAX_UNSIGNED_SMALL);
+    let s2 = make_small_u(MAX_UNSIGNED_SMALL);
     assert_eq!(MAX_UNSIGNED_SMALL, s2.small_get_u());
   }
 
 
   #[test]
   fn test_small_signed_1() {
-    let s2 = LTerm::make_small_s(1);
+    let s2 = make_small_s(1);
     let s2_out = s2.small_get_s();
     assert_eq!(1, s2_out, "Expect 1, have 0x{:x}", s2_out);
 
-    let s1 = LTerm::make_small_s(-1);
+    let s1 = make_small_s(-1);
     let s1_out = s1.small_get_s();
     assert_eq!(-1, s1_out, "Expect -1, have 0x{:x}", s1_out);
   }
@@ -426,10 +430,10 @@ mod tests {
 
   #[test]
   fn test_small_signed_limits() {
-    let s2 = LTerm::make_small_s(MAX_POS_SMALL);
+    let s2 = make_small_s(MAX_POS_SMALL);
     assert_eq!(MAX_POS_SMALL, s2.small_get_s());
 
-    let s3 = LTerm::make_small_s(MIN_NEG_SMALL);
+    let s3 = make_small_s(MIN_NEG_SMALL);
     assert_eq!(MIN_NEG_SMALL, s3.small_get_s());
   }
 
