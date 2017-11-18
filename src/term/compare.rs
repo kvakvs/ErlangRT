@@ -40,16 +40,14 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
   loop {
     // TODO: optimize me, identical code branches
     let eq_result = match op {
-      ContinueCompare::AnyType(a1, b1) => {
+      ContinueCompare::AnyType(a1, b1) |
+      ContinueCompare::Cons(a1, b1) => {
         cmp_terms_any_type(a1, b1, exact)
-      }
-      ContinueCompare::Cons(a2, b2) => {
-        cmp_terms_any_type(a2, b2, exact)
       },
     };
 
     match eq_result {
-      EqResult::Concluded(result) => {
+      EqResult::Concluded(result) if result == Ordering::Equal => {
         if stack.is_empty() {
           println!("comparison {} {} concluded {:?}", a, b, result);
           return result
@@ -59,6 +57,8 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
           continue
         } // stack not empty
       },
+
+      EqResult::Concluded(result) => return result,
 
       // Nested terms may accidentally compare equal, to be able to return and
       // continue comparing upper level term, we store a `continue_op` on
@@ -360,9 +360,9 @@ fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Ordering {
 }
 
 
-/// Compare two boxed or immediate terms. In case when nested terms need to be
-/// recursively compared, we return `EqResult::CompareNested` to change the
-/// values `a` and `b` and perform another comparison without growing the stack.
+/// Compare two cons (list) cells. In case when first elements are equal and
+/// a deeper comparison is required, we will return `EqResult::CompareNested`.
+/// This will be pushed to a helper stack by the caller (`cmp_terms()`).
 unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
   let mut aa = a.cons_get_ptr();
   let mut bb = b.cons_get_ptr();
