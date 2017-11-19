@@ -28,7 +28,7 @@ pub enum Error {
   //--- Memory allocation events and errors ---
   AtomNotExist(String),
   HeapError(HeapError),
-  StackIndexRange,
+  //StackIndexRange,
 }
 
 

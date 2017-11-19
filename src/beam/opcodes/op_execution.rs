@@ -12,7 +12,7 @@ use rt_defs::stack::IStack;
 use rt_defs::{DispatchResult, ExceptionType};
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
-use term::raw::rtuple::TuplePtrMut;
+//use term::raw::rtuple::TuplePtrMut;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }

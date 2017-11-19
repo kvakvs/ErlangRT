@@ -50,13 +50,13 @@ impl Iterator for CodeIterator {
 
   /// Given an iterator (`self`) step forward over its args to find another.
   fn next(&mut self) -> Option<Self::Item> {
-    let CodePtr::Ptr(p) = self.p;
+    let CodePtr(p) = self.p;
 
     let current_op = unsafe { opcode::from_memory_word(*p) };
     let arity = gen_op::opcode_arity(current_op);
 
     // Step forward over opcode and `arity` words (args)
-    let next_p = unsafe { CodePtr::Ptr(p.offset(arity as isize + 1)) };
+    let next_p = unsafe { CodePtr(p.offset(arity as isize + 1)) };
 
     if next_p >= self.end {
       return None
@@ -83,7 +83,7 @@ impl Iterator for CodeIteratorMut {
 
   /// Given an iterator (`self`) step forward over its args to find another.
   fn next(&mut self) -> Option<Self::Item> {
-    let CodePtrMut::Ptr(p) = self.p;
+    let CodePtrMut(p) = self.p;
 
     let current_op = opcode::from_memory_ptr(p);
     let arity = gen_op::opcode_arity(current_op);
@@ -91,7 +91,7 @@ impl Iterator for CodeIteratorMut {
     // Step forward over opcode and `arity` words (args)
     let next_p = unsafe {
       let p_plus_arity = p.offset(arity as isize + 1);
-      CodePtrMut::Ptr(p_plus_arity)
+      CodePtrMut(p_plus_arity)
     };
 
     if next_p >= self.end {
@@ -108,6 +108,6 @@ impl Iterator for CodeIteratorMut {
 pub unsafe fn create_mut(code: &mut Vec<Word>) -> CodeIteratorMut {
   let begin = &mut code[0] as *mut Word;
   let end = begin.offset(code.len() as isize);
-  CodeIteratorMut::new(CodePtrMut::Ptr(begin),
-                       CodePtrMut::Ptr(end))
+  CodeIteratorMut::new(CodePtrMut(begin),
+                       CodePtrMut(end))
 }

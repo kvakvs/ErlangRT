@@ -46,6 +46,11 @@ impl MFArity {
   }
 
 
+  pub fn new_from_funarity(m: LTerm, fa: &FunArity) -> MFArity {
+    MFArity { m, f: fa.f, arity: fa.arity }
+  }
+
+
   pub fn get_funarity(&self) -> FunArity {
     FunArity::new(self.f, self.arity)
   }

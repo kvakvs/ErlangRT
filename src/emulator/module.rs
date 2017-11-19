@@ -1,10 +1,10 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
-//use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
-use rt_defs::Word;
+use emulator::gen_atoms;
+use rt_defs::{Word, WORD_BYTES};
 use emulator::code::{CodePtr, CodeOffset, Code};
 use emulator::funarity::FunArity;
 use emulator::heap::{Heap};
@@ -55,14 +55,50 @@ impl Module {
 
     match self.funs.get(&fa) {
       Some(c_offset) => {
-        let CodeOffset::Val(offset) = *c_offset;
+        let CodeOffset(offset) = *c_offset;
         let p = &self.code[offset] as *const Word;
-        Ok(CodePtr::Ptr(p))
+        Ok(CodePtr(p))
       },
       None => {
         let msg = format!("Function not found {} in {}", fa, self.name);
         Err(Error::FunctionNotFound(msg))
       }
     }
+  }
+
+
+  /// Check whether IP belongs to this module's code range, and if so, try and
+  /// find the MFA for the code location.
+  // TODO: Use some smart range tree or binary search or something
+  pub fn code_reverse_lookup(&self, ip: &CodePtr) -> Option<MFArity> {
+    if !ip.belongs_to(&self.code) {
+      return None
+    }
+
+    // Find a function with closest code offset less than ip
+
+    // some sane starting value: Code size in Words
+    let mut min_dist = self.code.len() + 1;
+    let mut fa = FunArity::new(gen_atoms::UNDEFINED, 0);
+
+    let code_begin = &self.code[0] as *const Word;
+    assert!(ip.get_ptr() > code_begin);
+    let ip_offset = (ip.get_ptr() as usize - code_begin as usize) / WORD_BYTES;
+    //println!("crl: ip_offs {}", ip_offset);
+
+    for (key, fn_offset0) in &self.funs {
+      let &CodeOffset(fn_offset) = fn_offset0;
+      if ip_offset >= fn_offset {
+        let dist = ip_offset - fn_offset;
+        //println!("crl: mindist {}, dist {}, fa {}", min_dist, dist, key);
+        if dist < min_dist {
+          min_dist = dist;
+          fa = key.clone();
+        }
+      }
+    }
+
+    let mfa = MFArity::new_from_funarity(self.name, &fa);
+    Some(mfa)
   }
 }

@@ -1,7 +1,8 @@
+use emulator::code_srv::{code_reverse_lookup};
 use rt_defs::Word;
 use term::lterm::*;
 use beam::gen_op;
-use emulator::code::{opcode, Labels, RefCode};
+use emulator::code::{CodePtr, opcode, Labels, RefCode};
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
@@ -22,6 +23,10 @@ pub unsafe fn disasm_op(ip0: *const Word) -> *const Word {
 
   let op = opcode::from_memory_ptr(ip);
   assert!(op < gen_op::OPCODE_MAX);
+
+  if let Some(mfa) = code_reverse_lookup(&CodePtr(ip)) {
+    print!("{} ", mfa)
+  }
 
   print!("{:p}: {} ", ip, gen_op::opcode_name(op as u8));
   ip = ip.offset(1);

@@ -5,7 +5,7 @@ use emulator::gen_atoms;
 use term::lterm::*;
 use term::lterm::aspect_smallint::{make_small_s};
 use term::lterm::aspect_list::ListAspect;
-use term::raw::rcons::ConsPtr;
+//use term::raw::rcons::ConsPtr;
 
 
 fn module() -> &'static str { "bif_compare: " }

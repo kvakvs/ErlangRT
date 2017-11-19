@@ -13,12 +13,12 @@ use std::fmt;
 /// In debug build additional mark bits `Imm3::OPCODE` are added to this word
 /// and additional check is done here in `CodePtr`.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
-pub enum CodePtr { Ptr(*const Word) }
+pub struct CodePtr(pub *const Word);
 
 
 impl fmt::Display for CodePtr {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let CodePtr::Ptr(p) = *self;
+    let CodePtr(p) = *self;
     write!(f, "CodePtr(0x{:x})", p as Word)
   }
 }
@@ -28,7 +28,7 @@ impl CodePtr {
 
   #[inline]
   pub fn get_ptr(&self) -> *const Word {
-    let CodePtr::Ptr(p) = *self;
+    let CodePtr(p) = *self;
     p
   }
 
@@ -47,25 +47,25 @@ impl CodePtr {
       assert!(p.is_null() || immediate::is_immediate3(*p),
               "A CodePtr must be null or point to an imm3 tagged opcode");
     }
-    CodePtr::Ptr(p)
+    CodePtr(p)
   }
 
   #[cfg(not(debug_assertions))]
   pub fn from_ptr(p: *const Word) -> CodePtr {
-    CodePtr::Ptr(p)
+    CodePtr(p)
   }
 
 
   #[inline]
   pub fn null() -> CodePtr {
-    CodePtr::Ptr(::std::ptr::null())
+    CodePtr(::std::ptr::null())
   }
 
 
   /// Convert to tagged CP integer
   #[inline]
   pub fn to_cp(&self) -> Word {
-    let CodePtr::Ptr(p) = *self;
+    let CodePtr(p) = *self;
     make_cp(p).raw()
 //    let p1 = p as Word;
 //    p1 | TAG_CP
@@ -75,34 +75,42 @@ impl CodePtr {
   #[inline]
   #[allow(dead_code)]
   pub fn offset(&self, n: isize) -> CodePtr {
-    let CodePtr::Ptr(p) = *self;
+    let CodePtr(p) = *self;
     let new_p = unsafe { p.offset(n) };
-    CodePtr::Ptr(new_p)
+    CodePtr(new_p)
   }
 
 
   #[inline]
   pub fn is_null(&self) -> bool {
-    let CodePtr::Ptr(p) = *self;
+    let CodePtr(p) = *self;
     p.is_null()
   }
 
 
 //  #[inline]
 //  pub fn is_not_null(&self) -> bool { ! self.is_null() }
+
+  pub fn belongs_to(&self, slice: &[Word]) -> bool {
+    let cbegin = &slice[0] as *const Word;
+    let cend = unsafe { cbegin.offset(slice.len() as isize) };
+    let CodePtr(p) = *self;
+    p >= cbegin && p < cend
+  }
 }
 
 /// A mutable code pointer for walking the code and modifying the values.
 /// See `emulator::code::iter` for iterators.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
-pub enum CodePtrMut { Ptr(*mut Word) }
+pub struct CodePtrMut(pub *mut Word);
+
 
 impl CodePtrMut {
 
   /// Quick access to the contained pointer.
   #[inline]
   pub fn ptr(&self) -> *const Word {
-    let CodePtrMut::Ptr(p) = *self;
+    let CodePtrMut(p) = *self;
     p
   }
 
@@ -110,7 +118,7 @@ impl CodePtrMut {
   #[inline]
   #[allow(dead_code)]
   pub unsafe fn read_0(&self) -> Word {
-    let CodePtrMut::Ptr(p) = *self;
+    let CodePtrMut(p) = *self;
     *p
   }
 
@@ -118,7 +126,7 @@ impl CodePtrMut {
   /// Read `n`-th word from code pointer.
   #[inline]
   pub unsafe fn read_n(&self, n: isize) -> Word {
-    let CodePtrMut::Ptr(p) = *self;
+    let CodePtrMut(p) = *self;
     *(p.offset(n))
   }
 
@@ -126,7 +134,7 @@ impl CodePtrMut {
   /// Write `n`-th word at the code pointer.
   #[inline]
   pub unsafe fn write_n(&self, n: isize, val: Word) {
-    let CodePtrMut::Ptr(p) = *self;
+    let CodePtrMut(p) = *self;
     *(p.offset(n)) = val
   }
 

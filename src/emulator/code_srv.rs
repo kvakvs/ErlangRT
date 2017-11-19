@@ -56,6 +56,7 @@ impl CodeServer {
     }
   }
 
+
   /// Find the module file from search path and return the path or error.
   pub fn find_module_file(&mut self, filename: &str) -> Hopefully<PathBuf> {
     match first_that_exists(&self.search_path, filename) {
@@ -63,6 +64,7 @@ impl CodeServer {
       None => Err(Error::FileNotFound(filename.to_string()))
     }
   }
+
 
   /// Notify the code server about the fact that a new module is ready to be
   /// added to the codebase.
@@ -117,6 +119,20 @@ impl CodeServer {
     Ok(mod_ptr)
   }
 
+
+  /// Given a code address try find a module and function where this belongs.
+  // TODO: Optimize search by giving a module name hint and using a range tree
+  pub fn code_reverse_lookup(&self, ip: &CodePtr) -> Option<MFArity> {
+    for (_key, val) in &self.mods {
+      let modp = val.lock().unwrap();
+      let lresult = modp.code_reverse_lookup(ip);
+      if lresult.is_some() {
+        return lresult
+      }
+      // nope, keep searching
+    }
+    return None
+  }
 }
 
 
@@ -133,15 +149,27 @@ fn first_that_exists(search_path: &[String],
   None
 }
 
+//
+// External API guarded by mutex
+//
 
-//#[inline]
-//pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
-//  let cs = CODE_SRV.lock().unwrap();
-//  cs.lookup(mfarity)
-//}
+#[allow(dead_code)]
+#[inline]
+pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+  let cs = CODE_SRV.lock().unwrap();
+  cs.lookup(mfarity)
+}
+
 
 #[inline]
 pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
   let mut cs = CODE_SRV.lock().unwrap();
   cs.lookup_and_load(mfarity)
+}
+
+
+#[inline]
+pub fn code_reverse_lookup(ip: &CodePtr) -> Option<MFArity> {
+  let cs = CODE_SRV.lock().unwrap();
+  cs.code_reverse_lookup(ip)
 }

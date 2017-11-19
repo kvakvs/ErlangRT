@@ -493,8 +493,8 @@ impl Loader {
           if let FTerm::SmallInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
-            self.labels.insert(LabelId::Val(f as Word),
-                               CodeOffset::Val(floc));
+            self.labels.insert(LabelId(f as Word),
+                               CodeOffset(floc));
           } else {
             op_badarg_panic(op, &args, 0);
           }
@@ -514,7 +514,7 @@ impl Loader {
             };
             // Function code begins after the func_info opcode (1+3)
             let fun_begin = self.code.len() + 4;
-            self.funs.insert(funarity, CodeOffset::Val(fun_begin));
+            self.funs.insert(funarity, CodeOffset(fun_begin));
           }
 
           self.code.push(opcode::to_memory_word(op));
@@ -545,7 +545,7 @@ impl Loader {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
               let ploc = PatchLocation::PatchJtabElement(heap_jtab.make_term(), index);
-              self.maybe_convert_label(LabelId::Val(f), ploc)
+              self.maybe_convert_label(LabelId(f), ploc)
             } else {
               t.to_lterm(&mut self.lit_heap).raw()
             };
@@ -558,7 +558,7 @@ impl Loader {
         // to convert it to an offset
         FTerm::LoadTimeLabel(f) => {
           let ploc = PatchLocation::PatchCodeOffset(self.code.len());
-          let new_t = self.maybe_convert_label(LabelId::Val(f),
+          let new_t = self.maybe_convert_label(LabelId(f),
                                                ploc);
           self.code.push(new_t)
         }
@@ -587,7 +587,7 @@ impl Loader {
         self.create_jump_destination(offset0),
       None => {
         self.replace_labels.push(patch_loc);
-        let LabelId::Val(label_id) = l;
+        let LabelId(label_id) = l;
         aspect_smallint::make_small_u(label_id).raw()
       }
     }
@@ -597,7 +597,7 @@ impl Loader {
   /// Given label destination and `self.code` length calculate a relative
   /// signed jump offset for it.
   fn create_jump_destination(&self, dst_offset: &CodeOffset) -> Word {
-    let &CodeOffset::Val(offs) = dst_offset;
+    let &CodeOffset(offs) = dst_offset;
     let ptr = &self.code[offs] as *const Word;
     make_cp(ptr).raw()
   }
@@ -637,7 +637,7 @@ impl Loader {
 
     // Zero label id means no location, so we will store NIL [] there
     if unfixed > 0 {
-      let unfixed_l = LabelId::Val(unfixed);
+      let unfixed_l = LabelId(unfixed);
 
       // Lookup the label. Crash here if bad label.
       let dst_offset = &self.labels[&unfixed_l];

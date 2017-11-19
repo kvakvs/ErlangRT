@@ -18,11 +18,11 @@ pub type RefCode<'a> = &'a [Word];
 
 /// Tagged word for label index
 #[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
-pub enum LabelId { Val(Word) }
+pub struct LabelId(pub Word);
 
 /// Tagged word for offset in the code array
 #[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
-pub enum CodeOffset { Val(Word) }
+pub struct CodeOffset(pub Word);
 
 /// Map of label id to offset. Maybe: Use binary search sorted array?
 pub type Labels = BTreeMap<LabelId, CodeOffset>;
