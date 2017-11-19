@@ -89,7 +89,11 @@ test_eq() ->
     [d1, d2, d3, d4] == rev([d1, d2, d3, d4]).
 
 test_list_ops() ->
-    b5a = my_last2([b1a, b2a, b3a, b4a, b5a]),
+    b1aa = my_last2([b1aa]),
+    b2ab = my_last2([b1ab, b2ab]),
+    b3ac = my_last2([b1ac, b2ac, b3ac]),
+%%    b5a = my_last2([b1a, b2a, b3a, b4a, b5a]),
+
     b4b = my_but_last2([b1b, b2b, b3b, b4b, b5b]),
     b2c = element_at(2, [b1c, b2c, b3c, b4c, b5c]),
     5 = len([b1, b2, b3, b4, b5]),

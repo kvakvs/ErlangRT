@@ -22,7 +22,7 @@ pub fn gcbif_length_1(_cur_proc: &mut Process,
   }
 
   let mut lst = l0.cons_get_ptr();
-  let mut count = 0;
+  let mut count = 1;
   loop {
     let tl = unsafe { lst.tl() };
 

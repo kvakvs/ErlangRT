@@ -29,3 +29,4 @@ put_list
 #====== Comparisons and Predicates ======
 is_eq_exact
 is_lt
+is_eq
