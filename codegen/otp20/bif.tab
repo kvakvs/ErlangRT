@@ -81,7 +81,7 @@
 # ubif erlang:hd/1
 # bif erlang:integer_to_list/1
 # bif erlang:is_alive/0
-# gcbif erlang:length/1
+gcbif erlang:length/1
 # bif erlang:link/1
 # bif erlang:list_to_atom/1
 # bif erlang:list_to_binary/1

@@ -9,10 +9,12 @@ use std::fmt;
 pub mod gen_bif; // generated
 pub mod bif_arith;
 pub mod bif_compare;
+pub mod bif_lists;
 pub mod bif_process;
 
 pub use bif::bif_arith::*;
 pub use bif::bif_compare::*;
+pub use bif::bif_lists::*;
 pub use bif::bif_process::*;
 
 

@@ -38,7 +38,6 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
   let mut op = ContinueCompare::AnyType(a, b);
 
   loop {
-    // TODO: optimize me, identical code branches
     let eq_result = match op {
       ContinueCompare::AnyType(a1, b1) |
       ContinueCompare::Cons(a1, b1) => {
@@ -49,10 +48,10 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
     match eq_result {
       EqResult::Concluded(result) if result == Ordering::Equal => {
         if stack.is_empty() {
-          println!("comparison {} {} concluded {:?}", a, b, result);
+          //println!("comparison {} {} concluded {:?}", a, b, result);
           return result
         } else {
-          println!("comparison {} {} got intermediate result {:?}", a, b, result);
+          //println!("comparison {} {} got intermediate result {:?}", a, b, result);
           op = stack.pop().unwrap();
           continue
         } // stack not empty
@@ -74,7 +73,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
 
 
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
-  println!("cmp any type {} {}", a, b);
+  //println!("cmp any type {} {}", a, b);
 
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
@@ -373,7 +372,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     let bhd = bb.hd();
 
     if LTerm::is_same(ahd, bhd) == false {
-      println!("cmp_cons ahd {} bhd {}", ahd, bhd);
+      //println!("cmp_cons ahd {} bhd {}", ahd, bhd);
       // Recurse into a.hd and b.hd, but push a.tl and b.tl to continue
       let continue_op = ContinueCompare::Cons(aa.tl(), bb.tl());
       return EqResult::CompareNested(ahd, bhd, continue_op)
