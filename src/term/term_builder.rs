@@ -34,7 +34,7 @@ impl ITupleBuilder<LTerm> for TupleBuilder {
   }
 
   fn make_term(&self) -> LTerm {
-    self.p.make_tuple()
+    self.p.make_term()
   }
 }
 

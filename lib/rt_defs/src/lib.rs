@@ -62,3 +62,12 @@ pub enum DispatchResult {
   Yield,
   Error,
 }
+
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[allow(dead_code)]
+pub enum ExceptionType {
+  Throw,
+  Error,
+  Exit,
+}

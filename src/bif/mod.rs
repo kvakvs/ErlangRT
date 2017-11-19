@@ -1,6 +1,7 @@
 use emulator::mfa::MFArity;
-use emulator::process::{Process, ExceptionType};
+use emulator::process::{Process};
 use fail::{Hopefully, Error};
+use rt_defs::ExceptionType;
 use term::lterm::*;
 
 use std::fmt;

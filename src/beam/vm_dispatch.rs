@@ -33,6 +33,7 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, curr_p: &mut Process
     gen_op::OPCODE_MOVE => return opcode_move(ctx, curr_p),
     gen_op::OPCODE_GET_LIST => return opcode_get_list(ctx, curr_p),
     gen_op::OPCODE_PUT_LIST => return opcode_put_list(ctx, curr_p),
+    gen_op::OPCODE_BADMATCH => return opcode_badmatch(ctx, curr_p),
     gen_op::OPCODE_CALL_EXT_ONLY => return opcode_call_ext_only(ctx, curr_p),
     gen_op::OPCODE_GC_BIF1 => return opcode_gc_bif1(ctx, curr_p),
     gen_op::OPCODE_GC_BIF2 => return opcode_gc_bif2(ctx, curr_p),

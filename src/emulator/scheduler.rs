@@ -1,8 +1,8 @@
 //! Code related to task scheduling and priorities.
 use std::collections::{VecDeque, HashMap};
 
-use rt_defs::Word;
-use emulator::process::{Process, ProcessError, ExceptionType};
+use rt_defs::{Word, ExceptionType};
+use emulator::process::{Process, ProcessError};
 use emulator::gen_atoms;
 use term::lterm::*;
 

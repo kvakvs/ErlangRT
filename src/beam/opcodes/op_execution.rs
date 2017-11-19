@@ -3,13 +3,16 @@
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
+use emulator::gen_atoms;
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
-use rt_defs::DispatchResult;
+use emulator::heap::{allocate_tuple};
 use rt_defs::stack::IStack;
+use rt_defs::{DispatchResult, ExceptionType};
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
+use term::raw::rtuple::TuplePtrMut;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }
@@ -118,4 +121,23 @@ pub fn opcode_func_info(ctx: &mut Context, _curr_p: &mut Process) -> DispatchRes
 
   panic!("function_clause {}:{}/{}", m, f, arity)
   //DispatchResult::Error
+}
+
+
+/// Create an error:badmatch exception
+#[inline]
+pub fn opcode_badmatch(ctx: &mut Context,
+                       curr_p: &mut Process) -> DispatchResult {
+  // Structure: badmatch(LTerm)
+  assert_arity(gen_op::OPCODE_BADMATCH, 1);
+
+  let val = ctx.fetch_and_load(&mut curr_p.heap);
+  let tuple = allocate_tuple(&mut curr_p.heap, 2).unwrap();
+  unsafe {
+    tuple.set_element_base0(0, gen_atoms::BADMATCH);
+    tuple.set_element_base0(1, val);
+  }
+  curr_p.exception(ExceptionType::Error, tuple.make_term());
+
+  DispatchResult::Error
 }

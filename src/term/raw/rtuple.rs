@@ -62,7 +62,7 @@ impl TuplePtrMut {
 
 
   /// Box the `self.p` pointer into `LTerm`.
-  pub fn make_tuple(&self) -> LTerm {
+  pub fn make_term(&self) -> LTerm {
     let TuplePtrMut(p) = *self;
     make_box(p)
   }

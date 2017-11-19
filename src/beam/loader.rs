@@ -538,13 +538,13 @@ impl Loader {
         FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
           let heap_jtab = allocate_tuple(&mut self.lit_heap, jtab.len()).unwrap();
-          self.code.push(heap_jtab.make_tuple().raw());
+          self.code.push(heap_jtab.make_term().raw());
 
           // Each value convert to LTerm and also push forming a tuple
           for (index, t) in jtab.iter().enumerate() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
-              let ploc = PatchLocation::PatchJtabElement(heap_jtab.make_tuple(), index);
+              let ploc = PatchLocation::PatchJtabElement(heap_jtab.make_term(), index);
               self.maybe_convert_label(LabelId::Val(f), ploc)
             } else {
               t.to_lterm(&mut self.lit_heap).raw()

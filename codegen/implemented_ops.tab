@@ -11,6 +11,7 @@ gc_bif3
 bif0
 bif1
 bif2
+badmatch
 
 #====== Memory and Stack ======
 allocate

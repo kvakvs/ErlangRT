@@ -3,7 +3,7 @@
 //! heap, stack, registers, and message queue.
 //!
 
-use rt_defs::Word;
+use rt_defs::{Word, ExceptionType};
 use emulator::code_srv;
 use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa::MFArity;
@@ -16,15 +16,6 @@ use std::fmt;
 
 
 fn module() -> &'static str { "process: " }
-
-
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-#[allow(dead_code)]
-pub enum ExceptionType {
-  Throw,
-  Error,
-  Exit,
-}
 
 
 #[allow(dead_code)]
