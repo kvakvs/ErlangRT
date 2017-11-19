@@ -10,30 +10,18 @@ Another attempt to make Erlang runtime (BEAM emulator) in Rust.
 Progress to the Proof of Concept
 --------------------------------
 
-* Term library 60%
-* External Term Format (decoder 40%)
+* Term library 70%
+* External Term Format (decoder 70%, encoder 0%)
 * BEAM Loader 95%
-* VM and processes 25%
-* VM loop and opcodes 15%
-* Some basic BIFs 0%
+* VM and processes 30%
+* VM loop and opcodes 20%
+* Some basic BIFs 5%
 
-The following code already works:
+.. figure:: http://i.imgur.com/rU8Qrjn.png
+   :scale: 70 %
+   :alt: Test2.erl run output
 
-.. code:: erlang
-
-    -module(test).
-    -export([start/0]).
-    start() ->
-        test1([1, 2, 3, 4]).
-    test1(X) -> lists:reverse(X).
-
-And would print:
-
-.. code::
-
-    [exec] 0x7f44396f65a0: move X(1), X(0)
-    [exec] 0x7f44396f65b8: return
-    thread 'main' panicked at 'opcodes::op_execution: Process exit: normal; x0=[4, 3, 2, 1]', src/beam/opcodes/op_execution.rs:83:6
+   Tests in ``priv/test2.erl`` partially work and would produce the output above.
 
 
 Compiling
