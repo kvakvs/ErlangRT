@@ -33,7 +33,7 @@ pub fn opcode_call(ctx: &mut Context,
   debug_assert!(location.is_box(),
                 "Call location must be a box (have {})", location);
 
-  ctx.cp = ctx.ip; // step arity + opcode back
+  ctx.cp = ctx.ip; // Points at the next opcode after this
   ctx.ip = CodePtr::from_cp(location);
 
   DispatchResult::Normal
@@ -69,7 +69,24 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
                             _curr_p: &mut Process) -> DispatchResult {
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
+  shared_call_ext(ctx, false)
+}
 
+
+/// Performs a call to a Destination mfarity (a `HOImport` object on the heap
+/// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
+/// function or a BIF. Updates the `ctx.cp` with return IP.
+#[inline]
+pub fn opcode_call_ext(ctx: &mut Context,
+                       _curr_p: &mut Process) -> DispatchResult {
+  // Structure: call_ext(arity:int, destination:boxed)
+  assert_arity(gen_op::OPCODE_CALL_EXT, 2);
+  shared_call_ext(ctx, true)
+}
+
+
+#[inline]
+fn shared_call_ext(ctx: &mut Context, save_cp: bool) -> DispatchResult {
   let arity = ctx.fetch_term();
   ctx.live = arity.small_get_u();
 
@@ -78,8 +95,11 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
 
   unsafe {
     if (*import).is_bif {
-      panic!("{}call_ext_only: call_bif", module());
+      panic!("{}call_ext: call_bif", module());
     } else {
+      if save_cp {
+        ctx.cp = ctx.ip; // Points at the next opcode after this
+      }
       ctx.ip = (*import).resolve().unwrap()
     }
   }
