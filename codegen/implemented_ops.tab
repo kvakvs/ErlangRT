@@ -13,6 +13,7 @@ bif0
 bif1
 bif2
 badmatch
+make_fun2
 
 #====== Memory and Stack ======
 allocate

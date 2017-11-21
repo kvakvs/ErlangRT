@@ -2,6 +2,7 @@
 pub mod heapobj;
 pub mod ho_bignum;
 pub mod ho_binary;
+pub mod ho_closure;
 pub mod ho_import;
 pub mod rcons;
 pub mod rtuple;

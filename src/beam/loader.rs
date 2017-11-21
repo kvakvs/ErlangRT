@@ -22,6 +22,7 @@ use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
 use emulator::funarity::FunArity;
+use emulator::function::FunEntry;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP, allocate_tuple};
 use emulator::mfa::MFArity;
 use emulator::module;
@@ -31,6 +32,7 @@ use rt_util::bin_reader::{BinaryReader, ReadError};
 use rt_util::ext_term_format as etf;
 use term::fterm::FTerm;
 use term::lterm::*;
+use term::lterm::aspect_boxed::{make_box};
 use term::raw::ho_import::HOImport;
 use term::raw::TuplePtrMut;
 use term::term_builder::TermBuilder;
@@ -88,7 +90,7 @@ pub struct Loader {
   raw_imports: Vec<LImport>,
   raw_exports: Vec<LExport>,
   raw_locals: Vec<LExport>,
-  raw_funs: Vec<LFun>,
+  raw_lambdas: Vec<LFun>,
   /// Temporary storage for loaded code, will be parsed in stage 2
   raw_code: Vec<u8>,
 
@@ -117,6 +119,7 @@ pub struct Loader {
   // compiler_info: LTerm,
   /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
   lit_imports: Vec<LTerm>,
+  lambdas: Vec<FunEntry>,
 }
 
 
@@ -128,7 +131,7 @@ impl Loader {
       raw_imports: Vec::new(),
       raw_exports: Vec::new(),
       raw_locals: Vec::new(),
-      raw_funs: Vec::new(),
+      raw_lambdas: Vec::new(),
       raw_code: Vec::new(),
 
       lit_tab: Vec::new(),
@@ -143,6 +146,7 @@ impl Loader {
       mod_attrs: nil(),
       //compiler_info: nil(),
       lit_imports: Vec::new(),
+      lambdas: Vec::new(),
     }
   }
 
@@ -218,6 +222,12 @@ impl Loader {
       self.vm_atoms.push(atom::from_str(a));
     }
 
+    // Convert LFuns in self.raw_funs to FunEntries
+    for rf in &self.raw_lambdas {
+      let fun_name = self.vm_atoms[rf.fun_atom_i as usize - 1];
+      self.lambdas.push(FunEntry::new(fun_name, rf.arity, rf.nfree))
+    }
+
     self.postprocess_parse_raw_code();
     //unsafe { disasm::disasm(self.code.as_slice(), None) }
     self.postprocess_fix_labels();
@@ -240,6 +250,7 @@ impl Loader {
       mem::swap(&mut self.funs, &mut mod1.funs);
       mem::swap(&mut self.code, &mut mod1.code);
       mem::swap(&mut self.lit_heap, &mut mod1.lit_heap);
+      mem::swap(&mut self.lambdas, &mut mod1.lambdas);
 
 //      unsafe {
 //        disasm::disasm(&mod1.code, None);
@@ -343,7 +354,7 @@ impl Loader {
 
   fn load_fun_table(&mut self, r: &mut BinaryReader) {
     let n_funs = r.read_u32be();
-    self.raw_funs.reserve(n_funs as usize);
+    self.raw_lambdas.reserve(n_funs as usize);
     for _i in 0..n_funs {
       let fun_atom = r.read_u32be();
       let arity = r.read_u32be();
@@ -351,7 +362,7 @@ impl Loader {
       let index = r.read_u32be();
       let nfree = r.read_u32be();
       let ouniq = r.read_u32be();
-      self.raw_funs.push(LFun {
+      self.raw_lambdas.push(LFun {
         fun_atom_i: fun_atom,
         arity,
         code_pos,
@@ -681,7 +692,8 @@ impl Loader {
       match curr_opcode {
         gen_op::OPCODE_MAKE_FUN2 => {
           // arg[0] is export
-          self.rewrite_import_index_arg(&cp, 1)
+//          self.rewrite_import_index_arg(&cp, 1)
+          self.rewrite_lambda_index_arg(&cp, 1)
         },
         gen_op::OPCODE_BIF1 |
         gen_op::OPCODE_BIF2 |
@@ -710,6 +722,14 @@ impl Loader {
     let import0 = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let import1 = self.lit_imports[import0.small_get_u()].raw();
     unsafe { cp.write_n(n, import1) }
+  }
+
+
+  fn rewrite_lambda_index_arg(&self, cp: &CodePtrMut, n: isize) {
+    let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
+    let lambda_p = &self.lambdas[lambda_i.small_get_u()] as *const FunEntry;
+    let lambda_term = make_cp(lambda_p as *const Word);
+    unsafe { cp.write_n(n, lambda_term.raw()) }
   }
 
 

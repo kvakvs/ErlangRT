@@ -12,7 +12,8 @@ pub enum HeapObjType {
   /// Type maps to `term::raw::ho_import::HOImport` heap obj class.
   Import,
   Binary,
-//  Bignum,
+  Bignum,
+  Closure,
 }
 
 

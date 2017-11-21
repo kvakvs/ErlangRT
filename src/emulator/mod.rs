@@ -3,6 +3,7 @@ pub mod code;
 pub mod code_srv;
 pub mod disasm;
 pub mod funarity;
+pub mod function;
 pub mod gen_atoms; // generated
 pub mod heap;
 pub mod mfa;

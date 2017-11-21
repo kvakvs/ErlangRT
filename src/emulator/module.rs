@@ -7,6 +7,7 @@ use emulator::gen_atoms;
 use rt_defs::{Word, WORD_BYTES};
 use emulator::code::{CodePtr, CodeOffset, Code};
 use emulator::funarity::FunArity;
+use emulator::function::FunEntry;
 use emulator::heap::{Heap};
 use emulator::mfa::MFArity;
 use fail::{Hopefully, Error};
@@ -24,6 +25,8 @@ pub struct Module {
   name: LTerm,
   /// Map to refcounted functions
   pub funs: FunTable,
+  pub lambdas: Vec<FunEntry>,
+
   // TODO: attrs
   // TODO: lit table
   pub code: Code,
@@ -39,6 +42,7 @@ impl Module {
         funs: BTreeMap::new(),
         lit_heap: Heap::new(1),
         name,
+        lambdas: Vec::new(),
       }
     ))
   }
