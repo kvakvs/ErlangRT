@@ -12,7 +12,7 @@ use emulator::heap::Heap;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
 use rt_defs::heap::IHeap;
-use rt_defs::{WORD_BYTES, Word, Arity};
+use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;
 use term::raw::heapobj::*;
@@ -22,9 +22,9 @@ use term::raw::heapobj::*;
 #[allow(dead_code)]
 pub struct HOClosure {
   hobj: HeapObjHeader,
-  fun: LTerm,
-  arity: Arity,
+  mfa: MFArity,
   nfree: u32,
+  // frozen values follow here in memory after the main fields
 }
 
 
@@ -46,7 +46,7 @@ impl HOClosure {
 
   pub unsafe fn fmt_str(this0: *const Word) -> String {
     let this = this0 as *mut HOClosure;
-    format!("Closure({}/{})", (*this).fun, (*this).arity)
+    format!("Closure({})", (*this).mfa)
   }
 
 
@@ -55,8 +55,9 @@ impl HOClosure {
 
   #[inline]
   fn storage_size(nfree: u32) -> usize {
-    HOClosure::STRUCT_SIZE + nfree
+    HOClosure::STRUCT_SIZE + (nfree as usize)
   }
+
 
   pub unsafe fn place_into(hp: &mut Heap,
                            fe: &FunEntry,
@@ -67,24 +68,32 @@ impl HOClosure {
 
     ptr::write(this,
                HOClosure {
-                 hobj: HeapObjHeader::new(n_words, &HOCLASS_IMPORT),
-                 fun: fe.fun,
-                 arity: fe.arity,
+                 hobj: HeapObjHeader::new(n_words, &HOCLASS_CLOSURE),
+                 mfa: fe.mfa.clone(),
                  nfree: fe.nfree
                });
 
-    assert_eq!(frozen.len(), fe.nfree);
-    ptr::copy(frozen.as_ptr(),
-              this.offset(HOClosure::STRUCT_SIZE),
-              fe.nfree);
+    assert_eq!(frozen.len(), fe.nfree as usize);
+    // step 1 closure forward, which will point exactly at the frozen location
+    let dst = this.offset(1);
+    ptr::copy(frozen.as_ptr() as *const Word,
+              dst as *mut Word,
+              fe.nfree as usize);
 
     Ok(make_box(this as *const Word))
   }
 
 
-  pub fn from_term(t: LTerm) -> *const HOClosure {
-    let p = t.box_ptr();
-    p as *const HOClosure
+//  pub fn from_term(t: LTerm) -> *const HOClosure {
+//    let p = t.box_ptr();
+//    p as *const HOClosure
+//  }
+
+
+  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
+  #[inline]
+  pub fn make_term(this: *const HOClosure) -> LTerm {
+    make_box(this as *const Word)
   }
 
 }

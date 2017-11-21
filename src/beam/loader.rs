@@ -32,7 +32,7 @@ use rt_util::bin_reader::{BinaryReader, ReadError};
 use rt_util::ext_term_format as etf;
 use term::fterm::FTerm;
 use term::lterm::*;
-use term::lterm::aspect_boxed::{make_box};
+//use term::lterm::aspect_boxed::{make_box};
 use term::raw::ho_import::HOImport;
 use term::raw::TuplePtrMut;
 use term::term_builder::TermBuilder;
@@ -225,7 +225,9 @@ impl Loader {
     // Convert LFuns in self.raw_funs to FunEntries
     for rf in &self.raw_lambdas {
       let fun_name = self.vm_atoms[rf.fun_atom_i as usize - 1];
-      self.lambdas.push(FunEntry::new(fun_name, rf.arity, rf.nfree))
+      // Remember: atoms[0] is the module name
+      let mfa = MFArity::new(self.vm_atoms[0], fun_name, rf.arity);
+      self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
 
     self.postprocess_parse_raw_code();

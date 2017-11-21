@@ -32,6 +32,7 @@ impl MFArgs {
 }
 
 
+#[derive(Debug, Copy, Clone)]
 pub struct MFArity {
   pub m: LTerm,
   pub f: LTerm,

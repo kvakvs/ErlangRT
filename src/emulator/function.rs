@@ -1,11 +1,12 @@
-use rt_defs::Arity;
-use term::lterm::LTerm;
+//use rt_defs::Arity;
+use emulator::mfa::MFArity;
+//use term::lterm::LTerm;
+
 
 /// Result of Lambda Table loading prepared for use in the runtime.
 #[derive(Debug)]
 pub struct FunEntry {
-  pub fun: LTerm,
-  pub arity: Arity,
+  pub mfa: MFArity,
   //  code_pos: u32,
   //  index: u32,
   pub nfree: u32,
@@ -13,7 +14,7 @@ pub struct FunEntry {
 }
 
 impl FunEntry {
-  pub fn new(fun: LTerm, arity: Arity, nfree: u32) -> FunEntry {
-    FunEntry { fun, arity, nfree }
+  pub fn new(mfa: MFArity, nfree: u32) -> FunEntry {
+    FunEntry { mfa, nfree }
   }
 }
