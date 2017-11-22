@@ -28,7 +28,7 @@ pub struct HOBignum {
 
 #[allow(const_err)]
 static HOCLASS_BIGNUM: HeapObjClass = HeapObjClass {
-  obj_type: HeapObjType::Binary,
+  obj_type: HeapObjType::Bignum,
   dtor: HOBignum::dtor,
   fmt_str: HOBignum::fmt_str,
   term_class: TermClass::Number,

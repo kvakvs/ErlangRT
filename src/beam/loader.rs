@@ -95,7 +95,8 @@ pub struct Loader {
   raw_code: Vec<u8>,
 
   //--- Stage 2 structures filled later ---
-  /// Atoms converted to VM terms
+  /// Atoms converted to VM terms. Remember to use from_loadtime_atom_index()
+  /// which will deduce 1 from the index automatically
   vm_atoms: Vec<LTerm>,
   //vm_funs: BTreeMap<FunArity, CodeOffset>,
 
@@ -148,6 +149,20 @@ impl Loader {
       lit_imports: Vec::new(),
       lambdas: Vec::new(),
     }
+  }
+
+
+  /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
+  /// account special value 0 and offsets the index down by 1.
+  fn from_loadtime_atom_index(&self, n: u32) -> LTerm {
+    if n == 0 { return nil() }
+    return self.vm_atoms[n as usize - 1];
+  }
+
+
+  fn module_name(&self) -> LTerm {
+    assert!(!self.vm_atoms.is_empty());
+    self.vm_atoms[0]
   }
 
 
@@ -224,9 +239,9 @@ impl Loader {
 
     // Convert LFuns in self.raw_funs to FunEntries
     for rf in &self.raw_lambdas {
-      let fun_name = self.vm_atoms[rf.fun_atom_i as usize - 1];
+      let fun_name = self.from_loadtime_atom_index(rf.fun_atom_i);
       // Remember: atoms[0] is the module name
-      let mfa = MFArity::new(self.vm_atoms[0], fun_name, rf.arity);
+      let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
       self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
 
@@ -243,8 +258,7 @@ impl Loader {
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
   pub fn load_finalize(&mut self) -> Hopefully<module::Ptr> {
-    let mod_name = self.vm_atoms[0];
-    let newmod = module::Module::new(mod_name);
+    let newmod = module::Module::new(self.module_name());
 
     // Move funs into new module
     {
@@ -672,8 +686,8 @@ impl Loader {
     //
     self.lit_imports.reserve(self.raw_imports.len());
     for ri in &self.raw_imports {
-      let mod_atom = self.vm_atoms[ri.mod_atom_i as usize - 1];
-      let fun_atom = self.vm_atoms[ri.fun_atom_i as usize - 1];
+      let mod_atom = self.from_loadtime_atom_index(ri.mod_atom_i);
+      let fun_atom = self.from_loadtime_atom_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
       let ho_imp = unsafe {
@@ -727,6 +741,10 @@ impl Loader {
   }
 
 
+  /// Given a pointer to a `make_fun2` or similar opcode with a lambda index
+  /// argument, replace it with a raw pointer to a loaded `FunEntry`.
+  /// The `FunEntry` will be owned by the module we're loading, and will be
+  /// freed together with the code, so it should be safe to use the pointer.
   fn rewrite_lambda_index_arg(&self, cp: &CodePtrMut, n: isize) {
     let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let lambda_p = &self.lambdas[lambda_i.small_get_u()] as *const FunEntry;
@@ -742,13 +760,11 @@ impl Loader {
       // A special value 0 means NIL []
       FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
 
-      // Repack load-time atom into a runtime atom
+      // Repack load-time atom via an `LTerm` index into an `FTerm` atom
       FTerm::LoadTimeAtom(i) => {
-        let aindex = self.vm_atoms[i-1].atom_index();
+        let aindex = self.from_loadtime_atom_index(i).atom_index();
         Some(FTerm::Atom(aindex))
       },
-
-      //FTerm::LoadTimeLit(_) => None, // do not convert yet
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
       FTerm::LoadTimeExtlist(ref lst) => {

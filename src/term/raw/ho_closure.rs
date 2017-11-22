@@ -4,9 +4,9 @@
 use std::mem::size_of;
 use std::ptr;
 
-use bif::{BifFn, find_bif};
-use emulator::code::CodePtr;
-use emulator::code_srv;
+//use bif::{find_bif};
+//use emulator::code::CodePtr;
+//use emulator::code_srv;
 use emulator::function::FunEntry;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
@@ -90,10 +90,10 @@ impl HOClosure {
 //  }
 
 
-  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
-  #[inline]
-  pub fn make_term(this: *const HOClosure) -> LTerm {
-    make_box(this as *const Word)
-  }
+//  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
+//  #[inline]
+//  pub fn make_term(this: *const HOClosure) -> LTerm {
+//    make_box(this as *const Word)
+//  }
 
 }

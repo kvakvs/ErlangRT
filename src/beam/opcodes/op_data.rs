@@ -6,7 +6,7 @@ use rt_defs::{DispatchResult};
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 use emulator::function::FunEntry;
-use term::lterm::aspect_boxed::BoxedAspect;
+//use term::lterm::aspect_boxed::BoxedAspect;
 use term::lterm::aspect_cp::CpAspect;
 use term::raw::ho_closure::HOClosure;
 

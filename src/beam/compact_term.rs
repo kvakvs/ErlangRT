@@ -91,7 +91,7 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
         if index == 0 {
           return Ok(fterm::FTerm::Nil);
         }
-        return Ok(fterm::FTerm::LoadTimeAtom(index as Word))
+        return Ok(fterm::FTerm::LoadTimeAtom(index as u32))
       }
       make_err(CTError::BadAtomTag)
     },
