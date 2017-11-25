@@ -17,7 +17,7 @@ def main():
 
 use beam::gen_op;
 use beam::opcodes::*;
-use rt_defs::{{DispatchResult}};
+use beam::vm_loop::{{DispatchResult}};
 use emulator::code::opcode::RawOpcode;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;

@@ -21,9 +21,9 @@ use term::raw::heapobj::*;
 /// Heap object `HOClosure` is placed on heap.
 #[allow(dead_code)]
 pub struct HOClosure {
-  hobj: HeapObjHeader,
-  mfa: MFArity,
-  nfree: u32,
+  pub hobj: HeapObjHeader,
+  pub mfa: MFArity,
+  pub nfree: u32,
   // frozen values follow here in memory after the main fields
 }
 
@@ -84,10 +84,10 @@ impl HOClosure {
   }
 
 
-//  pub fn from_term(t: LTerm) -> *const HOClosure {
-//    let p = t.box_ptr();
-//    p as *const HOClosure
-//  }
+  pub fn from_term(t: LTerm) -> *const HOClosure {
+    let p = t.box_ptr();
+    p as *const HOClosure
+  }
 
 
 //  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.

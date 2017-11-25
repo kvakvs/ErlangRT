@@ -6,7 +6,8 @@ use emulator::code::CodePtr;
 use emulator::heap;
 use emulator::process::Process;
 use rt_defs::stack::IStack;
-use rt_defs::{Word, Float, DispatchResult, MAX_XREGS, MAX_FPREGS};
+use rt_defs::{Word, Float, MAX_XREGS, MAX_FPREGS};
+use beam::vm_loop::DispatchResult;
 use term::immediate;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
@@ -232,11 +233,10 @@ pub fn call_bif(ctx: &mut Context,
     // On error and if fail label is a CP, perform a goto
     // Assume that error is already written to `reason` in process
     BifResult::Exception(e, rsn) => {
-      curr_p.exception(e, rsn);
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
-      DispatchResult::Error
+      DispatchResult::Error(e, rsn)
     },
 
     BifResult::Fail(f) => {

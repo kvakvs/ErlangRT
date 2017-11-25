@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use rt_defs::{DispatchResult};
+use beam::vm_loop::{DispatchResult};
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;

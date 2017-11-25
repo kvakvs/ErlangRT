@@ -53,16 +53,6 @@ pub const TAG_CP: Word = 1usize << (WORD_BITS-1);
 //  unsafe { transmute::<usize, isize> (n) }
 //}
 
-/// Enum is used by VM dispatch handlers for opcodes to indicate whether to
-/// continue, yield (take next process in the queue) or interrupt process
-/// on error.
-#[allow(dead_code)]
-pub enum DispatchResult {
-  Normal,
-  Yield,
-  Error,
-}
-
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]

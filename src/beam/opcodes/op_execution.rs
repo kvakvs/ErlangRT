@@ -9,7 +9,8 @@ use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 use emulator::heap::{allocate_tuple};
 use rt_defs::stack::IStack;
-use rt_defs::{DispatchResult, ExceptionType};
+use rt_defs::{ExceptionType};
+use beam::vm_loop::DispatchResult;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
 //use term::raw::rtuple::TuplePtrMut;
@@ -157,7 +158,5 @@ pub fn opcode_badmatch(ctx: &mut Context,
     tuple.set_element_base0(0, gen_atoms::BADMATCH);
     tuple.set_element_base0(1, val);
   }
-  curr_p.exception(ExceptionType::Error, tuple.make_term());
-
-  DispatchResult::Error
+  DispatchResult::Error(ExceptionType::Error, tuple.make_term())
 }

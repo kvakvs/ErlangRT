@@ -2,6 +2,7 @@
 pub mod op_bif;
 pub mod op_data;
 pub mod op_execution;
+pub mod op_fun;
 pub mod op_list;
 pub mod op_memory;
 pub mod op_predicates;
@@ -9,6 +10,7 @@ pub mod op_predicates;
 pub use beam::opcodes::op_bif::*;
 pub use beam::opcodes::op_data::*;
 pub use beam::opcodes::op_execution::*;
+pub use beam::opcodes::op_fun::*;
 pub use beam::opcodes::op_list::*;
 pub use beam::opcodes::op_memory::*;
 pub use beam::opcodes::op_predicates::*;

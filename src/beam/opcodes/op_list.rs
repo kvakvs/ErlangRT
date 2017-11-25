@@ -6,7 +6,7 @@ use emulator::code::CodePtr;
 use emulator::heap::{allocate_cons};
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
-use rt_defs::DispatchResult;
+use beam::vm_loop::DispatchResult;
 use term::lterm::*;
 
 

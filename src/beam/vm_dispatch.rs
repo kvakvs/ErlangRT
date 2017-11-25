@@ -5,7 +5,7 @@
 
 use beam::gen_op;
 use beam::opcodes::*;
-use rt_defs::{DispatchResult};
+use beam::vm_loop::{DispatchResult};
 use emulator::code::opcode::RawOpcode;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
@@ -37,6 +37,7 @@ pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, curr_p: &mut Process
     gen_op::OPCODE_GET_LIST => return opcode_get_list(ctx, curr_p),
     gen_op::OPCODE_PUT_LIST => return opcode_put_list(ctx, curr_p),
     gen_op::OPCODE_BADMATCH => return opcode_badmatch(ctx, curr_p),
+    gen_op::OPCODE_CALL_FUN => return opcode_call_fun(ctx, curr_p),
     gen_op::OPCODE_CALL_EXT_ONLY => return opcode_call_ext_only(ctx, curr_p),
     gen_op::OPCODE_MAKE_FUN2 => return opcode_make_fun2(ctx, curr_p),
     gen_op::OPCODE_GC_BIF1 => return opcode_gc_bif1(ctx, curr_p),

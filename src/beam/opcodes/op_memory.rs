@@ -3,7 +3,7 @@ use beam::opcodes::assert_arity;
 use emulator::code::CodePtr;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
-use rt_defs::DispatchResult;
+use beam::vm_loop::DispatchResult;
 use rt_defs::heap::IHeap;
 use rt_defs::stack::IStack;
 use term::lterm::*;

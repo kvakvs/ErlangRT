@@ -14,6 +14,7 @@ bif1
 bif2
 badmatch
 make_fun2
+call_fun
 
 #====== Memory and Stack ======
 allocate
