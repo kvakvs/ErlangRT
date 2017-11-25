@@ -92,20 +92,21 @@ fn shared_call_ext(ctx: &mut Context, save_cp: bool) -> DispatchResult {
   ctx.live = arity.small_get_u();
 
   // HOImport object on heap which contains m:f/arity
-  let import = HOImport::from_term(ctx.fetch_term());
-
-  unsafe {
-    if (*import).is_bif {
-      panic!("{}call_ext: call_bif", module());
-    } else {
-      if save_cp {
-        ctx.cp = ctx.ip; // Points at the next opcode after this
+  if let Some(import) = unsafe { HOImport::from_term(ctx.fetch_term()) } {
+    unsafe {
+      if (*import).is_bif {
+        panic!("{}call_ext: call_bif", module());
+      } else {
+        if save_cp {
+          ctx.cp = ctx.ip; // Points at the next opcode after this
+        }
+        ctx.ip = (*import).resolve().unwrap()
       }
-      ctx.ip = (*import).resolve().unwrap()
     }
+    DispatchResult::Normal
+  } else {
+    DispatchResult::Error(ExceptionType::Error, gen_atoms::BADFUN)
   }
-
-  DispatchResult::Normal
 }
 
 

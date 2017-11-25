@@ -73,9 +73,9 @@ impl HOImport {
   }
 
 
-  pub fn from_term(t: LTerm) -> *const HOImport {
-    let p = t.box_ptr();
-    p as *const HOImport
+  #[inline]
+  pub unsafe fn from_term(t: LTerm) -> Option<*const HOImport> {
+    heapobj_from_term::<HOImport>(t, &HOCLASS_IMPORT)
   }
 
 

@@ -76,11 +76,10 @@ impl HOBignum {
 
 
   /// Given a term, unbox it and convert to a `HOBignum` const pointer.
-  //  #[inline]
-  //  pub fn from_term(t: LTerm) -> *const HOBignum {
-  //    let p = t.box_ptr();
-  //    p as *const HOBignum
-  //  }
+  #[inline]
+  pub unsafe fn from_term(t: LTerm) -> Option<*const HOBignum> {
+    heapobj_from_term::<HOBignum>(t, &HOCLASS_BIGNUM)
+  }
 
 
   /// Given a term, unbox it and convert to a `HOBignum` mut pointer.

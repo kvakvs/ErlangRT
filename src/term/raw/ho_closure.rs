@@ -38,10 +38,8 @@ static HOCLASS_CLOSURE: HeapObjClass = HeapObjClass {
 
 
 impl HOClosure {
-
   /// Destructor.
-  pub unsafe fn dtor(_this: *mut Word) {
-  }
+  pub unsafe fn dtor(_this: *mut Word) {}
 
 
   pub unsafe fn fmt_str(this0: *const Word) -> String {
@@ -84,16 +82,15 @@ impl HOClosure {
   }
 
 
-  pub fn from_term(t: LTerm) -> *const HOClosure {
-    let p = t.box_ptr();
-    p as *const HOClosure
+  #[inline]
+  pub unsafe fn from_term(t: LTerm) -> Option<*const HOClosure> {
+    heapobj_from_term::<HOClosure>(t, &HOCLASS_CLOSURE)
   }
 
 
-//  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
-//  #[inline]
-//  pub fn make_term(this: *const HOClosure) -> LTerm {
-//    make_box(this as *const Word)
-//  }
-
+  //  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
+  //  #[inline]
+  //  pub fn make_term(this: *const HOClosure) -> LTerm {
+  //    make_box(this as *const Word)
+  //  }
 }

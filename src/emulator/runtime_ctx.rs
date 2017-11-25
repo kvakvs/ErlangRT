@@ -1,13 +1,14 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 
+use beam::vm_loop::DispatchResult;
 use bif::BifResult;
 use emulator::code::CodePtr;
+use emulator::gen_atoms;
 use emulator::heap;
 use emulator::process::Process;
 use rt_defs::stack::IStack;
-use rt_defs::{Word, Float, MAX_XREGS, MAX_FPREGS};
-use beam::vm_loop::DispatchResult;
+use rt_defs::{Word, Float, MAX_XREGS, MAX_FPREGS, ExceptionType};
 use term::immediate;
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
@@ -168,7 +169,7 @@ impl fmt::Display for Context {
 /// `fail_label` - if not NIL, we suppress a possible exception and jump there;
 /// `args` - the arguments; `dst` - register where the result will go;
 /// `gc` if true, then gc is allowed and `ctx.live` will be used.
-#[inline]
+//#[inline]
 // Inline to allow const folding optimization
 pub fn call_bif(ctx: &mut Context,
                 curr_p: &mut Process,
@@ -188,7 +189,10 @@ pub fn call_bif(ctx: &mut Context,
   let _live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
 
   // HOImport object on heap which contains m:f/arity
-  let import = HOImport::from_term(ctx.fetch_term());
+  let import = match unsafe { HOImport::from_term(ctx.fetch_term()) } {
+    Some(i) => i,
+    None => return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADFUN),
+  };
 
   let p_args = ctx.ip.get_ptr() as *const LTerm;
   if n_args > 0 {
