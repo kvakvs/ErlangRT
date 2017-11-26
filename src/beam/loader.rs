@@ -27,6 +27,7 @@ use emulator::atom;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
+use emulator::code_srv;
 use emulator::code_srv::module_id::VersionedModuleId;
 use emulator::export::Export;
 use emulator::funarity::FunArity;
@@ -195,8 +196,10 @@ impl Loader {
 
 
   fn module_name(&self) -> LTerm {
-    assert!(!self.vm_atoms.is_empty());
-    self.vm_atoms[0]
+    match self.mod_id {
+      Some(mod_id) => mod_id.module(),
+      None => panic!("{}mod_id must be set at this point", module()),
+    }
   }
 
 
@@ -263,15 +266,18 @@ impl Loader {
   }
 
 
-  /// Call this to apply changes to the VM after module loading succeeded. The
-  /// module object is not created yet, but some effects like atoms table
-  /// we can already apply.
-  pub fn load_stage2(&mut self) -> Hopefully<()> {
+  fn stage2_register_atoms(&mut self) {
     self.vm_atoms.reserve(self.raw.atoms.len());
     for a in &self.raw.atoms {
       self.vm_atoms.push(atom::from_str(a));
     }
 
+    // Create a new version number for this module and fill self.mod_id
+    self.set_mod_id()
+  }
+
+
+  fn stage2_fill_lambdas(&mut self) {
     // Convert LFuns in self.raw.funs to FunEntries
     for rf in &self.raw.lambdas {
       let fun_name = self.from_loadtime_atom_index(rf.fun_atom_i);
@@ -279,6 +285,15 @@ impl Loader {
       let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
       self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
+  }
+
+
+  /// Call this to apply changes to the VM after module loading succeeded. The
+  /// module object is not created yet, but some effects like atoms table
+  /// we can already apply.
+  pub fn load_stage2(&mut self) -> Hopefully<()> {
+    self.stage2_register_atoms();
+    self.stage2_fill_lambdas();
 
     self.postprocess_parse_raw_code();
     //unsafe { disasm::disasm(self.code.as_slice(), None) }
@@ -295,7 +310,7 @@ impl Loader {
   pub fn load_finalize(&mut self) -> Hopefully<module::Ptr> {
     let newmod = match self.mod_id {
       Some(mod_id) => module::Module::new(&mod_id),
-      None => panic!("mod_id must be set at this point"),
+      None => panic!("{}mod_id must be set at this point", module()),
     };
 
     // Move funs into new module
@@ -355,6 +370,14 @@ impl Loader {
       let atom_text = r.read_str_latin1(atom_bytes as Word).unwrap();
       self.raw.atoms.push(atom_text);
     }
+  }
+
+
+  fn set_mod_id(&mut self) {
+    assert!(!self.vm_atoms.is_empty());
+    let mod_name = self.vm_atoms[0];
+    let ver = code_srv::next_module_version(mod_name);
+    self.mod_id = Some(VersionedModuleId::new(mod_name, ver))
   }
 
 
@@ -587,7 +610,7 @@ impl Loader {
                                                      fun_begin);
                 self.funs.insert(funarity, export);
               },
-              None => panic!("mod_id must be set at this point"),
+              None => panic!("{}mod_id must be set at this point", module()),
             }
           }
 

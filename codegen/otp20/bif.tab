@@ -556,8 +556,8 @@ ubif erlang:'-'/2			sminus_2
 # bif binary:decode_unsigned/1
 # bif binary:decode_unsigned/2
 #
-# bif erlang:nif_error/1
-# bif erlang:nif_error/2
+bif erlang:nif_error/1
+bif erlang:nif_error/2
 #
 # #
 # # Helpers for unicode filenames

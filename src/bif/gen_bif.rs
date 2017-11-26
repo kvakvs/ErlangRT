@@ -29,6 +29,10 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_seqeq_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::LENGTH, arity: 1,
         func: bif::gcbif_length_1 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::NIF_ERROR, arity: 1,
+        func: bif::bif_nif_error_1 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::NIF_ERROR, arity: 2,
+        func: bif::bif_nif_error_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SELF, arity: 0,
         func: bif::ubif_self_0 },
 ];

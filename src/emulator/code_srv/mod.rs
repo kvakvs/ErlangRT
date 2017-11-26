@@ -6,7 +6,8 @@ pub mod module_id;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, RwLock};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use beam::loader;
 use emulator::atom;
@@ -14,6 +15,7 @@ use emulator::code::CodePtr;
 use emulator::mfa::MFArity;
 use emulator::module;
 use fail::{Hopefully, Error};
+use self::module_id::ModuleVersion;
 use term::lterm::*;
 
 
@@ -28,8 +30,13 @@ pub struct CodeServer {
 
 
 lazy_static! {
-  static ref CODE_SRV: Mutex<CodeServer> = {
-    Mutex::new(CodeServer::new())
+  static ref CODE_SRV: RwLock<CodeServer> = {
+    RwLock::new(CodeServer::new())
+  };
+
+  // TODO: Maybe use map<modulename, counter> here
+  static ref MOD_VERSION: AtomicUsize = {
+    AtomicUsize::new(0)
   };
 }
 
@@ -158,20 +165,28 @@ fn first_that_exists(search_path: &[String],
 #[allow(dead_code)]
 #[inline]
 pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
-  let cs = CODE_SRV.lock().unwrap();
+  let cs = CODE_SRV.read().unwrap();
   cs.lookup(mfarity)
 }
 
 
 #[inline]
 pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
-  let mut cs = CODE_SRV.lock().unwrap();
+  // TODO: Optimize by write-locking the load part and read-locking the lookup part
+  let mut cs = CODE_SRV.write().unwrap();
   cs.lookup_and_load(mfarity)
 }
 
 
 #[inline]
 pub fn code_reverse_lookup(ip: &CodePtr) -> Option<MFArity> {
-  let cs = CODE_SRV.lock().unwrap();
+  let cs = CODE_SRV.read().unwrap();
   cs.code_reverse_lookup(ip)
+}
+
+
+pub fn next_module_version(_m: LTerm) -> ModuleVersion {
+  let ver = MOD_VERSION.load(Ordering::Acquire);
+  MOD_VERSION.store(ver + 1, Ordering::Release);
+  ModuleVersion::new(ver)
 }

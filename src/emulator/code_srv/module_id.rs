@@ -10,6 +10,18 @@ use term::lterm::aspect_atom::{AtomAspect};
 #[derive(Debug, Copy, Clone)]
 pub struct ModuleVersion(usize);
 
+impl ModuleVersion {
+  pub fn new(ver: usize) -> ModuleVersion {
+    ModuleVersion(ver)
+  }
+
+
+  pub fn value(&self) -> usize {
+    let ModuleVersion(val) = *self;
+    val
+  }
+}
+
 
 /// An unique identifier of a module where multiple modules with the same
 /// name may exist. Each new module is granted a new `version`.
