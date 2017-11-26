@@ -19,7 +19,7 @@ impl BinaryAspect for super::LTerm {
     if !self.is_box() { return false }
 
     // from_term should be efficient enough (only type cast and one comparison)
-    HOBinary::from_term(*self).is_some()
+    HOBinary::from_term(*self).is_ok()
   }
 
 

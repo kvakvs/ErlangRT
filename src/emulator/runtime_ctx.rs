@@ -4,13 +4,16 @@
 use beam::vm_loop::DispatchResult;
 use bif::BifResult;
 use emulator::code::CodePtr;
-use emulator::gen_atoms;
 use emulator::heap;
 use emulator::process::Process;
 use rt_defs::stack::IStack;
 use rt_defs::{Word, Float, MAX_XREGS, MAX_FPREGS, ExceptionType};
+use term::builders::make_badfun;
 use term::immediate;
-use term::lterm::*;
+use term::lterm::aspect_smallint::SmallintAspect;
+use term::lterm::aspect_cp::CpAspect;
+use term::lterm::aspect_list::ListAspect;
+use term::lterm::{LTerm, nil, const_nil};
 use term::raw::ho_import::HOImport;
 
 use std::fmt;
@@ -189,9 +192,16 @@ pub fn call_bif(ctx: &mut Context,
   let _live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
 
   // HOImport object on heap which contains m:f/arity
-  let import = match unsafe { HOImport::from_term(ctx.fetch_term()) } {
-    Some(i) => i,
-    None => return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADFUN),
+  let import_term = ctx.fetch_term();
+  let maybe_import = unsafe {
+    HOImport::from_term(import_term)
+  };
+  let import = match maybe_import {
+    Ok(i) => i,
+    Err(_) => {
+      let badfun = make_badfun(import_term, &mut curr_p.heap);
+      return DispatchResult::Error(ExceptionType::Error, badfun)
+    },
   };
 
   let p_args = ctx.ip.get_ptr() as *const LTerm;
@@ -236,11 +246,11 @@ pub fn call_bif(ctx: &mut Context,
   match bif_result {
     // On error and if fail label is a CP, perform a goto
     // Assume that error is already written to `reason` in process
-    BifResult::Exception(e, rsn) => {
+    BifResult::Exception(ex_type, ex_reason) => {
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
-      DispatchResult::Error(e, rsn)
+      DispatchResult::Error(ex_type, ex_reason)
     },
 
     BifResult::Fail(f) => {

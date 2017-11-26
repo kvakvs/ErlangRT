@@ -87,7 +87,7 @@ impl HOClosure {
 
 
   #[inline]
-  pub unsafe fn from_term(t: LTerm) -> Option<*const HOClosure> {
+  pub unsafe fn from_term(t: LTerm) -> Hopefully<*const HOClosure> {
     heapobj_from_term::<HOClosure>(t, &HOCLASS_CLOSURE)
   }
 

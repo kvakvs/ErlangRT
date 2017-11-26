@@ -1,8 +1,8 @@
 use bif::BifResult;
-use emulator::gen_atoms;
 use emulator::process::Process;
 use rt_defs::ExceptionType;
 use term::lterm::LTerm;
+use term::builders::{make_badfun_n};
 
 
 fn module() -> &'static str { "bif_sys: " }
@@ -12,7 +12,8 @@ fn module() -> &'static str { "bif_sys: " }
 pub fn bif_nif_error_1(cur_proc: &mut Process,
                        args: &[LTerm]) -> BifResult
 {
-  BifResult::Exception(ExceptionType::Error, gen_atoms::BADFUN)
+  BifResult::Exception(ExceptionType::Error,
+                       make_badfun_n(args, &mut cur_proc.heap))
 }
 
 
@@ -20,5 +21,6 @@ pub fn bif_nif_error_1(cur_proc: &mut Process,
 pub fn bif_nif_error_2(cur_proc: &mut Process,
                        args: &[LTerm]) -> BifResult
 {
-  BifResult::Exception(ExceptionType::Error, gen_atoms::BADFUN)
+  BifResult::Exception(ExceptionType::Error,
+                       make_badfun_n(args, &mut cur_proc.heap))
 }

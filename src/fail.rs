@@ -29,6 +29,10 @@ pub enum Error {
   AtomNotExist(String),
   HeapError(HeapError),
   //StackIndexRange,
+
+  //--- VM Checks ---
+  HeapObjBoxExpected,
+  HeapObjNotAType,
 }
 
 

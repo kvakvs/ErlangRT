@@ -56,7 +56,7 @@ impl HOBignum {
   /// Given a term, unbox it and convert to a `HOBignum` const pointer.
   #[inline]
   #[allow(dead_code)]
-  pub unsafe fn from_term(t: LTerm) -> Option<*const HOBignum> {
+  pub unsafe fn from_term(t: LTerm) -> Hopefully<*const HOBignum> {
     heapobj_from_term::<HOBignum>(t, &HOCLASS_BIGNUM)
   }
 

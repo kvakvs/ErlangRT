@@ -760,6 +760,7 @@ impl Loader {
       let fun_atom = self.from_loadtime_atom_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
+      //println!("is_bif {} for {}", is_bif, mf_arity);
       let ho_imp = unsafe {
         HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif)?
       };

@@ -74,7 +74,7 @@ impl HOImport {
 
 
   #[inline]
-  pub unsafe fn from_term(t: LTerm) -> Option<*const HOImport> {
+  pub unsafe fn from_term(t: LTerm) -> Hopefully<*const HOImport> {
     heapobj_from_term::<HOImport>(t, &HOCLASS_IMPORT)
   }
 

@@ -89,7 +89,7 @@ impl HOBinary {
   /// Given a term, unbox it and convert to a `HOBinary` const pointer.
   /// Returns None if not a binary.
   #[inline]
-  pub unsafe fn from_term(t: LTerm) -> Option<*const HOBinary> {
+  pub unsafe fn from_term(t: LTerm) -> Hopefully<*const HOBinary> {
     heapobj_from_term::<HOBinary>(t, &HOCLASS_BINARY)
   }
 

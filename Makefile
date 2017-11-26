@@ -3,8 +3,8 @@ HERE=$(shell pwd)
 .PHONY: run run-rel
 # Compile and run
 run: priv
-#	cargo run
-	target/debug/erlang_rt
+	cargo run
+#	target/debug/erlang_rt
 
 run-rel: priv
 	cargo run --release

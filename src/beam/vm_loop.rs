@@ -54,8 +54,8 @@ impl VM {
           curr_p.timeslice_result = SliceResult::Yield;
           return true
         },
-        DispatchResult::Error(err_t, err_val) => {
-          curr_p.exception(err_t, err_val);
+        DispatchResult::Error(exc_type, exc_reason) => {
+          curr_p.exception(exc_type, exc_reason);
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Exception;
           return true

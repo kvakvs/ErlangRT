@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 
 use emulator::gen_atoms;
 use rt_defs::{Word, WORD_BYTES};
-use emulator::code::{CodePtr, CodeOffset, Code};
+use emulator::code::{CodePtr, Code};
 use emulator::code_srv::module_id::VersionedModuleId;
 use emulator::funarity::FunArity;
 use emulator::function::{FunEntry, CallableLocation};

@@ -4,7 +4,6 @@ pub mod pointer;
 pub mod iter;
 
 use rt_defs::Word;
-use term::lterm::LTerm;
 
 use std::collections::BTreeMap;
 

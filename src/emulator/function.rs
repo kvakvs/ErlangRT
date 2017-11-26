@@ -1,7 +1,7 @@
 use std::fmt;
 
 use bif::BifFn;
-use emulator::code::{CodeOffset, FarCodePointer};
+use emulator::code::{FarCodePointer};
 use emulator::mfa::MFArity;
 
 

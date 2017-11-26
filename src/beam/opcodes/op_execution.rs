@@ -3,17 +3,15 @@
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use emulator::gen_atoms;
+use beam::vm_loop::DispatchResult;
 use emulator::code::CodePtr;
 use emulator::process::Process;
-use emulator::runtime_ctx::Context;
-use emulator::heap::{allocate_tuple};
+use emulator::runtime_ctx::{Context, call_bif};
 use rt_defs::stack::IStack;
 use rt_defs::{ExceptionType};
-use beam::vm_loop::DispatchResult;
+use term::builders::{make_badfun, make_badmatch};
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
-//use term::raw::rtuple::TuplePtrMut;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }
@@ -67,10 +65,10 @@ pub fn opcode_call_only(ctx: &mut Context,
 /// point to an external function or a BIF. Does not update the `ctx.cp`.
 #[inline]
 pub fn opcode_call_ext_only(ctx: &mut Context,
-                            _curr_p: &mut Process) -> DispatchResult {
+                            curr_p: &mut Process) -> DispatchResult {
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
-  shared_call_ext(ctx, false)
+  shared_call_ext(ctx, curr_p,false)
 }
 
 
@@ -79,33 +77,45 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
 /// function or a BIF. Updates the `ctx.cp` with return IP.
 #[inline]
 pub fn opcode_call_ext(ctx: &mut Context,
-                       _curr_p: &mut Process) -> DispatchResult {
+                       curr_p: &mut Process) -> DispatchResult {
   // Structure: call_ext(arity:int, destination:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT, 2);
-  shared_call_ext(ctx, true)
+  shared_call_ext(ctx, curr_p, true)
 }
 
 
 #[inline]
-fn shared_call_ext(ctx: &mut Context, save_cp: bool) -> DispatchResult {
-  let arity = ctx.fetch_term();
-  ctx.live = arity.small_get_u();
+fn shared_call_ext(ctx: &mut Context,
+                   curr_p: &mut Process,
+                   save_cp: bool) -> DispatchResult {
+  let arity = ctx.fetch_term().small_get_u();
+  ctx.live = arity;
 
   // HOImport object on heap which contains m:f/arity
-  if let Some(import) = unsafe { HOImport::from_term(ctx.fetch_term()) } {
-    unsafe {
-      if (*import).is_bif {
-        panic!("{}call_ext: call_bif", module());
-      } else {
-        if save_cp {
-          ctx.cp = ctx.ip; // Points at the next opcode after this
+  let imp0 = ctx.fetch_term();
+
+  match unsafe { HOImport::from_term(imp0) } {
+    Ok(import) =>
+      unsafe {
+        if (*import).is_bif {
+          // Perform a BIF application
+          //
+          return call_bif(ctx, curr_p, arity, true)
+        } else {
+          // Perform a regular call to BEAM code, save CP and jump
+          //
+          if save_cp {
+            ctx.cp = ctx.ip; // Points at the next opcode after this
+          }
+          ctx.ip = (*import).resolve().unwrap();
+          return DispatchResult::Normal
         }
-        ctx.ip = (*import).resolve().unwrap()
-      }
+      },
+    Err(err) => {
+      // Create a `{badfun, _}` error
+      let badfun = make_badfun(imp0, &mut curr_p.heap);
+      return DispatchResult::Error(ExceptionType::Error, badfun)
     }
-    DispatchResult::Normal
-  } else {
-    DispatchResult::Error(ExceptionType::Error, gen_atoms::BADFUN)
   }
 }
 
@@ -153,11 +163,8 @@ pub fn opcode_badmatch(ctx: &mut Context,
   // Structure: badmatch(LTerm)
   assert_arity(gen_op::OPCODE_BADMATCH, 1);
 
-  let val = ctx.fetch_and_load(&mut curr_p.heap);
-  let tuple = allocate_tuple(&mut curr_p.heap, 2).unwrap();
-  unsafe {
-    tuple.set_element_base0(0, gen_atoms::BADMATCH);
-    tuple.set_element_base0(1, val);
-  }
-  DispatchResult::Error(ExceptionType::Error, tuple.make_term())
+  let hp = &mut curr_p.heap;
+  let val = ctx.fetch_and_load(hp);
+  let badmatch = make_badmatch(val, hp);
+  DispatchResult::Error(ExceptionType::Error, badmatch)
 }

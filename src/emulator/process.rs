@@ -30,11 +30,11 @@ impl fmt::Display for ProcessError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
       ProcessError::None => write!(f, "NoError"),
-      ProcessError::Exception(exc, t) => {
-        match exc {
-          ExceptionType::Exit => write!(f, "exit({})", t),
-          ExceptionType::Throw => write!(f, "throw({})", t),
-          ExceptionType::Error => write!(f, "error({})", t),
+      ProcessError::Exception(exc_type, exc_reason) => {
+        match exc_type {
+          ExceptionType::Exit => write!(f, "exit({})", exc_reason),
+          ExceptionType::Throw => write!(f, "throw({})", exc_reason),
+          ExceptionType::Error => write!(f, "error({})", exc_reason),
         }
       },
     }

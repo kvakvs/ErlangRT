@@ -102,11 +102,13 @@ impl ITermBuilder for TermBuilder {
   type TupleBuilderT = TupleBuilder;
   type ListBuilderT = ListBuilder;
 
+
   unsafe fn create_bignum(&self, n: num::BigInt) -> Self::TermT {
     let ref_heap = self.heap.as_mut().unwrap();
     let big_p = HOBignum::place_into(ref_heap, n).unwrap();
     HOBignum::make_term(big_p)
   }
+
 
   unsafe fn create_binary(&mut self, b: &[u8]) -> Self::TermT {
     let ref_heap = self.heap.as_mut().unwrap();
@@ -115,25 +117,30 @@ impl ITermBuilder for TermBuilder {
     HOBinary::make_term(rbin)
   }
 
+
   #[inline]
   fn create_atom_str(&self, a: &str) -> Self::TermT {
     atom::from_str(a)
   }
+
 
   #[inline]
   fn create_nil(&self) -> Self::TermT {
     nil()
   }
 
+
   #[inline]
   fn create_small_s(&self, n: isize) -> Self::TermT {
     make_small_s(n)
   }
 
+
   #[inline]
   fn create_empty_binary(&self) -> Self::TermT {
     empty_binary()
   }
+
 
   fn create_tuple_builder(&mut self, sz: usize) -> Self::TupleBuilderT {
     let ref_heap = unsafe { self.heap.as_mut() }.unwrap();

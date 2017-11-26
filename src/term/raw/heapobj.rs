@@ -3,6 +3,8 @@
 //! 1. (p+0) A header tag with arity which delimits the object size.
 //! 2. (p+1) A `HeapObjClass` pointer which is used to call methods on a heap object.
 //! 3. (p+2...) The data
+
+use fail::{Hopefully, Error};
 use rt_defs::Word;
 use term::primary::header;
 use term::classify::TermClass;
@@ -52,18 +54,18 @@ pub struct HeapObjClass {
 
 #[inline]
 pub unsafe fn heapobj_from_term<HOClassT>(t: LTerm, hoclass: *const HeapObjClass)
-  -> Option<*const HOClassT>
+  -> Hopefully<*const HOClassT>
 {
   if !t.is_box() {
-    return None;
+    return Err(Error::HeapObjBoxExpected);
   }
 
   // Check whether the object is HOClosure
   let boxp = t.box_ptr();
   let hdr = boxp as *const HeapObjHeader;
   if (*hdr).class_ptr != hoclass {
-    return None;
+    return Err(Error::HeapObjNotAType);
   }
 
-  Some(boxp as *const HOClassT)
+  Ok(boxp as *const HOClassT)
 }

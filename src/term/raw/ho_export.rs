@@ -59,6 +59,7 @@ impl HOExport {
   }
 
 
+  #[allow(dead_code)]
   pub unsafe fn place_into(hp: &mut Heap,
                            mfa: &MFArity) -> Hopefully<LTerm>
   {
@@ -71,7 +72,7 @@ impl HOExport {
 
 
   #[inline]
-  pub unsafe fn from_term(t: LTerm) -> Option<*const HOExport> {
+  pub unsafe fn from_term(t: LTerm) -> Hopefully<*const HOExport> {
     heapobj_from_term::<HOExport>(t, &HOCLASS_EXPORT)
   }
 
