@@ -82,17 +82,37 @@ enum PatchLocation {
 }
 
 
+/// Stage 1 raw structures, as loaded and decoded from the beam file but not
+/// ready to be used in runtime
+struct LoaderRaw {
+  /// Raw atoms loaded from BEAM module as strings
+  atoms: Vec<String>,
+  imports: Vec<LImport>,
+  exports: Vec<LExport>,
+  locals: Vec<LExport>,
+  lambdas: Vec<LFun>,
+  /// Temporary storage for loaded code, will be parsed in stage 2
+  code: Vec<u8>,
+}
+
+
+impl LoaderRaw {
+  fn new() -> LoaderRaw {
+    LoaderRaw {
+      atoms: Vec::new(),
+      imports: Vec::new(),
+      exports: Vec::new(),
+      locals: Vec::new(),
+      lambdas: Vec::new(),
+      code: Vec::new(),
+    }
+  }
+}
+
+
 /// BEAM loader state.
 pub struct Loader {
-  //--- Stage 1 raw structures ---
-  /// Raw atoms loaded from BEAM module as strings
-  raw_atoms: Vec<String>,
-  raw_imports: Vec<LImport>,
-  raw_exports: Vec<LExport>,
-  raw_locals: Vec<LExport>,
-  raw_lambdas: Vec<LFun>,
-  /// Temporary storage for loaded code, will be parsed in stage 2
-  raw_code: Vec<u8>,
+  raw: LoaderRaw,
 
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms. Remember to use from_loadtime_atom_index()
@@ -128,12 +148,7 @@ impl Loader {
   /// Construct a new loader state.
   pub fn new() -> Loader {
     Loader {
-      raw_atoms: Vec::new(),
-      raw_imports: Vec::new(),
-      raw_exports: Vec::new(),
-      raw_locals: Vec::new(),
-      raw_lambdas: Vec::new(),
-      raw_code: Vec::new(),
+      raw: LoaderRaw::new(),
 
       lit_tab: Vec::new(),
       lit_heap: Heap::new(DEFAULT_LIT_HEAP),
@@ -201,11 +216,11 @@ impl Loader {
         "Attr" => self.load_attributes(&mut r)?,
         "AtU8" => self.load_atoms_utf8(&mut r),
         "Code" => self.load_code(&mut r, chunk_sz as Word),
-        "ExpT" => self.raw_exports = self.load_exports(&mut r),
+        "ExpT" => self.raw.exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
-        "LocT" => self.raw_locals = self.load_exports(&mut r),
+        "LocT" => self.raw.locals = self.load_exports(&mut r),
         "LitT" => self.load_literals(&mut r, chunk_sz as Word),
 
         "CInf" | // skip compiler info
@@ -232,13 +247,13 @@ impl Loader {
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
   pub fn load_stage2(&mut self) -> Hopefully<()> {
-    self.vm_atoms.reserve(self.raw_atoms.len());
-    for a in &self.raw_atoms {
+    self.vm_atoms.reserve(self.raw.atoms.len());
+    for a in &self.raw.atoms {
       self.vm_atoms.push(atom::from_str(a));
     }
 
-    // Convert LFuns in self.raw_funs to FunEntries
-    for rf in &self.raw_lambdas {
+    // Convert LFuns in self.raw.funs to FunEntries
+    for rf in &self.raw.lambdas {
       let fun_name = self.from_loadtime_atom_index(rf.fun_atom_i);
       // Remember: atoms[0] is the module name
       let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
@@ -301,7 +316,7 @@ impl Loader {
     for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_utf8(atom_bytes as Word).unwrap();
-      self.raw_atoms.push(atom_text);
+      self.raw.atoms.push(atom_text);
     }
   }
 
@@ -311,11 +326,11 @@ impl Loader {
   /// Same as `load_atoms_utf8` but interprets strings per-character as latin-1
   fn load_atoms_latin1(&mut self, r: &mut BinaryReader) {
     let n_atoms = r.read_u32be();
-    self.raw_atoms.reserve(n_atoms as usize);
+    self.raw.atoms.reserve(n_atoms as usize);
     for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_latin1(atom_bytes as Word).unwrap();
-      self.raw_atoms.push(atom_text);
+      self.raw.atoms.push(atom_text);
     }
   }
 
@@ -330,7 +345,7 @@ impl Loader {
     //    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
     //      code_ver, min_opcode, max_opcode, n_labels, n_funs);
 
-    self.raw_code = r.read_bytes(chunk_sz - 20).unwrap();
+    self.raw.code = r.read_bytes(chunk_sz - 20).unwrap();
   }
 
 
@@ -338,14 +353,14 @@ impl Loader {
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
   fn load_imports(&mut self, r: &mut BinaryReader) {
     let n_imports = r.read_u32be();
-    self.raw_imports.reserve(n_imports as usize);
+    self.raw.imports.reserve(n_imports as usize);
     for _i in 0..n_imports {
       let imp = LImport {
         mod_atom_i: r.read_u32be(),
         fun_atom_i: r.read_u32be(),
         arity: r.read_u32be() as Arity,
       };
-      self.raw_imports.push(imp);
+      self.raw.imports.push(imp);
     }
   }
 
@@ -370,7 +385,7 @@ impl Loader {
 
   fn load_fun_table(&mut self, r: &mut BinaryReader) {
     let n_funs = r.read_u32be();
-    self.raw_lambdas.reserve(n_funs as usize);
+    self.raw.lambdas.reserve(n_funs as usize);
     for _i in 0..n_funs {
       let fun_atom = r.read_u32be();
       let arity = r.read_u32be();
@@ -378,7 +393,7 @@ impl Loader {
       let index = r.read_u32be();
       let nfree = r.read_u32be();
       let ouniq = r.read_u32be();
-      self.raw_lambdas.push(LFun {
+      self.raw.lambdas.push(LFun {
         fun_atom_i: fun_atom,
         arity,
         code_pos,
@@ -468,7 +483,7 @@ impl Loader {
   fn postprocess_parse_raw_code(&mut self) {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
-    mem::swap(&mut self.raw_code, &mut raw_code);
+    mem::swap(&mut self.raw.code, &mut raw_code);
 
     //
     // Estimate code size and preallocate the code storage
@@ -684,8 +699,8 @@ impl Loader {
     // Step 1
     // Write imports onto literal heap as {Mod, Fun, Arity} triplets
     //
-    self.lit_imports.reserve(self.raw_imports.len());
-    for ri in &self.raw_imports {
+    self.lit_imports.reserve(self.raw.imports.len());
+    for ri in &self.raw.imports {
       let mod_atom = self.from_loadtime_atom_index(ri.mod_atom_i);
       let fun_atom = self.from_loadtime_atom_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
