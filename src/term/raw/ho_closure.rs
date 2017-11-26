@@ -1,12 +1,9 @@
-//! Heap object which stores a closure - lambda function pointer with some
-//! frozen values captured at its creation.
+//! Heap object which stores a closure - a stateful function pointer (with some
+//! frozen values captured at its creation).
 
 use std::mem::size_of;
 use std::ptr;
 
-//use bif::{find_bif};
-//use emulator::code::CodePtr;
-//use emulator::code_srv;
 use emulator::function::FunEntry;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
@@ -16,6 +13,7 @@ use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;
 use term::raw::heapobj::*;
+use emulator::function::MFADestination;
 
 
 /// Heap object `HOClosure` is placed on heap.
@@ -23,6 +21,7 @@ use term::raw::heapobj::*;
 pub struct HOClosure {
   pub hobj: HeapObjHeader,
   pub mfa: MFArity,
+  pub dst: MFADestination,
   pub nfree: u32,
   // frozen values follow here in memory after the main fields
 }
@@ -57,6 +56,11 @@ impl HOClosure {
   }
 
 
+  fn new(hobj: HeapObjHeader, mfa: MFArity, nfree: u32) -> HOClosure {
+    HOClosure { hobj, mfa, dst: MFADestination::NeedUpdate, nfree }
+  }
+
+
   pub unsafe fn place_into(hp: &mut Heap,
                            fe: &FunEntry,
                            frozen: &[LTerm]) -> Hopefully<LTerm>
@@ -65,11 +69,11 @@ impl HOClosure {
     let this = hp.heap_allocate(n_words, false)? as *mut HOClosure;
 
     ptr::write(this,
-               HOClosure {
-                 hobj: HeapObjHeader::new(n_words, &HOCLASS_CLOSURE),
-                 mfa: fe.mfa.clone(),
-                 nfree: fe.nfree
-               });
+               HOClosure::new(
+                 HeapObjHeader::new(n_words, &HOCLASS_CLOSURE),
+                 fe.mfa.clone(),
+                 fe.nfree
+               ));
 
     assert_eq!(frozen.len(), fe.nfree as usize);
     // step 1 closure forward, which will point exactly at the frozen location

@@ -7,12 +7,13 @@ use rt_defs::Word;
 use term::primary::header;
 use term::classify::TermClass;
 use term::lterm::LTerm;
-use term::lterm::aspect_boxed::BoxedAspect;
+use term::lterm::aspect_boxed::{BoxedAspect};
 
 
 pub enum HeapObjType {
   /// Type maps to `term::raw::ho_import::HOImport` heap obj class.
   Import,
+  Export,
   Binary,
   Bignum,
   Closure,

@@ -9,7 +9,7 @@ test() ->
     %% Test 3: Reverse and equality check
     false = test_eq(),
     test_list_ops(),
-    test_extcalls(),
+    test_calls(),
     test_case(),
     test_hof(),
     test_hof_fold(),
@@ -82,8 +82,11 @@ my_foldl(F, Accu, []) when is_function(F, 2) -> Accu.
 test_case() ->
     [f1, f2, f3, f4] = lists:sort([f3, f2, f4, f1]).
 
-test_extcalls() ->
-    [e1, e2, e3] = lists:reverse([e3, e2, e1]).
+test_calls() ->
+    F1 = fun lists:reverse/1,
+    [e1a, e2a, e3a] = F1([e3a, e2a, e1a]),
+    F2 = fun(L) -> lists:reverse(L) end,
+    [e1b, e2b, e3b] = F2([e3b, e2b, e1b]).
 
 test_eq() ->
     [d1, d2, d3, d4] == rev([d1, d2, d3, d4]).

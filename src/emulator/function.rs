@@ -1,6 +1,8 @@
 //use rt_defs::Arity;
-use emulator::mfa::MFArity;
 //use term::lterm::LTerm;
+use bif::BifFn;
+use emulator::code::CodePtr;
+use emulator::mfa::MFArity;
 
 
 /// Result of Lambda Table loading prepared for use in the runtime.
@@ -13,8 +15,21 @@ pub struct FunEntry {
   //  ouniq: u32,
 }
 
+
 impl FunEntry {
   pub fn new(mfa: MFArity, nfree: u32) -> FunEntry {
     FunEntry { mfa, nfree }
   }
+}
+
+
+/// Defines where the export is pointing. Could be code pointer or a BIF.
+pub enum MFADestination {
+  /// The MFA of the export wasn't resolved yet or became invalid.
+  NeedUpdate,
+  /// Points to Erlang code.
+  // TODO: Version/hash/seq id for codeptr if code is reloaded?
+  Code(CodePtr),
+  /// Points to a BIF callable function.
+  Bif(BifFn),
 }

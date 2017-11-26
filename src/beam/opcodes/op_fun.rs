@@ -11,9 +11,12 @@ use emulator::function::FunEntry;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 use rt_defs::{ExceptionType, Arity};
+use term::lterm::LTerm;
 use term::lterm::aspect_cp::CpAspect;
 use term::lterm::aspect_smallint::SmallintAspect;
 use term::raw::ho_closure::HOClosure;
+//use term::raw::ho_import::HOImport;
+use term::raw::ho_export::HOExport;
 
 
 #[inline]
@@ -49,17 +52,54 @@ pub fn opcode_call_fun(ctx: &mut Context,
   let arity = ctx.fetch_term().small_get_u();
   let args = unsafe { slice::from_raw_parts(&ctx.regs[0], arity) };
 
-  if let Some(closure) = unsafe { HOClosure::from_term(ctx.regs[arity]) } {
-    ctx.live = arity + 1;
-
-    if unsafe { (*closure).mfa.arity } != arity as Arity {
-      return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADARITY)
-    }
-
-    panic!("callfun!")
+  // Take function object argument
+  let fobj = ctx.regs[arity];
+  if let Some(closure) = unsafe { HOClosure::from_term(fobj) } {
+    // `fobj` is a callable closure made with `fun() -> code end`
+    call_closure(ctx, curr_p, closure, args)
+  } else if let Some(export) = unsafe { HOExport::from_term(fobj) } {
+    // `fobj` is an export made with `fun module:name/0`
+    call_export(ctx, curr_p, export, args)
   } else {
     return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADFUN)
   }
+}
 
-  DispatchResult::Normal
+
+/// The `closure` is a callable closure with some frozen variables made with
+/// `fun() -> code end`.
+fn call_closure(ctx: &mut Context,
+                curr_p: &mut Process,
+                closure: *const HOClosure,
+                args: &[LTerm]) -> DispatchResult
+{
+  let arity = args.len();
+  ctx.live = arity + 1;
+
+  if unsafe { (*closure).mfa.arity } != arity as Arity {
+    return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADARITY)
+  }
+
+  panic!("call_closure")
+//  DispatchResult::Normal
+}
+
+
+/// The `exp` is an export made with `fun module:name/0` which can point to
+/// either an Erlang function or to a BIF (native built-in function).
+fn call_export(ctx: &mut Context,
+               curr_p: &mut Process,
+               export: *const HOExport,
+               args: &[LTerm]) -> DispatchResult
+{
+  // The `fobj` is a callable closure made with `fun() -> code end`
+  let arity = args.len();
+  ctx.live = arity + 1;
+
+  if unsafe { (*export).mfa.arity } != arity as Arity {
+    return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADARITY)
+  }
+
+  panic!("call_export")
+//  DispatchResult::Normal
 }

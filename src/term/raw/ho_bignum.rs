@@ -10,7 +10,8 @@ use emulator::heap::Heap;
 use term::raw::heapobj::*;
 use fail::Hopefully;
 use term::classify::TermClass;
-use term::lterm::*;
+use term::lterm::LTerm;
+use term::lterm::aspect_boxed::{make_box};
 
 
 /// Heap object `HOBignum` is placed on heap by the VM and contains a signed
@@ -35,7 +36,9 @@ static HOCLASS_BIGNUM: HeapObjClass = HeapObjClass {
 };
 
 
+
 impl HOBignum {
+
   /// Destructor.
   pub unsafe fn dtor(this0: *mut Word) {
     let this = this0 as *mut HOBignum;
@@ -50,9 +53,32 @@ impl HOBignum {
   }
 
 
+  /// Given a term, unbox it and convert to a `HOBignum` const pointer.
+  #[inline]
+  #[allow(dead_code)]
+  pub unsafe fn from_term(t: LTerm) -> Option<*const HOBignum> {
+    heapobj_from_term::<HOBignum>(t, &HOCLASS_BIGNUM)
+  }
+
+
+//  /// Given a term, unbox it and convert to a `HOBignum` mut pointer.
+  //  #[inline]
+  //  pub fn from_term_mut(t: LTerm) -> *const HOBignum {
+  //    let p = t.box_ptr_mut();
+  //    p as *mut HOBignum
+  //  }
+
   #[inline]
   fn storage_size() -> usize {
     (size_of::<HOBignum>() + WORD_BYTES - 1) / WORD_BYTES
+  }
+
+
+  fn new(n_words: usize, value: BigInt) -> HOBignum {
+    HOBignum {
+      hobj: HeapObjHeader::new(n_words, &HOCLASS_BIGNUM),
+      value,
+    }
   }
 
 
@@ -65,33 +91,14 @@ impl HOBignum {
     let n_words = HOBignum::storage_size();
     let this = hp.heap_allocate(n_words, false)? as *mut HOBignum;
 
-    ptr::write(this,
-               HOBignum {
-                 hobj: HeapObjHeader::new(n_words, &HOCLASS_BIGNUM),
-                 value
-               });
+    ptr::write(this, HOBignum::new(n_words, value));
 
     return Ok(this);
   }
 
 
-  /// Given a term, unbox it and convert to a `HOBignum` const pointer.
-  #[inline]
-  pub unsafe fn from_term(t: LTerm) -> Option<*const HOBignum> {
-    heapobj_from_term::<HOBignum>(t, &HOCLASS_BIGNUM)
-  }
-
-
-  /// Given a term, unbox it and convert to a `HOBignum` mut pointer.
-  //  #[inline]
-  //  pub fn from_term_mut(t: LTerm) -> *const HOBignum {
-  //    let p = t.box_ptr_mut();
-  //    p as *mut HOBignum
-  //  }
-
-  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
-  #[inline]
   pub fn make_term(this: *const HOBignum) -> LTerm {
     make_box(this as *const Word)
   }
+
 }
