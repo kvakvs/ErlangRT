@@ -13,7 +13,7 @@ use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;
 use term::raw::heapobj::*;
-use emulator::function::MFADestination;
+use emulator::function::CallableLocation;
 
 
 /// Heap object `HOClosure` is placed on heap.
@@ -21,7 +21,7 @@ use emulator::function::MFADestination;
 pub struct HOClosure {
   pub hobj: HeapObjHeader,
   pub mfa: MFArity,
-  pub dst: MFADestination,
+  pub dst: CallableLocation,
   pub nfree: u32,
   // frozen values follow here in memory after the main fields
 }
@@ -57,7 +57,7 @@ impl HOClosure {
 
 
   fn new(hobj: HeapObjHeader, mfa: MFArity, nfree: u32) -> HOClosure {
-    HOClosure { hobj, mfa, dst: MFADestination::NeedUpdate, nfree }
+    HOClosure { hobj, mfa, dst: CallableLocation::NeedUpdate, nfree }
   }
 
 

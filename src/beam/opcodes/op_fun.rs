@@ -96,7 +96,7 @@ fn call_export(ctx: &mut Context,
   let arity = args.len();
   ctx.live = arity + 1;
 
-  if unsafe { (*export).mfa.arity } != arity as Arity {
+  if unsafe { (*export).exp.mfa.arity } != arity as Arity {
     return DispatchResult::Error(ExceptionType::Error, gen_atoms::BADARITY)
   }
 

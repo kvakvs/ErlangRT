@@ -85,8 +85,10 @@ test_case() ->
 test_calls() ->
     F1 = fun lists:reverse/1,
     [e1a, e2a, e3a] = F1([e3a, e2a, e1a]),
-    F2 = fun(L) -> lists:reverse(L) end,
-    [e1b, e2b, e3b] = F2([e3b, e2b, e1b]).
+
+    L2 = [e1b, e2b, e3b],
+    F2 = fun() -> lists:reverse(L2) end,
+    L2 = F2([e3b, e2b, e1b]).
 
 test_eq() ->
     [d1, d2, d3, d4] == rev([d1, d2, d3, d4]).

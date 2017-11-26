@@ -4,25 +4,32 @@ pub mod pointer;
 pub mod iter;
 
 use rt_defs::Word;
+use term::lterm::LTerm;
 
 use std::collections::BTreeMap;
 
 pub use emulator::code::opcode::*;
 pub use emulator::code::pointer::*;
 
+
 /// Code array stores opcodes/jump table offsets and args encoded as `LTerm`
 pub type Code = Vec<Word>;
 
+
 /// A slice to a code array
 pub type RefCode<'a> = &'a [Word];
+
 
 /// Tagged word for label index
 #[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
 pub struct LabelId(pub Word);
 
+
 /// Tagged word for offset in the code array
 #[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
 pub struct CodeOffset(pub Word);
 
+
 /// Map of label id to offset. Maybe: Use binary search sorted array?
 pub type Labels = BTreeMap<LabelId, CodeOffset>;
+

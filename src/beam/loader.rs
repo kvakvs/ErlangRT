@@ -14,25 +14,29 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
+//use term::lterm::aspect_boxed::{make_box};
 use beam::compact_term;
 use beam::gen_op;
 use bif;
-use emulator::atom;
-use emulator::code::pointer::CodePtrMut;
-use emulator::code::{LabelId, CodeOffset, Code, opcode};
-use emulator::code;
-use emulator::funarity::FunArity;
-use emulator::function::FunEntry;
-use emulator::heap::{Heap, DEFAULT_LIT_HEAP, allocate_tuple};
-use emulator::mfa::MFArity;
-use emulator::module;
 use fail::{Hopefully, Error};
 use rt_defs::{Word, Arity};
 use rt_util::bin_reader::{BinaryReader, ReadError};
 use rt_util::ext_term_format as etf;
+
+use emulator::atom;
+use emulator::code::pointer::CodePtrMut;
+use emulator::code::{LabelId, CodeOffset, Code, opcode};
+use emulator::code;
+use emulator::code_srv::module_id::VersionedModuleId;
+use emulator::export::Export;
+use emulator::funarity::FunArity;
+use emulator::function::{FunEntry};
+use emulator::heap::{Heap, DEFAULT_LIT_HEAP, allocate_tuple};
+use emulator::mfa::MFArity;
+use emulator::module;
+
 use term::fterm::FTerm;
 use term::lterm::*;
-//use term::lterm::aspect_boxed::{make_box};
 use term::raw::ho_import::HOImport;
 use term::raw::TuplePtrMut;
 use term::term_builder::TermBuilder;
@@ -112,6 +116,7 @@ impl LoaderRaw {
 
 /// BEAM loader state.
 pub struct Loader {
+  mod_id: Option<VersionedModuleId>,
   raw: LoaderRaw,
 
   //--- Stage 2 structures filled later ---
@@ -123,24 +128,37 @@ pub struct Loader {
   //--- Code postprocessing and creating a function object ---
   /// Accumulate code for the current function here then move it when done.
   code: Code,
+
   /// Labels are stored here while loading, for later resolve.
   /// Type:: map<Label, Offset>
   labels: BTreeMap<LabelId, CodeOffset>,
+
   /// Locations of label values are collected and at a later pass replaced
   /// with their word values or function pointer (if the label points outside)
   replace_labels: Vec<PatchLocation>,
+
   funs: module::FunTable,
+
   /// Literal table decoded into friendly terms (does not use process heap).
   lit_tab: Vec<LTerm>,
+
   /// A place to allocate larger lterms (literal heap)
   lit_heap: Heap,
+
   /// Proplist of module attributes as loaded from "Attr" section
   mod_attrs: LTerm,
+
   // /// Compiler flags as loaded from "Attr" section
   // compiler_info: LTerm,
+
   /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
-  lit_imports: Vec<LTerm>,
+  imports: Vec<LTerm>,
+
   lambdas: Vec<FunEntry>,
+
+  /// A map of F/Arity -> HOExport which uses literal heap but those created
+  /// during runtime will be using process heap.
+  exports: BTreeMap<FunArity, LTerm>
 }
 
 
@@ -149,11 +167,11 @@ impl Loader {
   pub fn new() -> Loader {
     Loader {
       raw: LoaderRaw::new(),
+      mod_id: None,
 
       lit_tab: Vec::new(),
       lit_heap: Heap::new(DEFAULT_LIT_HEAP),
       vm_atoms: Vec::new(),
-      //vm_funs: BTreeMap::new(),
 
       code: Vec::new(),
       labels: BTreeMap::new(),
@@ -161,8 +179,9 @@ impl Loader {
       funs: BTreeMap::new(),
       mod_attrs: nil(),
       //compiler_info: nil(),
-      lit_imports: Vec::new(),
+      imports: Vec::new(),
       lambdas: Vec::new(),
+      exports: BTreeMap::new(),
     }
   }
 
@@ -220,6 +239,7 @@ impl Loader {
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
+        // LocT same format as ExpT, but for local functions
         "LocT" => self.raw.locals = self.load_exports(&mut r),
         "LitT" => self.load_literals(&mut r, chunk_sz as Word),
 
@@ -273,7 +293,10 @@ impl Loader {
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
   pub fn load_finalize(&mut self) -> Hopefully<module::Ptr> {
-    let newmod = module::Module::new(self.module_name());
+    let newmod = match self.mod_id {
+      Some(mod_id) => module::Module::new(&mod_id),
+      None => panic!("mod_id must be set at this point"),
+    };
 
     // Move funs into new module
     {
@@ -554,9 +577,18 @@ impl Loader {
               f: args[1].to_lterm(&mut self.lit_heap),
               arity: args[2].loadtime_word() as Arity
             };
+
             // Function code begins after the func_info opcode (1+3)
             let fun_begin = self.code.len() + 4;
-            self.funs.insert(funarity, CodeOffset(fun_begin));
+            match self.mod_id {
+              Some(mod_id) => {
+                let export = Export::new_code_offset(&funarity,
+                                                     &mod_id,
+                                                     fun_begin);
+                self.funs.insert(funarity, export);
+              },
+              None => panic!("mod_id must be set at this point"),
+            }
           }
 
           self.code.push(opcode::to_memory_word(op));
@@ -699,7 +731,7 @@ impl Loader {
     // Step 1
     // Write imports onto literal heap as {Mod, Fun, Arity} triplets
     //
-    self.lit_imports.reserve(self.raw.imports.len());
+    self.imports.reserve(self.raw.imports.len());
     for ri in &self.raw.imports {
       let mod_atom = self.from_loadtime_atom_index(ri.mod_atom_i);
       let fun_atom = self.from_loadtime_atom_index(ri.fun_atom_i);
@@ -709,7 +741,7 @@ impl Loader {
         HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif)?
       };
 
-      self.lit_imports.push(ho_imp);
+      self.imports.push(ho_imp);
     }
 
     // Step 2
@@ -751,7 +783,7 @@ impl Loader {
   /// unsigned and writes an LTerm pointer to a literal {M,F,Arity} tuple.
   fn rewrite_import_index_arg(&self, cp: &CodePtrMut, n: isize) {
     let import0 = unsafe { LTerm::from_raw(cp.read_n(n)) };
-    let import1 = self.lit_imports[import0.small_get_u()].raw();
+    let import1 = self.imports[import0.small_get_u()].raw();
     unsafe { cp.write_n(n, import1) }
   }
 

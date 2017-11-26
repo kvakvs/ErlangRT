@@ -1,10 +1,28 @@
 //! Module defines pointer types for readonly code and mutable code.
 use rt_defs::Word;
-//use rt_defs::TAG_CP;
+use term::lterm::aspect_cp::{make_cp, CpAspect};
 use term::immediate;
-use term::lterm::*;
+use term::lterm::LTerm;
+use emulator::code_srv::module_id::VersionedModuleId;
 
 use std::fmt;
+
+
+/// A cross-module code pointer locked at a specific module version.
+/// Versions are maintained by the Code Server.
+#[derive(Debug, Copy, Clone)]
+pub struct FarCodePointer {
+  pub mod_id: VersionedModuleId,
+  pub offset: usize,
+}
+
+
+impl FarCodePointer {
+  pub fn new(mod_id: &VersionedModuleId, offset: usize) -> FarCodePointer {
+    FarCodePointer { mod_id: mod_id.clone(), offset }
+  }
+}
+
 
 /// Pointer to code location, can only be created to point to some opcode
 /// (instruction begin), and never to the data. During VM execution iterates
@@ -73,7 +91,6 @@ impl CodePtr {
 
 
   #[inline]
-  #[allow(dead_code)]
   pub fn offset(&self, n: isize) -> CodePtr {
     let CodePtr(p) = *self;
     let new_p = unsafe { p.offset(n) };

@@ -13,17 +13,14 @@ use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;
 use term::raw::heapobj::*;
-use emulator::function::MFADestination;
+use emulator::export::Export;
 
 
 /// Heap object `HOExport` is placed on heap.
 #[allow(dead_code)]
 pub struct HOExport {
   pub hobj: HeapObjHeader,
-  /// Where the export points.
-  pub mfa: MFArity,
-  /// Cached value for faster calls.
-  pub dst: MFADestination,
+  pub exp: Export,
 }
 
 
@@ -43,7 +40,7 @@ impl HOExport {
 
   pub unsafe fn fmt_str(this0: *const Word) -> String {
     let this = this0 as *mut HOExport;
-    format!("Export({})", (*this).mfa)
+    format!("Export({})", (*this).exp.mfa)
   }
 
 
@@ -57,8 +54,7 @@ impl HOExport {
   fn new(n_words: usize, mfa: &MFArity) -> HOExport {
     HOExport {
       hobj: HeapObjHeader::new(n_words, &HOCLASS_EXPORT),
-      mfa: mfa.clone(),
-      dst: MFADestination::NeedUpdate,
+      exp: Export::new(mfa),
     }
   }
 

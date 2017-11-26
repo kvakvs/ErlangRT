@@ -2,6 +2,8 @@
 //! Code server loads modules and stores them in memory, handles code lookups
 //! as well as dynamic reloading and partial unloading.
 //!
+pub mod module_id;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, Arc};

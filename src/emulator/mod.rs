@@ -2,6 +2,7 @@ pub mod atom;
 pub mod code;
 pub mod code_srv;
 pub mod disasm;
+pub mod export;
 pub mod funarity;
 pub mod function;
 pub mod gen_atoms; // generated
