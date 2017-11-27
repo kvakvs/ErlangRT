@@ -149,8 +149,8 @@ pub struct Loader {
   /// Proplist of module attributes as loaded from "Attr" section
   mod_attrs: LTerm,
 
-  // /// Compiler flags as loaded from "Attr" section
-  // compiler_info: LTerm,
+  /// Compiler flags as loaded from "Attr" section
+  compiler_info: LTerm,
 
   /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
   imports: Vec<LTerm>,
@@ -237,23 +237,23 @@ impl Loader {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => self.load_attributes(&mut r)?,
         "AtU8" => self.load_atoms_utf8(&mut r),
+        "CInf" => self.load_compiler_info(&mut r)?,
         "Code" => self.load_code(&mut r, chunk_sz as Word),
         "ExpT" => self.raw.exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
         "Line" => self.load_line_info(&mut r),
+        "LitT" => self.load_literals(&mut r, chunk_sz as Word),
         // LocT same format as ExpT, but for local functions
         "LocT" => self.raw.locals = self.load_exports(&mut r),
-        "LitT" => self.load_literals(&mut r, chunk_sz as Word),
 
-        "CInf" | // skip compiler info
         "Dbgi" | // skip debug info
         "StrT" | // skip strings TODO load strings?
         "Abst" => r.skip(chunk_sz as Word), // skip abstract code
 
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
-          return Err(Error::CodeLoadingFailed(msg));
+          return Err(Error::CodeLoadingFailed(msg))
         }
       }
 
@@ -281,7 +281,6 @@ impl Loader {
     // Convert LFuns in self.raw.funs to FunEntries
     for rf in &self.raw.lambdas {
       let fun_name = self.from_loadtime_atom_index(rf.fun_atom_i);
-      // Remember: atoms[0] is the module name
       let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
       self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
@@ -337,10 +336,14 @@ impl Loader {
   fn load_attributes(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
     let mut tb = TermBuilder::new(&mut self.lit_heap);
     self.mod_attrs = etf::decode(r, &mut tb)?;
-    println!("modattrs {}", self.mod_attrs);
 
-//    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap)?;
-//    println!("compilerinfo {}", self.compiler_info);
+    Ok(())
+  }
+
+
+  fn load_compiler_info(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
+    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap)?;
+    println!("compilerinfo {}", self.compiler_info);
 
     Ok(())
   }
@@ -388,8 +391,8 @@ impl Loader {
     let _max_opcode = r.read_u32be();
     let _n_labels = r.read_u32be();
     let _n_funs = r.read_u32be();
-    //    println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
-    //      code_ver, min_opcode, max_opcode, n_labels, n_funs);
+    // println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
+    //  code_ver, min_opcode, max_opcode, n_labels, n_funs);
 
     self.raw.code = r.read_bytes(chunk_sz - 20).unwrap();
   }
@@ -492,7 +495,8 @@ impl Loader {
     // Decompress deflated literal table
     let iocursor = Cursor::new(&deflated);
     zlib::Decoder::new(iocursor).read_to_end(&mut inflated).unwrap();
-    assert_eq!(inflated.len(), uncomp_sz as usize, "LitT inflate failed");
+    assert_eq!(inflated.len(), uncomp_sz as usize,
+               "{}LitT inflate failed", module());
 
     // Parse literal table
     //dump_vec(&inflated);
@@ -620,7 +624,8 @@ impl Loader {
       } // match op
     } // while !r.eof
 
-    assert_eq!(debug_code_start, self.code.as_ptr(), "Must do no reallocations")
+    assert_eq!(debug_code_start, self.code.as_ptr(),
+               "{}Must do no reallocations", module())
   }
 
 
@@ -855,7 +860,8 @@ impl Loader {
   }
 }
 
-/// Report a bad opcode arg. TODO: Use this more, than just label opcode
+/// Report a bad opcode arg
+// TODO: Use this more, than just label opcode
 fn op_badarg_panic(op: u8, args: &[FTerm], argi: Word) {
   panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
 }
