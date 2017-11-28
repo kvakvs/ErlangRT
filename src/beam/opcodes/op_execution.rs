@@ -111,7 +111,7 @@ fn shared_call_ext(ctx: &mut Context,
           return DispatchResult::Normal
         }
       },
-    Err(err) => {
+    Err(_err) => {
       // Create a `{badfun, _}` error
       let badfun = make_badfun(imp0, &mut curr_p.heap);
       return DispatchResult::Error(ExceptionType::Error, badfun)

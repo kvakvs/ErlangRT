@@ -179,7 +179,7 @@ impl Loader {
       replace_labels: Vec::new(),
       funs: BTreeMap::new(),
       mod_attrs: nil(),
-      //compiler_info: nil(),
+      compiler_info: nil(),
       imports: Vec::new(),
       lambdas: Vec::new(),
       exports: BTreeMap::new(),
@@ -336,15 +336,13 @@ impl Loader {
   fn load_attributes(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
     let mut tb = TermBuilder::new(&mut self.lit_heap);
     self.mod_attrs = etf::decode(r, &mut tb)?;
-
     Ok(())
   }
 
 
   fn load_compiler_info(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
-    self.compiler_info = etf::decode_naked(r, &mut self.lit_heap)?;
-    println!("compilerinfo {}", self.compiler_info);
-
+    let mut tb = TermBuilder::new(&mut self.lit_heap);
+    self.compiler_info = etf::decode(r, &mut tb)?;
     Ok(())
   }
 

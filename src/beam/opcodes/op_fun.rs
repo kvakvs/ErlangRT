@@ -69,7 +69,7 @@ pub fn opcode_call_fun(ctx: &mut Context,
 /// The `closure` is a callable closure with some frozen variables made with
 /// `fun() -> code end`.
 fn call_closure(ctx: &mut Context,
-                curr_p: &mut Process,
+                _curr_p: &mut Process,
                 closure: *const HOClosure,
                 args: &[LTerm]) -> DispatchResult
 {
@@ -88,7 +88,7 @@ fn call_closure(ctx: &mut Context,
 /// The `exp` is an export made with `fun module:name/0` which can point to
 /// either an Erlang function or to a BIF (native built-in function).
 fn call_export(ctx: &mut Context,
-               curr_p: &mut Process,
+               _curr_p: &mut Process,
                export: *const HOExport,
                args: &[LTerm]) -> DispatchResult
 {
