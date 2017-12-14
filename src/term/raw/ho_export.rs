@@ -77,9 +77,9 @@ impl HOExport {
   }
 
 
-  //  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
-  //  #[inline]
-  //  pub fn make_term(this: *const HOExport) -> LTerm {
-  //    make_box(this as *const Word)
-  //  }
+//  /// Create a boxed term. NOTE: There is no `self`, this is a raw pointer.
+//  #[inline]
+//  pub fn make_term(this: *const HOExport) -> LTerm {
+//    make_box(this as *const Word)
+//  }
 }
