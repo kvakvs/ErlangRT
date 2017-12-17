@@ -100,7 +100,7 @@ fn shared_call_ext(ctx: &mut Context,
         if (*import).is_bif {
           // Perform a BIF application
           //
-          return call_bif(ctx, curr_p, arity, true)
+          call_bif(ctx, curr_p, arity, true)
         } else {
           // Perform a regular call to BEAM code, save CP and jump
           //
@@ -108,13 +108,13 @@ fn shared_call_ext(ctx: &mut Context,
             ctx.cp = ctx.ip; // Points at the next opcode after this
           }
           ctx.ip = (*import).resolve().unwrap();
-          return DispatchResult::Normal
+          DispatchResult::Normal
         }
       },
     Err(_err) => {
       // Create a `{badfun, _}` error
       let badfun = make_badfun(imp0, &mut curr_p.heap);
-      return DispatchResult::Error(ExceptionType::Error, badfun)
+      DispatchResult::Error(ExceptionType::Error, badfun)
     }
   }
 }

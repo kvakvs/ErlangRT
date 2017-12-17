@@ -1,4 +1,4 @@
-//! Functions to manipulate an LTerm as an Erlang atom. Part of LTerm impl.
+//! Functions to manipulate an `LTerm` as an Erlang atom. Part of `LTerm` impl.
 
 use rt_defs::Word;
 use term::immediate;
@@ -27,7 +27,7 @@ impl AtomAspect for super::LTerm {
 }
 
 
-/// From atom index create an atom. To create from string use vm::new_atom
+/// From atom index create an atom. To create from string use `vm::new_atom`
 #[inline]
 pub fn make_atom(index: Word) -> super::LTerm {
   super::LTerm { value: immediate::make_atom_raw(index) }

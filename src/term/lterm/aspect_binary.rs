@@ -1,11 +1,9 @@
 use term::immediate;
-//use term::primary;
-//use rt_defs::Word;
 use term::lterm::aspect_boxed::BoxedAspect;
 use term::raw::ho_binary::HOBinary;
 
 
-/// Implements features of LTerm related to binary values.
+/// Implements features of `LTerm` related to binary values.
 pub trait BinaryAspect {
   unsafe fn is_binary(&self) -> bool;
   fn is_empty_binary(&self) -> bool;

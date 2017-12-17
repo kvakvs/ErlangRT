@@ -27,11 +27,9 @@ pub fn opcode_is_nonempty_list(ctx: &mut Context,
 
   let list = ctx.fetch_and_load(&curr_p.heap);
 
-  if list.is_nil() && !list.is_cons() {
-    if !fail.is_nil() {
-      // jump to fail label
-      ctx.ip = CodePtr::from_cp(fail)
-    }
+  if list.is_nil() && !list.is_cons() && !fail.is_nil() {
+    // jump to fail label
+    ctx.ip = CodePtr::from_cp(fail)
   }
 
   DispatchResult::Normal
@@ -50,11 +48,9 @@ pub fn opcode_is_nil(ctx: &mut Context,
 
   let list = ctx.fetch_and_load(&curr_p.heap);
 
-  if !list.is_nil() {
-    if !fail.is_nil() {
-      // jump to fail label
-      ctx.ip = CodePtr::from_cp(fail)
-    }
+  if !list.is_nil() && !fail.is_nil() {
+    // jump to fail label
+    ctx.ip = CodePtr::from_cp(fail)
   }
 
   DispatchResult::Normal

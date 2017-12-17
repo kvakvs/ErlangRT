@@ -71,7 +71,7 @@ impl HOClosure {
     ptr::write(this,
                HOClosure::new(
                  HeapObjHeader::new(n_words, &HOCLASS_CLOSURE),
-                 fe.mfa.clone(),
+                 fe.mfa,
                  fe.nfree
                ));
 

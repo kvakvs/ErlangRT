@@ -16,7 +16,7 @@ use term::raw::ho_binary::HOBinary;
 use num;
 
 
-/// A specific tuple builder implementation for LTerm and ERT VM.
+/// A specific tuple builder implementation for `LTerm` and ERT VM.
 pub struct TupleBuilder {
   p: TuplePtrMut
 }
@@ -38,7 +38,7 @@ impl ITupleBuilder<LTerm> for TupleBuilder {
   }
 }
 
-/// A forward list builder implementation for LTerm and ERT VM.
+/// A forward list builder implementation for `LTerm` and ERT VM.
 pub struct ListBuilder {
   // first cell where the building started
   p0: ConsPtrMut,
@@ -83,7 +83,7 @@ impl IListBuilder<LTerm> for ListBuilder {
 }
 
 
-/// Term Builder implementation for LTerm and ERT VM.
+/// Term Builder implementation for `LTerm` and ERT VM.
 pub struct TermBuilder {
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,

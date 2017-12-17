@@ -191,7 +191,7 @@ impl Loader {
   /// account special value 0 and offsets the index down by 1.
   fn from_loadtime_atom_index(&self, n: u32) -> LTerm {
     if n == 0 { return nil() }
-    return self.vm_atoms[n as usize - 1];
+    self.vm_atoms[n as usize - 1]
   }
 
 

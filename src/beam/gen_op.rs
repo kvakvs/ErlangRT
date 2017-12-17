@@ -177,7 +177,7 @@ pub fn opcode_arity(opcode: RawOpcode) -> u8 {
   ARITY_MAP[opcode as usize]
 }
 
-const OPCODE_NAME_MAP: &'static [&'static str] = &[
+const OPCODE_NAME_MAP: &[&str] = &[
         "", // opcode 0 does not exist
     "label", // opcode: 1
     "func_info", // opcode: 2

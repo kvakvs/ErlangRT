@@ -1,5 +1,5 @@
-//! Functions to manipulate an LTerm as an Erlang CONS cell (two words on heap,
-//! which contain a head and a tail). Part of LTerm impl.
+//! Functions to manipulate an `LTerm` as an Erlang list cell (two words on
+//! heap, which contain a head and a tail). Part of `LTerm` impl.
 
 use rt_defs::Word;
 use term::immediate;
@@ -13,7 +13,7 @@ use std::ptr;
 fn module() -> &'static str { "lterm/cons_term: " }
 
 
-/// Represents cons/list/NIL aspects of an LTerm.
+/// Represents cons/list/NIL aspects of an `LTerm`.
 pub trait ListAspect {
   /// Check whether primary tag of a value is `TAG_CONS`.
   fn is_cons(&self) -> bool;

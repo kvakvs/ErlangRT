@@ -82,7 +82,7 @@ impl HOBinary {
                  flavour: HOBinaryType::Heap,
                });
 
-    return Ok(this)
+    Ok(this)
   }
 
 

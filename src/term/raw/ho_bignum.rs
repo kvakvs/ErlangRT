@@ -93,7 +93,7 @@ impl HOBignum {
 
     ptr::write(this, HOBignum::new(n_words, value));
 
-    return Ok(this);
+    Ok(this)
   }
 
 

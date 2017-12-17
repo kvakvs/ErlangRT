@@ -140,7 +140,7 @@ impl CodeServer {
       }
       // nope, keep searching
     }
-    return None
+    None
   }
 }
 

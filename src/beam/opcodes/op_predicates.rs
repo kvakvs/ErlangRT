@@ -81,11 +81,9 @@ fn shared_equality_opcode(ctx: &mut Context,
     if compare::cmp_terms(a, b, exact) == desired_result {
       ctx.ip = CodePtr::from_cp(fail_label)
     }
-  } else {
+  } else if compare::cmp_terms(a, b, exact) != desired_result {
     // Other than desired_recult will cause jump to 'fail'
-    if compare::cmp_terms(a, b, exact) != desired_result {
-      ctx.ip = CodePtr::from_cp(fail_label)
-    }
+    ctx.ip = CodePtr::from_cp(fail_label)
   }
 
   DispatchResult::Normal

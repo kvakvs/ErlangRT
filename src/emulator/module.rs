@@ -48,7 +48,7 @@ impl Module {
         code: Vec::new(),
         funs: BTreeMap::new(),
         lit_heap: Heap::new(1),
-        mod_id: mod_id.clone(),
+        mod_id,
         lambdas: Vec::new(),
       }
     ))

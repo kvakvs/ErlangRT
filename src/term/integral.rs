@@ -7,7 +7,7 @@ use num::ToPrimitive;
 
 
 /// A type-safe way to represent an Erlang integer, which can be either small
-/// enough to fit into a word, or a large one, stored as a BigInt. There is no
+/// enough to fit into a word, or a large one, stored as a `BigInt`. There is no
 /// way (and was no need) to represent a small signed integer.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Integral {

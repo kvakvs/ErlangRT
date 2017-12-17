@@ -7,7 +7,7 @@ use term::primary;
 use term::lterm::aspect_boxed::{BoxedAspect, make_box};
 
 
-/// Represents operations on LTerm which contains/is a CP value.
+/// Represents operations on `LTerm` which contains/is a CP value.
 pub trait CpAspect {
   fn is_cp(&self) -> bool;
   fn cp_get_ptr(&self) -> *const Word;

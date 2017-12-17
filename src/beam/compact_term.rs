@@ -1,5 +1,5 @@
 //! Module implements decoder for compact term format used in BEAM files.
-//! http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding
+//! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
 use rt_defs::{Word, SWord};
 use fail::{Hopefully, Error};

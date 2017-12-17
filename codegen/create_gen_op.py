@@ -41,7 +41,7 @@ pub fn opcode_arity(opcode: RawOpcode) -> u8 {
     #
 
     # print("#[cfg(debug)]")
-    print("""const OPCODE_NAME_MAP: &'static [&'static str] = &[
+    print("""const OPCODE_NAME_MAP: &[&str] = &[
         \"\", // opcode 0 does not exist""")
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]

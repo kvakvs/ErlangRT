@@ -122,12 +122,12 @@ fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
 fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
   assert!(!a.is_nil());
   let atomp_a = atom::lookup(a);
-  debug_assert!(atomp_a.is_null() == false,
+  debug_assert!(!atomp_a.is_null(),
                 "cmp_atoms: atom lookup {} failed", a);
 
   assert!(!b.is_nil());
   let atomp_b = atom::lookup(b);
-  debug_assert!(atomp_b.is_null() == false,
+  debug_assert!(!atomp_b.is_null(),
                 "cmp_atoms: atom lookup {} failed", b);
 
   // This should really be safe, as pointers to Atom exist statically forever
@@ -166,13 +166,13 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 
   match a_prim_tag {
     primary::TAG_IMMED => {
-      return EqResult::Concluded(cmp_terms_immed(a, b, exact))
+      EqResult::Concluded(cmp_terms_immed(a, b, exact))
     },
     primary::TAG_CONS => unsafe {
-      return cmp_cons(a, b)
+      cmp_cons(a, b)
     },
     primary::TAG_BOX => {
-      return cmp_terms_box(a, b)
+      cmp_terms_box(a, b)
     },
     _ => panic!("Primary tag {} eq_terms unsupported", a_prim_tag)
   }
@@ -371,7 +371,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     let ahd = aa.hd();
     let bhd = bb.hd();
 
-    if LTerm::is_same(ahd, bhd) == false {
+    if !LTerm::is_same(ahd, bhd) {
       //println!("cmp_cons ahd {} bhd {}", ahd, bhd);
       // Recurse into a.hd and b.hd, but push a.tl and b.tl to continue
       let continue_op = ContinueCompare::Cons(aa.tl(), bb.tl());

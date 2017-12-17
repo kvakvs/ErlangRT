@@ -77,7 +77,8 @@ unsafe fn classify_header(v: Word, p: *const Word) -> TermClass {
   let h_tag = primary::header::get_tag(v);
   match h_tag {
     primary::header::TAG_HEADER_TUPLE => TermClass::Tuple,
-    primary::header::TAG_HEADER_REF => TermClass::Ref,
+    primary::header::TAG_HEADER_REF |
+    primary::header::TAG_HEADER_EXTREF => TermClass::Ref,
     primary::header::TAG_HEADER_FUN => TermClass::Fun,
     primary::header::TAG_HEADER_FLOAT => TermClass::Number,
     primary::header::TAG_HEADER_HEAPOBJ => {
@@ -87,7 +88,6 @@ unsafe fn classify_header(v: Word, p: *const Word) -> TermClass {
     },
     primary::header::TAG_HEADER_EXTPID => TermClass::Pid,
     primary::header::TAG_HEADER_EXTPORT => TermClass::Port,
-    primary::header::TAG_HEADER_EXTREF => TermClass::Ref,
     _ => panic!("classify: Unexpected header tag {} value {}",
                 h_tag, primary::get_value(v))
   }
@@ -104,7 +104,8 @@ fn classify_immed(v: Word, t: LTerm) -> TermClass {
     immediate::TAG_IMM1_PORT => TermClass::Port,
     immediate::TAG_IMM1_IMM2 => {
       match immediate::get_imm2_tag(v) {
-        immediate::TAG_IMM2_CATCH => TermClass::Special_,
+        immediate::TAG_IMM2_CATCH |
+        immediate::TAG_IMM2_IMM3 => TermClass::Special_,
         immediate::TAG_IMM2_SPECIAL => {
           if t.is_nil() {
             TermClass::Nil
@@ -117,7 +118,6 @@ fn classify_immed(v: Word, t: LTerm) -> TermClass {
           }
         },
         immediate::TAG_IMM2_ATOM => TermClass::Atom,
-        immediate::TAG_IMM2_IMM3 => TermClass::Special_,
         _ => panic!("{}Invalid primary tag", module())
       } // end match imm2
     },

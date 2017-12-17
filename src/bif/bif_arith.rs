@@ -18,7 +18,7 @@ pub fn ubif_sminus_2_2(cur_proc: &mut Process,
   let b: LTerm = args[1];
   if a.is_small() {
     if b.is_small() {
-      return subtract_two_small(cur_proc, a, b)
+      subtract_two_small(cur_proc, a, b)
     } else {
       panic!("{}subtract: b={} other than small notimpl", module(), b)
     }
@@ -36,7 +36,7 @@ pub fn ubif_splus_2_2(cur_proc: &mut Process,
   let b: LTerm = args[1];
   if a.is_small() {
     if b.is_small() {
-      return add_two_small(cur_proc, a, b)
+      add_two_small(cur_proc, a, b)
     } else {
       panic!("{}subtract: b={} other than small notimpl", module(), b)
     }

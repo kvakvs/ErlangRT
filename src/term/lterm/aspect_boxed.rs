@@ -1,5 +1,5 @@
-//! Functions to manipulate an LTerm as a boxed value on a process heap.
-//! Part of LTerm impl.
+//! Functions to manipulate an `LTerm` as a boxed value on a process heap.
+//! Part of `LTerm` impl.
 
 use rt_defs::Word;
 use term::primary;
