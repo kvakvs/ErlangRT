@@ -157,9 +157,9 @@ pub struct Loader {
 
   lambdas: Vec<FunEntry>,
 
-  /// A map of F/Arity -> HOExport which uses literal heap but those created
-  /// during runtime will be using process heap.
-  exports: BTreeMap<FunArity, LTerm>
+//  /// A map of F/Arity -> HOExport which uses literal heap but those created
+//  /// during runtime will be using process heap.
+//  exports: BTreeMap<FunArity, LTerm>
 }
 
 
@@ -182,14 +182,14 @@ impl Loader {
       compiler_info: nil(),
       imports: Vec::new(),
       lambdas: Vec::new(),
-      exports: BTreeMap::new(),
+      //exports: BTreeMap::new(),
     }
   }
 
 
   /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
   /// account special value 0 and offsets the index down by 1.
-  fn from_loadtime_atom_index(&self, n: u32) -> LTerm {
+  fn atom_from_loadtime_index(&self, n: u32) -> LTerm {
     if n == 0 { return nil() }
     self.vm_atoms[n as usize - 1]
   }
@@ -280,7 +280,7 @@ impl Loader {
   fn stage2_fill_lambdas(&mut self) {
     // Convert LFuns in self.raw.funs to FunEntries
     for rf in &self.raw.lambdas {
-      let fun_name = self.from_loadtime_atom_index(rf.fun_atom_i);
+      let fun_name = self.atom_from_loadtime_index(rf.fun_atom_i);
       let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
       self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
@@ -759,8 +759,8 @@ impl Loader {
     //
     self.imports.reserve(self.raw.imports.len());
     for ri in &self.raw.imports {
-      let mod_atom = self.from_loadtime_atom_index(ri.mod_atom_i);
-      let fun_atom = self.from_loadtime_atom_index(ri.fun_atom_i);
+      let mod_atom = self.atom_from_loadtime_index(ri.mod_atom_i);
+      let fun_atom = self.atom_from_loadtime_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
       //println!("is_bif {} for {}", is_bif, mf_arity);
@@ -836,7 +836,7 @@ impl Loader {
 
       // Repack load-time atom via an `LTerm` index into an `FTerm` atom
       FTerm::LoadTimeAtom(i) => {
-        let aindex = self.from_loadtime_atom_index(i).atom_index();
+        let aindex = self.atom_from_loadtime_index(i).atom_index();
         Some(FTerm::Atom(aindex))
       },
 

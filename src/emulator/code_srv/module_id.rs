@@ -16,10 +16,10 @@ impl ModuleVersion {
   }
 
 
-  pub fn value(&self) -> usize {
-    let ModuleVersion(val) = *self;
-    val
-  }
+//  pub fn value(&self) -> usize {
+//    let ModuleVersion(val) = *self;
+//    val
+//  }
 }
 
 
@@ -43,5 +43,5 @@ impl VersionedModuleId {
 
 
   pub fn module(&self) -> LTerm { self.module }
-  pub fn version(&self) -> ModuleVersion { self.version }
+  //pub fn version(&self) -> ModuleVersion { self.version }
 }

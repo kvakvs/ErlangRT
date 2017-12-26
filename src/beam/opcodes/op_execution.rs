@@ -68,7 +68,13 @@ pub fn opcode_call_ext_only(ctx: &mut Context,
                             curr_p: &mut Process) -> DispatchResult {
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
-  shared_call_ext(ctx, curr_p,false)
+
+  let arity = ctx.fetch_term().small_get_u();
+  let args = ctx.registers_slice(arity);
+  shared_call_ext(ctx, curr_p,
+                  nil(),
+                  args,
+                  false)
 }
 
 
@@ -80,16 +86,23 @@ pub fn opcode_call_ext(ctx: &mut Context,
                        curr_p: &mut Process) -> DispatchResult {
   // Structure: call_ext(arity:int, destination:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT, 2);
-  shared_call_ext(ctx, curr_p, true)
+
+  let arity = ctx.fetch_term().small_get_u();
+  let args = ctx.registers_slice(arity);
+  shared_call_ext(ctx, curr_p,
+                  nil(),
+                  args,
+                  true)
 }
 
 
 #[inline]
 fn shared_call_ext(ctx: &mut Context,
                    curr_p: &mut Process,
+                   fail_label: LTerm,
+                   args: &[LTerm],
                    save_cp: bool) -> DispatchResult {
-  let arity = ctx.fetch_term().small_get_u();
-  ctx.live = arity;
+  ctx.live = args.len();
 
   // HOImport object on heap which contains m:f/arity
   let imp0 = ctx.fetch_term();
@@ -99,8 +112,12 @@ fn shared_call_ext(ctx: &mut Context,
       unsafe {
         if (*import).is_bif {
           // Perform a BIF application
-          //
-          call_bif(ctx, curr_p, arity, true)
+          call_bif(ctx, curr_p,
+                   fail_label,
+                   imp0,
+                   args,
+                   LTerm::make_xreg(0),
+                   true)
         } else {
           // Perform a regular call to BEAM code, save CP and jump
           //
@@ -113,6 +130,7 @@ fn shared_call_ext(ctx: &mut Context,
       },
     Err(_err) => {
       // Create a `{badfun, _}` error
+      //panic!("bad call_ext target {}", imp0);
       let badfun = make_badfun(imp0, &mut curr_p.heap);
       DispatchResult::Error(ExceptionType::Error, badfun)
     }

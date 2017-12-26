@@ -10,10 +10,10 @@ use rt_defs::stack::IStack;
 use rt_defs::{Word, Float, MAX_XREGS, MAX_FPREGS, ExceptionType};
 use term::builders::make_badfun;
 use term::immediate;
-use term::lterm::aspect_smallint::SmallintAspect;
+//use term::lterm::aspect_smallint::SmallintAspect;
 use term::lterm::aspect_cp::CpAspect;
 use term::lterm::aspect_list::ListAspect;
-use term::lterm::{LTerm, nil, const_nil};
+use term::lterm::{LTerm, const_nil};
 use term::raw::ho_import::HOImport;
 
 use std::fmt;
@@ -82,12 +82,32 @@ impl Context {
   }
 
 
-  /// Fetch a word from code, assume it is an LTerm.
+  /// Fetch a word from code, assume it is an `LTerm`. The code position is
+  /// advanced by 1.
   #[inline]
   pub fn fetch_term(&mut self) -> LTerm { LTerm::from_raw(self.fetch()) }
 
 
-  /// Fetch a word from code, assume it is either an LTerm or a source X, Y or
+  /// Using current position in code as the starting address, create a new
+  /// `&[LTerm]` slice of given length and advance the read pointer. This is
+  /// used for fetching arrays of args from code without moving them.
+  pub fn fetch_slice(&mut self, sz: usize) -> &'static [LTerm] {
+    let CodePtr(ip0) = self.ip;
+    unsafe {
+      self.ip = CodePtr(ip0.offset(sz as isize));
+      slice::from_raw_parts(ip0 as *const LTerm, sz)
+    }
+  }
+
+
+  pub fn registers_slice(&mut self, sz: usize) -> &'static [LTerm] {
+    unsafe {
+      slice::from_raw_parts(self.regs.as_ptr(), sz)
+    }
+  }
+
+
+  /// Fetch a word from code, assume it is either an `LTerm` or a source X, Y or
   /// FP register, then perform a load operation.
   #[inline]
   pub fn fetch_and_load(&mut self, hp: &heap::Heap) -> LTerm {
@@ -167,51 +187,36 @@ impl fmt::Display for Context {
 /// Generic bif0,1,2 application. Bif0 cannot have a fail label but bif1 and
 /// bif2 can, so on exception a jump will be performed.
 ///
-/// Args: `curr_p` - the process which is running;
-/// `bif_fn` - the function to apply (the callable Rust fn), possibly an error;
-/// `fail_label` - if not NIL, we suppress a possible exception and jump there;
-/// `args` - the arguments; `dst` - register where the result will go;
-/// `gc` if true, then gc is allowed and `ctx.live` will be used.
+/// Args:
+///   `curr_p` - the process which is running;
+///   `target` - the term pointing to a callable;
+///   `fail_label` - if not NIL, we suppress a possible exception and jump there;
+///   `args` - the arguments;
+///   `dst` - register where the result will go;
+///   `gc` if gc is allowed then `ctx.live` will be used as live.
 //#[inline]
 // Inline to allow const folding optimization
 pub fn call_bif(ctx: &mut Context,
                 curr_p: &mut Process,
-                n_args: Word,
+                fail_label: LTerm,
+                target: LTerm,
+                args: &[LTerm],
+                dst: LTerm,
                 gc: bool) -> DispatchResult
 {
-  //
-  // Fetch args
-  //
-  let fail_label = if n_args != 0 || gc {
-    // bif0 is special and has no fail label, others do
-    ctx.fetch_term()
-  } else {
-    nil()
+  // Possibly a HOImport object on heap which contains m:f/arity
+  let tmp1 = unsafe {
+    HOImport::from_term(target)
   };
-
-  let _live: Word = if gc { ctx.fetch_term().small_get_u() } else { 0 };
-
-  // HOImport object on heap which contains m:f/arity
-  let import_term = ctx.fetch_term();
-  let maybe_import = unsafe {
-    HOImport::from_term(import_term)
-  };
-  let import = match maybe_import {
+  let import = match tmp1 {
     Ok(i) => i,
-    Err(_) => {
-      let badfun = make_badfun(import_term, &mut curr_p.heap);
+    Err(e1) => {
+      // TODO: What if target is not an import? NOTE: this is call_bif not apply!
+      panic!("bad callbif target {:?} {}", e1, target);
+      let badfun = make_badfun(target, &mut curr_p.heap);
       return DispatchResult::Error(ExceptionType::Error, badfun)
     },
   };
-
-  let p_args = ctx.ip.get_ptr() as *const LTerm;
-  if n_args > 0 {
-    ctx.ip = ctx.ip.offset(n_args as isize);
-  }
-
-  let dst = ctx.fetch_term();
-  // End arguments
-  //
 
   let bif_fn = unsafe {
     (*import ).resolve_bif()
@@ -219,29 +224,31 @@ pub fn call_bif(ctx: &mut Context,
 
   let bif_result = match bif_fn {
     Ok(f) => {
+      let n_args = args.len();
+
       // Make a slice from the args
-      let mut args = [const_nil(); 4];
+      let mut loaded_args = [const_nil(); 4];
       {
         let heap = &curr_p.heap;
         for i in 0..n_args {
-          args[i] = ctx.load(unsafe { *p_args.offset(i as isize) },
-                             heap);
+          loaded_args[i] = ctx.load(args[i], heap);
         }
       }
 
       // Take n_args elements from args
-      let args1 = unsafe {
-        slice::from_raw_parts(&args[0], n_args)
+      let loaded_args1 = unsafe {
+        slice::from_raw_parts(&loaded_args[0], n_args)
       };
-      // Apply the BIF call and check BifResult
-      (f)(curr_p, args1)
+
+      // Apply the BIF call and return BifResult
+      (f)(curr_p, loaded_args1)
     },
     Err(e) => {
       BifResult::Fail(e)
     },
   };
 
-  println!("BIF{} gc={} call result {}", n_args, gc, bif_result);
+  println!("BIF{} gc={} call result {}", args.len(), gc, bif_result);
 
   match bif_result {
     // On error and if fail label is a CP, perform a goto
@@ -261,6 +268,8 @@ pub fn call_bif(ctx: &mut Context,
       // if dst is not NIL, store the result in it
       if !dst.is_nil() {
         ctx.store(val, dst, &mut curr_p.heap)
+//      } else {
+//        ctx.regs[0] = val;
       }
       DispatchResult::Normal
     },

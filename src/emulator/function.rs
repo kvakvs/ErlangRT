@@ -1,6 +1,6 @@
 use std::fmt;
 
-use bif::BifFn;
+//use bif::BifFn;
 use emulator::code::{FarCodePointer};
 use emulator::mfa::MFArity;
 
@@ -32,8 +32,8 @@ pub enum CallableLocation {
   /// Points to Erlang code.
   // TODO: Version/hash/seq id for codeptr if code is reloaded?
   Code(FarCodePointer),
-  /// Points to a BIF callable function.
-  Bif(BifFn),
+//  /// Points to a BIF callable function.
+//  Bif(BifFn),
 }
 
 

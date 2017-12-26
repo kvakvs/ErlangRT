@@ -5,6 +5,7 @@ use term::lterm::LTerm;
 use term::builders::{make_badfun_n};
 
 
+#[allow(dead_code)]
 fn module() -> &'static str { "bif_sys: " }
 
 

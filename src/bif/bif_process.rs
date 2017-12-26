@@ -22,6 +22,8 @@ pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> BifResult {
   let hp = &mut cur_proc.heap;
   let mfa = MFArity::new(args[0], args[1],
                          args[2].small_get_u() as Arity);
+
+  // Create an export on heap and return it
   match unsafe { HOExport::place_into(hp, &mfa) } {
     Ok(expt) => BifResult::Value(expt),
     Err(e) => panic!(e),
