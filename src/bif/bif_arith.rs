@@ -1,4 +1,4 @@
-use bif::BifResult;
+use bif::result::{BifResult};
 use term::raw::ho_bignum::HOBignum;
 use emulator::process::Process;
 use term::lterm::*;

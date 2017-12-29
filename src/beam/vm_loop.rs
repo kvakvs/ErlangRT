@@ -1,25 +1,13 @@
+use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::vm_dispatch::dispatch_op_inline;
 use emulator::code::{opcode, CodePtr};
 use emulator::disasm;
-use emulator::runtime_ctx::Context;
+use emulator::runtime_ctx::{Context};
+use emulator::scheduler::{SliceResult};
 use emulator::vm::VM;
-use emulator::scheduler::SliceResult;
-use rt_defs::ExceptionType;
-use term::lterm::LTerm;
 
 //fn module() -> &'static str { "vm_loop: " }
-
-
-/// Enum is used by VM dispatch handlers for opcodes to indicate whether to
-/// continue, yield (take next process in the queue) or interrupt process
-/// on error.
-#[allow(dead_code)]
-pub enum DispatchResult {
-  Normal,
-  Yield,
-  Error(ExceptionType, LTerm),
-}
 
 
 impl VM {

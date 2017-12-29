@@ -90,12 +90,12 @@ impl CodePtr {
   }
 
 
-  #[inline]
-  pub fn offset(&self, n: isize) -> CodePtr {
-    let CodePtr(p) = *self;
-    let new_p = unsafe { p.offset(n) };
-    CodePtr(new_p)
-  }
+//  #[inline]
+//  pub fn offset(&self, n: isize) -> CodePtr {
+//    let CodePtr(p) = *self;
+//    let new_p = unsafe { p.offset(n) };
+//    CodePtr(new_p)
+//  }
 
 
   #[inline]

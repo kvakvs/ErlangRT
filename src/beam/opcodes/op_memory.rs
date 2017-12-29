@@ -1,12 +1,12 @@
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use emulator::code::CodePtr;
-use emulator::process::Process;
-use emulator::runtime_ctx::Context;
-use beam::vm_loop::DispatchResult;
-use rt_defs::heap::IHeap;
-use rt_defs::stack::IStack;
-use term::lterm::*;
+use emulator::code::{CodePtr};
+use emulator::process::{Process};
+use emulator::runtime_ctx::{Context};
+use beam::disp_result::{DispatchResult};
+use rt_defs::heap::{IHeap};
+use rt_defs::stack::{IStack};
+use term::lterm::aspect_smallint::{SmallintAspect};
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.

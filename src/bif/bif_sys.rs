@@ -1,4 +1,4 @@
-use bif::BifResult;
+use bif::result::{BifResult};
 use emulator::process::Process;
 use rt_defs::ExceptionType;
 use term::lterm::LTerm;

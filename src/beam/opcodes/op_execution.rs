@@ -3,13 +3,12 @@
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use beam::vm_loop::DispatchResult;
+use beam::disp_result::{DispatchResult};
 use emulator::code::CodePtr;
 use emulator::process::Process;
-use emulator::runtime_ctx::{Context, call_bif};
+use emulator::runtime_ctx::call;
+use emulator::runtime_ctx::{Context};
 use rt_defs::stack::IStack;
-use rt_defs::{ExceptionType};
-use term::builders::{make_badfun, make_badmatch};
 use term::lterm::*;
 use term::raw::ho_import::HOImport;
 
@@ -108,31 +107,31 @@ fn shared_call_ext(ctx: &mut Context,
   let imp0 = ctx.fetch_term();
 
   match unsafe { HOImport::from_term(imp0) } {
-    Ok(import) =>
+    Ok(import_ptr) =>
       unsafe {
-        if (*import).is_bif {
+        if (*import_ptr).is_bif {
           // Perform a BIF application
-          call_bif(ctx, curr_p,
-                   fail_label,
-                   imp0,
-                   args,
-                   LTerm::make_xreg(0),
-                   true)
+          let cb_target = call::CallBifTarget::ImportPointer(import_ptr);
+          call::call_bif(ctx, curr_p,
+                         fail_label,
+                         cb_target,
+                         args,
+                         LTerm::make_xreg(0),
+                         true)
         } else {
           // Perform a regular call to BEAM code, save CP and jump
           //
           if save_cp {
             ctx.cp = ctx.ip; // Points at the next opcode after this
           }
-          ctx.ip = (*import).resolve().unwrap();
+          ctx.ip = (*import_ptr).resolve().unwrap();
           DispatchResult::Normal
         }
       },
     Err(_err) => {
       // Create a `{badfun, _}` error
       //panic!("bad call_ext target {}", imp0);
-      let badfun = make_badfun(imp0, &mut curr_p.heap);
-      DispatchResult::Error(ExceptionType::Error, badfun)
+      DispatchResult::badfun_val(imp0, &mut curr_p.heap)
     }
   }
 }
@@ -183,6 +182,5 @@ pub fn opcode_badmatch(ctx: &mut Context,
 
   let hp = &mut curr_p.heap;
   let val = ctx.fetch_and_load(hp);
-  let badmatch = make_badmatch(val, hp);
-  DispatchResult::Error(ExceptionType::Error, badmatch)
+  DispatchResult::badmatch_val(val, hp)
 }

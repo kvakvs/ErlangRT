@@ -5,7 +5,7 @@
 
 use beam::gen_op;
 use beam::opcodes::*;
-use beam::vm_loop::{DispatchResult};
+use beam::disp_result::{DispatchResult};
 use emulator::code::opcode::RawOpcode;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;

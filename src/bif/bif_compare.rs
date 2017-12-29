@@ -1,8 +1,8 @@
+use bif::result::{BifResult};
 use emulator::gen_atoms;
-use bif::BifResult;
-use emulator::process::Process;
-use term::lterm::*;
-use term::compare::cmp_terms;
+use emulator::process::{Process};
+use term::compare::{cmp_terms};
+use term::lterm::{LTerm};
 
 use std::cmp::{Ordering};
 

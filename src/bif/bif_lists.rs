@@ -1,11 +1,10 @@
-use rt_defs::ExceptionType;
-use bif::BifResult;
-use emulator::process::Process;
+use bif::result::{BifResult};
 use emulator::gen_atoms;
+use emulator::process::Process;
+use rt_defs::ExceptionType;
 use term::lterm::*;
-use term::lterm::aspect_smallint::{make_small_s};
 use term::lterm::aspect_list::ListAspect;
-//use term::raw::rcons::ConsPtr;
+use term::lterm::aspect_smallint::{make_small_s};
 
 
 fn module() -> &'static str { "bif_compare: " }

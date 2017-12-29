@@ -2,12 +2,12 @@ use std::cmp::Ordering;
 
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use beam::vm_loop::{DispatchResult};
-use emulator::code::CodePtr;
-use emulator::process::Process;
-use emulator::runtime_ctx::Context;
+use beam::disp_result::{DispatchResult};
+use emulator::code::{CodePtr};
+use emulator::process::{Process};
+use emulator::runtime_ctx::{Context};
 use term::compare;
-use term::lterm::aspect_list::ListAspect;
+use term::lterm::aspect_list::{ListAspect};
 
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0

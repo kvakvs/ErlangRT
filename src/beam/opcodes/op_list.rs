@@ -1,12 +1,12 @@
 //! Module implements opcodes related to lists manipulation.
 
+use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
 use emulator::code::CodePtr;
 use emulator::heap::{allocate_cons};
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
-use beam::vm_loop::DispatchResult;
 use term::lterm::*;
 
 

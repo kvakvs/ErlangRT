@@ -1,13 +1,16 @@
 use emulator::mfa::MFArity;
 use emulator::process::{Process};
-use fail::{Hopefully, Error};
-use rt_defs::ExceptionType;
-use term::lterm::*;
-
-use std::fmt;
+use fail;
+use fail::{Hopefully};
+use term::lterm::{LTerm};
 
 
 pub mod gen_bif; // generated
+pub mod result;
+
+//
+// Bif definitions grouped by topic
+//
 pub mod bif_arith;
 pub mod bif_compare;
 pub mod bif_lists;
@@ -21,27 +24,7 @@ pub use bif::bif_process::*;
 pub use bif::bif_sys::*;
 
 
-/// Returned by all BIFs to indicate an error, a value, or another condition.
-#[allow(dead_code)]
-pub enum BifResult {
-  /// Totally legit result was returned.
-  Value(LTerm),
-  /// The bif has created an exception.
-  Exception(ExceptionType, LTerm),
-  /// Something has failed in the runtime.
-  Fail(Error),
-}
-
-
-impl fmt::Display for BifResult {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    match self {
-      &BifResult::Value(t) => write!(f, "Value({})", t),
-      &BifResult::Exception(et, rsn) => write!(f, "Exc({:?}, {})", et, rsn),
-      &BifResult::Fail(ref e) => write!(f, "{:?}", e),
-    }
-  }
-}
+use bif::result::{BifResult};
 
 
 /// A BIF function which runs under some process, takes some args (encoded in
@@ -68,5 +51,5 @@ pub fn find_bif(mfa: &MFArity) -> Hopefully<BifFn> {
       return Ok(bt.func)
     }
   }
-  Err(Error::BifNotFound(format!("{}", mfa)))
+  Err(fail::Error::BifNotFound(format!("{}", mfa)))
 }
