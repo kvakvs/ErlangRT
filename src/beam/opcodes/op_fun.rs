@@ -9,8 +9,7 @@ use emulator::function::FunEntry;
 use emulator::process::Process;
 use emulator::runtime_ctx;
 use emulator::runtime_ctx::{Context};
-use term::lterm::aspect_cp::CpAspect;
-use term::lterm::aspect_smallint::SmallintAspect;
+use term::lterm::*;
 use term::raw::ho_closure::HOClosure;
 use term::raw::ho_export::HOExport;
 
@@ -18,7 +17,8 @@ use term::raw::ho_export::HOExport;
 #[inline]
 pub fn opcode_make_fun2(ctx: &mut Context,
                         curr_p: &mut Process) -> DispatchResult {
-  // Structure: make_fun2(lambda_index)
+  // Structure: make_fun2(lambda_index:uint)
+  // on load the argument is rewritten with a pointer to the funentry
   assert_arity(gen_op::OPCODE_MAKE_FUN2, 1);
 
   let fe_box = ctx.fetch_term();
@@ -42,7 +42,7 @@ pub fn opcode_make_fun2(ctx: &mut Context,
 #[inline]
 pub fn opcode_call_fun(ctx: &mut Context,
                        curr_p: &mut Process) -> DispatchResult {
-  // Structure: call_fun(arity)
+  // Structure: call_fun(arity:uint)
   // Expects: x[0..arity-1] = args. x[arity] = fun object
   assert_arity(gen_op::OPCODE_CALL_FUN, 1);
 

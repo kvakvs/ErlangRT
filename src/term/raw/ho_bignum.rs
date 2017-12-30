@@ -10,8 +10,7 @@ use emulator::heap::Heap;
 use term::raw::heapobj::*;
 use fail::Hopefully;
 use term::classify::TermClass;
-use term::lterm::LTerm;
-use term::lterm::aspect_boxed::{make_box};
+use term::lterm::*;
 
 
 /// Heap object `HOBignum` is placed on heap by the VM and contains a signed

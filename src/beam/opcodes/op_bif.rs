@@ -6,8 +6,7 @@ use beam::disp_result::{DispatchResult};
 use emulator::process::Process;
 use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::{Context};
-use term::lterm::aspect_list::{nil};
-use term::lterm::aspect_smallint::SmallintAspect;
+use term::lterm::*;
 
 
 /// Call a bif defined by `m:f/0`, a `HOImport` import object stored on heap

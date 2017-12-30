@@ -4,7 +4,6 @@ use emulator::process::Process;
 use rt_defs::{ExceptionType, Arity};
 use emulator::mfa::MFArity;
 use term::lterm::*;
-use term::lterm::aspect_smallint::SmallintAspect;
 use term::raw::ho_export::HOExport;
 
 

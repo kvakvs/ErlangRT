@@ -8,8 +8,7 @@ use fail::{Hopefully, Error};
 use rt_defs::Word;
 use term::primary::header;
 use term::classify::TermClass;
-use term::lterm::LTerm;
-use term::lterm::aspect_boxed::{BoxedAspect};
+use term::lterm::*;
 
 
 pub enum HeapObjType {

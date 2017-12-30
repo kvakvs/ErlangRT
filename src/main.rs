@@ -28,37 +28,9 @@ mod bif;
 mod emulator;
 mod fail;
 mod term;
-
-use emulator::atom;
-use emulator::scheduler::Prio;
-use emulator::mfa::MFArgs;
-use emulator::vm::VM;
-use term::lterm::*;
-//use term::lterm::list_term;
+mod main_main;
 
 
-/// Entry point for the command-line interface
-fn main() {
-  if cfg!(feature = "r19") {
-    println!("Erlang Runtime (compat OTP 19)");
-  }
-  if cfg!(feature = "r20") {
-    println!("Erlang Runtime (compat OTP 20)");
-  }
+use main_main::{entrypoint};
 
-  let mut beam = VM::new();
-
-  let mfa = MFArgs::new(
-    atom::from_str("test2"),
-    atom::from_str("test"),
-    Vec::new()
-  );
-  let _rootp = beam.create_process(
-    aspect_list::nil(),
-    &mfa,
-    Prio::Normal
-  ).unwrap();
-
-  println!("Process created. Entering main loop...");
-  while beam.tick() {}
-}
+fn main() { entrypoint(); }

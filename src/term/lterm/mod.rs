@@ -1,19 +1,19 @@
-pub mod aspect_atom;
-pub mod aspect_bignum;
-pub mod aspect_binary;
-pub mod aspect_boxed;
-pub mod aspect_cp;
-pub mod aspect_export;
-pub mod aspect_float;
-pub mod aspect_fun;
-pub mod aspect_list;
-pub mod aspect_map;
-pub mod aspect_pid;
-pub mod aspect_port;
-pub mod aspect_reference;
-pub mod aspect_smallint;
-pub mod aspect_tuple;
-pub mod lterm_impl;
+mod aspect_atom;
+mod aspect_bignum;
+mod aspect_binary;
+mod aspect_boxed;
+mod aspect_cp;
+mod aspect_export;
+mod aspect_float;
+mod aspect_fun;
+mod aspect_list;
+mod aspect_map;
+mod aspect_pid;
+mod aspect_port;
+mod aspect_reference;
+mod aspect_smallint;
+mod aspect_tuple;
+mod lterm_impl;
 
 
 pub use term::lterm::aspect_atom::*;

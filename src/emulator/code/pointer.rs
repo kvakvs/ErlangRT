@@ -1,9 +1,9 @@
 //! Module defines pointer types for readonly code and mutable code.
-use rt_defs::Word;
-use term::lterm::aspect_cp::{make_cp, CpAspect};
+
+use emulator::code_srv::module_id::{VersionedModuleId};
+use rt_defs::{Word};
 use term::immediate;
-use term::lterm::LTerm;
-use emulator::code_srv::module_id::VersionedModuleId;
+use term::lterm::*;
 
 use std::fmt;
 

@@ -7,7 +7,7 @@ use emulator::code::{CodePtr};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use term::compare;
-use term::lterm::aspect_list::{ListAspect};
+use term::lterm::*;
 
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0

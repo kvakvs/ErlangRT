@@ -282,6 +282,7 @@ impl Loader {
     for rf in &self.raw.lambdas {
       let fun_name = self.atom_from_loadtime_index(rf.fun_atom_i);
       let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
+      println!("{}stage2_fill_lambdas mfa={}", module(), mfa);
       self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
   }
@@ -688,7 +689,7 @@ impl Loader {
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId(label_id) = l;
-        aspect_smallint::make_small_u(label_id).raw()
+        make_small_u(label_id).raw()
       }
     }
   }

@@ -1,8 +1,7 @@
 //! Versioning for modules and unique id to find an older module even if it was
 //! overridden by a newer version.
 
-use term::lterm::LTerm;
-use term::lterm::aspect_atom::{AtomAspect};
+use term::lterm::*;
 
 
 /// Defines a module version, unique integer which is incremented on each

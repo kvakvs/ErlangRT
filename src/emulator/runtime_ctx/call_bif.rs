@@ -4,13 +4,11 @@ use beam::disp_result::{DispatchResult};
 use bif::result::{BifResult};
 use bif::{BifFn};
 use bif;
-use fail;
 use emulator::code::{CodePtr};
 use emulator::mfa::{MFArity};
 use emulator::process::{Process};
-use term::lterm::aspect_cp::{CpAspect};
-use term::lterm::aspect_list::{ListAspect};
-use term::lterm::{LTerm, const_nil};
+use fail;
+use term::lterm::*;
 use term::raw::ho_import::{HOImport};
 
 use std::slice;
