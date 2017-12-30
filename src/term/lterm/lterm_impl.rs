@@ -6,24 +6,17 @@
 //!
 use term::immediate;
 use term::primary;
-use term::raw::{TuplePtr};
 use emulator::atom;
-use term::raw::heapobj::HeapObjClass;
-
 use rt_defs::{Word};
-use term::lterm::aspect_binary::*;
-use term::lterm::aspect_boxed::*;
-use term::lterm::aspect_cp::*;
-use term::lterm::aspect_list::*;
-use term::lterm::aspect_smallint::*;
-use term::lterm::aspect_tuple::*;
+use super::super::lterm::*;
+use term::raw::*;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
 
 
-//fn module() -> &'static str { "lterm: " }
+//fn module() -> &'static str { "lterm_impl: " }
 
 
 /// A low-level term, packed conveniently in a Word, or containing a
@@ -269,7 +262,7 @@ impl LTerm {
   /// Given `p`, a pointer to tuple header word, format tuple contents.
   unsafe fn format_tuple(p: *const Word,
                   f: &mut fmt::Formatter) -> fmt::Result {
-    let tptr = TuplePtr::from_pointer(p);
+    let tptr = rtuple::Ptr::from_pointer(p);
 
     write!(f, "{{")?;
 

@@ -10,7 +10,7 @@ use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::{Context};
 use rt_defs::stack::IStack;
 use term::lterm::*;
-use term::raw::ho_import::HOImport;
+use term::raw::*;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }

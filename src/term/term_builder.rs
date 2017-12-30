@@ -5,21 +5,18 @@ use emulator::heap::{Heap, allocate_tuple};
 use rt_defs::heap::IHeap;
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
 use term::lterm::*;
-use term::raw::rcons::ConsPtrMut;
-use term::raw::rtuple::TuplePtrMut;
-use term::raw::ho_bignum::HOBignum;
-use term::raw::ho_binary::HOBinary;
+use term::raw::*;
 
 use num;
 
 
 /// A specific tuple builder implementation for `LTerm` and ERT VM.
 pub struct TupleBuilder {
-  p: TuplePtrMut
+  p: rtuple::PtrMut
 }
 
 impl TupleBuilder {
-  pub fn new(p: TuplePtrMut) -> TupleBuilder {
+  pub fn new(p: rtuple::PtrMut) -> TupleBuilder {
     TupleBuilder { p }
   }
 }
@@ -38,9 +35,9 @@ impl ITupleBuilder<LTerm> for TupleBuilder {
 /// A forward list builder implementation for `LTerm` and ERT VM.
 pub struct ListBuilder {
   // first cell where the building started
-  p0: ConsPtrMut,
+  p0: rcons::PtrMut,
   // current (last) cell
-  p: ConsPtrMut,
+  p: rcons::PtrMut,
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,
 }
@@ -50,8 +47,8 @@ impl ListBuilder {
     let p = (*heap).heap_allocate(2, true).unwrap();
 
     ListBuilder {
-      p: ConsPtrMut::from_pointer(p),
-      p0: ConsPtrMut::from_pointer(p),
+      p: rcons::PtrMut::from_pointer(p),
+      p0: rcons::PtrMut::from_pointer(p),
       heap,
     }
   }
@@ -63,7 +60,7 @@ impl IListBuilder<LTerm> for ListBuilder {
   }
 
   unsafe fn next(&mut self) {
-    let new_cell = ConsPtrMut::from_pointer(
+    let new_cell = rcons::PtrMut::from_pointer(
       (*self.heap).heap_allocate(2, true).unwrap()
     );
     self.p.set_tl(new_cell.make_cons());

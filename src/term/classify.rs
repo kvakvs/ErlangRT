@@ -1,10 +1,10 @@
 //! Term ordering and classification.
 
-use rt_defs::Word;
+use rt_defs::{Word};
 use term::immediate;
 use term::lterm::*;
 use term::primary;
-use term::raw::heapobj::HeapObjClass;
+use term::raw::*;
 
 
 fn module() -> &'static str { "classify: " }

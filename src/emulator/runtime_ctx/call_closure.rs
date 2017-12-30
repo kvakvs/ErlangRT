@@ -3,8 +3,8 @@ use super::Context;
 use beam::disp_result::{DispatchResult};
 use emulator::process::{Process};
 use rt_defs::{Arity};
-use term::lterm::{LTerm};
-use term::raw::ho_closure::{HOClosure};
+use term::lterm::*;
+use term::raw::*;
 
 
 fn module() -> &'static str { "runtime_ctx.call_closure: " }

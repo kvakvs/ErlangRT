@@ -38,8 +38,7 @@ use emulator::module;
 
 use term::fterm::FTerm;
 use term::lterm::*;
-use term::raw::ho_import::HOImport;
-use term::raw::TuplePtrMut;
+use term::raw::*;
 use term::term_builder::TermBuilder;
 
 
@@ -717,7 +716,7 @@ impl Loader {
           self.code[cmd_offset] = self.postprocess_fix_1_label(val)
         },
         &PatchLocation::PatchJtabElement(jtab, index) => {
-          let jtab_ptr = TuplePtrMut::from_pointer(jtab.box_ptr_mut());
+          let jtab_ptr = rtuple::PtrMut::from_pointer(jtab.box_ptr_mut());
           unsafe {
             let val = jtab_ptr.get_element_base0(index);
             jtab_ptr.set_raw_word_base0(index,

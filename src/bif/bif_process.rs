@@ -4,7 +4,7 @@ use emulator::process::Process;
 use rt_defs::{ExceptionType, Arity};
 use emulator::mfa::MFArity;
 use term::lterm::*;
-use term::raw::ho_export::HOExport;
+use term::raw::*;
 
 
 pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> BifResult {

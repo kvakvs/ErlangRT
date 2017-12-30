@@ -1,6 +1,6 @@
 use term::immediate;
-use term::lterm::aspect_boxed::BoxedAspect;
-use term::raw::ho_binary::HOBinary;
+use term::lterm::*;
+use term::raw::*;
 
 
 /// Implements features of `LTerm` related to binary values.

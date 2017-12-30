@@ -4,11 +4,11 @@ use beam::disp_result::{DispatchResult};
 use bif;
 use emulator::code_srv;
 use emulator::process::{Process};
+use emulator::runtime_ctx::call_bif::{CallBifTarget};
+use emulator::runtime_ctx::call_bif;
 use rt_defs::{Arity};
 use term::lterm::*;
-use term::raw::ho_export::{HOExport};
-use emulator::runtime_ctx::call_bif;
-use emulator::runtime_ctx::call_bif::{CallBifTarget};
+use term::raw::*;
 
 
 fn module() -> &'static str { "runtime_ctx.call_export: " }

@@ -9,7 +9,7 @@ use emulator::mfa::{MFArity};
 use emulator::process::{Process};
 use fail;
 use term::lterm::*;
-use term::raw::ho_import::{HOImport};
+use term::raw::*;
 
 use std::slice;
 

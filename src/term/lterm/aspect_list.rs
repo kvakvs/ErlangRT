@@ -3,9 +3,9 @@
 
 use rt_defs::Word;
 use term::immediate;
+use term::lterm::*;
 use term::primary;
-use term::raw::{ConsPtr, ConsPtrMut};
-use term::lterm::aspect_smallint::SmallintAspect;
+use term::raw::*;
 
 use std::ptr;
 
@@ -24,10 +24,10 @@ pub trait ListAspect {
   fn is_nil(&self) -> bool;
 
   /// Get a proxy object for read-only accesing the cons contents.
-  fn cons_get_ptr(&self) -> ConsPtr;
+  fn cons_get_ptr(&self) -> rcons::Ptr;
 
   /// Get a proxy object for looking and modifying cons contents.
-  fn cons_get_ptr_mut(&self) -> ConsPtrMut;
+  fn cons_get_ptr_mut(&self) -> rcons::PtrMut;
 
   /// Iterate through a string and check if it only contains small integers
   /// and that each integer is in ASCII range.
@@ -54,22 +54,22 @@ impl ListAspect for super::LTerm {
   }
 
 
-  fn cons_get_ptr(&self) -> ConsPtr {
+  fn cons_get_ptr(&self) -> rcons::Ptr {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS,
                "{}cons_get_ptr: A cons is expected", module());
     let boxp = primary::pointer(v);
     assert_ne!(boxp, ptr::null(), "null cons 0x{:x}", self.value);
-    ConsPtr::from_pointer(boxp)
+    rcons::Ptr::from_pointer(boxp)
   }
 
 
-  fn cons_get_ptr_mut(&self) -> ConsPtrMut {
+  fn cons_get_ptr_mut(&self) -> rcons::PtrMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_CONS,
                "{}cons_get_ptr_mut: A cons is expected", module());
     let boxp = primary::pointer_mut(v);
-    ConsPtrMut::from_pointer(boxp)
+    rcons::PtrMut::from_pointer(boxp)
   }
 
 

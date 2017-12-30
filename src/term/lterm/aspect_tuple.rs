@@ -1,16 +1,16 @@
-use term::raw::{TuplePtr, TuplePtrMut};
-use term::primary;
-use term::immediate;
 use rt_defs::Word;
-use term::lterm::aspect_boxed::BoxedAspect;
+use term::immediate;
+use term::lterm::*;
+use term::primary;
+use term::raw::*;
 
 
 pub trait TupleAspect {
   /// Get a proxy object for read-only accesing the cons contents.
-  unsafe fn raw_tuple(&self) -> TuplePtr;
+  unsafe fn raw_tuple(&self) -> rtuple::Ptr;
 
   /// Get a proxy object for looking and modifying cons contents.
-  unsafe fn raw_tuple_mut(&self) -> TuplePtrMut;
+  unsafe fn raw_tuple_mut(&self) -> rtuple::PtrMut;
 
   /// Create an empty tuple value.
   fn empty_tuple() -> super::LTerm;
@@ -36,24 +36,24 @@ impl TupleAspect for super::LTerm {
 
 
   /// Get a proxy object for read-only accesing the cons contents.
-  unsafe fn raw_tuple(&self) -> TuplePtr {
+  unsafe fn raw_tuple(&self) -> rtuple::Ptr {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
     assert_eq!(primary::header::get_tag(v),
                primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer(v);
-    TuplePtr::from_pointer(boxp)
+    rtuple::Ptr::from_pointer(boxp)
   }
 
 
   /// Get a proxy object for looking and modifying cons contents.
-  unsafe fn raw_tuple_mut(&self) -> TuplePtrMut {
+  unsafe fn raw_tuple_mut(&self) -> rtuple::PtrMut {
     let v = self.value;
     assert_eq!(primary::get_tag(v), primary::TAG_HEADER);
     assert_eq!(primary::header::get_tag(v),
                primary::header::TAG_HEADER_TUPLE);
     let boxp = primary::pointer_mut(v);
-    TuplePtrMut::from_pointer(boxp)
+    rtuple::PtrMut::from_pointer(boxp)
   }
 
 

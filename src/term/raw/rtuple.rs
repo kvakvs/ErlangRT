@@ -12,27 +12,27 @@ pub fn storage_size(size: Word) -> Word { size + 1 }
 
 
 /// Represents a pointer to raw tuple in mutable memory.
-pub struct TuplePtrMut(*mut Word);
+pub struct PtrMut(*mut Word);
 
 
-impl TuplePtrMut {
+impl PtrMut {
   /// Given a pointer initialize a tuple header here, hence unsafe. Return a
   /// `RawTuple` wrapper.
-  pub unsafe fn create_at(p: *mut Word, arity: Word) -> TuplePtrMut {
+  pub unsafe fn create_at(p: *mut Word, arity: Word) -> PtrMut {
     *p = primary::header::make_tuple_header_raw(arity);
-    TuplePtrMut::from_pointer(p)
+    PtrMut::from_pointer(p)
   }
 
 
   /// Given a pointer to an already initialized tuple, just return a wrapper.
   #[inline]
-  pub fn from_pointer(p: *mut Word) -> TuplePtrMut {
-    TuplePtrMut(p)
+  pub fn from_pointer(p: *mut Word) -> PtrMut {
+    PtrMut(p)
   }
 
 
   pub unsafe fn arity(&self) -> Word {
-    let TuplePtrMut(p) = *self;
+    let PtrMut(p) = *self;
     primary::get_value(*p)
   }
 
@@ -41,7 +41,7 @@ impl TuplePtrMut {
   #[inline]
   pub unsafe fn set_element_base0(&self, i: Word, val: LTerm) {
     assert!(i < self.arity());
-    let TuplePtrMut(p) = *self;
+    let PtrMut(p) = *self;
     *p.offset(i as isize + 1) = val.raw()
   }
 
@@ -50,44 +50,44 @@ impl TuplePtrMut {
   #[inline]
   pub unsafe fn set_raw_word_base0(&self, i: Word, val: Word) {
     assert!(i < self.arity());
-    let TuplePtrMut(p) = *self;
+    let PtrMut(p) = *self;
     *p.offset(i as isize + 1) = val
   }
 
 
   pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
-    let TuplePtrMut(p) = *self;
+    let PtrMut(p) = *self;
     LTerm::from_raw(*p.offset(i as isize + 1))
   }
 
 
   /// Box the `self.p` pointer into `LTerm`.
   pub fn make_term(&self) -> LTerm {
-    let TuplePtrMut(p) = *self;
+    let PtrMut(p) = *self;
     make_box(p)
   }
 }
 
 
 /// Represents raw layout of tuple in read-only memory.
-pub struct TuplePtr(*const Word);
+pub struct Ptr(*const Word);
 
 
-impl TuplePtr {
+impl Ptr {
   /// Given a pointer to an already initialized tuple, just return a wrapper.
-  pub fn from_pointer(p: *const Word) -> TuplePtr {
-    TuplePtr(p as *const Word)
+  pub fn from_pointer(p: *const Word) -> Ptr {
+    Ptr(p as *const Word)
   }
 
 
   pub unsafe fn arity(&self) -> Word {
-    let TuplePtr(p) = *self;
+    let Ptr(p) = *self;
     header::get_arity(*p)
   }
 
 
   pub unsafe fn get_element_base0(&self, i: Word) -> LTerm {
-    let TuplePtr(p) = *self;
+    let Ptr(p) = *self;
     LTerm::from_raw(*p.offset(i as isize + 1))
   }
 
