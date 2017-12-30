@@ -6,21 +6,17 @@ use bif::{BifFn};
 use bif;
 use fail;
 use emulator::code::{CodePtr};
-use emulator::code_srv;
 use emulator::mfa::{MFArity};
 use emulator::process::{Process};
-use rt_defs::{Arity};
 use term::lterm::aspect_cp::{CpAspect};
-use term::lterm::aspect_list::{ListAspect, nil};
+use term::lterm::aspect_list::{ListAspect};
 use term::lterm::{LTerm, const_nil};
-use term::raw::ho_closure::{HOClosure};
-use term::raw::ho_export::{HOExport};
 use term::raw::ho_import::{HOImport};
 
 use std::slice;
 
 
-fn module() -> &'static str { "runtime_ctx.call: " }
+fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
 
 //
@@ -53,13 +49,13 @@ pub enum CallBifTarget {
 ///   `gc` if gc is allowed then `ctx.live` will be used as live.
 //#[inline]
 // Inline to allow const folding optimization
-pub fn call_bif(ctx: &mut Context,
-                curr_p: &mut Process,
-                fail_label: LTerm,
-                target: CallBifTarget,
-                args: &[LTerm],
-                dst: LTerm,
-                gc: bool) -> DispatchResult
+pub fn apply(ctx: &mut Context,
+             curr_p: &mut Process,
+             fail_label: LTerm,
+             target: CallBifTarget,
+             args: &[LTerm],
+             dst: LTerm,
+             gc: bool) -> DispatchResult
 {
   let maybe_bif_fn =
     match target {
@@ -158,6 +154,8 @@ fn callbif_resolve_import(ho_imp: LTerm) -> BifResolutionResult
   }
 }
 
+
+/// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.
 #[inline]
 fn callbif_resolve_mfa(mfa: &MFArity) -> BifResolutionResult {
   match bif::find_bif(&mfa) {
@@ -195,71 +193,4 @@ fn callbif_apply_bif(ctx: &mut Context,
 
   // Apply the BIF call and return BifResult
   (func_pointer)(curr_p, loaded_args1)
-}
-
-
-//
-// Call Closure/Function Application
-//
-
-
-/// The `closure` is a callable closure with some frozen variables made with
-/// `fun() -> code end`.
-pub fn call_closure(ctx: &mut Context,
-                    _curr_p: &mut Process,
-                    closure: *const HOClosure,
-                    args: &[LTerm]) -> DispatchResult
-{
-  let arity = args.len();
-  ctx.live = arity + 1;
-
-  if unsafe { (*closure).mfa.arity } != arity as Arity {
-    return DispatchResult::badarity();
-  }
-
-  panic!("call_closure")
-//  DispatchResult::Normal
-}
-
-
-//
-// Call Export/Function Application (without frozen values)
-//
-
-
-/// The `exp` is an export made with `fun module:name/0` which can point to
-/// either an Erlang function or to a BIF (native built-in function).
-pub fn call_export(ctx: &mut Context,
-                   curr_p: &mut Process,
-                   export: *const HOExport,
-                   args: &[LTerm],
-                   save_cp: bool) -> DispatchResult
-{
-  // The `fobj` is a callable closure made with `fun() -> code end`
-  let arity = args.len();
-  ctx.live = arity + 1;
-
-  let mfa = unsafe { (*export).exp.mfa };
-  if mfa.arity != arity as Arity {
-    return DispatchResult::badarity()
-  }
-
-  if bif::is_bif(&mfa) {
-    return call_bif(ctx, curr_p, nil(),
-                    CallBifTarget::MFArity(mfa),
-                    args,
-                    LTerm::make_xreg(0),
-                    false)
-  } else {
-    match code_srv::lookup_and_load(&mfa) {
-      Ok(ip) => {
-        if save_cp { ctx.cp = ctx.ip }
-        ctx.ip = ip
-      },
-      Err(_e) => return DispatchResult::undef()
-    }
-  }
-
-  panic!("call_export")
-//  DispatchResult::Normal
 }

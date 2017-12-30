@@ -6,7 +6,7 @@ use beam::opcodes::assert_arity;
 use beam::disp_result::{DispatchResult};
 use emulator::code::CodePtr;
 use emulator::process::Process;
-use emulator::runtime_ctx::call;
+use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::{Context};
 use rt_defs::stack::IStack;
 use term::lterm::*;
@@ -111,13 +111,13 @@ fn shared_call_ext(ctx: &mut Context,
       unsafe {
         if (*import_ptr).is_bif {
           // Perform a BIF application
-          let cb_target = call::CallBifTarget::ImportPointer(import_ptr);
-          call::call_bif(ctx, curr_p,
-                         fail_label,
-                         cb_target,
-                         args,
-                         LTerm::make_xreg(0),
-                         true)
+          let cb_target = call_bif::CallBifTarget::ImportPointer(import_ptr);
+          call_bif::apply(ctx, curr_p,
+                          fail_label,
+                          cb_target,
+                          args,
+                          LTerm::make_xreg(0),
+                          true)
         } else {
           // Perform a regular call to BEAM code, save CP and jump
           //

@@ -1,7 +1,10 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 
-pub mod call;
+pub mod call_bif;
+pub mod call_closure;
+pub mod call_export;
+
 
 use emulator::code::CodePtr;
 use emulator::heap;

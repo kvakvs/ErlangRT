@@ -16,6 +16,9 @@ use term::raw::heapobj::*;
 use emulator::function::CallableLocation;
 
 
+fn module() -> &'static str { "ho_closure: " }
+
+
 /// Heap object `HOClosure` is placed on heap.
 #[allow(dead_code)]
 pub struct HOClosure {
@@ -67,6 +70,9 @@ impl HOClosure {
   {
     let n_words = HOClosure::storage_size(fe.nfree);
     let this = hp.heap_allocate(n_words, false)? as *mut HOClosure;
+
+    assert_eq!(frozen.len(), fe.nfree as usize);
+    println!("{}new closure: {} frozen={} nfree={}", module(), fe.mfa, frozen.len(), fe.nfree);
 
     ptr::write(this,
                HOClosure::new(

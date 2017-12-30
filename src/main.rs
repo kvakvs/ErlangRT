@@ -17,6 +17,9 @@ extern crate num;
 #[macro_use]
 extern crate lazy_static;
 
+//#[macro_use]
+//extern crate log;
+
 extern crate rt_defs;
 extern crate rt_util;
 

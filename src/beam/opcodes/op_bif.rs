@@ -4,7 +4,7 @@ use beam::gen_op;
 use beam::opcodes::assert_arity;
 use beam::disp_result::{DispatchResult};
 use emulator::process::Process;
-use emulator::runtime_ctx::call;
+use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::{Context};
 use term::lterm::aspect_list::{nil};
 use term::lterm::aspect_smallint::SmallintAspect;
@@ -24,10 +24,10 @@ pub fn opcode_bif0(ctx: &mut Context,
 
   // Note: bif0 cannot fail (fail_label=NIL)
 
-  let cb_target = call::CallBifTarget::ImportTerm(target);
-  call::call_bif(ctx, curr_p, nil(),
-                 cb_target,
-                 &[], dst, false)
+  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+  call_bif::apply(ctx, curr_p, nil(),
+                  cb_target,
+                  &[], dst, false)
 }
 
 
@@ -42,8 +42,8 @@ pub fn opcode_bif1(ctx: &mut Context,
   let args = ctx.fetch_slice(1);
   let dst = ctx.fetch_term();
 
-  let cb_target = call::CallBifTarget::ImportTerm(target);
-  call::call_bif(ctx, curr_p, fail, cb_target, args, dst, false)
+  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
 }
 
 
@@ -58,8 +58,8 @@ pub fn opcode_bif2(ctx: &mut Context,
   let args = ctx.fetch_slice(2);
   let dst = ctx.fetch_term();
 
-  let cb_target = call::CallBifTarget::ImportTerm(target);
-  call::call_bif(ctx, curr_p, fail, cb_target, args, dst, false)
+  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
 }
 
 
@@ -75,8 +75,8 @@ pub fn opcode_gc_bif1(ctx: &mut Context,
   let args = ctx.fetch_slice(1);
   let dst = ctx.fetch_term();
 
-  let cb_target = call::CallBifTarget::ImportTerm(target);
-  call::call_bif(ctx, curr_p, fail, cb_target, args, dst, true)
+  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
 }
 
 
@@ -93,8 +93,8 @@ pub fn opcode_gc_bif2(ctx: &mut Context,
   let args = ctx.fetch_slice(2);
   let dst = ctx.fetch_term();
 
-  let cb_target = call::CallBifTarget::ImportTerm(target);
-  call::call_bif(ctx, curr_p, fail, cb_target, args, dst, true)
+  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
 }
 
 
@@ -111,6 +111,6 @@ pub fn opcode_gc_bif3(ctx: &mut Context,
   let args = ctx.fetch_slice(3);
   let dst = ctx.fetch_term();
 
-  let cb_target = call::CallBifTarget::ImportTerm(target);
-  call::call_bif(ctx, curr_p, fail, cb_target, args, dst, true)
+  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
 }
