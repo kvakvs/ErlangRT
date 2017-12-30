@@ -1,9 +1,10 @@
-//!
 //! Low level term library
 //!
 //! Low level term represents memory layout of Term bits to store the data
 //! as compact as possible while maintaining an acceptable performance
 //!
+//! Do not import this file directly, use `use term::lterm::*;` instead.
+
 use term::immediate;
 use term::primary;
 use emulator::atom;

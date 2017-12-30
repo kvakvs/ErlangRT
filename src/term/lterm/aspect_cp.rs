@@ -1,5 +1,6 @@
 //! Code Pointer manipulation.
 //! CP is tagged as Boxed + Top bit set.
+//! Do not import this file directly, use `use term::lterm::*;` instead.
 
 use rt_defs::Word;
 use rt_defs;

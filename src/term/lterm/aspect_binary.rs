@@ -1,3 +1,4 @@
+//! Do not import this file directly, use `use term::lterm::*;` instead.
 use term::immediate;
 use term::lterm::*;
 use term::raw::*;

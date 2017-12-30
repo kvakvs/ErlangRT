@@ -3,6 +3,7 @@
 //! 1. (p+0) A header tag with arity which delimits the object size.
 //! 2. (p+1) A `HeapObjClass` pointer which is used to call methods on a heap object.
 //! 3. (p+2...) The data
+//! Do not import this file directly, use `use term::raw::*;` instead.
 
 use fail::{Hopefully, Error};
 use rt_defs::Word;

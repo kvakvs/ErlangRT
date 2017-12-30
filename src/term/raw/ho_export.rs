@@ -1,5 +1,6 @@
 //! Heap object which stores an export - a stateless pointer to some function
 //! by its M:F/Arity and created with a `fun module:name/0` expression.
+//! Do not import this file directly, use `use term::raw::*;` instead.
 
 use std::mem::size_of;
 use std::ptr;

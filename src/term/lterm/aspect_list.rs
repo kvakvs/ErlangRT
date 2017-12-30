@@ -1,5 +1,6 @@
 //! Functions to manipulate an `LTerm` as an Erlang list cell (two words on
 //! heap, which contain a head and a tail). Part of `LTerm` impl.
+//! Do not import this file directly, use `use term::lterm::*;` instead.
 
 use rt_defs::Word;
 use term::immediate;

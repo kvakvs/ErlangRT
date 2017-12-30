@@ -1,3 +1,5 @@
+//! Do not import this file directly, use `use term::lterm::*;` instead.
+
 use rt_defs::{SWord, Word, MAX_UNSIGNED_SMALL, MIN_NEG_SMALL, MAX_POS_SMALL};
 use term::immediate;
 

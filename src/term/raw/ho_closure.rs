@@ -1,5 +1,6 @@
 //! Heap object which stores a closure - a stateful function pointer (with some
 //! frozen values captured at its creation).
+//! Do not import this file directly, use `use term::raw::*;` instead.
 
 use std::mem::size_of;
 use std::ptr;

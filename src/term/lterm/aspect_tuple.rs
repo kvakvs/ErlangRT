@@ -1,4 +1,6 @@
-use rt_defs::Word;
+//! Do not import this file directly, use `use term::lterm::*;` instead.
+
+use rt_defs::{Word};
 use term::immediate;
 use term::lterm::*;
 use term::primary;

@@ -1,3 +1,5 @@
+//! Do not import this file directly, use `use term::raw::*;` instead.
+//!
 use rt_defs::Word;
 use term::lterm::*;
 

@@ -1,3 +1,5 @@
+//! Do not import submodules directly, use `use term::lterm::*;` instead.
+
 mod aspect_atom;
 mod aspect_bignum;
 mod aspect_binary;

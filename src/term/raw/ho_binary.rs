@@ -1,4 +1,5 @@
 //! Heap object which stores a binary or a reference to a refcounted binary.
+//! Do not import this file directly, use `use term::raw::*;` instead.
 
 use std::mem::size_of;
 use std::ptr;

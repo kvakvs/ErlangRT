@@ -1,5 +1,6 @@
 //! `RawTuple` and `RawTupleMut` define pointer which refers to a `HeapTuple` 
 //! on heap.
+//! Do not import this file directly, use `use term::raw::*;` instead.
 
 use rt_defs::Word;
 use term::lterm::*;

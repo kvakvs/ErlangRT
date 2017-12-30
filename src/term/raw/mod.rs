@@ -1,3 +1,5 @@
+//! Do not import submodules directly, use `use term::raw::*;` instead.
+
 //mod rbignum;
 mod heapobj;
 mod ho_bignum;

@@ -1,4 +1,5 @@
 //! Heap object which stores an import - Mod, Fun, Arity and a bif flag.
+//! Do not import this file directly, use `use term::raw::*;` instead.
 
 use std::mem::size_of;
 use std::ptr;
