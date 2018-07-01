@@ -131,8 +131,8 @@ impl CodeServer {
 
   /// Given a code address try find a module and function where this belongs.
   // TODO: Optimize search by giving a module name hint and using a range tree
-  pub fn code_reverse_lookup(&self, ip: &CodePtr) -> Option<MFArity> {
-    for (_key, val) in &self.mods {
+  pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<MFArity> {
+    for val in self.mods.values() {
       let modp = val.lock().unwrap();
       let lresult = modp.code_reverse_lookup(ip);
       if lresult.is_some() {
@@ -179,7 +179,7 @@ pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
 
 
 #[inline]
-pub fn code_reverse_lookup(ip: &CodePtr) -> Option<MFArity> {
+pub fn code_reverse_lookup(ip: CodePtr) -> Option<MFArity> {
   let cs = CODE_SRV.read().unwrap();
   cs.code_reverse_lookup(ip)
 }

@@ -35,14 +35,14 @@ impl Atom {
 
     // This might be particularly ugly. Erlang/OTP does this by preallocating
     // a minimum of 4 bytes and taking from them unconditionally.
-    if b.len() > 0 {
-      ord0 = (b[0] as u32) << 24;
+    if !b.is_empty() {
+      ord0 = u32::from(b[0]) << 24;
       if b.len() > 1 {
-        ord0 |= (b[1] as u32) << 16;
+        ord0 |= u32::from(b[1]) << 16;
         if b.len() > 2 {
-          ord0 |= (b[2] as u32) << 8;
+          ord0 |= u32::from(b[2]) << 8;
           if b.len() > 3 {
-            ord0 |= b[3] as u32;
+            ord0 |= u32::from(b[3]);
           }
         }
       }

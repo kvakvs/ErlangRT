@@ -18,7 +18,7 @@ pub struct Export {
 
 impl Export {
   pub fn new(mfa: &MFArity) -> Export {
-    Export { mfa: mfa.clone(), dst: CallableLocation::NeedUpdate }
+    Export { mfa: *mfa, dst: CallableLocation::NeedUpdate }
   }
 
 

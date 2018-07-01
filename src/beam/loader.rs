@@ -684,7 +684,7 @@ impl Loader {
     // Resolve the label, if exists in labels table
     match self.labels.get(&l) {
       Some(offset0) =>
-        self.create_jump_destination(offset0),
+        self.create_jump_destination(*offset0),
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId(label_id) = l;
@@ -696,8 +696,8 @@ impl Loader {
 
   /// Given label destination and `self.code` length calculate a relative
   /// signed jump offset for it.
-  fn create_jump_destination(&self, dst_offset: &CodeOffset) -> Word {
-    let &CodeOffset(offs) = dst_offset;
+  fn create_jump_destination(&self, dst_offset: CodeOffset) -> Word {
+    let CodeOffset(offs) = dst_offset;
     let ptr = &self.code[offs] as *const Word;
     make_cp(ptr).raw()
   }
@@ -710,12 +710,13 @@ impl Loader {
     mem::swap(&mut repl, &mut self.replace_labels);
 
     for ploc in &repl {
-      match ploc {
-        &PatchLocation::PatchCodeOffset(cmd_offset) => {
+      match *ploc {
+        PatchLocation::PatchCodeOffset(cmd_offset) => {
           let val = LTerm::from_raw(self.code[cmd_offset]);
           self.code[cmd_offset] = self.postprocess_fix_1_label(val)
         },
-        &PatchLocation::PatchJtabElement(jtab, index) => {
+
+        PatchLocation::PatchJtabElement(jtab, index) => {
           let jtab_ptr = rtuple::PtrMut::from_pointer(jtab.box_ptr_mut());
           unsafe {
             let val = jtab_ptr.get_element_base0(index);
@@ -740,7 +741,7 @@ impl Loader {
       let unfixed_l = LabelId(unfixed);
 
       // Lookup the label. Crash here if bad label.
-      let dst_offset = &self.labels[&unfixed_l];
+      let dst_offset = self.labels[&unfixed_l];
 
       // Update code cell with special label value
       self.create_jump_destination(dst_offset)
@@ -783,7 +784,7 @@ impl Loader {
         gen_op::OPCODE_MAKE_FUN2 => {
           // arg[0] is export
 //          self.rewrite_import_index_arg(&cp, 1)
-          self.rewrite_lambda_index_arg(&cp, 1)
+          self.rewrite_lambda_index_arg(cp, 1)
         },
         gen_op::OPCODE_BIF1 |
         gen_op::OPCODE_BIF2 |
@@ -791,13 +792,13 @@ impl Loader {
         gen_op::OPCODE_CALL_EXT_LAST |
         gen_op::OPCODE_CALL_EXT_ONLY => {
           // arg[1] is export
-          self.rewrite_import_index_arg(&cp, 2)
+          self.rewrite_import_index_arg(cp, 2)
         },
         gen_op::OPCODE_GC_BIF1 |
         gen_op::OPCODE_GC_BIF2 |
         gen_op::OPCODE_GC_BIF3 => {
           // arg[2] is export
-          self.rewrite_import_index_arg(&cp, 3)
+          self.rewrite_import_index_arg(cp, 3)
         }
         _ => {}
       }
@@ -808,7 +809,7 @@ impl Loader {
 
   /// Internal helper which takes N'th arg of an opcode, parses it as a small
   /// unsigned and writes an LTerm pointer to a literal {M,F,Arity} tuple.
-  fn rewrite_import_index_arg(&self, cp: &CodePtrMut, n: isize) {
+  fn rewrite_import_index_arg(&self, cp: CodePtrMut, n: isize) {
     let import0 = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let import1 = self.imports[import0.small_get_u()].raw();
     unsafe { cp.write_n(n, import1) }
@@ -819,7 +820,7 @@ impl Loader {
   /// argument, replace it with a raw pointer to a loaded `FunEntry`.
   /// The `FunEntry` will be owned by the module we're loading, and will be
   /// freed together with the code, so it should be safe to use the pointer.
-  fn rewrite_lambda_index_arg(&self, cp: &CodePtrMut, n: isize) {
+  fn rewrite_lambda_index_arg(&self, cp: CodePtrMut, n: isize) {
     let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let lambda_p = &self.lambdas[lambda_i.small_get_u()] as *const FunEntry;
     let lambda_term = make_cp(lambda_p as *const Word);

@@ -18,7 +18,7 @@ pub fn opcode_bif0(ctx: &mut Context,
   // Structure: bif0(import:boxed, dst:dst)
   assert_arity(gen_op::OPCODE_BIF0, 2);
 
-  let target = ctx.fetch_and_load(&mut curr_p.heap);
+  let target = ctx.fetch_and_load(&curr_p.heap);
   let dst = ctx.fetch_term();
 
   // Note: bif0 cannot fail (fail_label=NIL)
@@ -37,7 +37,7 @@ pub fn opcode_bif1(ctx: &mut Context,
   assert_arity(gen_op::OPCODE_BIF1, 4);
 
   let fail = ctx.fetch_term();
-  let target = ctx.fetch_and_load(&mut curr_p.heap);
+  let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(1);
   let dst = ctx.fetch_term();
 
@@ -53,7 +53,7 @@ pub fn opcode_bif2(ctx: &mut Context,
   assert_arity(gen_op::OPCODE_BIF2, 5);
 
   let fail = ctx.fetch_term();
-  let target = ctx.fetch_and_load(&mut curr_p.heap);
+  let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(2);
   let dst = ctx.fetch_term();
 
@@ -70,7 +70,7 @@ pub fn opcode_gc_bif1(ctx: &mut Context,
 
   let fail = ctx.fetch_term();
   ctx.live = ctx.fetch_term().small_get_u();
-  let target = ctx.fetch_and_load(&mut curr_p.heap);
+  let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(1);
   let dst = ctx.fetch_term();
 
@@ -88,7 +88,7 @@ pub fn opcode_gc_bif2(ctx: &mut Context,
 
   let fail = ctx.fetch_term();
   ctx.live = ctx.fetch_term().small_get_u();
-  let target = ctx.fetch_and_load(&mut curr_p.heap);
+  let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(2);
   let dst = ctx.fetch_term();
 
@@ -106,7 +106,7 @@ pub fn opcode_gc_bif3(ctx: &mut Context,
 
   let fail = ctx.fetch_term();
   ctx.live = ctx.fetch_term().small_get_u();
-  let target = ctx.fetch_and_load(&mut curr_p.heap);
+  let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(3);
   let dst = ctx.fetch_term();
 

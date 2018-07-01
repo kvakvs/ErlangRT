@@ -220,7 +220,7 @@ impl IStack<LTerm> for Heap {
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   fn stack_deallocate(&mut self, n: Word) -> LTerm {
-    assert!(self.stop + n + 1 <= self.send,
+    assert!(self.stop + n < self.send,
             "Failed to dealloc {}+1 words (s_top {}, s_end {})",
             n, self.stop, self.send);
     let cp = LTerm::from_raw(self.data[self.stop]);

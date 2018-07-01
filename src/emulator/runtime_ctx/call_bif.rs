@@ -23,6 +23,8 @@ fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
 
 /// A Bif can be referenced by an import `LTerm`, an `MFArity`...
+#[warn(dead_code)]
+#[derive(Copy, Clone)]
 pub enum CallBifTarget {
   /// A term containing pointer to an `HOImport`.
   ImportTerm(LTerm),
@@ -82,7 +84,7 @@ pub fn apply(ctx: &mut Context,
     BifResolutionResult::BadfunError(badfun_val) =>
       return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap),
 
-    BifResolutionResult::Fail(e) => return callbif_handle_fail(e),
+    BifResolutionResult::Fail(e) => return callbif_handle_fail(&e),
   };
 
   // Now having called the function let's see if there was some good result or
@@ -101,7 +103,8 @@ pub fn apply(ctx: &mut Context,
       DispatchResult::Error(ex_type, ex_reason)
     },
 
-    BifResult::Fail(f) => return callbif_handle_fail(f),
+    BifResult::Fail(f) =>
+      callbif_handle_fail(&f),
 
     BifResult::Value(val) => {
       // if dst is not NIL, store the result in it
@@ -115,7 +118,7 @@ pub fn apply(ctx: &mut Context,
 
 
 #[inline]
-fn callbif_handle_fail(e: fail::Error) -> DispatchResult {
+fn callbif_handle_fail(e: &fail::Error) -> DispatchResult {
   panic!("{}bif call failed with {:?}", module(), e)
 }
 

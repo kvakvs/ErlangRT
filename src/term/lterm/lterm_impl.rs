@@ -47,7 +47,7 @@ impl PartialOrd for LTerm {
 impl LTerm {
   /// Access the raw Word value of the low-level term.
   #[inline]
-  pub fn raw(&self) -> Word { self.value }
+  pub fn raw(self) -> Word { self.value }
 
 
   /// Create a NON_VALUE.
@@ -59,51 +59,51 @@ impl LTerm {
 
   /// Check whether a value is a NON_VALUE.
   #[inline]
-  pub fn is_non_value(&self) -> bool {
+  pub fn is_non_value(self) -> bool {
     self.value == immediate::IMM2_SPECIAL_NONVALUE_RAW
   }
 
 
   /// Check whether a value is NOT a NON_VALUE.
   #[inline]
-  pub fn is_value(&self) -> bool {
+  pub fn is_value(self) -> bool {
     ! self.is_non_value()
   }
 
 
   /// Get primary tag bits from a raw term
   #[inline]
-  pub fn primary_tag(&self) -> Word {
+  pub fn primary_tag(self) -> Word {
     primary::get_tag(self.value)
   }
 
   /// Check whether a value has immediate1 bits as prefix.
   #[inline]
-  pub fn is_immediate1(&self) -> bool {
+  pub fn is_immediate1(self) -> bool {
     immediate::is_immediate1(self.value)
   }
 
   /// Check whether a value has immediate2 bits as prefix.
   #[inline]
-  pub fn is_immediate2(&self) -> bool {
+  pub fn is_immediate2(self) -> bool {
     immediate::is_immediate2(self.value)
   }
 
   /// Check whether a value has immediate3 bits as prefix.
   #[inline]
-  pub fn is_immediate3(&self) -> bool {
+  pub fn is_immediate3(self) -> bool {
     immediate::is_immediate3(self.value)
   }
 
   /// Check whether primary tag of a value is `TAG_HEADER`.
   #[inline]
-  pub fn is_header(&self) -> bool {
+  pub fn is_header(self) -> bool {
     self.primary_tag() == primary::TAG_HEADER
   }
 
   /// Retrieve the raw value of a `LTerm`.
   #[inline]
-  pub fn get_raw(&self) -> Word { self.value }
+  pub fn get_raw(self) -> Word { self.value }
 
   //
   // Construction
@@ -147,13 +147,13 @@ impl LTerm {
   // Tuples
   //
 
-  pub fn header_get_arity(&self) -> Word {
+  pub fn header_get_arity(self) -> Word {
     assert!(self.is_header());
     primary::header::get_arity(self.value)
   }
 
 
-  pub fn header_get_type(&self) -> Word {
+  pub fn header_get_type(self) -> Word {
     assert!(self.is_header());
     primary::header::get_tag(self.value)
   }
@@ -163,7 +163,7 @@ impl LTerm {
   // Formatting helpers
   //
 
-  fn format_immed(&self, v: Word, f: &mut fmt::Formatter) -> fmt::Result {
+  fn format_immed(self, v: Word, f: &mut fmt::Formatter) -> fmt::Result {
     match immediate::get_imm1_tag(v) {
       immediate::TAG_IMM1_SMALL => write!(f, "{}", self.small_get_s()),
 
@@ -194,7 +194,7 @@ impl LTerm {
           },
 
           immediate::TAG_IMM2_ATOM => {
-            match atom::to_str(*self) {
+            match atom::to_str(self) {
               Ok(s) => write!(f, "'{}'", s),
               Err(_e) => write!(f, "Atom?"),
             }
@@ -278,7 +278,7 @@ impl LTerm {
   }
 
 
-  pub unsafe fn format_cons(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  pub unsafe fn format_cons(self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "[")?;
 
     let mut raw_cons = self.cons_get_ptr();
@@ -302,7 +302,7 @@ impl LTerm {
   }
 
 
-  pub unsafe fn format_cons_ascii(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  pub unsafe fn format_cons_ascii(self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "\"")?;
 
     let mut raw_cons = self.cons_get_ptr();

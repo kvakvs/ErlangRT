@@ -20,12 +20,12 @@ pub type RefCode<'a> = &'a [Word];
 
 
 /// Tagged word for label index
-#[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
+#[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone, Copy)]
 pub struct LabelId(pub Word);
 
 
 /// Tagged word for offset in the code array
-#[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone)]
+#[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Clone, Copy)]
 pub struct CodeOffset(pub Word);
 
 

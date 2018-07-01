@@ -20,7 +20,7 @@ impl VM {
 
     let curr_p = match self.scheduler.next_process() {
       None => return false,
-      Some(p) => self.scheduler.lookup_pid_mut(&p).unwrap()
+      Some(p) => self.scheduler.lookup_pid_mut(p).unwrap()
     };
     ctx.copy_from(&curr_p.context); // swapin
 

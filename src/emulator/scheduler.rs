@@ -114,7 +114,7 @@ impl Scheduler {
 
     let prio = {
       // Lookup the pid
-      let p = self.lookup_pid(&pid).unwrap();
+      let p = self.lookup_pid(pid).unwrap();
       assert_eq!(p.current_queue, Queue::None);
       p.prio
     };
@@ -132,7 +132,7 @@ impl Scheduler {
     let current_pid = self.current;
     if let Some(curr_pid) = current_pid {
       let timeslice_result = {
-        let curr = self.lookup_pid(&curr_pid).unwrap();
+        let curr = self.lookup_pid(curr_pid).unwrap();
         assert_eq!(curr.current_queue, Queue::None);
         curr.timeslice_result
       };
@@ -153,7 +153,7 @@ impl Scheduler {
 
         SliceResult::Exception => {
           let p_error = {
-            let curr = self.lookup_pid(&curr_pid).unwrap();
+            let curr = self.lookup_pid(curr_pid).unwrap();
             assert!(curr.is_failed());
             curr.error
           };
@@ -207,23 +207,23 @@ impl Scheduler {
 
 
   /// Get a read-only process, if it exists. Return `None` if we are sorry.
-  pub fn lookup_pid(&self, pid: &LTerm) -> Option<&Process> {
+  pub fn lookup_pid(&self, pid: LTerm) -> Option<&Process> {
     assert!(pid.is_local_pid());
-    self.processes.get(pid)
+    self.processes.get(&pid)
   }
 
 
   /// Get a reference to process, if it exists. Return `None` if we are sorry.
-  pub fn lookup_pid_mut(&mut self, pid: &LTerm) -> Option<&mut Process> {
+  pub fn lookup_pid_mut(&mut self, pid: LTerm) -> Option<&mut Process> {
     assert!(pid.is_local_pid());
-    self.processes.get_mut(pid)
+    self.processes.get_mut(&pid)
   }
 
 
   pub fn exit_process(&mut self, pid: LTerm, e: ProcessError) {
     // assert that process is not in any queue
     {
-      let p = self.lookup_pid_mut(&pid).unwrap();
+      let p = self.lookup_pid_mut(pid).unwrap();
       assert_eq!(p.current_queue, Queue::None);
     }
 

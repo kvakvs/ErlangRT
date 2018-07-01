@@ -15,7 +15,7 @@ pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> BifResult {
 /// Create a function pointer from atom(), atom(), smallint()
 pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> BifResult {
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
-    BifResult::Exception(ExceptionType::Error, gen_atoms::BADARG);
+    return BifResult::Exception(ExceptionType::Error, gen_atoms::BADARG);
   }
 
   let hp = &mut cur_proc.heap;

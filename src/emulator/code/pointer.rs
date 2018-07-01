@@ -19,7 +19,7 @@ pub struct FarCodePointer {
 
 impl FarCodePointer {
   pub fn new(mod_id: &VersionedModuleId, offset: usize) -> FarCodePointer {
-    FarCodePointer { mod_id: mod_id.clone(), offset }
+    FarCodePointer { mod_id: *mod_id, offset }
   }
 }
 
@@ -45,8 +45,8 @@ impl fmt::Display for CodePtr {
 impl CodePtr {
 
   #[inline]
-  pub fn get_ptr(&self) -> *const Word {
-    let CodePtr(p) = *self;
+  pub fn get_ptr(self) -> *const Word {
+    let CodePtr(p) = self;
     p
   }
 
@@ -82,8 +82,8 @@ impl CodePtr {
 
   /// Convert to tagged CP integer
   #[inline]
-  pub fn to_cp(&self) -> Word {
-    let CodePtr(p) = *self;
+  pub fn to_cp(self) -> Word {
+    let CodePtr(p) = self;
     make_cp(p).raw()
 //    let p1 = p as Word;
 //    p1 | TAG_CP
@@ -99,8 +99,8 @@ impl CodePtr {
 
 
   #[inline]
-  pub fn is_null(&self) -> bool {
-    let CodePtr(p) = *self;
+  pub fn is_null(self) -> bool {
+    let CodePtr(p) = self;
     p.is_null()
   }
 
@@ -108,10 +108,10 @@ impl CodePtr {
 //  #[inline]
 //  pub fn is_not_null(&self) -> bool { ! self.is_null() }
 
-  pub fn belongs_to(&self, slice: &[Word]) -> bool {
+  pub fn belongs_to(self, slice: &[Word]) -> bool {
     let cbegin = &slice[0] as *const Word;
     let cend = unsafe { cbegin.offset(slice.len() as isize) };
-    let CodePtr(p) = *self;
+    let CodePtr(p) = self;
     p >= cbegin && p < cend
   }
 }
@@ -126,32 +126,32 @@ impl CodePtrMut {
 
   /// Quick access to the contained pointer.
   #[inline]
-  pub fn ptr(&self) -> *const Word {
-    let CodePtrMut(p) = *self;
+  pub fn ptr(self) -> *const Word {
+    let CodePtrMut(p) = self;
     p
   }
 
   /// Read word at the code pointer.
   #[inline]
   #[allow(dead_code)]
-  pub unsafe fn read_0(&self) -> Word {
-    let CodePtrMut(p) = *self;
+  pub unsafe fn read_0(self) -> Word {
+    let CodePtrMut(p) = self;
     *p
   }
 
 
   /// Read `n`-th word from code pointer.
   #[inline]
-  pub unsafe fn read_n(&self, n: isize) -> Word {
-    let CodePtrMut(p) = *self;
+  pub unsafe fn read_n(self, n: isize) -> Word {
+    let CodePtrMut(p) = self;
     *(p.offset(n))
   }
 
 
   /// Write `n`-th word at the code pointer.
   #[inline]
-  pub unsafe fn write_n(&self, n: isize, val: Word) {
-    let CodePtrMut(p) = *self;
+  pub unsafe fn write_n(self, n: isize, val: Word) {
+    let CodePtrMut(p) = self;
     *(p.offset(n)) = val
   }
 

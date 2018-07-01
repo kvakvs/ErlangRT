@@ -96,7 +96,7 @@ impl Module {
   /// Check whether IP belongs to this module's code range, and if so, try and
   /// find the MFA for the code location.
   // TODO: Use some smart range tree or binary search or something
-  pub fn code_reverse_lookup(&self, ip: &CodePtr) -> Option<MFArity> {
+  pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<MFArity> {
     if !ip.belongs_to(&self.code) {
       return None
     }

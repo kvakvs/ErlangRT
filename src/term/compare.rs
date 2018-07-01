@@ -183,10 +183,9 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
   let av = a.raw();
   let bv = b.raw();
 
-  if a.is_nil() || a.is_empty_tuple() || a.is_empty_binary() {
-    if a.raw() == b.raw() {
-      return Ordering::Equal;
-    }
+  if (a.is_nil() || a.is_empty_tuple() || a.is_empty_binary())
+      && (a.raw() == b.raw()) {
+    return Ordering::Equal;
   }
 
   if a.is_immediate1() {
