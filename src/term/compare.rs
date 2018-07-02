@@ -179,6 +179,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 }
 
 
+// TODO: If this function is used a lot, optimize by doing case on tag bits
 fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
   let av = a.raw();
   let bv = b.raw();
@@ -220,118 +221,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
   }
 
   if a.is_box() {
-    if unsafe { a.is_tuple() } {
-      if unsafe { b.is_tuple() } {
-        panic!("TODO: cmp tuple vs tuple")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
-    } else if a.is_map() {
-      if a.is_flat_map() {
-        if !b.is_flat_map() {
-          if b.is_hash_map() {
-            let b_size = b.map_size();
-            return a.map_size().cmp(&b_size)
-          }
-        } else {
-          // Compare two flat maps
-          panic!("TODO: cmp flatmap vs flatmap (+exact)")
-        }
-      } else {
-        if !b.is_hash_map() {
-          if b.is_flat_map() {
-            let b_size = b.map_size();
-            return a.map_size().cmp(&b_size)
-          }
-        } else {
-          // Compare two hash maps
-          panic!("TODO: cmp flatmap vs flatmap (+exact)")
-        }
-      }
-      //Hashmap compare strategy:
-      //Phase 1. While keys are identical
-      //    Do synchronous stepping through leafs of both trees in hash
-      //    order. Maintain value compare result of minimal key.
-      //
-      //Phase 2. If key diff was found in phase 1
-      //    Ignore values from now on.
-      //    Continue iterate trees by always advancing the one
-      //    lagging behind hash-wise. Identical keys are skipped.
-      //    A minimal key can only be candidate as tie-breaker if we
-      //    have passed that hash value in the other tree (which means
-      //    the key did not exist in the other tree).
-    } else if unsafe { a.is_float() } {
-      if !unsafe { b.is_float() } {
-        // TODO: If b is integer and we don't do exact comparison?
-        return cmp_mixed_types(a, b)
-      } else {
-        let af = unsafe { a.float_get() };
-        let bf = unsafe { b.float_get() };
-        return af.partial_cmp(&bf).unwrap()
-      }
-    } else if a.is_bignum() {
-      if !b.is_bignum() {
-        return cmp_mixed_types(a, b)
-      }
-    } else if a.is_export() {
-      if !b.is_export() {
-        return cmp_mixed_types(a, b)
-      }
-      // Compare two exports: from utils.c line ~2918
-      // cmp atoms a.module and b.module
-      // cmp atoms a.fn and b.fn
-      // cmp arity
-      panic!("TODO compare 2 exports")
-    } else if a.is_header() {
-      if !a.is_fun() {
-        return cmp_mixed_types(a, b)
-      }
-      // Compare 2 function objects: from utils.c line ~2937
-      // compare a.module, b.module
-      // compare old_index
-      // compare old_uniq
-      // compare num_Free
-      panic!("TODO compare 2 fun objects")
-    } else if a.is_external_pid() {
-      if b.is_local_pid() {
-        panic!("TODO compare ext vs local pid")
-      } else if b.is_external_pid() {
-        panic!("TODO compare ext vs ext pid")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
-    } else if a.is_external_port() {
-      if b.is_local_port() {
-        panic!("TODO compare ext vs local port")
-      } else if b.is_external_port() {
-        panic!("TODO compare ext vs ext port")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
-    } else if a.is_local_ref() {
-      if b.is_local_ref() {
-        panic!("TODO compare local vs local ref")
-      } else if b.is_external_ref() {
-        panic!("TODO compare local vs ext ref")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
-    } else if a.is_external_ref() {
-      if b.is_local_ref() {
-        panic!("TODO compare ext vs local ref")
-      } else if b.is_external_ref() {
-        panic!("TODO compare ext vs ext ref")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
-    } else {
-      // must be a binary
-      assert!(unsafe { a.is_binary() });
-      if !unsafe { b.is_binary() } {
-        return cmp_mixed_types(a, b)
-      }
-      panic!("TODO cmp binaries")
-    }
+    return cmp_terms_immed_box(a, b);
   }
 
   // if both are immediate3, it is hard to distunguish because all imm3 values
@@ -349,6 +239,123 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
   }
 
   panic!("TODO: eq_terms_immed {} {}", a, b)
+}
+
+
+#[inline]
+fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
+  if unsafe { a.is_tuple() } {
+    if unsafe { b.is_tuple() } {
+      panic!("TODO: cmp tuple vs tuple")
+    } else {
+      return cmp_mixed_types(a, b)
+    }
+  } else if a.is_map() {
+    if a.is_flat_map() {
+      if !b.is_flat_map() {
+        if b.is_hash_map() {
+          let b_size = b.map_size();
+          return a.map_size().cmp(&b_size)
+        }
+      } else {
+        // Compare two flat maps
+        panic!("TODO: cmp flatmap vs flatmap (+exact)")
+      }
+    } else if !b.is_hash_map() {
+      if b.is_flat_map() {
+        let b_size = b.map_size();
+        return a.map_size().cmp(&b_size)
+      }
+    } else {
+      // Compare two hash maps
+      panic!("TODO: cmp flatmap vs flatmap (+exact)")
+    }
+
+    //Hashmap compare strategy:
+    //Phase 1. While keys are identical
+    //    Do synchronous stepping through leafs of both trees in hash
+    //    order. Maintain value compare result of minimal key.
+    //
+    //Phase 2. If key diff was found in phase 1
+    //    Ignore values from now on.
+    //    Continue iterate trees by always advancing the one
+    //    lagging behind hash-wise. Identical keys are skipped.
+    //    A minimal key can only be candidate as tie-breaker if we
+    //    have passed that hash value in the other tree (which means
+    //    the key did not exist in the other tree).
+  } else if unsafe { a.is_float() } {
+    if !unsafe { b.is_float() } {
+      // TODO: If b is integer and we don't do exact comparison?
+      return cmp_mixed_types(a, b)
+    } else {
+      let af = unsafe { a.float_get() };
+      let bf = unsafe { b.float_get() };
+      return af.partial_cmp(&bf).unwrap()
+    }
+  } else if a.is_bignum() {
+    if !b.is_bignum() {
+      return cmp_mixed_types(a, b)
+    }
+  } else if a.is_export() {
+    if !b.is_export() {
+      return cmp_mixed_types(a, b)
+    }
+    // Compare two exports: from utils.c line ~2918
+    // cmp atoms a.module and b.module
+    // cmp atoms a.fn and b.fn
+    // cmp arity
+    panic!("TODO compare 2 exports")
+  } else if a.is_header() {
+    if !a.is_fun() {
+      return cmp_mixed_types(a, b)
+    }
+    // Compare 2 function objects: from utils.c line ~2937
+    // compare a.module, b.module
+    // compare old_index
+    // compare old_uniq
+    // compare num_Free
+    panic!("TODO compare 2 fun objects")
+  } else if a.is_external_pid() {
+    if b.is_local_pid() {
+      panic!("TODO compare ext vs local pid")
+    } else if b.is_external_pid() {
+      panic!("TODO compare ext vs ext pid")
+    } else {
+      return cmp_mixed_types(a, b)
+    }
+  } else if a.is_external_port() {
+    if b.is_local_port() {
+      panic!("TODO compare ext vs local port")
+    } else if b.is_external_port() {
+      panic!("TODO compare ext vs ext port")
+    } else {
+      return cmp_mixed_types(a, b)
+    }
+  } else if a.is_local_ref() {
+    if b.is_local_ref() {
+      panic!("TODO compare local vs local ref")
+    } else if b.is_external_ref() {
+      panic!("TODO compare local vs ext ref")
+    } else {
+      return cmp_mixed_types(a, b)
+    }
+  } else if a.is_external_ref() {
+    if b.is_local_ref() {
+      panic!("TODO compare ext vs local ref")
+    } else if b.is_external_ref() {
+      panic!("TODO compare ext vs ext ref")
+    } else {
+      return cmp_mixed_types(a, b)
+    }
+  } else {
+    // must be a binary
+    assert!(unsafe { a.is_binary() });
+    if !unsafe { b.is_binary() } {
+      return cmp_mixed_types(a, b)
+    }
+    panic!("TODO cmp binaries")
+  }
+  panic!("TODO: eq_terms_immed_box {} {}", a, b)
 }
 
 
@@ -398,5 +405,6 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
 
 
 fn cmp_terms_box(_a: LTerm, _b: LTerm) -> EqResult {
+  // TODO: see if cmp_terms_immed_box can be useful
   panic!("TODO: eq_terms_box")
 }

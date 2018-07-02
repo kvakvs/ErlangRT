@@ -23,7 +23,7 @@ fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
 
 /// A Bif can be referenced by an import `LTerm`, an `MFArity`...
-#[warn(dead_code)]
+#[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub enum CallBifTarget {
   /// A term containing pointer to an `HOImport`.
