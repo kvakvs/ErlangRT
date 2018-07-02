@@ -87,7 +87,7 @@ test_calls() ->
     [e1a, e2a, e3a] = F1([e3a, e2a, e1a]),
 
     L2 = [e1b, e2b, e3b],
-    F2 = fun() -> lists:reverse(L2) end,
+    F2 = fun(L) -> lists:reverse(L) end,
     L2 = F2([e3b, e2b, e1b]).
 
 test_eq() ->
