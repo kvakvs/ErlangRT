@@ -18,7 +18,7 @@ pub type SWord = isize;
 /// Replace with appropriate f32 or fixed/compact for embedded platform
 pub type Float = f64;
 
-pub type Arity = u32;
+pub type Arity = usize;
 
 //pub use term::immediate::SMALL_BITS;
 

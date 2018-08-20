@@ -1,7 +1,6 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
 use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
 
 use emulator::gen_atoms;
 use rt_defs::{Word, WORD_BYTES};
@@ -16,8 +15,10 @@ use fail::{Hopefully, Error};
 use term::lterm::LTerm;
 
 
-pub type Ptr = Arc<Mutex<Module>>;
-//pub type Weak = sync::Weak<RefCell<Module>>;
+pub type Ptr = Box<Module>;
+
+//pub type RawPtr = *const Module;
+//pub type MutRawPtr = *mut Module;
 
 
 pub type FunTable = BTreeMap<FunArity, Export>;
@@ -27,7 +28,7 @@ pub type FunTable = BTreeMap<FunArity, Export>;
 /// and can be freed early if the situation allows.
 #[derive(Debug)]
 pub struct Module {
-  mod_id: VersionedModuleId,
+  pub mod_id: VersionedModuleId,
 
   /// Map to functions
   pub funs: FunTable,
@@ -43,7 +44,7 @@ pub struct Module {
 impl Module {
   /// Create an empty module wrapped in atomic refcounted refcell.
   pub fn new(mod_id: &VersionedModuleId) -> Ptr {
-    Arc::new(Mutex::new(
+    Box::new(
       Module {
         code: Vec::new(),
         funs: BTreeMap::new(),
@@ -51,7 +52,7 @@ impl Module {
         mod_id: *mod_id,
         lambdas: Vec::new(),
       }
-    ))
+    )
   }
 
 

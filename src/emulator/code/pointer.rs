@@ -4,11 +4,12 @@ use emulator::code_srv::module_id::{VersionedModuleId};
 use rt_defs::{Word};
 use term::immediate;
 use term::lterm::*;
+use emulator::code_srv;
 
 use std::fmt;
 
 
-/// A cross-module code pointer locked at a specific module version.
+/// A cross-module code pointer tied to a specific module of a specific version.
 /// Versions are maintained by the Code Server.
 #[derive(Debug, Copy, Clone)]
 pub struct FarCodePointer {
@@ -20,6 +21,12 @@ pub struct FarCodePointer {
 impl FarCodePointer {
   pub fn new(mod_id: &VersionedModuleId, offset: usize) -> FarCodePointer {
     FarCodePointer { mod_id: *mod_id, offset }
+  }
+
+  #[inline]
+  pub fn code_ptr(self: FarCodePointer) -> CodePtr {
+    // TODO: assumes the result will contain the value and not panic instead
+    code_srv::lookup_far_pointer(self).unwrap()
   }
 }
 

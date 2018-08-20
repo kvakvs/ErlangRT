@@ -69,8 +69,8 @@ struct LExport {
 /// Raw data structure as loaded from BEAM file
 #[allow(dead_code)]
 struct LFun {
+  arity: Arity,
   fun_atom_i: u32,
-  arity: u32,
   code_pos: u32,
   index: u32,
   nfree: u32,
@@ -307,18 +307,17 @@ impl Loader {
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
   pub fn load_finalize(&mut self) -> Hopefully<module::Ptr> {
-    let newmod = match self.mod_id {
+    let mut newmod = match self.mod_id {
       Some(mod_id) => module::Module::new(&mod_id),
       None => panic!("{}mod_id must be set at this point", module()),
     };
 
     // Move funs into new module
     {
-      let mut mod1 = newmod.lock().unwrap();
-      mem::swap(&mut self.funs, &mut mod1.funs);
-      mem::swap(&mut self.code, &mut mod1.code);
-      mem::swap(&mut self.lit_heap, &mut mod1.lit_heap);
-      mem::swap(&mut self.lambdas, &mut mod1.lambdas);
+      mem::swap(&mut self.funs, &mut newmod.funs);
+      mem::swap(&mut self.code, &mut newmod.code);
+      mem::swap(&mut self.lit_heap, &mut newmod.lit_heap);
+      mem::swap(&mut self.lambdas, &mut newmod.lambdas);
 
 //      unsafe {
 //        disasm::disasm(&mod1.code, None);
@@ -442,7 +441,7 @@ impl Loader {
       let ouniq = r.read_u32be();
       self.raw.lambdas.push(LFun {
         fun_atom_i: fun_atom,
-        arity,
+        arity: arity as Arity,
         code_pos,
         index,
         nfree,

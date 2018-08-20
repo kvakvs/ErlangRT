@@ -1,7 +1,9 @@
 use super::Context;
+use std::ptr;
 
 use beam::disp_result::{DispatchResult};
 use emulator::process::{Process};
+use emulator::function::CallableLocation;
 use rt_defs::{Arity};
 use term::lterm::*;
 use term::raw::*;
@@ -17,17 +19,29 @@ pub fn apply(ctx: &mut Context,
              closure: *const HOClosure,
              args: &[LTerm]) -> DispatchResult
 {
-  let arity = args.len();
-  ctx.live = arity + 1;
+  let in_arity = args.len();
 
   // Actual call is performed for passed args + frozen args, so add them
-  let target_arity = unsafe { (*closure).mfa.arity + (*closure).nfree };
+  let full_arity = unsafe { (*closure).mfa.arity as usize + (*closure).nfree };
+  ctx.live = full_arity;
 
-  if target_arity != arity as Arity {
-    println!("{}badarity target_arity={} call_arity={}", module(), target_arity, arity);
+  // Copy extra args from after nfree field
+  unsafe {
+    let frozen_ptr = &(*closure).frozen as *const LTerm;
+    let dst_ptr = ctx.regs.as_mut_ptr().offset(in_arity as isize);
+    ptr::copy(frozen_ptr, dst_ptr, (*closure).nfree);
+  }
+
+  if full_arity != in_arity as Arity {
+    println!("{}badarity full_arity={} call_arity={}", module(), full_arity, in_arity);
     return DispatchResult::badarity();
   }
 
-  panic!("call_closure")
-//  DispatchResult::Normal
+  ctx.cp = ctx.ip;
+  let dst = unsafe { (*closure).dst };
+  ctx.ip = match dst {
+    CallableLocation::Code(p) => p.code_ptr(),
+    CallableLocation::NeedUpdate => panic!("Must not have this value here"),
+  };
+  DispatchResult::Normal
 }

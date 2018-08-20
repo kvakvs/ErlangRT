@@ -4,13 +4,14 @@
 
 use std::mem::size_of;
 use std::ptr;
+use std::cmp;
 
 use emulator::function::FunEntry;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
 use rt_defs::heap::IHeap;
-use rt_defs::{WORD_BYTES, Word};
+use rt_defs::{WORD_BYTES, Word, Arity};
 use term::classify::TermClass;
 use term::lterm::*;
 use term::raw::heapobj::*;
@@ -26,8 +27,10 @@ pub struct HOClosure {
   pub hobj: HeapObjHeader,
   pub mfa: MFArity,
   pub dst: CallableLocation,
-  pub nfree: u32,
-  // frozen values follow here in memory after the main fields
+  pub nfree: usize, // must be word size to avoid alignment of the following data
+  // frozen values follow here in memory after the main fields,
+  // first is a field, rest will be allocated as extra bytes after
+  pub frozen: LTerm
 }
 
 
@@ -56,12 +59,18 @@ impl HOClosure {
 
   #[inline]
   fn storage_size(nfree: u32) -> usize {
-    HOClosure::STRUCT_SIZE + (nfree as usize)
+    HOClosure::STRUCT_SIZE + cmp::max(nfree, 1) as usize
   }
 
 
   fn new(hobj: HeapObjHeader, mfa: MFArity, nfree: u32) -> HOClosure {
-    HOClosure { hobj, mfa, dst: CallableLocation::NeedUpdate, nfree }
+    HOClosure {
+      hobj,
+      mfa,
+      dst: CallableLocation::NeedUpdate,
+      nfree: nfree as Arity,
+      frozen: LTerm::non_value()
+    }
   }
 
 
@@ -73,7 +82,8 @@ impl HOClosure {
     let this = hp.heap_allocate(n_words, false)? as *mut HOClosure;
 
     assert_eq!(frozen.len(), fe.nfree as usize);
-    println!("{}new closure: {} frozen={} nfree={}", module(), fe.mfa, frozen.len(), fe.nfree);
+    println!("{}new closure: {} frozen={} nfree={}", module(),
+             fe.mfa, frozen.len(), fe.nfree);
 
     ptr::write(this,
                HOClosure::new(
