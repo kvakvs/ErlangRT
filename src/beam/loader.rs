@@ -29,7 +29,6 @@ use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
 use emulator::code_srv;
 use emulator::code_srv::module_id::VersionedModuleId;
-use emulator::export::Export;
 use emulator::funarity::FunArity;
 use emulator::function::{FunEntry};
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP, allocate_tuple};
@@ -137,7 +136,7 @@ pub struct Loader {
   /// with their word values or function pointer (if the label points outside)
   replace_labels: Vec<PatchLocation>,
 
-  funs: module::FunTable,
+  funs: module::ModuleFunTable,
 
   /// Literal table decoded into friendly terms (does not use process heap).
   lit_tab: Vec<LTerm>,
@@ -605,11 +604,9 @@ impl Loader {
             // Function code begins after the func_info opcode (1+3)
             let fun_begin = self.code.len() + 4;
             match self.mod_id {
-              Some(mod_id) => {
-                let export = Export::new_code_offset(&funarity,
-                                                     &mod_id,
-                                                     fun_begin);
-                self.funs.insert(funarity, export);
+              Some(_mod_id) => {
+                self.funs.insert(funarity, fun_begin);
+                ()
               },
               None => panic!("{}mod_id must be set at this point", module()),
             }

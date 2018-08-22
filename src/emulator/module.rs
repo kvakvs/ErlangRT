@@ -1,27 +1,24 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
-use std::collections::BTreeMap;
-
-use emulator::gen_atoms;
-use rt_defs::{Word, WORD_BYTES};
-use emulator::code::{CodePtr, Code};
+use emulator::code::{Code, CodePtr};
 use emulator::code_srv::module_id::VersionedModuleId;
 use emulator::funarity::FunArity;
-use emulator::function::{FunEntry, CallableLocation};
-use emulator::export::Export;
-use emulator::heap::{Heap};
+use emulator::function::{FunEntry};
+use emulator::gen_atoms;
+//use emulator::export::Export;
+use emulator::heap::Heap;
 use emulator::mfa::MFArity;
-use fail::{Hopefully, Error};
+use fail::{Error, Hopefully};
+use rt_defs::{Word, WORD_BYTES};
+use std::collections::BTreeMap;
 use term::lterm::LTerm;
 
 
 pub type Ptr = Box<Module>;
 
-//pub type RawPtr = *const Module;
-//pub type MutRawPtr = *mut Module;
 
-
-pub type FunTable = BTreeMap<FunArity, Export>;
+/// Stores f/arity mapping to offset in code.
+pub type ModuleFunTable = BTreeMap<FunArity, usize>;
 
 
 /// Represents a module with collection of functions. Modules are refcounted
@@ -31,7 +28,7 @@ pub struct Module {
   pub mod_id: VersionedModuleId,
 
   /// Map to functions
-  pub funs: FunTable,
+  pub funs: ModuleFunTable,
 
   pub lambdas: Vec<FunEntry>,
 
@@ -76,14 +73,9 @@ impl Module {
   /// Find a `f/arity` in the functions table.
   pub fn lookup_fa(&self, fa: &FunArity) -> Hopefully<CodePtr> {
     match self.funs.get(fa) {
-      Some(export) => {
-        match export.dst {
-          CallableLocation::Code(code_p) => {
-            let p = &self.code[code_p.offset] as *const Word;
-            Ok(CodePtr(p))
-          },
-          _ => panic!("Only code pointers allowed in module funs table")
-        }
+      Some(offset) => {
+          let p = &self.code[*offset] as *const Word;
+          Ok(CodePtr::new(p))
       },
       None => {
         let msg = format!("Function not found {} in {}",
@@ -109,22 +101,17 @@ impl Module {
     let mut fa = FunArity::new(gen_atoms::UNDEFINED, 0);
 
     let code_begin = &self.code[0] as *const Word;
-    assert!(ip.get_ptr() > code_begin);
-    let ip_offset = (ip.get_ptr() as usize - code_begin as usize) / WORD_BYTES;
+    assert!(ip.get() > code_begin);
+    let ip_offset = (ip.get() as usize - code_begin as usize) / WORD_BYTES;
 
-    for (key, export) in &self.funs {
+    for (key, export_offset) in &self.funs {
       //let &CodeOffset(fn_offset) = fn_offset0;
-      match export.dst {
-        CallableLocation::Code(far_ptr) => {
-          if ip_offset >= far_ptr.offset {
-            let dist = ip_offset - far_ptr.offset;
-            if dist < min_dist {
-              min_dist = dist;
-              fa = key.clone();
-            }
-          }
-        },
-        _ => panic!("Code reverse lookup: Only code offsets can be in funs table")
+      if ip_offset >= *export_offset {
+        let dist = ip_offset - *export_offset;
+        if dist < min_dist {
+          min_dist = dist;
+          fa = key.clone();
+        }
       }
     }
 

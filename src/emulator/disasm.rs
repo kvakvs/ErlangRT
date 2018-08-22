@@ -24,7 +24,7 @@ pub unsafe fn disasm_op(ip0: *const Word) -> *const Word {
   let op = opcode::from_memory_ptr(ip);
   assert!(op < gen_op::OPCODE_MAX);
 
-  if let Some(mfa) = code_reverse_lookup(CodePtr(ip)) {
+  if let Some(mfa) = code_reverse_lookup(CodePtr::new(ip)) {
     print!("{} ", mfa)
   }
 

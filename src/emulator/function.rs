@@ -25,7 +25,7 @@ impl FunEntry {
 
 /// Defines where the export is pointing. Could be code pointer or a BIF and
 /// is terminated by a tail call or a return opcode (i.e. safely callable).
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum CallableLocation {
   /// The MFA of the export wasn't resolved yet or became invalid.
   NeedUpdate,

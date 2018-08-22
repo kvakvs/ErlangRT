@@ -5,7 +5,7 @@
 use std::mem::size_of;
 use std::ptr;
 
-//use emulator::function::FunEntry;
+use emulator::export::Export;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
@@ -14,7 +14,6 @@ use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;
 use term::raw::heapobj::*;
-use emulator::export::Export;
 
 
 /// Heap object `HOExport` is placed on heap.
@@ -55,7 +54,7 @@ impl HOExport {
   fn new(n_words: usize, mfa: &MFArity) -> HOExport {
     HOExport {
       hobj: HeapObjHeader::new(n_words, &HOCLASS_EXPORT),
-      exp: Export::new(mfa),
+      exp: Export::new(*mfa),
     }
   }
 

@@ -27,7 +27,7 @@ impl VM {
     loop {
       if cfg!(debug_assertions) { unsafe {
         print!("[exec] ");
-        disasm::disasm_op(ctx.ip.get_ptr());
+        disasm::disasm_op(ctx.ip.get());
       }}
 
       // Take next opcode

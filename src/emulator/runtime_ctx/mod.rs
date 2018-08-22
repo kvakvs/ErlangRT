@@ -70,10 +70,10 @@ impl Context {
   /// NOTE: The compiler seems to be smart enough to optimize multiple fetches
   /// as multiple reads and a single increment.
   pub fn fetch(&mut self) -> Word {
-    let CodePtr(ip0) = self.ip;
+    let ip0 = self.ip.get();
     unsafe {
       let w = *ip0;
-      self.ip = CodePtr(ip0.offset(1));
+      self.ip = CodePtr::new(ip0.offset(1));
       w
     }
   }
@@ -89,9 +89,9 @@ impl Context {
   /// `&[LTerm]` slice of given length and advance the read pointer. This is
   /// used for fetching arrays of args from code without moving them.
   pub fn fetch_slice(&mut self, sz: usize) -> &'static [LTerm] {
-    let CodePtr(ip0) = self.ip;
+    let ip0 = self.ip.get();
     unsafe {
-      self.ip = CodePtr(ip0.offset(sz as isize));
+      self.ip = CodePtr::new(ip0.offset(sz as isize));
       slice::from_raw_parts(ip0 as *const LTerm, sz)
     }
   }

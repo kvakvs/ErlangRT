@@ -50,13 +50,15 @@ impl Iterator for CodeIterator {
 
   /// Given an iterator (`self`) step forward over its args to find another.
   fn next(&mut self) -> Option<Self::Item> {
-    let CodePtr(p) = self.p;
+    let p = self.p.get();
 
     let current_op = unsafe { opcode::from_memory_word(*p) };
     let arity = gen_op::opcode_arity(current_op);
 
     // Step forward over opcode and `arity` words (args)
-    let next_p = unsafe { CodePtr(p.offset(arity as isize + 1)) };
+    let next_p = unsafe {
+      CodePtr::new(p.offset(arity as isize + 1))
+    };
 
     if next_p >= self.end {
       return None

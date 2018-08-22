@@ -11,13 +11,14 @@ use std::fmt;
 
 /// A cross-module code pointer tied to a specific module of a specific version.
 /// Versions are maintained by the Code Server.
-#[derive(Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct FarCodePointer {
   pub mod_id: VersionedModuleId,
   pub offset: usize,
 }
 
 
+#[allow(dead_code)]
 impl FarCodePointer {
   pub fn new(mod_id: &VersionedModuleId, offset: usize) -> FarCodePointer {
     FarCodePointer { mod_id: *mod_id, offset }
@@ -38,21 +39,25 @@ impl FarCodePointer {
 /// In debug build additional mark bits `Imm3::OPCODE` are added to this word
 /// and additional check is done here in `CodePtr`.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
-pub struct CodePtr(pub *const Word);
+pub struct CodePtr(*const Word);
 
 
 impl fmt::Display for CodePtr {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let CodePtr(p) = *self;
-    write!(f, "CodePtr(0x{:x})", p as Word)
+    write!(f, "CodePtr(0x{:x})", self.get() as Word)
   }
 }
 
 
 impl CodePtr {
+  pub fn new(p: *const Word) -> CodePtr {
+    assert_ne!(p as Word, 0xcea);
+    CodePtr(p)
+  }
+
 
   #[inline]
-  pub fn get_ptr(self) -> *const Word {
+  pub fn get(self) -> *const Word {
     let CodePtr(p) = self;
     p
   }
@@ -72,7 +77,7 @@ impl CodePtr {
       assert!(p.is_null() || immediate::is_immediate3(*p),
               "A CodePtr must be null or point to an imm3 tagged opcode");
     }
-    CodePtr(p)
+    CodePtr::new(p)
   }
 
   #[cfg(not(debug_assertions))]
@@ -83,17 +88,14 @@ impl CodePtr {
 
   #[inline]
   pub fn null() -> CodePtr {
-    CodePtr(::std::ptr::null())
+    CodePtr::new(::std::ptr::null())
   }
 
 
   /// Convert to tagged CP integer
   #[inline]
   pub fn to_cp(self) -> Word {
-    let CodePtr(p) = self;
-    make_cp(p).raw()
-//    let p1 = p as Word;
-//    p1 | TAG_CP
+    make_cp(self.get()).raw()
   }
 
 
@@ -106,10 +108,7 @@ impl CodePtr {
 
 
   #[inline]
-  pub fn is_null(self) -> bool {
-    let CodePtr(p) = self;
-    p.is_null()
-  }
+  pub fn is_null(&self) -> bool { self.get().is_null() }
 
 
 //  #[inline]
@@ -118,7 +117,7 @@ impl CodePtr {
   pub fn belongs_to(self, slice: &[Word]) -> bool {
     let cbegin = &slice[0] as *const Word;
     let cend = unsafe { cbegin.offset(slice.len() as isize) };
-    let CodePtr(p) = self;
+    let p = self.get();
     p >= cbegin && p < cend
   }
 }

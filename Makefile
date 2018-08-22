@@ -21,7 +21,7 @@ priv:
 
 .PHONY: gdb
 gdb: build
-	gdb target/debug/erlang_rt
+	RUST_BACKTRACE=1 gdb target/debug/erlang_rt
 
 .PHONY: build build-rel asm asm-rel
 build:

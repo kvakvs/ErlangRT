@@ -7,7 +7,7 @@ use term::lterm::*;
 /// An unique identifier of a module where multiple modules with the same
 /// name may exist. Each new module is granted a new `version`.
 /// Versions are managed by the Code Server.
-#[derive(Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct VersionedModuleId {
   pub module: LTerm,
   pub version: usize,
