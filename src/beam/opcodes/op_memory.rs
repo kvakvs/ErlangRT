@@ -7,11 +7,12 @@ use beam::disp_result::{DispatchResult};
 use rt_defs::heap::{IHeap};
 use rt_defs::stack::{IStack};
 use term::lterm::*;
+use emulator::vm::VM;
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
-pub fn opcode_allocate_zero(ctx: &mut Context,
+pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
                             curr_p: &mut Process) -> DispatchResult {
   // Structure: allocate_zero(need:int, live:int)
   assert_arity(gen_op::OPCODE_ALLOCATE_ZERO, 2);
@@ -38,16 +39,16 @@ pub fn opcode_allocate_zero(ctx: &mut Context,
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
-pub fn opcode_allocate(ctx: &mut Context,
+pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
                        curr_p: &mut Process) -> DispatchResult {
-  opcode_allocate_zero(ctx, curr_p)
+  opcode_allocate_zero(vm, ctx, curr_p)
 }
 
 
 /// Pop `cp` from the top of the stack and then deallocate additional `n_free`
 /// words from the stack.
 #[inline]
-pub fn opcode_deallocate(ctx: &mut Context,
+pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
                          curr_p: &mut Process) -> DispatchResult {
   // Structure: deallocate(n:int)
   assert_arity(gen_op::OPCODE_DEALLOCATE, 1);
@@ -64,7 +65,7 @@ pub fn opcode_deallocate(ctx: &mut Context,
 /// Check that there are `heap_need` words available on heap, otherwise run the
 /// GC using `live` amount of registers as a part of root set.
 #[inline]
-pub fn opcode_test_heap(ctx: &mut Context,
+pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
                         curr_p: &mut Process) -> DispatchResult {
   // Structure: test_heap(heap_need:int, live:int)
   assert_arity(gen_op::OPCODE_TEST_HEAP, 2);

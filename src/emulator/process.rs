@@ -4,7 +4,7 @@
 //!
 
 use rt_defs::{Word, ExceptionType};
-use emulator::code_srv;
+use emulator::code_srv::CodeServer;
 use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa::MFArity;
 use emulator::runtime_ctx;
@@ -75,12 +75,12 @@ impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
   pub fn new(pid: LTerm, _parent_pid: LTerm, mfarity: &MFArity,
-             prio: scheduler::Prio) -> Hopefully<Process> {
+             prio: scheduler::Prio, code_server: &mut CodeServer) -> Hopefully<Process> {
     assert!(pid.is_local_pid());
     assert!(_parent_pid.is_local_pid() || _parent_pid.is_nil());
 
     // Process must start with some code location
-    match code_srv::lookup_and_load(mfarity) {
+    match code_server.lookup_and_load(mfarity) {
       Ok(ip) => {
         let p = Process {
           pid,
@@ -111,9 +111,9 @@ impl Process {
 
 
   #[allow(dead_code)]
-  pub fn jump(&mut self, mfarity: &MFArity) -> Hopefully<()> {
+  pub fn jump(&mut self, mfarity: &MFArity, code_server: &mut CodeServer) -> Hopefully<()> {
     // TODO: Find mfa in code server and set IP to it
-    match code_srv::lookup_and_load(mfarity) {
+    match code_server.lookup_and_load(mfarity) {
       Ok(ip) => {
         self.context.ip = ip;
         Ok(())

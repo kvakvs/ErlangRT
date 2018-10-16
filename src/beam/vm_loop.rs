@@ -18,17 +18,19 @@ impl VM {
   pub fn dispatch(&mut self) -> bool {
     let mut ctx = Context::new(CodePtr::null());
 
-    let curr_p = match self.scheduler.next_process() {
+    let mut scheduler = self.scheduler.borrow_mut();
+    let curr_p = match scheduler.next_process() {
       None => return false,
-      Some(p) => self.scheduler.lookup_pid_mut(p).unwrap()
+      Some(p) => scheduler.lookup_pid_mut(p).unwrap()
     };
     ctx.copy_from(&curr_p.context); // swapin
 
     loop {
-      if cfg!(debug_assertions) { unsafe {
+      if cfg!(debug_assertions) {
         print!("[exec] ");
-        disasm::disasm_op(ctx.ip.get());
-      }}
+        unsafe { disasm::disasm_op(ctx.ip.get(),
+                                   self.code_server.borrow().as_ref()); }
+      }
 
       // Take next opcode
       let op = opcode::from_memory_word(ctx.fetch());
@@ -36,7 +38,7 @@ impl VM {
               "Opcode too big (wrong memory address?) got 0x{:x}", op);
 
       // Handle next opcode
-      match dispatch_op_inline(op, &mut ctx, curr_p) {
+      match dispatch_op_inline(self, op, &mut ctx, curr_p) {
         DispatchResult::Yield => {
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Yield;

@@ -15,25 +15,25 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
+use emulator::vm::VM;
 use beam::gen_op;
 use beam::opcodes::*;
-use beam::vm_loop::{{DispatchResult}};
+use beam::disp_result::{{DispatchResult}};
 use emulator::code::opcode::RawOpcode;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 
 
 #[inline]
-pub fn dispatch_op_inline(op: RawOpcode, ctx: &mut Context, \
+pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, \
 curr_p: &mut Process) -> DispatchResult {{
-  match op {{
-""".format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
+  match op {{""".format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
         if op.name in tables.implemented_ops:
             print("    gen_op::OPCODE_{opcode} => "
-                  "return opcode_{lowercase}(ctx, curr_p),"
+                  "return opcode_{lowercase}(vm, ctx, curr_p),"
                   "".format(opcode=op.name.upper(), lowercase=op.name))
 
     print("""\

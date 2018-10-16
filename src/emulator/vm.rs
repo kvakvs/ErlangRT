@@ -5,10 +5,12 @@
 
 use rt_defs::Word;
 use emulator::mfa::{MFArgs};
+use emulator::code_srv::CodeServer;
 use emulator::process::Process;
 use emulator::scheduler::{Prio, Scheduler};
 use fail::{Hopefully};
 use term::lterm::*;
+use std::cell::RefCell;
 
 
 //fn module() -> &'static str { "vm: " }
@@ -22,7 +24,10 @@ pub struct VM {
   /// Pid counter increments every time a new process is spawned
   pid_counter: Word,
 
-  pub scheduler: Scheduler,
+  /// Contains all loaded modules and manages versions
+  pub code_server: RefCell<Box<CodeServer>>,
+
+  pub scheduler: RefCell<Box<Scheduler>>,
 }
 
 impl VM {
@@ -31,8 +36,9 @@ impl VM {
   /// will be shared (global).
   pub fn new() -> VM {
     VM {
+      code_server: RefCell::new(Box::new(CodeServer::new())),
       pid_counter: 0,
-      scheduler: Scheduler::new(),
+      scheduler: RefCell::new(Box::new(Scheduler::new())),
     }
   }
 
@@ -46,9 +52,10 @@ impl VM {
 
     let pid = LTerm::make_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
-    match Process::new(pid, parent, &mfarity, prio) {
+    match Process::new(pid, parent, &mfarity, prio,
+                       self.code_server.borrow_mut().as_mut()) {
       Ok(p0) => {
-        self.scheduler.add(pid, p0);
+        self.scheduler.borrow_mut().add(pid, p0);
         Ok(pid)
       },
       Err(e) => Err(e)

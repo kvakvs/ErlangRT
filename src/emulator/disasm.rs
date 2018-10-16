@@ -1,30 +1,33 @@
-use emulator::code_srv::{code_reverse_lookup};
-use rt_defs::Word;
-use term::lterm::*;
 use beam::gen_op;
 use emulator::code::{CodePtr, opcode, Labels, RefCode};
+use emulator::code_srv::CodeServer;
+use rt_defs::Word;
+use term::lterm::*;
+
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
-pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>) {
+pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>,
+                     code_server: &CodeServer) {
   let mut ip = &code[0] as *const Word;
   let iend = ip.offset(code.len() as isize);
 
   while ip < iend {
-    ip = disasm_op(ip);
+    ip = disasm_op(ip, code_server);
   }
 }
 
 
 /// Given an IP code pointer which points to the opcode - print the opcode and
 /// args. Returns updated IP which points at the next opcode.
-pub unsafe fn disasm_op(ip0: *const Word) -> *const Word {
+pub unsafe fn disasm_op(ip0: *const Word,
+                        code_server: &CodeServer) -> *const Word {
   let mut ip = ip0;
 
   let op = opcode::from_memory_ptr(ip);
   assert!(op < gen_op::OPCODE_MAX);
 
-  if let Some(mfa) = code_reverse_lookup(CodePtr::new(ip)) {
+  if let Some(mfa) = code_server.code_reverse_lookup(CodePtr::new(ip)) {
     print!("{} ", mfa)
   }
 

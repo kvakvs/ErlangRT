@@ -4,7 +4,7 @@ use emulator::code_srv::module_id::{VersionedModuleId};
 use rt_defs::{Word};
 use term::immediate;
 use term::lterm::*;
-use emulator::code_srv;
+use emulator::code_srv::CodeServer;
 
 use std::fmt;
 
@@ -25,9 +25,9 @@ impl FarCodePointer {
   }
 
   #[inline]
-  pub fn code_ptr(self: FarCodePointer) -> CodePtr {
+  pub fn code_ptr(self: FarCodePointer, code_server: &CodeServer) -> CodePtr {
     // TODO: assumes the result will contain the value and not panic instead
-    code_srv::lookup_far_pointer(self).unwrap()
+    code_server.lookup_far_pointer(self).unwrap()
   }
 }
 

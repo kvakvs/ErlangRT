@@ -6,7 +6,7 @@ use std::ptr;
 
 use bif::{BifFn, find_bif};
 use emulator::code::CodePtr;
-use emulator::code_srv;
+use emulator::code_srv::CodeServer;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
@@ -82,8 +82,8 @@ impl HOImport {
 
   /// Lookup a function, referred by this object and possibly attempt code
   /// loading if the module was missing. Return a code pointer.
-  pub fn resolve(&self) -> Hopefully<CodePtr> {
-    code_srv::lookup_and_load(&self.mfarity)
+  pub fn resolve(&self, code_server: &mut CodeServer) -> Hopefully<CodePtr> {
+    code_server.lookup_and_load(&self.mfarity)
   }
 
 

@@ -22,6 +22,7 @@ extern crate lazy_static;
 
 extern crate rt_defs;
 extern crate rt_util;
+extern crate core;
 
 mod beam;
 mod bif;

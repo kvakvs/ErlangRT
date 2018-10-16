@@ -19,3 +19,4 @@ pub mod lterm; // low level packed term
 pub mod primary; // primary tag and header tag handling for packed lterms
 pub mod raw; // access helpers for some raw heap structures
 pub mod term_builder; // implements ITermBuilder for RT VM
+pub mod mterm; // term in memory (dynamic runtime dispatch)

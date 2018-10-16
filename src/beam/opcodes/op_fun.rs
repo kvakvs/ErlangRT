@@ -1,20 +1,20 @@
 //! Module implements opcodes related to function objects/lambdas.
 
-use std::slice;
-
+use beam::disp_result::DispatchResult;
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use beam::disp_result::{DispatchResult};
 use emulator::function::FunEntry;
 use emulator::process::Process;
 use emulator::runtime_ctx;
-use emulator::runtime_ctx::{Context};
+use emulator::runtime_ctx::Context;
+use emulator::vm::VM;
+use std::slice;
 use term::lterm::*;
 use term::raw::*;
 
 
 #[inline]
-pub fn opcode_make_fun2(ctx: &mut Context,
+pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
                         curr_p: &mut Process) -> DispatchResult {
   // Structure: make_fun2(lambda_index:uint)
   // on load the argument is rewritten with a pointer to the funentry
@@ -39,7 +39,7 @@ pub fn opcode_make_fun2(ctx: &mut Context,
 
 
 #[inline]
-pub fn opcode_call_fun(ctx: &mut Context,
+pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
                        curr_p: &mut Process) -> DispatchResult {
   // Structure: call_fun(arity:uint)
   // Expects: x[0..arity-1] = args. x[arity] = fun object
@@ -52,10 +52,13 @@ pub fn opcode_call_fun(ctx: &mut Context,
   let fobj = ctx.regs[arity];
   if let Ok(closure) = unsafe { HOClosure::from_term(fobj) } {
     // `fobj` is a callable closure made with `fun() -> code end`
-    runtime_ctx::call_closure::apply(ctx, curr_p, closure, args)
+    runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
   } else if let Ok(export) = unsafe { HOExport::from_term(fobj) } {
     // `fobj` is an export made with `fun module:name/0`
-    runtime_ctx::call_export::apply(ctx, curr_p, export, args, true)
+    runtime_ctx::call_export::apply(
+      ctx, curr_p, export, args, true,
+      vm.code_server.borrow_mut().as_mut()
+    )
   } else {
     return DispatchResult::badfun()
   }

@@ -2,7 +2,7 @@ use super::Context;
 
 use beam::disp_result::{DispatchResult};
 use bif;
-use emulator::code_srv;
+use emulator::code_srv::CodeServer;
 use emulator::process::{Process};
 use emulator::runtime_ctx::call_bif::{CallBifTarget};
 use emulator::runtime_ctx::call_bif;
@@ -20,7 +20,8 @@ pub fn apply(ctx: &mut Context,
              curr_p: &mut Process,
              export: *const HOExport,
              args: &[LTerm],
-             save_cp: bool) -> DispatchResult
+             save_cp: bool,
+             code_server: &mut CodeServer) -> DispatchResult
 {
   // The `fobj` is a callable closure made with `fun() -> code end`
   let arity = args.len();
@@ -39,7 +40,7 @@ pub fn apply(ctx: &mut Context,
                            LTerm::make_xreg(0),
                            false)
   } else {
-    match code_srv::lookup_and_load(&mfa) {
+    match code_server.lookup_and_load(&mfa) {
       Ok(ip) => {
         if save_cp { ctx.cp = ctx.ip }
         ctx.ip = ip

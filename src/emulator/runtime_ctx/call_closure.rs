@@ -2,8 +2,9 @@ use super::Context;
 use std::ptr;
 
 use beam::disp_result::{DispatchResult};
-use emulator::process::{Process};
 use emulator::function::CallableLocation;
+use emulator::process::{Process};
+use emulator::vm::VM;
 use rt_defs::{Arity};
 use term::lterm::*;
 use term::raw::*;
@@ -14,7 +15,8 @@ fn module() -> &'static str { "runtime_ctx.call_closure: " }
 
 /// The `closure` is a callable closure with some frozen variables made with
 /// `fun() -> code end`.
-pub fn apply(ctx: &mut Context,
+pub fn apply(vm: &VM,
+             ctx: &mut Context,
              _curr_p: &mut Process,
              closure: *const HOClosure,
              args: &[LTerm]) -> DispatchResult
@@ -40,8 +42,10 @@ pub fn apply(ctx: &mut Context,
   ctx.cp = ctx.ip;
   let dst = unsafe { (*closure).dst };
   ctx.ip = match dst {
-    CallableLocation::Code(p) => p.code_ptr(),
-    CallableLocation::NeedUpdate => panic!("Must not have this value here"),
+    CallableLocation::Code(p) =>
+      p.code_ptr(vm.code_server.borrow().as_ref()),
+    CallableLocation::NeedUpdate =>
+      panic!("Must not have this value here"),
   };
   DispatchResult::Normal
 }

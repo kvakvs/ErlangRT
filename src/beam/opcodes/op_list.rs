@@ -8,6 +8,7 @@ use emulator::heap::{allocate_cons};
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
 use term::lterm::*;
+use emulator::vm::VM;
 
 
 fn module() -> &'static str { "opcodes::op_list: " }
@@ -16,7 +17,7 @@ fn module() -> &'static str { "opcodes::op_list: " }
 /// Read the source `value` and check whether it is a list and not NIL. On
 /// false jump to the label `fail`.
 #[inline]
-pub fn opcode_is_nonempty_list(ctx: &mut Context,
+pub fn opcode_is_nonempty_list(_vm: &VM, ctx: &mut Context,
                                curr_p: &mut Process) -> DispatchResult {
   // Structure: is_nonempty_list(fail:cp, value:src)
   assert_arity(gen_op::OPCODE_IS_NONEMPTY_LIST, 2);
@@ -39,7 +40,7 @@ pub fn opcode_is_nonempty_list(ctx: &mut Context,
 /// Check whether the value `value` is an empty list, jump to the `fail` label
 /// if it is not NIL.
 #[inline]
-pub fn opcode_is_nil(ctx: &mut Context,
+pub fn opcode_is_nil(_vm: &VM, ctx: &mut Context,
                      curr_p: &mut Process) -> DispatchResult {
   // Structure: is_nil(fail:CP, value:src)
   assert_arity(gen_op::OPCODE_IS_NIL, 2);
@@ -60,7 +61,7 @@ pub fn opcode_is_nil(ctx: &mut Context,
 /// Take a list `value` and split it into a head and tail, they are stored in
 /// `hd` and `tl` destinations respectively.
 #[inline]
-pub fn opcode_get_list(ctx: &mut Context,
+pub fn opcode_get_list(_vm: &VM, ctx: &mut Context,
                        curr_p: &mut Process) -> DispatchResult {
   // Structure: get_list(value:src, hd:dst, tl:dst)
   assert_arity(gen_op::OPCODE_GET_LIST, 3);
@@ -89,7 +90,7 @@ pub fn opcode_get_list(ctx: &mut Context,
 /// Given head and tail sources, `hd` and `tl`, read them and compose into a
 /// new list cell which is stored into `dst`.
 #[inline]
-pub fn opcode_put_list(ctx: &mut Context,
+pub fn opcode_put_list(_vm: &VM, ctx: &mut Context,
                        curr_p: &mut Process) -> DispatchResult {
   // Structure: put_list(hd:src, tl:src, dst:dst)
   assert_arity(gen_op::OPCODE_PUT_LIST, 3);

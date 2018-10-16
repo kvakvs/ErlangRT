@@ -6,8 +6,6 @@ pub mod module_id;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::{RwLock};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use beam::loader;
 use emulator::atom;
@@ -38,24 +36,26 @@ pub struct CodeServer {
   // and previous mod versions
   mods: BTreeMap<LTerm, ModuleGenerations>,
   search_path: Vec<String>,
+  mod_version: usize,
 }
 
 
-lazy_static! {
-  static ref CODE_SRV: RwLock<CodeServer> = {
-    RwLock::new(CodeServer::new())
-  };
-
-  // TODO: Maybe use map<modulename, counter> here
-  static ref MOD_VERSION: AtomicUsize = {
-    AtomicUsize::new(0)
-  };
-}
+//lazy_static! {
+//  static ref CODE_SRV: RwLock<CodeServer> = {
+//    RwLock::new(CodeServer::new())
+//  };
+//
+//  // TODO: Maybe use map<modulename, counter> here
+//  static ref MOD_VERSION: AtomicUsize = {
+//    AtomicUsize::new(0)
+//  };
+//}
 
 
 impl CodeServer {
   pub fn new() -> CodeServer {
     CodeServer {
+      mod_version: 1,
       mods: BTreeMap::new(),
       search_path: vec![
         "priv/".to_string(),
@@ -147,7 +147,7 @@ impl CodeServer {
 
     // Phase 1: Preload data structures
     loader.load(mod_file_path)?;
-    loader.load_stage2()?;
+    loader.load_stage2(self)?;
 
     let mod_ptr = loader.load_finalize()?;
     self.module_loaded(mod_ptr);
@@ -169,6 +169,12 @@ impl CodeServer {
     }
     None
   }
+
+  pub fn next_module_version(&mut self, _m: LTerm) -> usize {
+    let ver = self.mod_version;
+    self.mod_version += 1;
+    ver
+  }
 }
 
 
@@ -189,37 +195,31 @@ fn first_that_exists(search_path: &[String],
 // External API guarded by mutex
 //
 
-#[allow(dead_code)]
-#[inline]
-pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
-  let cs = CODE_SRV.read().unwrap();
-  cs.lookup(mfarity)
-}
+//#[allow(dead_code)]
+//#[inline]
+//pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+//  let cs = CODE_SRV.read().unwrap();
+//  cs.lookup(mfarity)
+//}
 
 
-#[inline]
-pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
-  // TODO: Optimize by write-locking the load part and read-locking the lookup part
-  let mut cs = CODE_SRV.write().unwrap();
-  cs.lookup_and_load(mfarity)
-}
+//#[inline]
+//pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+//  // TODO: Optimize by write-locking the load part and read-locking the lookup part
+//  let mut cs = CODE_SRV.write().unwrap();
+//  cs.lookup_and_load(mfarity)
+//}
 
 
-#[inline]
-pub fn code_reverse_lookup(ip: CodePtr) -> Option<MFArity> {
-  let cs = CODE_SRV.read().unwrap();
-  cs.code_reverse_lookup(ip)
-}
+//#[inline]
+//pub fn code_reverse_lookup(ip: CodePtr) -> Option<MFArity> {
+//  let cs = CODE_SRV.read().unwrap();
+//  cs.code_reverse_lookup(ip)
+//}
 
-#[inline]
-pub fn lookup_far_pointer(farp: FarCodePointer) -> Option<CodePtr> {
-  let cs = CODE_SRV.read().unwrap();
-  cs.lookup_far_pointer(farp)
-}
+//#[inline]
+//pub fn lookup_far_pointer(farp: FarCodePointer) -> Option<CodePtr> {
+//  let cs = CODE_SRV.read().unwrap();
+//  cs.lookup_far_pointer(farp)
+//}
 
-
-pub fn next_module_version(_m: LTerm) -> usize {
-  let ver = MOD_VERSION.load(Ordering::Acquire);
-  MOD_VERSION.store(ver + 1, Ordering::Release);
-  ver
-}

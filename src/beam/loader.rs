@@ -27,7 +27,7 @@ use emulator::atom;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
-use emulator::code_srv;
+use emulator::code_srv::CodeServer;
 use emulator::code_srv::module_id::VersionedModuleId;
 use emulator::funarity::FunArity;
 use emulator::function::{FunEntry};
@@ -264,14 +264,14 @@ impl Loader {
   }
 
 
-  fn stage2_register_atoms(&mut self) {
+  fn stage2_register_atoms(&mut self, code_server: &mut CodeServer) {
     self.vm_atoms.reserve(self.raw.atoms.len());
     for a in &self.raw.atoms {
       self.vm_atoms.push(atom::from_str(a));
     }
 
     // Create a new version number for this module and fill self.mod_id
-    self.set_mod_id()
+    self.set_mod_id(code_server)
   }
 
 
@@ -289,8 +289,8 @@ impl Loader {
   /// Call this to apply changes to the VM after module loading succeeded. The
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
-  pub fn load_stage2(&mut self) -> Hopefully<()> {
-    self.stage2_register_atoms();
+  pub fn load_stage2(&mut self, code_server: &mut CodeServer) -> Hopefully<()> {
+    self.stage2_register_atoms(code_server);
     self.stage2_fill_lambdas();
 
     self.postprocess_parse_raw_code();
@@ -372,10 +372,10 @@ impl Loader {
   }
 
 
-  fn set_mod_id(&mut self) {
+  fn set_mod_id(&mut self, code_server: &mut CodeServer) {
     assert!(!self.vm_atoms.is_empty());
     let mod_name = self.vm_atoms[0];
-    let ver = code_srv::next_module_version(mod_name);
+    let ver = code_server.next_module_version(mod_name);
     self.mod_id = Some(VersionedModuleId::new(mod_name, ver))
   }
 

@@ -11,20 +11,19 @@ use emulator::atom;
 use rt_defs::{Word};
 use super::super::lterm::*;
 use term::raw::*;
+//use term::mterm::MTerm;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
 
 
-//fn module() -> &'static str { "lterm_impl: " }
 
-
-/// A low-level term, packed conveniently in a Word, or containing a
-/// pointer to heap.
+/// A low-level term is always a pointer to memory term.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct LTerm {
-  pub value: Word
+  // pub p: *mut MTerm
+  pub value: Word,
 }
 
 
@@ -53,6 +52,7 @@ impl LTerm {
   /// Create a NON_VALUE.
   #[inline]
   pub fn non_value() -> LTerm {
+    // LTerm { p: ptr::null_mut() }
     LTerm { value: immediate::IMM2_SPECIAL_NONVALUE_RAW }
   }
 
