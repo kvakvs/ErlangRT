@@ -20,9 +20,6 @@ lazy_static = "0.2"
 num = "0.1.40"
 #log = "0.4.0"
 
-rt_defs = { path = "lib/rt_defs" }
-rt_util = { path = "lib/rt_util" }
-
 
 [profile.release]
 lto = true

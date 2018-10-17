@@ -1,6 +1,6 @@
 use rt_defs::{Word, SWord};
 use rt_defs;
-use bin_reader::{BinaryReader, ReadError};
+use super::bin_reader::{BinaryReader, ReadError};
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
 
 use num;

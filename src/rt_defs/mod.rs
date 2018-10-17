@@ -5,7 +5,7 @@ pub mod heap;
 pub mod term_builder;
 pub mod stack;
 
-extern crate num;
+//extern crate num;
 
 
 //------------------------------------------------------------------------------

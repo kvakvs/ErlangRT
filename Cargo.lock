@@ -102,8 +102,6 @@ dependencies = [
  "compress 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
- "rt_defs 0.1.0",
- "rt_util 0.1.0",
 ]
 
 [[package]]
@@ -287,22 +285,6 @@ dependencies = [
 name = "regex-syntax"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "rt_defs"
-version = "0.1.0"
-dependencies = [
- "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "rt_util"
-version = "0.1.0"
-dependencies = [
- "bytes 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
- "rt_defs 0.1.0",
-]
 
 [[package]]
 name = "rustc-serialize"

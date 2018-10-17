@@ -17,11 +17,6 @@ extern crate num;
 #[macro_use]
 extern crate lazy_static;
 
-//#[macro_use]
-//extern crate log;
-
-extern crate rt_defs;
-extern crate rt_util;
 extern crate core;
 
 mod beam;
@@ -30,6 +25,8 @@ mod emulator;
 mod fail;
 mod term;
 mod main_main;
+mod rt_defs;
+mod rt_util;
 
 
 use main_main::{entrypoint};
