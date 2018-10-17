@@ -10,7 +10,7 @@ use emulator::code_srv::CodeServer;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
 use fail::Hopefully;
-use rt_defs::heap::IHeap;
+use emulator::heap::IHeap;
 use rt_defs::{WORD_BYTES, Word};
 use term::classify::TermClass;
 use term::lterm::*;

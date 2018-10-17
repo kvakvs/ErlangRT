@@ -1,8 +1,6 @@
 //! Debug tool to display Erlang heap contents.
-use emulator::heap::{Heap, heap_iter};
-use rt_defs::heap::iter::IHeapIterator;
-use rt_defs::heap::ptr::DataPtr;
-use rt_defs::heap::{IHeap};
+use emulator::heap::{Heap, heap_iter, IHeap, IHeapIterator};
+use emulator::heap::ptr::DataPtr;
 use term::lterm::*;
 use term::primary;
 

@@ -1,6 +1,6 @@
 //! Define `HeapIterator` which can step over the heap
-use rt_defs::heap::iter::IHeapIterator;
-use rt_defs::heap::ptr::DataPtr;
+use emulator::heap::IHeapIterator;
+use emulator::heap::ptr::DataPtr;
 use term::primary;
 
 

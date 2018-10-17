@@ -2,7 +2,7 @@
 //! decouple libraries from the actual term implementation).
 use emulator::atom;
 use emulator::heap::{Heap, allocate_tuple};
-use rt_defs::heap::IHeap;
+use emulator::heap::IHeap;
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
 use term::lterm::*;
 use term::raw::*;

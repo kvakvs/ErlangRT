@@ -1,7 +1,6 @@
 use emulator::heap::iter;
-//use rt_defs::heap::iter::IHeapIterator;
-use rt_defs::heap::ptr::DataPtr;
-use rt_defs::heap::{IHeap, HeapError};
+use emulator::heap::ptr::DataPtr;
+use emulator::heap::{IHeap, HeapError};
 use rt_defs::stack::IStack;
 use rt_defs::Word;
 use term::lterm::*;

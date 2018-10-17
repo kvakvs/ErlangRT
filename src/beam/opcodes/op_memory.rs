@@ -4,7 +4,7 @@ use emulator::code::{CodePtr};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use beam::disp_result::{DispatchResult};
-use rt_defs::heap::{IHeap};
+use emulator::heap::{IHeap};
 use rt_defs::stack::{IStack};
 use term::lterm::*;
 use emulator::vm::VM;

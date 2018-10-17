@@ -4,7 +4,7 @@
 use beam::compact_term::CTError;
 use rt_util::bin_reader;
 use rt_util::ext_term_format;
-use rt_defs::heap::HeapError;
+use emulator::heap::HeapError;
 
 use std::convert::From;
 

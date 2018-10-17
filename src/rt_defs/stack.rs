@@ -1,5 +1,5 @@
 use super::Word;
-use super::heap::HeapError;
+use emulator::heap::HeapError;
 
 
 /// Defines common interface for stack operations. Implemented by Heaps.
