@@ -30,7 +30,7 @@ pub fn apply(vm: &VM,
   // Copy extra args from after nfree field
   unsafe {
     let frozen_ptr = &(*closure).frozen as *const LTerm;
-    let dst_ptr = ctx.regs.as_mut_ptr().offset(in_arity as isize);
+    let dst_ptr = ctx.regs.as_mut_ptr().add(in_arity);
     ptr::copy(frozen_ptr, dst_ptr, (*closure).nfree);
   }
 

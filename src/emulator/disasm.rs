@@ -10,7 +10,7 @@ use term::lterm::*;
 pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>,
                      code_server: &CodeServer) {
   let mut ip = &code[0] as *const Word;
-  let iend = ip.offset(code.len() as isize);
+  let iend = ip.add(code.len());
 
   while ip < iend {
     ip = disasm_op(ip, code_server);
@@ -39,14 +39,14 @@ pub unsafe fn disasm_op(ip0: *const Word,
 
   println!();
 
-  ip.offset(n_args as isize)
+  ip.add(n_args)
 }
 
 
 unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
   for arg_index in 0..n_args {
 
-    let arg_raw = *ip.offset(arg_index as isize);
+    let arg_raw = *ip.add(arg_index);
     let arg = LTerm::from_raw(arg_raw);
 
     print!("{}", arg);

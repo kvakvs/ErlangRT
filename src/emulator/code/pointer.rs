@@ -116,7 +116,7 @@ impl CodePtr {
 
   pub fn belongs_to(self, slice: &[Word]) -> bool {
     let cbegin = &slice[0] as *const Word;
-    let cend = unsafe { cbegin.offset(slice.len() as isize) };
+    let cend = unsafe { cbegin.add(slice.len()) };
     let p = self.get();
     p >= cbegin && p < cend
   }

@@ -109,7 +109,7 @@ impl Iterator for CodeIteratorMut {
 /// Create am iterator for walking and modifying the code.
 pub unsafe fn create_mut(code: &mut Vec<Word>) -> CodeIteratorMut {
   let begin = &mut code[0] as *mut Word;
-  let end = begin.offset(code.len() as isize);
+  let end = begin.add(code.len());
   CodeIteratorMut::new(CodePtrMut(begin),
                        CodePtrMut(end))
 }

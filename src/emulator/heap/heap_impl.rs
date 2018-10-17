@@ -72,7 +72,7 @@ impl IHeap for Heap {
   /// This is used by heap walkers such as "dump.rs"
   unsafe fn heap_end(&self) -> *const Word {
     let p = self.heap_begin();
-    p.offset(self.htop as isize)
+    p.add(self.htop)
   }
 
 
@@ -89,13 +89,13 @@ impl IHeap for Heap {
     // Assume we can grow the data without reallocating
     let raw_nil = nil().raw();
     let new_chunk = unsafe {
-      self.heap_begin_mut().offset(self.htop as isize)
+      self.heap_begin_mut().add(self.htop)
     };
 
     if init_nil {
       unsafe {
         for i in 0..n {
-          *new_chunk.offset(i as isize) = raw_nil
+          *new_chunk.add(i) = raw_nil
         }
       }
     }
@@ -157,9 +157,9 @@ impl IStack<LTerm> for Heap {
     // Clear the new cells
     let raw_nil = nil().raw();
     unsafe {
-      let p = self.heap_begin_mut().offset(self.stop as isize);
+      let p = self.heap_begin_mut().add(self.stop);
       for y in 0..need {
-        *p.offset(y as isize) = raw_nil
+        *p.add(y) = raw_nil
       }
     }
   }

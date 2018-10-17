@@ -91,7 +91,7 @@ impl Context {
   pub fn fetch_slice(&mut self, sz: usize) -> &'static [LTerm] {
     let ip0 = self.ip.get();
     unsafe {
-      self.ip = CodePtr::new(ip0.offset(sz as isize));
+      self.ip = CodePtr::new(ip0.add(sz));
       slice::from_raw_parts(ip0 as *const LTerm, sz)
     }
   }
