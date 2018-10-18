@@ -1,20 +1,17 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 
+use emulator::code::CodePtr;
+use emulator::heap;
+use rt_defs::{Float, MAX_FPREGS, MAX_XREGS, Word};
+use rt_defs::stack::IStack;
+use std::fmt;
+use std::slice;
+use term::lterm::{LTerm, TAG_REGFP, TAG_REGX, TAG_REGY};
+
 pub mod call_bif;
 pub mod call_closure;
 pub mod call_export;
-
-
-use emulator::code::CodePtr;
-use emulator::heap;
-use rt_defs::stack::IStack;
-use rt_defs::{Word, Float, MAX_XREGS, MAX_FPREGS};
-use term::immediate;
-use term::lterm::{LTerm};
-
-use std::fmt;
-use std::slice;
 
 
 fn module() -> &'static str { "runtime_ctx: " }
@@ -123,40 +120,35 @@ impl Context {
   /// Read a register otherwise term is returned unchanged.
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
-    if src.is_immediate3() {
-      let v = src.value;
-      match immediate::get_imm3_tag(v) {
-        immediate::TAG_IMM3_XREG => return self.regs[immediate::get_imm3_value(v)],
-        immediate::TAG_IMM3_YREG => {
-          let y_index = immediate::get_imm3_value(v);
-          let y_result = hp.stack_get_y(y_index);
-          return y_result.unwrap();
-        }
-        _ => panic!("{}Don't know how to ctx.load from {}", module(), src)
-      }
+    match src.get_p_tag() {
+      TAG_REGY => return self.regs[src.get_p_val_without_tag()],
+      TAG_REGY => {
+        let y_index = src.get_p_val_without_tag();
+        let y_result = hp.stack_get_y(y_index);
+        return y_result.unwrap();
+      },
+      TAG_REGFP => panic!("todo fpreg load"),
+      // Otherwise return unchanged
+      _ => src,
     }
-    // otherwise return unchanged
-    src
   }
 
 
   /// Copy a value from `src` (possibly a stack cell or a register) to `dst`.
   pub fn store(&mut self, src: LTerm, dst: LTerm, hp: &mut heap::Heap) {
     let src_val = self.load(src, hp);
-    if dst.is_immediate3() {
-      let v = dst.value;
-      match immediate::get_imm3_tag(v) {
-        immediate::TAG_IMM3_XREG => {
-          self.regs[immediate::get_imm3_value(v)] = src_val;
-          return;
-        }
-        immediate::TAG_IMM3_YREG => {
-          let y = immediate::get_imm3_value(v);
-          let y_result = hp.stack_set_y(y, src_val);
-          return y_result.unwrap();
-        }
-        _ => {}
+    match dst.get_p_tag() {
+      TAG_REGX => {
+        self.regs[dst.get_p_val_without_tag()] = src_val;
+        return;
       }
+      TAG_REGY => {
+        let y = dst.get_p_val_without_tag();
+        let y_result = hp.stack_set_y(y, src_val);
+        return y_result.unwrap();
+      },
+      TAG_REGFP => panic!("todo fpreg store"),
+      _ => {}
     }
     panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
   }

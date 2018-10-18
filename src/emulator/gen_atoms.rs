@@ -3,45 +3,44 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use term::immediate::{make_atom_raw_const};
 use term::lterm::*;
 
 
-pub const SYM_PLUS: LTerm = LTerm { value: make_atom_raw_const(0) };
-pub const SYM_MINUS: LTerm = LTerm { value: make_atom_raw_const(1) };
-pub const SEQ_2: LTerm = LTerm { value: make_atom_raw_const(2) };
-pub const SYM_EQ_EQ: LTerm = LTerm { value: make_atom_raw_const(3) };
-pub const APPLY: LTerm = LTerm { value: make_atom_raw_const(4) };
-pub const BADARG: LTerm = LTerm { value: make_atom_raw_const(5) };
-pub const BADARITH: LTerm = LTerm { value: make_atom_raw_const(6) };
-pub const BADARITY: LTerm = LTerm { value: make_atom_raw_const(7) };
-pub const BADFUN: LTerm = LTerm { value: make_atom_raw_const(8) };
-pub const BADMATCH: LTerm = LTerm { value: make_atom_raw_const(9) };
-pub const CASE_CLAUSE: LTerm = LTerm { value: make_atom_raw_const(10) };
-pub const ERLANG: LTerm = LTerm { value: make_atom_raw_const(11) };
-pub const ERROR: LTerm = LTerm { value: make_atom_raw_const(12) };
-pub const EXIT: LTerm = LTerm { value: make_atom_raw_const(13) };
-pub const FALSE: LTerm = LTerm { value: make_atom_raw_const(14) };
-pub const FUNCTION_CLAUSE: LTerm = LTerm { value: make_atom_raw_const(15) };
-pub const HIGH: LTerm = LTerm { value: make_atom_raw_const(16) };
-pub const IF_CLAUSE: LTerm = LTerm { value: make_atom_raw_const(17) };
-pub const INIT: LTerm = LTerm { value: make_atom_raw_const(18) };
-pub const KILL: LTerm = LTerm { value: make_atom_raw_const(19) };
-pub const KILLED: LTerm = LTerm { value: make_atom_raw_const(20) };
-pub const LENGTH: LTerm = LTerm { value: make_atom_raw_const(21) };
-pub const LOW: LTerm = LTerm { value: make_atom_raw_const(22) };
-pub const MAKE_FUN: LTerm = LTerm { value: make_atom_raw_const(23) };
-pub const NIF_ERROR: LTerm = LTerm { value: make_atom_raw_const(24) };
-pub const NOCATCH: LTerm = LTerm { value: make_atom_raw_const(25) };
-pub const NORMAL: LTerm = LTerm { value: make_atom_raw_const(26) };
-pub const OK: LTerm = LTerm { value: make_atom_raw_const(27) };
-pub const SELF: LTerm = LTerm { value: make_atom_raw_const(28) };
-pub const SYSTEM_LIMIT: LTerm = LTerm { value: make_atom_raw_const(29) };
-pub const THROW: LTerm = LTerm { value: make_atom_raw_const(30) };
-pub const TRAP_EXIT: LTerm = LTerm { value: make_atom_raw_const(31) };
-pub const TRUE: LTerm = LTerm { value: make_atom_raw_const(32) };
-pub const UNDEF: LTerm = LTerm { value: make_atom_raw_const(33) };
-pub const UNDEFINED: LTerm = LTerm { value: make_atom_raw_const(34) };
+pub const SYM_PLUS: LTerm = LTerm::make_atom(0);
+pub const SYM_MINUS: LTerm = LTerm::make_atom(1);
+pub const SEQ_2: LTerm = LTerm::make_atom(2);
+pub const SYM_EQ_EQ: LTerm = LTerm::make_atom(3);
+pub const APPLY: LTerm = LTerm::make_atom(4);
+pub const BADARG: LTerm = LTerm::make_atom(5);
+pub const BADARITH: LTerm = LTerm::make_atom(6);
+pub const BADARITY: LTerm = LTerm::make_atom(7);
+pub const BADFUN: LTerm = LTerm::make_atom(8);
+pub const BADMATCH: LTerm = LTerm::make_atom(9);
+pub const CASE_CLAUSE: LTerm = LTerm::make_atom(10);
+pub const ERLANG: LTerm = LTerm::make_atom(11);
+pub const ERROR: LTerm = LTerm::make_atom(12);
+pub const EXIT: LTerm = LTerm::make_atom(13);
+pub const FALSE: LTerm = LTerm::make_atom(14);
+pub const FUNCTION_CLAUSE: LTerm = LTerm::make_atom(15);
+pub const HIGH: LTerm = LTerm::make_atom(16);
+pub const IF_CLAUSE: LTerm = LTerm::make_atom(17);
+pub const INIT: LTerm = LTerm::make_atom(18);
+pub const KILL: LTerm = LTerm::make_atom(19);
+pub const KILLED: LTerm = LTerm::make_atom(20);
+pub const LENGTH: LTerm = LTerm::make_atom(21);
+pub const LOW: LTerm = LTerm::make_atom(22);
+pub const MAKE_FUN: LTerm = LTerm::make_atom(23);
+pub const NIF_ERROR: LTerm = LTerm::make_atom(24);
+pub const NOCATCH: LTerm = LTerm::make_atom(25);
+pub const NORMAL: LTerm = LTerm::make_atom(26);
+pub const OK: LTerm = LTerm::make_atom(27);
+pub const SELF: LTerm = LTerm::make_atom(28);
+pub const SYSTEM_LIMIT: LTerm = LTerm::make_atom(29);
+pub const THROW: LTerm = LTerm::make_atom(30);
+pub const TRAP_EXIT: LTerm = LTerm::make_atom(31);
+pub const TRUE: LTerm = LTerm::make_atom(32);
+pub const UNDEF: LTerm = LTerm::make_atom(33);
+pub const UNDEFINED: LTerm = LTerm::make_atom(34);
 
 pub static ATOM_INIT_NAMES: &'static [&'static str] = &[
   "+", // id=0

@@ -50,7 +50,7 @@ impl VM {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
 
-    let pid = LTerm::make_pid(pid_c);
+    let pid = LTerm::make_local_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
     match Process::new(pid, parent, &mfarity, prio,
                        self.code_server.borrow_mut().as_mut()) {

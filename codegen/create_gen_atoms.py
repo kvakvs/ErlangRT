@@ -24,7 +24,6 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use term::immediate::{{make_atom_raw_const}};
 use term::lterm::*;
 
 """.format(otp=conf.__class__.__name__))
@@ -41,8 +40,7 @@ use term::lterm::*;
     i = 0
     for akey in atom_keys:
         a = tables.atom_dict[akey]
-        print("pub const {cname}: LTerm = LTerm {{ "
-              "value: make_atom_raw_const({index}) }};"
+        print("pub const {cname}: LTerm = LTerm::make_atom({index});"
               "".format(cname=a.cname, index=i))
         i += 1
 

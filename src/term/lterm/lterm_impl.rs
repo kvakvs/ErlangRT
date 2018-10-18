@@ -5,25 +5,25 @@
 //!
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
-use term::immediate;
-use term::primary;
 use emulator::atom;
+use emulator::heap::{IHeap};
 use rt_defs::{Word};
 use super::super::lterm::*;
+use term::immediate;
+use term::mterm::mpid::MRemotePid;
+use term::mterm;
+use term::primary;
 use term::raw::*;
-//use term::mterm::MTerm;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
 
 
-
 /// A low-level term is always a pointer to memory term.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct LTerm {
-  // pub p: *mut MTerm
-  pub value: Word,
+  p: *mut mterm::BoxHeader,
 }
 
 
@@ -41,6 +41,18 @@ impl PartialOrd for LTerm {
 }
 
 
+pub const TAG_BITS: Word = 3;
+pub const TAG_MASK: Word = (1 << TAG_BITS) - 1;
+
+pub const TAG_BOXED: Word = 0;
+pub const TAG_SMALL: Word = 1;
+pub const TAG_ATOM: Word = 2;
+pub const TAG_LOCAL_PID: Word = 3;
+pub const TAG_REGX: Word = 4;
+pub const TAG_REGY: Word = 5;
+pub const TAG_REGFP: Word = 6;
+
+
 // TODO: Remove deadcode directive later and fix
 #[allow(dead_code)]
 impl LTerm {
@@ -49,61 +61,67 @@ impl LTerm {
   pub fn raw(self) -> Word { self.value }
 
 
+  #[inline]
+  pub const fn make_atom(id: Word) -> LTerm {
+    LTerm::make_from_tag_and_value(TAG_ATOM, id)
+  }
+
+
+  #[inline]
+  pub const fn make_from_tag_and_value(t: Word, v: Word) -> LTerm {
+    LTerm::from_raw(v << TAG_BITS | t)
+  }
+
+
   /// Create a NON_VALUE.
   #[inline]
   pub fn non_value() -> LTerm {
-    // LTerm { p: ptr::null_mut() }
-    LTerm { value: immediate::IMM2_SPECIAL_NONVALUE_RAW }
+    LTerm { p: ptr::null_mut() }
   }
 
 
   /// Check whether a value is a NON_VALUE.
   #[inline]
   pub fn is_non_value(self) -> bool {
-    self.value == immediate::IMM2_SPECIAL_NONVALUE_RAW
+    self.p.is_null()
   }
 
 
   /// Check whether a value is NOT a NON_VALUE.
   #[inline]
   pub fn is_value(self) -> bool {
-    ! self.is_non_value()
+    ! self.p.is_null()
   }
 
 
-  /// Get primary tag bits from a raw term
+  /// Get tag bits from the p field as integer.
   #[inline]
-  pub fn primary_tag(self) -> Word {
-    primary::get_tag(self.value)
+  pub fn get_p_tag(self) -> Word {
+    self.get_p_raw() & TAG_MASK
   }
 
-  /// Check whether a value has immediate1 bits as prefix.
+
+  /// Check whether tag bits of a value equal to TAG_BOXED=0
   #[inline]
-  pub fn is_immediate1(self) -> bool {
-    immediate::is_immediate1(self.value)
+  pub fn is_boxed(self) -> bool {
+    self.get_p_raw() & TAG_MASK == TAG_BOXED
   }
 
-  /// Check whether a value has immediate2 bits as prefix.
+
+  /// Retrieve the raw value of a `LTerm` as Word, including tag bits
+  /// and everything.
   #[inline]
-  pub fn is_immediate2(self) -> bool {
-    immediate::is_immediate2(self.value)
+  pub fn get_p_raw(self) -> Word {
+    self.p as Word
   }
 
-  /// Check whether a value has immediate3 bits as prefix.
-  #[inline]
-  pub fn is_immediate3(self) -> bool {
-    immediate::is_immediate3(self.value)
-  }
 
-  /// Check whether primary tag of a value is `TAG_HEADER`.
+  /// For non-pointer Term types get the encoded integer without tag bits
   #[inline]
-  pub fn is_header(self) -> bool {
-    self.primary_tag() == primary::TAG_HEADER
+  pub fn get_p_val_without_tag(self) -> Word {
+    debug_assert!(self.get_p_tag() != TAG_BOXED);
+    (self.p as Word) >> TAG_BITS
   }
-
-  /// Retrieve the raw value of a `LTerm`.
-  #[inline]
-  pub fn get_raw(self) -> Word { self.value }
 
   //
   // Construction
@@ -112,14 +130,19 @@ impl LTerm {
   /// Any raw word becomes a term, possibly invalid
   #[inline]
   pub fn from_raw(w: Word) -> LTerm {
-    LTerm { value: w }
+    LTerm { p: w as *mut mterm::BoxHeader }
   }
 
 
-  /// From internal process index create a pid. To create a process use vm::create_process
   #[inline]
-  pub fn make_pid(pindex: Word) -> LTerm {
-    LTerm { value: immediate::make_pid_raw(pindex) }
+  pub fn make_local_pid(pindex: Word) -> LTerm {
+    LTerm::make_from_tag_and_value(TAG_LOCAL_PID, pindex)
+  }
+
+
+  #[inline]
+  pub fn make_remote_pid(hp: &mut IHeap, pindex: Word) -> LTerm {
+    LTerm { p: MRemotePid::create_in(hp, pindex) }
   }
 
   #[inline]
@@ -148,13 +171,13 @@ impl LTerm {
   //
 
   pub fn header_get_arity(self) -> Word {
-    assert!(self.is_header());
+    assert!(self.is_boxed());
     primary::header::get_arity(self.value)
   }
 
 
   pub fn header_get_type(self) -> Word {
-    assert!(self.is_header());
+    assert!(self.is_boxed());
     primary::header::get_tag(self.value)
   }
 

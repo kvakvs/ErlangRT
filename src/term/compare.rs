@@ -1,10 +1,9 @@
 use emulator::atom;
-
-use std::cmp::{Ordering};
-use term::lterm::*;
+use std::cmp::Ordering;
 use term::classify;
-use term::primary;
 use term::immediate;
+use term::lterm::*;
+use term::primary;
 
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
@@ -189,25 +188,23 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
     return Ordering::Equal;
   }
 
-  if a.is_immediate1() {
-    if a.is_local_port() {
-      if b.is_local_port() {
-        panic!("TODO: cmp local vs local port")
-      } else if b.is_external_port() {
-        panic!("TODO: cmp local vs ext port")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
+  if a.is_local_port() {
+    if b.is_local_port() {
+      panic!("TODO: cmp local vs local port")
+    } else if b.is_external_port() {
+      panic!("TODO: cmp local vs ext port")
+    } else {
+      return cmp_mixed_types(a, b);
     }
+  }
 
-    if a.is_local_pid() {
-      if b.is_local_pid() {
-        panic!("TODO: cmp local vs local pid")
-      } else if b.is_external_pid() {
-        panic!("TODO: cmp local vs ext pid")
-      } else {
-        return cmp_mixed_types(a, b)
-      }
+  if a.is_local_pid() {
+    if b.is_local_pid() {
+      panic!("TODO: cmp local vs local pid")
+    } else if b.is_external_pid() {
+      panic!("TODO: cmp local vs ext pid")
+    } else {
+      return cmp_mixed_types(a, b)
     }
   }
 
@@ -305,7 +302,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
     // cmp atoms a.fn and b.fn
     // cmp arity
     panic!("TODO compare 2 exports")
-  } else if a.is_header() {
+  } else if a.is_boxed() {
     if !a.is_fun() {
       return cmp_mixed_types(a, b)
     }
