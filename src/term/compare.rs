@@ -1,9 +1,9 @@
 use emulator::atom;
 use std::cmp::Ordering;
 use term::classify;
-use term::immediate;
 use term::lterm::*;
 use term::primary;
+use rt_defs::TermTag;
 
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
@@ -153,10 +153,10 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 /// or fail immediately for different primary tags).
 fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   let a_val = a.raw();
-  let a_prim_tag = primary::get_tag(a_val);
+  let a_prim_tag = a.get_term_tag();
 
   let b_val = b.raw();
-  let b_prim_tag = primary::get_tag(b_val);
+  let b_prim_tag = b.get_term_tag();
   if b_prim_tag != a_prim_tag {
     // different primary types, compare their classes
     // This can be optimized a little but is there any value in optimization?
@@ -164,14 +164,13 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   }
 
   match a_prim_tag {
-    primary::TAG_IMMED => {
-      EqResult::Concluded(cmp_terms_immed(a, b, exact))
-    },
-    primary::TAG_CONS => unsafe {
-      cmp_cons(a, b)
-    },
-    primary::TAG_BOX => {
+    TermTag::Boxed => {
       cmp_terms_box(a, b)
+    },
+    TermTag::CP => panic!("eq_terms for CP is unsupported"),
+    _ => {
+      // Any non-boxed compare
+      EqResult::Concluded(cmp_terms_immed(a, b, exact))
     },
     _ => panic!("Primary tag {} eq_terms unsupported", a_prim_tag)
   }
@@ -183,7 +182,9 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
   let av = a.raw();
   let bv = b.raw();
 
-  if (a.is_nil() || a.is_empty_tuple() || a.is_empty_binary())
+  if (a == LTerm::nil()
+      || a == LTerm::empty_tuple()
+      || a == LTerm::empty_binary())
       && (a.raw() == b.raw()) {
     return Ordering::Equal;
   }
@@ -221,18 +222,18 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
     return cmp_terms_immed_box(a, b);
   }
 
-  // if both are immediate3, it is hard to distunguish because all imm3 values
-  // are special
-  if a.is_immediate3() && b.is_immediate3() {
-    let a3t = immediate::get_imm3_tag(av);
-    let b3t = immediate::get_imm3_tag(bv);
-    // If imm3 tags are same, we can conclude with comparing their values
-    if a3t == b3t {
-      let a3v = immediate::get_imm3_value(av);
-      let b3v = immediate::get_imm3_value(bv);
-      return a3v.cmp(&b3v);
+  // if both are internal immediates, compare their raw values or their tags
+  if a.is_internal_immediate() && b.is_internal_immediate() {
+    let a_tag = a.get_term_tag();
+    let b_tag = b.get_term_tag();
+
+    // If tags are same, we can conclude with comparing their values
+    if a_tag == b_tag {
+      let a_val = a.get_p_val_without_tag();
+      let b_val = b.get_p_val_without_tag();
+      return a_val.cmp(&b_val);
     }
-    return a3t.cmp(&b3t);
+    return a_tag.cmp(&b_tag);
   }
 
   panic!("TODO: eq_terms_immed {} {}", a, b)

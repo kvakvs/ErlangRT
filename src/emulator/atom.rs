@@ -123,7 +123,7 @@ pub fn from_str(val: &str) -> LTerm {
   let mut atoms = ATOMS.atoms.lock().unwrap();
 
   if atoms.contains_key(val) {
-    return make_atom(atoms[val]);
+    return LTerm::make_atom(atoms[val]);
   }
 
   let mut atoms_r = ATOMS.atoms_r.lock().unwrap();
@@ -132,7 +132,7 @@ pub fn from_str(val: &str) -> LTerm {
     &mut atoms, &mut atoms_r, val
   );
 
-  make_atom(index)
+  LTerm::make_atom(index)
 }
 
 

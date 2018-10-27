@@ -9,6 +9,7 @@ use emulator::heap::HeapError;
 use std::convert::From;
 
 
+// TODO: Rename to RTError-something
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),
@@ -30,9 +31,11 @@ pub enum Error {
   HeapError(HeapError),
   //StackIndexRange,
 
-  //--- VM Checks ---
-  HeapObjBoxExpected,
-  HeapObjNotAType,
+  //--- VM Checks --
+  TermIsNotABoxed,
+  BoxedIsNotAClosure,
+  BoxedIsNotATuple,
+  HeapObjNotAType, // remove
 }
 
 
@@ -50,6 +53,7 @@ impl From<HeapError> for Error {
 
 
 /// A templated error type based on `fail::Error`.
+// TODO: Rename to RTResult-something
 pub type Hopefully<T> = Result<T, Error>;
 
 //impl fmt::Debug for Error {

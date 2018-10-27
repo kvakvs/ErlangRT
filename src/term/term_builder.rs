@@ -1,22 +1,26 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
 use emulator::atom;
-use emulator::heap::{Heap, allocate_tuple};
+use emulator::heap::{Heap};
 use emulator::heap::IHeap;
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
 use term::lterm::*;
 use term::raw::*;
+use term::boxed;
 
 use num;
+use fail::Hopefully;
 
+
+// TODO: Remove templating on term type here
 
 /// A specific tuple builder implementation for `LTerm` and ERT VM.
 pub struct TupleBuilder {
-  p: rtuple::PtrMut
+  p: *mut boxed::Tuple
 }
 
 impl TupleBuilder {
-  pub fn new(p: rtuple::PtrMut) -> TupleBuilder {
+  pub fn new(p: *mut boxed::Tuple) -> TupleBuilder {
     TupleBuilder { p }
   }
 }
@@ -35,22 +39,22 @@ impl ITupleBuilder<LTerm> for TupleBuilder {
 /// A forward list builder implementation for `LTerm` and ERT VM.
 pub struct ListBuilder {
   // first cell where the building started
-  p0: rcons::PtrMut,
+  p0: *mut LTerm,
   // current (last) cell
-  p: rcons::PtrMut,
+  p: *mut LTerm,
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,
 }
 
 impl ListBuilder {
-  unsafe fn new(heap: *mut Heap) -> ListBuilder {
-    let p = (*heap).heap_allocate(2, true).unwrap();
+  unsafe fn new(heap: *mut Heap) -> Hopefully<ListBuilder> {
+    let p = (*heap).heap_allocate(2, true)?;
 
-    ListBuilder {
-      p: rcons::PtrMut::from_pointer(p),
-      p0: rcons::PtrMut::from_pointer(p),
+    Ok(ListBuilder {
+      p: p as *mut LTerm,
+      p0: p as *mut LTerm,
       heap,
-    }
+    })
   }
 }
 
@@ -60,15 +64,15 @@ impl IListBuilder<LTerm> for ListBuilder {
   }
 
   unsafe fn next(&mut self) {
-    let new_cell = rcons::PtrMut::from_pointer(
-      (*self.heap).heap_allocate(2, true).unwrap()
-    );
+    let new_cell = (*self.heap).heap_allocate(
+      2, true
+    )? as *mut LTerm;
     self.p.set_tl(new_cell.make_cons());
     self.p = new_cell
   }
 
   unsafe fn end(&mut self, _tl: LTerm) {
-    self.p.set_tl(nil())
+    self.p.set_tl(LTerm::nil())
   }
 
   fn make_term(&self) -> LTerm {
@@ -97,18 +101,19 @@ impl ITermBuilder for TermBuilder {
   type ListBuilderT = ListBuilder;
 
 
-  unsafe fn create_bignum(&self, n: num::BigInt) -> Self::TermT {
+  unsafe fn create_bignum(&self, n: num::BigInt) -> Hopefully<Self::TermT> {
     let ref_heap = self.heap.as_mut().unwrap();
-    let big_p = HOBignum::place_into(ref_heap, n).unwrap();
-    HOBignum::make_term(big_p)
+    let big_p = boxed::Bignum::place_into(ref_heap, n)?;
+    Ok(LTerm::make_boxed(big_p))
   }
 
 
-  unsafe fn create_binary(&mut self, b: &[u8]) -> Self::TermT {
-    let ref_heap = self.heap.as_mut().unwrap();
-    let rbin = HOBinary::place_into(ref_heap, b.len()).unwrap();
-    HOBinary::store(rbin, b);
-    HOBinary::make_term(rbin)
+  unsafe fn create_binary(&mut self, data: &[u8]) -> Hopefully<Self::TermT> {
+    debug_assert!(self.heap.is_null() == false);
+    let hp = self.heap.as_mut().unwrap();
+    let rbin = boxed::Binary::place_into(hp, data.len())?;
+    boxed::Binary::store(rbin, data);
+    Ok(LTerm::make_boxed(rbin))
   }
 
 
@@ -120,7 +125,7 @@ impl ITermBuilder for TermBuilder {
 
   #[inline]
   fn create_nil(&self) -> Self::TermT {
-    nil()
+    LTerm::nil()
   }
 
 
@@ -132,7 +137,7 @@ impl ITermBuilder for TermBuilder {
 
   #[inline]
   fn create_empty_binary(&self) -> Self::TermT {
-    empty_binary()
+    LTerm::make_empty_binary()
   }
 
 

@@ -1,52 +1,43 @@
 //! Define `HeapIterator` which can step over the heap
 use emulator::heap::IHeapIterator;
-use emulator::heap::ptr::DataPtr;
 use term::primary;
+use term::lterm::LTerm;
+use term::boxed;
+use rt_defs::TermTag;
 
 
 // This is used by heap walkers such as "dump.rs"
 #[allow(dead_code)]
 pub struct HeapIterator {
-  p: DataPtr,
-  end: DataPtr,
+  p: *const LTerm,
+  end: *const LTerm,
 }
 
 
 impl HeapIterator {
-  pub fn new(begin: DataPtr, end: DataPtr) -> HeapIterator {
+  pub fn new(begin: *const LTerm, end: *const LTerm) -> HeapIterator {
     HeapIterator { p: begin, end }
   }
-
-
-//  /// Read current value at the iterator location.
-//  pub unsafe fn read_term(&self) -> LTerm {
-//    let DataPtr::Ptr(p) = self.p;
-//    LTerm::from_raw(*p)
-//  }
 }
 
 
-impl IHeapIterator<DataPtr> for HeapIterator {
-  fn next(&mut self) -> Option<DataPtr> {
-    let DataPtr(p) = self.p;
-
+impl IHeapIterator<*const LTerm> for HeapIterator {
+  unsafe fn next(&mut self) -> Option<*const LTerm> {
     // Peek inside *p to see if we're at a header, and if so - step over it
     // using header arity. Otherwise step by 1 cell
-    let val = unsafe { *p };
-    let size = if primary::get_tag(val) == primary::TAG_HEADER {
-      primary::header::get_arity(val) as isize
-    } else {
-      1isize
+    let val = *self.p;
+    let size = match val.get_term_tag() {
+      TermTag::Header => boxed::headerword_to_arity(val.raw()),
+      _ => 1isize,
     };
 
-    let next_p = unsafe { DataPtr(p.offset(size)) };
+    self.p.add(size);
 
     let end = self.end;
-    if next_p >= end {
+    if self.p >= end {
       return None
     }
 
-    self.p = next_p;
     Some(self.p)
   }
 }

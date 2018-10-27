@@ -1,6 +1,7 @@
 //! Term ordering and classification.
 
-use rt_defs::{Word};
+use rt_defs::*;
+use term::boxed;
 use term::immediate;
 use term::lterm::*;
 use term::primary;
@@ -39,8 +40,7 @@ pub enum TermClass {
   Pid,
   Tuple,
   Map,
-  Nil,
-  Cons,
+  List,
   Binary,
   // Means the value should not be used in comparisons but here it is anyway
   Special_,
@@ -49,47 +49,47 @@ pub enum TermClass {
 
 pub fn classify_term(t: LTerm) -> TermClass {
   let v = t.raw();
-  match primary::get_tag(v) {
-    primary::TAG_BOX => unsafe { classify_box(t) },
-    primary::TAG_HEADER => TermClass::Special_, // won't look into the header
-    primary::TAG_IMMED => classify_immed(v, t),
-    primary::TAG_CONS => TermClass::Cons,
+  match t.get_term_tag() {
+    TermTag::Boxed => unsafe { classify_boxed(t) },
+    TermTag::CP => return TermClass::Special_,
+    TermTag::Header => TermClass::Special_, // won't look into the header
+    TermTag::Small => TermClass::Number,
+    TermTag::Atom => TermClass::Atom,
+    TermTag::LocalPid => TermClass::Pid,
+    TermTag::LocalPort => TermClass::Port,
+    TermTag::Special => classify_special(t),
     _ => panic!("{}Invalid primary tag", module())
+  }
+}
+
+
+fn classify_special(val: LTerm) -> TermClass {
+  match val.get_special_tag() {
+    SpecialTag::EmptyList => TermClass::List,
+    SpecialTag::EmptyTuple => TermClass::Tuple,
+    SpecialTag::EmptyBinary => TermClass::Binary,
+    SpecialTag::RegX |
+    SpecialTag::RegY |
+    SpecialTag::RegFP => TermClass::Special_,
   }
 }
 
 
 /// Given term's raw value `v` and the term itself, try and figure out the
 /// classification value for this term.
-#[inline]
-unsafe fn classify_box(t: LTerm) -> TermClass {
-  if t.is_cp() {
-    //panic!("Can't classify a CP value")
-    return TermClass::Special_
-  }
-  let p = t.box_ptr();
-  classify_header(*p, p)
-}
-
-
-#[inline]
-unsafe fn classify_header(v: Word, p: *const Word) -> TermClass {
-  let h_tag = primary::header::get_tag(v);
-  match h_tag {
-    primary::header::TAG_HEADER_TUPLE => TermClass::Tuple,
-    primary::header::TAG_HEADER_REF |
-    primary::header::TAG_HEADER_EXTREF => TermClass::Ref,
-    primary::header::TAG_HEADER_FUN => TermClass::Fun,
-    primary::header::TAG_HEADER_FLOAT => TermClass::Number,
-    primary::header::TAG_HEADER_HEAPOBJ => {
-      let ho_ptr = p.offset(1);
-      let hoclass = *(ho_ptr) as *const HeapObjClass;
-      (*hoclass).term_class
-    },
-    primary::header::TAG_HEADER_EXTPID => TermClass::Pid,
-    primary::header::TAG_HEADER_EXTPORT => TermClass::Port,
-    _ => panic!("classify: Unexpected header tag {} value {}",
-                h_tag, primary::get_value(v))
+unsafe fn classify_boxed(val: LTerm) -> TermClass {
+  let val_box_ptr = val.get_box_ptr();
+  let box_tag = val_box_ptr.get_tag();
+  match box_tag {
+    boxed::BoxTypeTag::Tuple => TermClass::Tuple,
+    boxed::BoxTypeTag::Binary => TermClass::Binary,
+    boxed::BoxTypeTag::Tuple => TermClass::Tuple,
+    boxed::BoxTypeTag::ExternalPid => TermClass::Pid,
+    boxed::BoxTypeTag::ExternalRef => TermClass::Ref,
+    boxed::BoxTypeTag::Closure => TermClass::Fun,
+    boxed::BoxTypeTag::Float => TermClass::Number,
+    _ => panic!("classify: Unexpected boxed_tag={} raw={}",
+                box_tag, val.raw())
   }
 }
 
@@ -107,11 +107,11 @@ fn classify_immed(v: Word, t: LTerm) -> TermClass {
         immediate::TAG_IMM2_CATCH |
         immediate::TAG_IMM2_IMM3 => TermClass::Special_,
         immediate::TAG_IMM2_SPECIAL => {
-          if t.is_nil() {
+          if t == LTerm::nil() {
             TermClass::Nil
-          } else if t.is_empty_tuple() {
+          } else if t == LTerm::empty_tuple() {
             TermClass::Tuple
-          } else if t.is_empty_binary() {
+          } else if t == LTerm::empty_binary() {
             TermClass::Binary
           } else {
             TermClass::Special_

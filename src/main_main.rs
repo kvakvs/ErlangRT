@@ -28,7 +28,7 @@ pub fn entrypoint() {
     Vec::new()
   );
   let _rootp = beam.create_process(
-    nil(),
+    LTerm::nil(),
     &mfa,
     Prio::Normal
   ).unwrap();

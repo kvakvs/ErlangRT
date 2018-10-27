@@ -39,20 +39,6 @@ pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 32;
 
 
-/// For CP values the highest bit is set. CP values never appear on heap, or
-/// in registers, only in code or stack.
-pub const TAG_CP: Word = 1usize << (WORD_BITS-1);
-
-
-//pub fn unsafe_sword_to_word(n: SWord) -> Word {
-//  unsafe { transmute::<isize, usize> (n) }
-//}
-
-//pub fn unsafe_word_to_sword(n: Word) -> SWord {
-//  unsafe { transmute::<usize, isize> (n) }
-//}
-
-
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum ExceptionType {
@@ -60,3 +46,56 @@ pub enum ExceptionType {
   Error,
   Exit,
 }
+
+//
+// Structure of term:
+// [ Value or a pointer ] [ TAG_* value 3 bits ]
+//
+
+pub const TERM_TAG_BITS: Word = 3;
+pub const TERM_TAG_MASK: Word = (1 << TERM_TAG_BITS) - 1;
+
+pub enum TermTag {
+  Boxed,
+  Header,
+  Small,
+  Atom,
+  LocalPid,
+  LocalPort,
+  CP,
+  Special
+}
+
+//pub const TAG_BOXED: Word = 0; // contains pointer to a value on heap
+//pub const TAG_HEADER: Word = 1; // Marks a stored boxed value on heap
+//
+//pub const TAG_SMALL: Word = 2; // contains a small integer
+//pub const TAG_ATOM: Word = 3; // contains atom index
+//pub const TAG_LOCAL_PID: Word = 4; // contains process index
+//pub const TAG_CP: Word = 5; // contains a pointer to code
+//// Special contains extra values like empty binary, NIL etc
+//pub const TAG_SPECIAL: Word = 7; // contains something else (below)
+
+//
+// Structure of SPECIAL values,
+// they are plethora of term types requiring fewer bits or useful in other ways
+// [ special value ] [ VAL_SPECIAL_... 3 bits ] [ TAG_SPECIAL 3 bits ]
+//
+pub const TERM_SPECIAL_TAG_BITS: Word = 3;
+pub const TERM_SPECIAL_TAG_MASK: Word = (1 << TERM_SPECIAL_TAG_BITS) - 1;
+
+pub enum SpecialTag {
+  EmptyList,
+  EmptyTuple,
+  EmptyBinary,
+  RegX,
+  RegY,
+  RegFP,
+}
+
+//pub const VAL_SPECIAL_EMPTY_LIST: Word = 1;
+//pub const VAL_SPECIAL_EMPTY_TUPLE: Word = 2;
+//pub const VAL_SPECIAL_EMPTY_BINARY: Word = 3;
+//pub const VAL_SPECIAL_REGX: Word = 4;
+//pub const VAL_SPECIAL_REGY: Word = 5;
+//pub const VAL_SPECIAL_REGFP: Word = 6;

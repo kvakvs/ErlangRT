@@ -7,7 +7,7 @@ use rt_defs::{Float, MAX_FPREGS, MAX_XREGS, Word};
 use rt_defs::stack::IStack;
 use std::fmt;
 use std::slice;
-use term::lterm::{LTerm, TAG_REGFP, TAG_REGX, TAG_REGY};
+use term::lterm::{LTerm};
 
 pub mod call_bif;
 pub mod call_closure;
@@ -120,7 +120,7 @@ impl Context {
   /// Read a register otherwise term is returned unchanged.
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
-    match src.get_p_tag() {
+    match src.get_term_tag() {
       TAG_REGY => return self.regs[src.get_p_val_without_tag()],
       TAG_REGY => {
         let y_index = src.get_p_val_without_tag();
@@ -137,7 +137,7 @@ impl Context {
   /// Copy a value from `src` (possibly a stack cell or a register) to `dst`.
   pub fn store(&mut self, src: LTerm, dst: LTerm, hp: &mut heap::Heap) {
     let src_val = self.load(src, hp);
-    match dst.get_p_tag() {
+    match dst.get_term_tag() {
       TAG_REGX => {
         self.regs[dst.get_p_val_without_tag()] = src_val;
         return;

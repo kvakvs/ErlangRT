@@ -3,6 +3,7 @@
 use beam::disp_result::DispatchResult;
 use beam::gen_op;
 use beam::opcodes::assert_arity;
+use term::boxed;
 use emulator::function::FunEntry;
 use emulator::process::Process;
 use emulator::runtime_ctx;
@@ -27,9 +28,9 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
   let hp = &mut curr_p.heap;
   let closure = unsafe {
     let nfree = (*fe).nfree as usize;
-    let p = HOClosure::place_into(hp,
-                                  fe.as_ref().unwrap(),
-                                  &ctx.regs[0..nfree]);
+    let p = boxed::Closure::place_into(hp,
+                                       fe.as_ref().unwrap(),
+                                       &ctx.regs[0..nfree]);
     p.unwrap()
   };
   ctx.regs[0] = closure;
@@ -50,10 +51,10 @@ pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
 
   // Take function object argument
   let fobj = ctx.regs[arity];
-  if let Ok(closure) = unsafe { HOClosure::from_term(fobj) } {
+  if let Ok(closure) = unsafe { boxed::Closure::from_term(fobj) } {
     // `fobj` is a callable closure made with `fun() -> code end`
     runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
-  } else if let Ok(export) = unsafe { HOExport::from_term(fobj) } {
+  } else if let Ok(export) = unsafe { boxed::Export::from_term(fobj) } {
     // `fobj` is an export made with `fun module:name/0`
     runtime_ctx::call_export::apply(
       ctx, curr_p, export, args, true,

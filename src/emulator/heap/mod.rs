@@ -12,7 +12,7 @@ pub const DEFAULT_LIT_HEAP: Word = 8192;
 pub const DEFAULT_PROC_HEAP: Word = 8192;
 
 
-pub use emulator::heap::heap_impl::{Heap, allocate_cons, allocate_tuple, heap_iter};
+pub use emulator::heap::heap_impl::{Heap, allocate_cons, heap_iter};
 
 
 
@@ -60,5 +60,5 @@ pub trait IHeap {
 
 /// A heap iterator. Not very `std::iter::Iterator` compatible but simple.
 pub trait IHeapIterator<PtrType> {
-  fn next(&mut self) -> Option<PtrType>;
+  unsafe fn next(&mut self) -> Option<PtrType>;
 }

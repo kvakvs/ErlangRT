@@ -5,6 +5,7 @@ use rt_defs::{ExceptionType, Arity};
 use emulator::mfa::MFArity;
 use term::lterm::*;
 use term::raw::*;
+use term::boxed;
 
 
 pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> BifResult {
@@ -23,7 +24,7 @@ pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> BifResult {
                          args[2].small_get_u() as Arity);
 
   // Create an export on heap and return it
-  match unsafe { HOExport::place_into(hp, &mfa) } {
+  match unsafe { boxed::Export::place_into(hp, &mfa) } {
     Ok(expt) => BifResult::Value(expt),
     Err(e) => panic!(e),
   }

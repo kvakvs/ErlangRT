@@ -12,6 +12,7 @@ use emulator::vm::VM;
 use rt_defs::stack::IStack;
 use term::lterm::*;
 use term::raw::*;
+use term::boxed;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }
@@ -72,7 +73,7 @@ pub fn opcode_call_ext_only(vm: &VM, ctx: &mut Context,
   let arity = ctx.fetch_term().small_get_u();
   let args = ctx.registers_slice(arity);
   shared_call_ext(vm, ctx, curr_p,
-                  nil(),
+                  LTerm::nil(),
                   args,
                   false)
 }
@@ -90,7 +91,7 @@ pub fn opcode_call_ext(vm: &VM, ctx: &mut Context,
   let arity = ctx.fetch_term().small_get_u();
   let args = ctx.registers_slice(arity);
   shared_call_ext(vm, ctx, curr_p,
-                  nil(),
+                  LTerm::nil(),
                   args,
                   true)
 }
@@ -107,7 +108,7 @@ fn shared_call_ext(vm: &VM, ctx: &mut Context,
   // HOImport object on heap which contains m:f/arity
   let imp0 = ctx.fetch_term();
 
-  match unsafe { HOImport::from_term(imp0) } {
+  match unsafe { boxed::Import::from_term(imp0) } {
     Ok(import_ptr) =>
       unsafe {
         if (*import_ptr).is_bif {

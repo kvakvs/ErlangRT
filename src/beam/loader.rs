@@ -14,7 +14,7 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
-//use term::lterm::aspect_boxed::{make_box};
+use term::boxed;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
@@ -31,7 +31,7 @@ use emulator::code_srv::CodeServer;
 use emulator::code_srv::module_id::VersionedModuleId;
 use emulator::funarity::FunArity;
 use emulator::function::{FunEntry};
-use emulator::heap::{Heap, DEFAULT_LIT_HEAP, allocate_tuple};
+use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::mfa::MFArity;
 use emulator::module;
 
@@ -176,8 +176,8 @@ impl Loader {
       labels: BTreeMap::new(),
       replace_labels: Vec::new(),
       funs: BTreeMap::new(),
-      mod_attrs: nil(),
-      compiler_info: nil(),
+      mod_attrs: LTerm::nil(),
+      compiler_info: LTerm::nil(),
       imports: Vec::new(),
       lambdas: Vec::new(),
       //exports: BTreeMap::new(),
@@ -188,7 +188,7 @@ impl Loader {
   /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
   /// account special value 0 and offsets the index down by 1.
   fn atom_from_loadtime_index(&self, n: u32) -> LTerm {
-    if n == 0 { return nil() }
+    if n == 0 { return LTerm::nil() }
     self.vm_atoms[n as usize - 1]
   }
 
@@ -293,7 +293,7 @@ impl Loader {
     self.stage2_register_atoms(code_server);
     self.stage2_fill_lambdas();
 
-    self.postprocess_parse_raw_code();
+    self.postprocess_parse_raw_code()?;
     //unsafe { disasm::disasm(self.code.as_slice(), None) }
     self.postprocess_fix_labels();
     self.postprocess_setup_imports()?;
@@ -526,7 +526,7 @@ impl Loader {
   /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
   /// 'drained_code' is 'raw_code' moved out of 'self'
-  fn postprocess_parse_raw_code(&mut self) {
+  fn postprocess_parse_raw_code(&mut self) -> Hopefully<()> {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw.code, &mut raw_code);
@@ -613,13 +613,14 @@ impl Loader {
           }
 
           self.code.push(opcode::to_memory_word(op));
-          self.store_opcode_args(&args);
+          self.store_opcode_args(&args)?;
         } // case _
       } // match op
     } // while !r.eof
 
     assert_eq!(debug_code_start, self.code.as_ptr(),
-               "{}Must do no reallocations", module())
+               "{}Must do no reallocations", module());
+    Ok(())
   }
 
 
@@ -627,13 +628,15 @@ impl Loader {
   /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
   /// container of terms. `LoadTimeLabel` get special treatment as we try to
   /// resolve them into an offset.
-  fn store_opcode_args(&mut self, args: &[FTerm]) {
+  fn store_opcode_args(&mut self, args: &[FTerm]) -> Hopefully<()> {
     for a in args {
       match *a {
         // Ext list is special so we convert it and its contents to lterm
         FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
-          let heap_jtab = allocate_tuple(&mut self.lit_heap, jtab.len()).unwrap();
+          let heap_jtab = boxed::Tuple::create_into(
+            &mut self.lit_heap, jtab.len()
+          )?;
           self.code.push(heap_jtab.make_term().raw());
 
           // Each value convert to LTerm and also push forming a tuple
@@ -668,6 +671,7 @@ impl Loader {
         _ => self.code.push(a.to_lterm(&mut self.lit_heap).raw()),
       }
     } // for a in args
+    Ok(())
   }
 
 
@@ -695,7 +699,7 @@ impl Loader {
   fn create_jump_destination(&self, dst_offset: CodeOffset) -> Word {
     let CodeOffset(offs) = dst_offset;
     let ptr = &self.code[offs] as *const Word;
-    make_cp(ptr).raw()
+    LTerm::make_cp(ptr).raw()
   }
 
 
@@ -713,7 +717,7 @@ impl Loader {
         },
 
         PatchLocation::PatchJtabElement(jtab, index) => {
-          let jtab_ptr = rtuple::PtrMut::from_pointer(jtab.box_ptr_mut());
+          let jtab_ptr = boxed::Tuple::from_ptr(jtab.box_ptr_mut());
           unsafe {
             let val = jtab_ptr.get_element_base0(index);
             jtab_ptr.set_raw_word_base0(index,
@@ -743,7 +747,7 @@ impl Loader {
       self.create_jump_destination(dst_offset)
     } else {
       // Update code cell with no-value
-      nil().raw()
+      LTerm::nil().raw()
     }
   }
 
@@ -762,7 +766,7 @@ impl Loader {
       let is_bif = bif::is_bif(&mf_arity);
       //println!("is_bif {} for {}", is_bif, mf_arity);
       let ho_imp = unsafe {
-        HOImport::place_into(&mut self.lit_heap, mf_arity, is_bif)?
+        boxed::Import::place_into(&mut self.lit_heap, mf_arity, is_bif)?
       };
 
       self.imports.push(ho_imp);
@@ -819,7 +823,7 @@ impl Loader {
   fn rewrite_lambda_index_arg(&self, cp: CodePtrMut, n: isize) {
     let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let lambda_p = &self.lambdas[lambda_i.small_get_u()] as *const FunEntry;
-    let lambda_term = make_cp(lambda_p as *const Word);
+    let lambda_term = LTerm::make_cp(lambda_p as *const Word);
     unsafe { cp.write_n(n, lambda_term.raw()) }
   }
 

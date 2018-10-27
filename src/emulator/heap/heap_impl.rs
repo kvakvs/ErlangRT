@@ -1,9 +1,9 @@
 use emulator::heap::iter;
-use emulator::heap::ptr::DataPtr;
 use emulator::heap::{IHeap, HeapError};
 use rt_defs::stack::IStack;
 use rt_defs::Word;
 use term::lterm::*;
+use term::boxed;
 use term::raw::*;
 
 use std::fmt;
@@ -87,7 +87,7 @@ impl IHeap for Heap {
     }
 
     // Assume we can grow the data without reallocating
-    let raw_nil = nil().raw();
+    let raw_nil = LTerm::nil().raw();
     let new_chunk = unsafe {
       self.heap_begin_mut().offset(self.htop as isize)
     };
@@ -128,8 +128,7 @@ impl IHeap for Heap {
 pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
   let last = hp.htop as isize;
   let begin = hp.heap_begin() as *const Word;
-  iter::HeapIterator::new(DataPtr(begin),
-                          DataPtr(begin.offset(last)))
+  iter::HeapIterator::new(begin, begin.offset(last))
 }
 
 
@@ -155,7 +154,7 @@ impl IStack<LTerm> for Heap {
     self.stop -= need;
 
     // Clear the new cells
-    let raw_nil = nil().raw();
+    let raw_nil = LTerm::nil().raw();
     unsafe {
       let p = self.heap_begin_mut().offset(self.stop as isize);
       for y in 0..need {
@@ -232,21 +231,8 @@ impl IStack<LTerm> for Heap {
 
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
 pub fn allocate_cons(hp: &mut Heap)
-  -> Result<rcons::PtrMut, HeapError>
+  -> Result<*mut boxed::Cons, HeapError>
 {
-  match hp.heap_allocate(2, false) {
-    Ok(p) => Ok(rcons::PtrMut::from_pointer(p)),
-    Err(e) => Err(e) // repack inner Err into outer Err
-  }
-}
-
-
-/// Allocate `size+1` cells and form a tuple in memory, return the pointer.
-pub fn allocate_tuple(hp: &mut Heap, size: Word)
-  -> Result<rtuple::PtrMut, HeapError>
-{
-  match hp.heap_allocate(rtuple::storage_size(size), false) {
-    Ok(p) => unsafe { Ok(rtuple::PtrMut::create_at(p, size)) },
-    Err(e) => Err(e) // repack inner Err into outer Err
-  }
+  let p = hp.heap_allocate(2, false)?;
+  Ok(p as *mut boxed::Cons)
 }

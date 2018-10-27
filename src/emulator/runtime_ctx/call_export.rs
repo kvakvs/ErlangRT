@@ -7,6 +7,7 @@ use emulator::process::{Process};
 use emulator::runtime_ctx::call_bif::{CallBifTarget};
 use emulator::runtime_ctx::call_bif;
 use rt_defs::{Arity};
+use term::boxed;
 use term::lterm::*;
 use term::raw::*;
 
@@ -18,7 +19,7 @@ fn module() -> &'static str { "runtime_ctx.call_export: " }
 /// either an Erlang function or to a BIF (native built-in function).
 pub fn apply(ctx: &mut Context,
              curr_p: &mut Process,
-             export: *const HOExport,
+             export: *const boxed::Export,
              args: &[LTerm],
              save_cp: bool,
              code_server: &mut CodeServer) -> DispatchResult
@@ -34,7 +35,7 @@ pub fn apply(ctx: &mut Context,
   }
 
   if bif::is_bif(&mfa) {
-    return call_bif::apply(ctx, curr_p, nil(),
+    return call_bif::apply(ctx, curr_p, LTerm::nil(),
                            CallBifTarget::MFArity(mfa),
                            args,
                            LTerm::make_xreg(0),

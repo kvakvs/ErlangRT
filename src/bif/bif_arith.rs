@@ -1,5 +1,6 @@
 use bif::result::{BifResult};
 use emulator::process::Process;
+use term::boxed;
 use term::lterm::*;
 use term::raw::*;
 
@@ -81,11 +82,11 @@ fn create_bigint(cur_proc: &mut Process, iresult: isize) -> BifResult {
   // TODO: Make a tool function for this, also ext_term_format:decode_big
   let heap = &mut cur_proc.heap;
   let rbig_result = unsafe {
-    HOBignum::place_into(heap, big)
+    boxed::Bignum::place_into(heap, big)
   };
 
   match rbig_result {
-    Ok(rbig) => BifResult::Value(HOBignum::make_term(rbig)),
+    Ok(rbig) => BifResult::Value(boxed::Bignum::make_term(rbig)),
     Err(f) => BifResult::Fail(f),
   }
 }

@@ -95,7 +95,7 @@ impl CodePtr {
   /// Convert to tagged CP integer
   #[inline]
   pub fn to_cp(self) -> Word {
-    make_cp(self.get()).raw()
+    LTerm::make_cp(self.get()).raw()
   }
 
 

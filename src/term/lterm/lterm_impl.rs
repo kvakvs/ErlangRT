@@ -7,23 +7,25 @@
 
 use emulator::atom;
 use emulator::heap::{IHeap};
-use rt_defs::{Word};
+use rt_defs::*;
 use super::super::lterm::*;
 use term::immediate;
-use term::mterm::mpid::MRemotePid;
-use term::mterm;
+use term::boxed::{BoxHeader, BoxTypeTag};
+use term::boxed;
 use term::primary;
 use term::raw::*;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
+use fail::Hopefully;
 
 
-/// A low-level term is always a pointer to memory term.
+/// A low-level term is either a pointer to memory term or an Immediate with
+/// leading bits defining its type (see TAG_* consts below).
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct LTerm {
-  p: *mut mterm::BoxHeader,
+  value: Word, // Contains a pointer or an integer
 }
 
 
@@ -41,22 +43,12 @@ impl PartialOrd for LTerm {
 }
 
 
-pub const TAG_BITS: Word = 3;
-pub const TAG_MASK: Word = (1 << TAG_BITS) - 1;
-
-pub const TAG_BOXED: Word = 0;
-pub const TAG_SMALL: Word = 1;
-pub const TAG_ATOM: Word = 2;
-pub const TAG_LOCAL_PID: Word = 3;
-pub const TAG_REGX: Word = 4;
-pub const TAG_REGY: Word = 5;
-pub const TAG_REGFP: Word = 6;
-
-
 // TODO: Remove deadcode directive later and fix
 #[allow(dead_code)]
 impl LTerm {
-  /// Access the raw Word value of the low-level term.
+
+  /// Retrieve the raw value of a `LTerm` as Word, including tag bits
+  /// and everything.
   #[inline]
   pub fn raw(self) -> Word { self.value }
 
@@ -68,15 +60,47 @@ impl LTerm {
 
 
   #[inline]
+  pub const fn make_cp<T>(p: *const T) -> LTerm {
+    let tagged_p = (p as Word) | TAG_CP;
+    LTerm::from_raw(tagged_p)
+  }
+
+
+  #[inline]
+  pub const fn empty_tuple() -> LTerm {
+    LTerm::make_from_tag_and_value(TAG_SPECIAL, VAL_SPECIAL_EMPTY_TUPLE)
+  }
+
+
+  #[inline]
+  pub const fn empty_binary() -> LTerm {
+    LTerm::make_from_tag_and_value(TAG_SPECIAL, VAL_SPECIAL_EMPTY_BINARY)
+  }
+
+
+  #[inline]
+  pub const fn nil() -> LTerm {
+    LTerm::make_from_tag_and_value(TAG_SPECIAL, VAL_SPECIAL_EMPTY_LIST)
+  }
+
+
+  #[inline]
   pub const fn make_from_tag_and_value(t: Word, v: Word) -> LTerm {
-    LTerm::from_raw(v << TAG_BITS | t)
+    LTerm::from_raw(v << TERM_TAG_BITS | t)
+  }
+
+
+  // TODO: Some safety checks maybe? But oh well
+  #[inline]
+  pub const fn make_boxed<T>(p: *const T) -> LTerm {
+    LTerm { value: p as Word }
   }
 
 
   /// Create a NON_VALUE.
   #[inline]
   pub fn non_value() -> LTerm {
-    LTerm { p: ptr::null_mut() }
+    LTerm { value: 0 }
   }
 
 
@@ -96,31 +120,60 @@ impl LTerm {
 
   /// Get tag bits from the p field as integer.
   #[inline]
-  pub fn get_p_tag(self) -> Word {
-    self.get_p_raw() & TAG_MASK
+  pub fn get_term_tag(self) -> TermTag {
+    self.raw() & TERM_TAG_MASK
   }
 
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
   #[inline]
   pub fn is_boxed(self) -> bool {
-    self.get_p_raw() & TAG_MASK == TAG_BOXED
+    self.get_term_tag() == TAG_BOXED
   }
 
 
-  /// Retrieve the raw value of a `LTerm` as Word, including tag bits
-  /// and everything.
   #[inline]
-  pub fn get_p_raw(self) -> Word {
-    self.p as Word
+  pub fn get_box_ptr(self) -> *const BoxHeader {
+    self.p as *const BoxHeader
+  }
+
+
+  #[inline]
+  pub fn get_box_ptr_mut(self) -> *mut BoxHeader {
+    self.p
+  }
+
+
+  #[inline]
+  pub fn is_binary(self) -> bool {
+    self.is_boxed() && self.p.t == BoxTypeTag::Binary
+  }
+
+
+  #[inline]
+  pub fn is_immediate(self) -> bool {
+    self.get_term_tag() != TAG_BOXED
+  }
+
+
+  /// Check whether the value is tagged as atom
+  #[inline]
+  pub fn is_atom(self) -> bool {
+    self.get_term_tag() == TAG_ATOM
+  }
+
+
+  /// Return true if a value's tag is regx, regy or regfp
+  #[inline]
+  pub fn is_internal_immediate(self) -> bool {
+    self.get_term_tag() >= TAG_REGX
   }
 
 
   /// For non-pointer Term types get the encoded integer without tag bits
-  #[inline]
   pub fn get_p_val_without_tag(self) -> Word {
-    debug_assert!(self.get_p_tag() != TAG_BOXED);
-    (self.p as Word) >> TAG_BITS
+    debug_assert!(self.get_term_tag() != TAG_BOXED);
+    (self.p as Word) >> TERM_TAG_BITS
   }
 
   //
@@ -128,58 +181,64 @@ impl LTerm {
   //
 
   /// Any raw word becomes a term, possibly invalid
-  #[inline]
   pub fn from_raw(w: Word) -> LTerm {
-    LTerm { p: w as *mut mterm::BoxHeader }
+    LTerm { value: w }
   }
 
 
-  #[inline]
   pub fn make_local_pid(pindex: Word) -> LTerm {
     LTerm::make_from_tag_and_value(TAG_LOCAL_PID, pindex)
   }
 
 
-  #[inline]
-  pub fn make_remote_pid(hp: &mut IHeap, pindex: Word) -> LTerm {
-    LTerm { p: MRemotePid::create_in(hp, pindex) }
+  pub fn make_remote_pid(hp: &mut IHeap,
+                         node: LTerm,
+                         pindex: Word) -> Hopefully<LTerm> {
+    let rpid_ptr = boxed::RemotePid::create_into(hp, node, pindex)?;
+    Ok(LTerm::make_boxed(rpid_ptr))
   }
 
-  #[inline]
+
+  pub fn get_special_tag(self) -> SpecialTag {
+    // cut away term tag bits and extract special tag
+    ((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK) as SpecialTag
+  }
+
+
+  pub fn make_special(special_t: Word, val: Word) -> LTerm {
+    let special_v = val << TAG_SPECIAL_BITS | VAL_SPECIAL_REGX;
+    LTerm::make_from_tag_and_value(TAG_SPECIAL, v)
+  }
+
+
   pub fn make_xreg(n: Word) -> LTerm {
-    LTerm { value: immediate::make_xreg_raw(n) }
+    LTerm::make_special(VAL_SPECIAL_REGX, n)
   }
 
-  #[inline]
+
   pub fn make_yreg(n: Word) -> LTerm {
-    LTerm { value: immediate::make_yreg_raw(n) }
+    LTerm::make_special(VAL_SPECIAL_REGY, n)
   }
 
-  #[inline]
   pub fn make_fpreg(n: Word) -> LTerm {
-    LTerm { value: immediate::make_fpreg_raw(n) }
+    LTerm::make_special(VAL_SPECIAL_REGFP, n)
   }
-
-//  #[inline]
-//  pub fn make_label(n: Word) -> LTerm {
-//    LTerm { value: immediate::make_label_raw(n) }
-//  }
 
 
   //
   // Tuples
   //
 
-  pub fn header_get_arity(self) -> Word {
-    assert!(self.is_boxed());
-    primary::header::get_arity(self.value)
-  }
+//  pub fn header_get_arity(self) -> Word {
+//    assert!(self.is_boxed());
+//    primary::header::get_arity(self.value)
+//  }
 
 
-  pub fn header_get_type(self) -> Word {
-    assert!(self.is_boxed());
-    primary::header::get_tag(self.value)
-  }
+//  pub fn header_get_type(self) -> Word {
+//    assert!(self.is_boxed());
+//    primary::header::get_tag(self.value)
+//  }
 
 
   //
@@ -244,49 +303,31 @@ impl LTerm {
   /// Attempt to display contents of a tagged header word and the words which
   /// follow it. Arg `p` if not null is used to fetch the following memory words
   /// and display more detail.
-  fn format_header(v: Word, p: *const Word,
+  fn format_header(value_at_ptr: Word,
+                   val_ptr: *const Word,
                    f: &mut fmt::Formatter) -> fmt::Result {
-    let arity = primary::header::get_arity(v);
-    let h_tag = primary::header::get_tag(v);
+    let arity = boxed::headerword_to_arity(value_at_ptr);
+    let h_tag = boxed::headerword_to_boxtype(value_at_ptr);
 
     match h_tag {
-      primary::header::TAG_HEADER_TUPLE =>
-        if p.is_null() {
-          write!(f, "Tuple[{}]", arity)
-        } else {
-          unsafe { LTerm::format_tuple(p, f) }
-        },
-//      primary::header::TAG_HEADER_BIGNEG => write!(f, "BigNeg"),
-//      primary::header::TAG_HEADER_BIGPOS => write!(f, "BigPos"),
-      primary::header::TAG_HEADER_REF => write!(f, "Ref"),
-      primary::header::TAG_HEADER_FUN => write!(f, "Fun"),
-      primary::header::TAG_HEADER_FLOAT => write!(f, "Float"),
-//      primary::header::TAG_HEADER_EXPORT => write!(f, "Export"),
-//      primary::header::TAG_HEADER_REFCBIN => write!(f, "RefcBin"),
-//      primary::header::TAG_HEADER_HEAPBIN => write!(f, "HeapBin"),
-//      primary::header::TAG_HEADER_SUBBIN => write!(f, "SubBin"),
-      primary::header::TAG_HEADER_HEAPOBJ => unsafe {
-        let ho_ptr = p.offset(1);
-        let hoclass = *(ho_ptr) as *const HeapObjClass;
-        // Starting word of the heap object (the primary header word) becomes
-        // `this` pointer for the heapobject, hence passing `p`.
-        let s = ((*hoclass).fmt_str)(p) ;
-        write!(f, "{}", s)
+      boxed::BoxTypeTag::Binary => write!(f, "Bin"),
+      boxed::BoxTypeTag::Tuple => {
+        unsafe { LTerm::format_tuple(val_ptr, f) }
       },
-      primary::header::TAG_HEADER_EXTPID => write!(f, "ExtPid"),
-      primary::header::TAG_HEADER_EXTPORT => write!(f, "ExtPort"),
-      primary::header::TAG_HEADER_EXTREF => write!(f, "ExtRef"),
+      boxed::BoxTypeTag::Closure => write!(f, "Fun"),
+      boxed::BoxTypeTag::Float => write!(f, "Float"),
+      boxed::BoxTypeTag::ExternalPid => write!(f, "ExtPid"),
+      boxed::BoxTypeTag::ExternalPort => write!(f, "ExtPort"),
+      boxed::BoxTypeTag::ExternalRef => write!(f, "ExtRef"),
 
-      _ => panic!("Unexpected header tag {} value {}",
-                  h_tag, primary::get_value(v))
+      _ => panic!("Unexpected header tag {}", h_tag)
     }
   }
 
 
   /// Given `p`, a pointer to tuple header word, format tuple contents.
-  unsafe fn format_tuple(p: *const Word,
-                  f: &mut fmt::Formatter) -> fmt::Result {
-    let tptr = rtuple::Ptr::from_pointer(p);
+  unsafe fn format_tuple(p: *const Word, f: &mut fmt::Formatter) -> fmt::Result {
+    let tptr = boxed::Tuple::from_pointer(p);
 
     write!(f, "{{")?;
 
@@ -349,9 +390,17 @@ impl LTerm {
 
 
   /// Raw compare two term values.
-  #[inline]
   pub fn is_same(a: LTerm, b: LTerm) -> bool {
     a.raw() == b.raw()
+  }
+
+  //
+  // Atoms ==============================
+  //
+
+  pub fn atom_index(self) -> Word {
+    debug_assert!(self.is_atom());
+    return self.get_p_val_without_tag();
   }
 }
 
@@ -407,12 +456,11 @@ mod tests {
   use rt_defs::{MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL, WORD_BYTES};
   use super::*;
   use term::lterm::aspect_smallint::*;
-  use term::lterm::aspect_atom::*;
 
   #[test]
   fn test_nil_is_not_atom() {
     // Some obscure bit mishandling made nil be recognized as atom
-    let n = nil();
+    let n = LTerm::nil();
     assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
             n, n.raw(), immediate::get_imm2_prefix(n.raw()),
             immediate::IMM2_ATOM_PREFIX);

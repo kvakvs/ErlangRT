@@ -8,10 +8,12 @@ use emulator::code::{CodePtr};
 use emulator::mfa::{MFArity};
 use emulator::process::{Process};
 use fail;
+use term::boxed;
 use term::lterm::*;
 use term::raw::*;
 
 use std::slice;
+use term::boxed::import;
 
 
 fn module() -> &'static str { "runtime_ctx.call_bif: " }
@@ -26,10 +28,10 @@ fn module() -> &'static str { "runtime_ctx.call_bif: " }
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub enum CallBifTarget {
-  /// A term containing pointer to an `HOImport`.
+  /// A term containing pointer to a `boxed::Import`.
   ImportTerm(LTerm),
-  /// A const pointer to an `HOImport`.
-  ImportPointer(*const HOImport),
+  /// A const pointer to an `import::Import`.
+  ImportPointer(*const import::Import),
   /// An MFA reference which needs to be resolved.
   MFArity(MFArity),
   /// A resolved pointer to a `BifFn`.
@@ -133,18 +135,16 @@ enum BifResolutionResult {
 /// Given a term with import, resolve it to a bif function pointer or fail.
 /// Return: A bif function or an error
 #[inline]
-fn callbif_resolve_import(ho_imp: LTerm) -> BifResolutionResult
+fn callbif_resolve_import(imp: LTerm) -> BifResolutionResult
 {
   // Possibly a HOImport object on heap which contains m:f/arity
-  let tmp1 = unsafe {
-    HOImport::from_term(ho_imp)
-  };
+  let tmp1 = unsafe { boxed::Import::from_term(imp) };
 
   let import = match tmp1 {
     Ok(i) => i,
     Err(_e1) => {
       // Repack the dispatchresult exception into bifresult exception
-      return BifResolutionResult::BadfunError(ho_imp)
+      return BifResolutionResult::BadfunError(imp)
     },
   };
 
@@ -178,7 +178,7 @@ fn callbif_apply_bif(ctx: &mut Context,
 
   // Make a slice from the args. Bif arg count can go up to 3
   assert!(args.len() < 4);
-  let mut loaded_args = [const_nil(); 4];
+  let mut loaded_args = [LTerm::nil(); 4];
 
   {
     let heap = &curr_p.heap;

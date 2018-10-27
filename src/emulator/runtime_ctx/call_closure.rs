@@ -6,6 +6,7 @@ use emulator::function::CallableLocation;
 use emulator::process::{Process};
 use emulator::vm::VM;
 use rt_defs::{Arity};
+use term::boxed;
 use term::lterm::*;
 use term::raw::*;
 
@@ -18,7 +19,7 @@ fn module() -> &'static str { "runtime_ctx.call_closure: " }
 pub fn apply(vm: &VM,
              ctx: &mut Context,
              _curr_p: &mut Process,
-             closure: *const HOClosure,
+             closure: *const boxed::Closure,
              args: &[LTerm]) -> DispatchResult
 {
   let in_arity = args.len();

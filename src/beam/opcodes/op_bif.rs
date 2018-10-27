@@ -25,7 +25,7 @@ pub fn opcode_bif0(_vm: &VM, ctx: &mut Context,
   // Note: bif0 cannot fail (fail_label=NIL)
 
   let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, nil(),
+  call_bif::apply(ctx, curr_p, LTerm::nil(),
                   cb_target,
                   &[], dst, false)
 }
