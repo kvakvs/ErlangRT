@@ -229,8 +229,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
 
     // If tags are same, we can conclude with comparing their values
     if a_tag == b_tag {
-      let a_val = a.get_p_val_without_tag();
-      let b_val = b.get_p_val_without_tag();
+      let a_val = a.get_term_val_without_tag();
+      let b_val = b.get_term_val_without_tag();
       return a_val.cmp(&b_val);
     }
     return a_tag.cmp(&b_tag);

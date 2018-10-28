@@ -1,10 +1,10 @@
 //! Module defines pointer types for readonly code and mutable code.
 
+use emulator::code_srv::CodeServer;
 use emulator::code_srv::module_id::{VersionedModuleId};
-use rt_defs::{Word};
+use rt_defs::{TermTag, Word};
 use term::immediate;
 use term::lterm::*;
-use emulator::code_srv::CodeServer;
 
 use std::fmt;
 
@@ -68,13 +68,14 @@ impl CodePtr {
     CodePtr::from_ptr(cp.cp_get_ptr())
   }
 
+
   #[cfg(debug_assertions)]
   #[inline]
-  pub fn from_ptr(p: *const Word) -> CodePtr {
+  pub fn from_ptr(p: *const LTerm) -> CodePtr {
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
-      assert!(p.is_null() || immediate::is_immediate3(*p),
+      assert!(p.is_null() || p.get_term_tag() == TermTag::Special,
               "A CodePtr must be null or point to an imm3 tagged opcode");
     }
     CodePtr::new(p)

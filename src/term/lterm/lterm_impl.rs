@@ -55,38 +55,40 @@ impl LTerm {
 
   #[inline]
   pub const fn make_atom(id: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TAG_ATOM, id)
+    LTerm::make_from_tag_and_value(TermTag::Atom, id)
   }
 
 
   #[inline]
   pub const fn make_cp<T>(p: *const T) -> LTerm {
-    let tagged_p = (p as Word) | TAG_CP;
+    let tagged_p = (p as Word) | (TermTag::CP as Word);
     LTerm::from_raw(tagged_p)
   }
 
 
   #[inline]
   pub const fn empty_tuple() -> LTerm {
-    LTerm::make_from_tag_and_value(TAG_SPECIAL, VAL_SPECIAL_EMPTY_TUPLE)
+    LTerm::make_special(SpecialTag::Const,
+                        SpecialConst::EmptyTuple as Word)
   }
 
 
   #[inline]
   pub const fn empty_binary() -> LTerm {
-    LTerm::make_from_tag_and_value(TAG_SPECIAL, VAL_SPECIAL_EMPTY_BINARY)
+    LTerm::make_special(SpecialTag::Const,
+                        SpecialConst::EmptyBinary)
   }
 
 
   #[inline]
   pub const fn nil() -> LTerm {
-    LTerm::make_from_tag_and_value(TAG_SPECIAL, VAL_SPECIAL_EMPTY_LIST)
+    LTerm::make_special(SpecialTag::Const,
+                        SpecialConst::EmptyList)
   }
 
 
-  #[inline]
-  pub const fn make_from_tag_and_value(t: Word, v: Word) -> LTerm {
-    LTerm::from_raw(v << TERM_TAG_BITS | t)
+  pub const fn make_from_tag_and_value<VType>(t: TermTag, v: VType) -> LTerm {
+    LTerm::from_raw(v << TERM_TAG_BITS | (t as Word))
   }
 
 
@@ -98,15 +100,13 @@ impl LTerm {
 
 
   /// Create a NON_VALUE.
-  #[inline]
-  pub fn non_value() -> LTerm {
+  pub const fn non_value() -> LTerm {
     LTerm { value: 0 }
   }
 
 
   /// Check whether a value is a NON_VALUE.
-  #[inline]
-  pub fn is_non_value(self) -> bool {
+  pub const fn is_non_value(self) -> bool {
     self.p.is_null()
   }
 
@@ -120,15 +120,15 @@ impl LTerm {
 
   /// Get tag bits from the p field as integer.
   #[inline]
-  pub fn get_term_tag(self) -> TermTag {
+  pub const fn get_term_tag(self) -> TermTag {
     self.raw() & TERM_TAG_MASK
   }
 
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
   #[inline]
-  pub fn is_boxed(self) -> bool {
-    self.get_term_tag() == TAG_BOXED
+  pub const fn is_boxed(self) -> bool {
+    self.get_term_tag() == TermTag::Boxed
   }
 
 
@@ -152,27 +152,28 @@ impl LTerm {
 
   #[inline]
   pub fn is_immediate(self) -> bool {
-    self.get_term_tag() != TAG_BOXED
+    self.get_term_tag() != TermTag::Boxed
   }
 
 
   /// Check whether the value is tagged as atom
   #[inline]
   pub fn is_atom(self) -> bool {
-    self.get_term_tag() == TAG_ATOM
+    self.get_term_tag() == TermTag::Atom
   }
 
 
-  /// Return true if a value's tag is regx, regy or regfp
+  /// Return true if a value's tag will fit into a single word
   #[inline]
   pub fn is_internal_immediate(self) -> bool {
-    self.get_term_tag() >= TAG_REGX
+    self.get_term_tag() == TermTag::Special
   }
 
 
   /// For non-pointer Term types get the encoded integer without tag bits
-  pub fn get_p_val_without_tag(self) -> Word {
-    debug_assert!(self.get_term_tag() != TAG_BOXED);
+  pub const fn get_term_val_without_tag(self) -> Word {
+    debug_assert!(self.get_term_tag() != TermTag::Boxed
+        && self.get_term_tag() != TermTag::Cons);
     (self.p as Word) >> TERM_TAG_BITS
   }
 
@@ -187,7 +188,7 @@ impl LTerm {
 
 
   pub fn make_local_pid(pindex: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TAG_LOCAL_PID, pindex)
+    LTerm::make_from_tag_and_value(TermTag::LocalPid, pindex)
   }
 
 
@@ -199,31 +200,46 @@ impl LTerm {
   }
 
 
+  /// For a special-tagged term extract its special tag
   pub fn get_special_tag(self) -> SpecialTag {
+    debug_assert_eq!(self.get_term_tag(), TermTag::Special);
     // cut away term tag bits and extract special tag
     ((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK) as SpecialTag
   }
 
 
-  pub fn make_special(special_t: Word, val: Word) -> LTerm {
-    let special_v = val << TAG_SPECIAL_BITS | VAL_SPECIAL_REGX;
-    LTerm::make_from_tag_and_value(TAG_SPECIAL, v)
+  /// From a special-tagged term extract its value
+  pub fn get_special_value(self) -> Word {
+    debug_assert_eq!(self.get_term_tag(), TermTag::Special);
+    // cut away term tag bits and special tag, extract the remaining value bits
+    self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
+  }
+
+
+  pub const fn make_special(special_t: SpecialTag, val: Word) -> LTerm {
+    let special_v = val << TERM_SPECIAL_TAG_BITS | (special_t as Word);
+    LTerm::make_from_tag_and_value(TermTag::Special, special_v)
   }
 
 
   pub fn make_xreg(n: Word) -> LTerm {
-    LTerm::make_special(VAL_SPECIAL_REGX, n)
+    LTerm::make_special(SpecialTag::RegX, n)
   }
 
 
   pub fn make_yreg(n: Word) -> LTerm {
-    LTerm::make_special(VAL_SPECIAL_REGY, n)
+    LTerm::make_special(SpecialTag::RegY, n)
   }
 
   pub fn make_fpreg(n: Word) -> LTerm {
-    LTerm::make_special(VAL_SPECIAL_REGFP, n)
+    LTerm::make_special(SpecialTag::RegFP, n)
   }
 
+
+  pub const fn is_cp(self) -> bool {
+    debug_assert!(self.is_boxed());
+    self.value & HIGHEST_BIT_CP == HIGHEST_BIT_CP
+  }
 
   //
   // Tuples
@@ -240,70 +256,67 @@ impl LTerm {
 //    primary::header::get_tag(self.value)
 //  }
 
+  //
+  // Small Integers
+  //
+
+  pub const fn make_small_unsigned(val: Word) -> LTerm {
+    LTerm::make_from_tag_and_value(TermTag::Small, val)
+  }
+
+
+  pub const fn make_small_signed(val: SWord) -> LTerm {
+    LTerm::make_from_tag_and_value(TermTag::Small, val)
+  }
+
+
+  pub const fn small_fits<T>(val: T) -> bool {
+    val >= SMALLEST_SMALL && val <= LARGEST_SMALL
+  }
+
+
+  pub const fn get_small_value(self) -> SWord {
+    (self.value as SWord) >> TERM_TAG_BITS
+  }
 
   //
   // Formatting helpers
   //
 
-  fn format_immed(self, v: Word, f: &mut fmt::Formatter) -> fmt::Result {
-    match immediate::get_imm1_tag(v) {
-      immediate::TAG_IMM1_SMALL => write!(f, "{}", self.small_get_s()),
-
-      immediate::TAG_IMM1_PID =>
-        write!(f, "Pid({})", immediate::get_imm1_value(v)),
-
-      immediate::TAG_IMM1_PORT =>
-        write!(f, "Port({})", immediate::get_imm1_value(v)),
-
-      immediate::TAG_IMM1_IMM2 =>
-
-        match immediate::get_imm2_tag(v) {
-          immediate::TAG_IMM2_CATCH =>
-            write!(f, "Catch({})", immediate::get_imm2_value(v)),
-
-          immediate::TAG_IMM2_SPECIAL => {
-            if self.is_nil() {
-              write!(f, "[]")
-            } else if self.is_non_value() {
-              write!(f, "NON_VALUE")
-            } else if self.is_empty_binary() {
-              write!(f, "<<>>")
-            } else if self.is_empty_tuple() {
-              write!(f, "{{}}")
-            } else {
-              write!(f, "Special(0x{:x})", immediate::get_imm2_value(v))
-            }
-          },
-
-          immediate::TAG_IMM2_ATOM => {
-            match atom::to_str(self) {
-              Ok(s) => write!(f, "'{}'", s),
-              Err(_e) => write!(f, "Atom?"),
-            }
-          },
-
-          immediate::TAG_IMM2_IMM3 => {
-            let v3 = immediate::get_imm3_value(v);
-
-            match immediate::get_imm3_tag(v) {
-              immediate::TAG_IMM3_XREG => write!(f, "X({})", v3),
-              immediate::TAG_IMM3_YREG => write!(f, "Y({})", v3),
-              immediate::TAG_IMM3_FPREG => write!(f, "FP({})", v3),
-              immediate::TAG_IMM3_OPCODE => write!(f, "Opcode({})", v3),
-              _ => panic!("Immediate3 tag must be in range 0..3")
-            }
-          }
-          _ => panic!("Immediate2 tag must be in range 0..3")
-        },
-      _ => panic!("Immediate1 tag must be in range 0..3")
+  fn format_special(self, f: &mut fmt::Formatter) -> fmt::Result {
+    if self == LTerm::nil() {
+      write!(f, "[]")
+    } else if self.is_non_value() {
+      write!(f, "NON_VALUE")
+    } else if self == LTerm::empty_binary() {
+      write!(f, "<<>>")
+    } else if self == LTerm::empty_tuple() {
+      write!(f, "{{}}")
+    } else {
+      write!(f, "Special(0x{:x})", self.get_special_value())
     }
+//          immediate::TAG_IMM2_IMM3 => {
+//            let v3 = immediate::get_imm3_value(v);
+//
+//            match immediate::get_imm3_tag(v) {
+//              immediate::TAG_IMM3_XREG => write!(f, "X({})", v3),
+//              immediate::TAG_IMM3_YREG => write!(f, "Y({})", v3),
+//              immediate::TAG_IMM3_FPREG => write!(f, "FP({})", v3),
+//              immediate::TAG_IMM3_OPCODE => write!(f, "Opcode({})", v3),
+//              _ => panic!("Immediate3 tag must be in range 0..3")
+//            }
+//          }
+//          _ => panic!("Immediate2 tag must be in range 0..3")
+//        },
+//      _ => panic!("Immediate1 tag must be in range 0..3")
+//    }
   }
 
 
   /// Attempt to display contents of a tagged header word and the words which
   /// follow it. Arg `p` if not null is used to fetch the following memory words
   /// and display more detail.
-  fn format_header(value_at_ptr: Word,
+  fn format_header(value_at_ptr: LTerm,
                    val_ptr: *const Word,
                    f: &mut fmt::Formatter) -> fmt::Result {
     let arity = boxed::headerword_to_arity(value_at_ptr);
@@ -400,7 +413,7 @@ impl LTerm {
 
   pub fn atom_index(self) -> Word {
     debug_assert!(self.is_atom());
-    return self.get_p_val_without_tag();
+    return self.get_term_val_without_tag();
   }
 }
 
@@ -408,37 +421,44 @@ impl LTerm {
 // Printing low_level Terms as "{}"
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let v = self.value;
-
-    match primary::get_tag(v) {
-      primary::TAG_BOX => unsafe {
+    match self.get_term_tag() {
+      TermTag::Boxed => unsafe {
         let p = self.box_ptr();
-        if self.is_cp() {
+        if LTerm::is_cp() {
           write!(f, "CP({:p})", self.cp_get_ptr())
         } else {
-          //write!(f, "Box(")?;
           LTerm::format_header(*p, p, f)
-          //write!(f, ")")
         }
       },
 
-      primary::TAG_CONS => unsafe {
+      TermTag::Cons => unsafe {
         if self.cons_is_ascii_string() {
           self.format_cons_ascii(f)
         } else {
           self.format_cons(f)
         }
       },
-
-      primary::TAG_IMMED => self.format_immed(v, f),
-
-      primary::TAG_HEADER => {
+      TermTag::Small => write!(f, "{}", self.get_small_value()),
+      TermTag::Special => self.format_special(f),
+      TermTag::LocalPid => {
+        write!(f, "LocalPid({})", self.get_term_val_without_tag())
+      },
+      TermTag::LocalPort => {
+        write!(f, "LocalPort({})", self.get_term_val_without_tag())
+      },
+      TermTag::Atom => {
+        match atom::to_str(*self) {
+          Ok(s) => write!(f, "'{}'", s),
+          Err(_e) => write!(f, "Atom?"),
+        }
+      },
+      TermTag::Header => {
         write!(f, "Header(")?;
-        LTerm::format_header(v, ptr::null(), f)?;
+        LTerm::format_header(*self, ptr::null(), f)?;
         write!(f, ")")
       },
 
-      _ => panic!("Primary tag must be in range 0..3")
+      _ => panic!("Primary tag {} not recognized", self.get_term_tag())
     }
   }
 } // trait Display
@@ -453,7 +473,7 @@ mod tests {
   use std::ptr;
   use std::mem;
 
-  use rt_defs::{MIN_NEG_SMALL, MAX_POS_SMALL, MAX_UNSIGNED_SMALL, WORD_BYTES};
+  use rt_defs::*;
   use super::*;
   use term::lterm::aspect_smallint::*;
 

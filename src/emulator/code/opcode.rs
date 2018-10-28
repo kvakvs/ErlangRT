@@ -2,11 +2,11 @@
 //! may be used when running in debug mode for extra safety checks, in release
 //! no checks are done and simple opcode is stored.
 //!
-use rt_defs::Word;
 use beam::gen_op;
-
-#[cfg(debug_assertions)]
+use rt_defs::SpecialTag;
+use rt_defs::Word;
 use term::immediate;
+use term::lterm::LTerm;
 
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
@@ -14,13 +14,12 @@ pub type RawOpcode = u8;
 
 
 /// Convert the raw (numeric) opcode into memory format. This is a simple
-/// value for release build but is decorated for debug build. We use a special
-/// subtag of Immediate3.
+/// value for release build but is decorated for debug build. We use special
+/// term type for this.
 #[inline]
 #[cfg(debug_assertions)]
 pub fn to_memory_word(raw: RawOpcode) -> Word {
-  immediate::create_imm3(raw as Word,
-                         immediate::IMM3_OPCODE_PREFIX)
+  LTerm::make_special(SpecialTag::Opcode, raw).raw()
 }
 
 
@@ -36,11 +35,13 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 #[inline]
 #[cfg(debug_assertions)]
 pub fn from_memory_word(m: Word) -> RawOpcode {
-  assert_eq!(immediate::get_imm3_tag(m), immediate::TAG_IMM3_OPCODE,
-             "Opcode 0x{:x} from code memory must be tagged as IMM3_OPCODE", m);
-  let raw = immediate::get_imm3_value(m);
-  debug_assert!(raw <= gen_op::OPCODE_MAX as Word);
-  raw as RawOpcode
+  let as_term = LTerm::from_raw(m);
+  debug_assert_eq!(as_term.get_special_tag(), SpecialTag::Opcode,
+                   "Opcode 0x{:x} from code memory must be tagged as Special/Opcode",
+                   m);
+  let opc = as_term.get_special_value();
+  debug_assert!(opc <= gen_op::OPCODE_MAX as Word);
+  opc as RawOpcode
 }
 
 
@@ -56,12 +57,13 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 #[cfg(debug_assertions)]
 pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   let m = unsafe { *p };
-  assert_eq!(immediate::get_imm3_tag(m), immediate::TAG_IMM3_OPCODE,
-             "Opcode 0x{:x} from code memory {:p} must be tagged as IMM3_OPCODE",
-             m, p);
-  let raw = immediate::get_imm3_value(m);
-  debug_assert!(raw <= gen_op::OPCODE_MAX as Word);
-  raw as RawOpcode
+  let as_term = LTerm::from_raw(m);
+  debug_assert_eq!(as_term.get_special_tag(), SpecialTag::Opcode,
+                   "Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
+                   m, p);
+  let opc = as_term.get_special_value();
+  debug_assert!(opc <= gen_op::OPCODE_MAX as Word);
+  opc as RawOpcode
 }
 
 

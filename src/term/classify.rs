@@ -94,33 +94,33 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
 }
 
 
-/// Given term's raw value `v` and the term itself, parse its immediate subtags
-/// and figure out its classification value.
-#[inline]
-fn classify_immed(v: Word, t: LTerm) -> TermClass {
-  match immediate::get_imm1_tag(v) {
-    immediate::TAG_IMM1_SMALL => TermClass::Number,
-    immediate::TAG_IMM1_PID => TermClass::Pid,
-    immediate::TAG_IMM1_PORT => TermClass::Port,
-    immediate::TAG_IMM1_IMM2 => {
-      match immediate::get_imm2_tag(v) {
-        immediate::TAG_IMM2_CATCH |
-        immediate::TAG_IMM2_IMM3 => TermClass::Special_,
-        immediate::TAG_IMM2_SPECIAL => {
-          if t == LTerm::nil() {
-            TermClass::Nil
-          } else if t == LTerm::empty_tuple() {
-            TermClass::Tuple
-          } else if t == LTerm::empty_binary() {
-            TermClass::Binary
-          } else {
-            TermClass::Special_
-          }
-        },
-        immediate::TAG_IMM2_ATOM => TermClass::Atom,
-        _ => panic!("{}Invalid primary tag", module())
-      } // end match imm2
-    },
-    _ => panic!("{}Invalid primary tag", module())
-  } // end match imm1
-}
+///// Given term's raw value `v` and the term itself, parse its immediate subtags
+///// and figure out its classification value.
+//#[inline]
+//fn classify_immed(v: Word, t: LTerm) -> TermClass {
+//  match immediate::get_imm1_tag(v) {
+//    immediate::TAG_IMM1_SMALL => TermClass::Number,
+//    immediate::TAG_IMM1_PID => TermClass::Pid,
+//    immediate::TAG_IMM1_PORT => TermClass::Port,
+//    immediate::TAG_IMM1_IMM2 => {
+//      match immediate::get_imm2_tag(v) {
+//        immediate::TAG_IMM2_CATCH |
+//        immediate::TAG_IMM2_IMM3 => TermClass::Special_,
+//        immediate::TAG_IMM2_SPECIAL => {
+//          if t == LTerm::nil() {
+//            TermClass::Nil
+//          } else if t == LTerm::empty_tuple() {
+//            TermClass::Tuple
+//          } else if t == LTerm::empty_binary() {
+//            TermClass::Binary
+//          } else {
+//            TermClass::Special_
+//          }
+//        },
+//        immediate::TAG_IMM2_ATOM => TermClass::Atom,
+//        _ => panic!("{}Invalid primary tag", module())
+//      } // end match imm2
+//    },
+//    _ => panic!("{}Invalid primary tag", module())
+//  } // end match imm1
+//}

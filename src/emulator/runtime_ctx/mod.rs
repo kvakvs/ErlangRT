@@ -121,9 +121,9 @@ impl Context {
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
     match src.get_term_tag() {
-      TAG_REGY => return self.regs[src.get_p_val_without_tag()],
+      TAG_REGY => return self.regs[src.get_term_val_without_tag()],
       TAG_REGY => {
-        let y_index = src.get_p_val_without_tag();
+        let y_index = src.get_term_val_without_tag();
         let y_result = hp.stack_get_y(y_index);
         return y_result.unwrap();
       },
@@ -139,11 +139,11 @@ impl Context {
     let src_val = self.load(src, hp);
     match dst.get_term_tag() {
       TAG_REGX => {
-        self.regs[dst.get_p_val_without_tag()] = src_val;
+        self.regs[dst.get_term_val_without_tag()] = src_val;
         return;
       }
       TAG_REGY => {
-        let y = dst.get_p_val_without_tag();
+        let y = dst.get_term_val_without_tag();
         let y_result = hp.stack_set_y(y, src_val);
         return y_result.unwrap();
       },

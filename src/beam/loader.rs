@@ -688,7 +688,7 @@ impl Loader {
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId(label_id) = l;
-        make_small_u(label_id).raw()
+        LTerm::make_small_unsigned(label_id).raw()
       }
     }
   }

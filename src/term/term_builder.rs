@@ -131,7 +131,7 @@ impl ITermBuilder for TermBuilder {
 
   #[inline]
   fn create_small_s(&self, n: isize) -> Self::TermT {
-    make_small_s(n)
+    LTerm::make_small_signed(n)
   }
 
 

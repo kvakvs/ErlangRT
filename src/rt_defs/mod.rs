@@ -27,13 +27,15 @@ pub const WORD_BITS: Word = 32;
 #[cfg(target_pointer_width = "64")]
 pub const WORD_BITS: Word = 64;
 
+/// This bit is set on boxed values which are CP pointers
+pub const HIGHEST_BIT_CP: Word = 1 << (WORD_BITS - 1);
+
 pub const WORD_BYTES: Word = WORD_BITS / 8;
 
 /// Max value for a positive small integer packed into immediate2 low level
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
-pub const MAX_POS_SMALL: SWord = isize::MAX / 16;
-pub const MAX_UNSIGNED_SMALL: Word = (isize::MAX / 16) as Word;
-pub const MIN_NEG_SMALL: SWord = isize::MIN / 16;
+pub const SMALLEST_SMALL: SWord = isize::MIN >> TERM_TAG_BITS;
+pub const LARGEST_SMALL: SWord = isize::MAX >> TERM_TAG_BITS;
 
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 32;
@@ -58,12 +60,13 @@ pub const TERM_TAG_MASK: Word = (1 << TERM_TAG_BITS) - 1;
 pub enum TermTag {
   Boxed,
   Header,
+  Cons,
+  // From here and below, values fit into a single word
   Small,
   Atom,
   LocalPid,
   LocalPort,
-  CP,
-  Special
+  Special,
 }
 
 //pub const TAG_BOXED: Word = 0; // contains pointer to a value on heap
@@ -85,17 +88,16 @@ pub const TERM_SPECIAL_TAG_BITS: Word = 3;
 pub const TERM_SPECIAL_TAG_MASK: Word = (1 << TERM_SPECIAL_TAG_BITS) - 1;
 
 pub enum SpecialTag {
-  EmptyList,
-  EmptyTuple,
-  EmptyBinary,
+  Const, // special constants such as NIL, empty tuple, binary etc
   RegX,
   RegY,
   RegFP,
+  Opcode, // decorates opcodes for easier code walking
 }
 
-//pub const VAL_SPECIAL_EMPTY_LIST: Word = 1;
-//pub const VAL_SPECIAL_EMPTY_TUPLE: Word = 2;
-//pub const VAL_SPECIAL_EMPTY_BINARY: Word = 3;
-//pub const VAL_SPECIAL_REGX: Word = 4;
-//pub const VAL_SPECIAL_REGY: Word = 5;
-//pub const VAL_SPECIAL_REGFP: Word = 6;
+pub enum SpecialConst {
+  Nil,
+  EmptyTuple,
+  EmptyList,
+  EmptyBinary,
+}

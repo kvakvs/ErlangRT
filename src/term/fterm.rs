@@ -69,7 +69,7 @@ impl FTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
   pub fn from_word(s: SWord) -> FTerm {
-    if s >= rt_defs::MIN_NEG_SMALL && s <= rt_defs::MAX_POS_SMALL  {
+    if LTerm::small_fits(s)  {
       return FTerm::SmallInt(s as SWord)
     }
     FTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))
@@ -91,8 +91,7 @@ impl FTerm {
       FTerm::X_(i) => LTerm::make_xreg(i),
       FTerm::Y_(i) => LTerm::make_yreg(i),
       FTerm::FP_(i) => LTerm::make_fpreg(i),
-      FTerm::SmallInt(i) => make_small_s(i),
-      //FTerm::LoadTimeInt(i) => LTerm::make_small_s(i),
+      FTerm::SmallInt(i) => LTerm::make_small_signed(i),
       FTerm::Nil => LTerm::nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
     }

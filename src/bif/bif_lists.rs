@@ -15,7 +15,7 @@ pub fn gcbif_length_1(_cur_proc: &mut Process,
 
   let l0: LTerm = args[0];
   if l0.is_nil() {
-    return BifResult::Value(make_small_s(0));
+    return BifResult::Value(LTerm::make_small_signed(0));
   }
 
   let mut lst = l0.cons_get_ptr();
@@ -30,7 +30,7 @@ pub fn gcbif_length_1(_cur_proc: &mut Process,
       if !tl.is_nil() {
         return BifResult::Exception(ExceptionType::Error, gen_atoms::BADARG);
       }
-      return BifResult::Value(make_small_s(count))
+      return BifResult::Value(LTerm::make_small_signed(count))
     }
   }
 }

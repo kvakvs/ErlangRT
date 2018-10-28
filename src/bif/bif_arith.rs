@@ -54,8 +54,8 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> BifResult
   // Both a and b are small, we've got an easy time
   let iresult = a.small_get_s() - b.small_get_s();
   // Even better: the result is also a small
-  if fits_small(iresult) {
-    return BifResult::Value(make_small_s(iresult))
+  if LTerm::small_fits(iresult) {
+    return BifResult::Value(LTerm::make_small_signed(iresult))
   }
   create_bigint(cur_proc, iresult)
 }
@@ -68,8 +68,8 @@ fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> BifResult
   // Both a and b are small, we've got an easy time
   let iresult = a.small_get_s() + b.small_get_s();
   // Even better: the result is also a small
-  if fits_small(iresult) {
-    return BifResult::Value(make_small_s(iresult))
+  if LTerm::small_fits(iresult) {
+    return BifResult::Value(LTerm::make_small_signed(iresult))
   }
   create_bigint(cur_proc, iresult)
 }
