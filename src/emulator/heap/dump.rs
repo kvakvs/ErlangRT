@@ -1,7 +1,5 @@
 //! Debug tool to display Erlang heap contents.
 use emulator::heap::{Heap, heap_iter, IHeap, IHeapIterator};
-use term::lterm::*;
-use term::primary;
 use rt_defs::TermTag;
 
 

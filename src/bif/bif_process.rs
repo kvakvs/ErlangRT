@@ -4,7 +4,6 @@ use emulator::process::Process;
 use rt_defs::{ExceptionType, Arity};
 use emulator::mfa::MFArity;
 use term::lterm::*;
-use term::raw::*;
 use term::boxed;
 
 
@@ -21,7 +20,7 @@ pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> BifResult {
 
   let hp = &mut cur_proc.heap;
   let mfa = MFArity::new(args[0], args[1],
-                         args[2].small_get_u() as Arity);
+                         args[2].get_small_unsigned() as Arity);
 
   // Create an export on heap and return it
   match unsafe { boxed::Export::place_into(hp, &mfa) } {

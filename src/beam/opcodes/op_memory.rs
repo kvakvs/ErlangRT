@@ -6,7 +6,6 @@ use emulator::runtime_ctx::{Context};
 use beam::disp_result::{DispatchResult};
 use emulator::heap::{IHeap};
 use rt_defs::stack::{IStack};
-use term::lterm::*;
 use emulator::vm::VM;
 
 
@@ -17,7 +16,7 @@ pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
   // Structure: allocate_zero(need:int, live:int)
   assert_arity(gen_op::OPCODE_ALLOCATE_ZERO, 2);
 
-  let stack_need = ctx.fetch_term().small_get_u();
+  let stack_need = ctx.fetch_term().get_small_unsigned();
   let _live = ctx.fetch_term();
 
   let hp = &mut curr_p.heap;
@@ -53,7 +52,7 @@ pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
   // Structure: deallocate(n:int)
   assert_arity(gen_op::OPCODE_DEALLOCATE, 1);
 
-  let n_free = ctx.fetch_term().small_get_u();
+  let n_free = ctx.fetch_term().get_small_unsigned();
 
   let new_cp = curr_p.heap.stack_deallocate(n_free);
   ctx.cp = CodePtr::from_cp(new_cp);
@@ -70,8 +69,8 @@ pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
   // Structure: test_heap(heap_need:int, live:int)
   assert_arity(gen_op::OPCODE_TEST_HEAP, 2);
 
-  let heap_need = ctx.fetch_term().small_get_u();
-  let _live = ctx.fetch_term().small_get_u();
+  let heap_need = ctx.fetch_term().get_small_unsigned();
+  let _live = ctx.fetch_term().get_small_unsigned();
 
   if !curr_p.heap.heap_have(heap_need) {
     // Heap has not enough, invoke GC and possibly fail

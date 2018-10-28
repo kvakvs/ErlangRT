@@ -3,7 +3,6 @@
 use emulator::code_srv::CodeServer;
 use emulator::code_srv::module_id::{VersionedModuleId};
 use rt_defs::{TermTag, Word};
-use term::immediate;
 use term::lterm::*;
 
 use std::fmt;
@@ -65,7 +64,7 @@ impl CodePtr {
 
   #[inline]
   pub fn from_cp(cp: LTerm) -> CodePtr {
-    CodePtr::from_ptr(cp.cp_get_ptr())
+    CodePtr::from_ptr(cp.get_cp_ptr())
   }
 
 

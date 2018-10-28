@@ -2,7 +2,6 @@ use emulator::atom;
 use std::cmp::Ordering;
 use term::classify;
 use term::lterm::*;
-use term::primary;
 use rt_defs::TermTag;
 
 
@@ -82,8 +81,8 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   let a_is_small = a.is_small();
   let b_is_small = b.is_small();
   if a_is_small && b_is_small {
-    let a_small = a.small_get_s();
-    let b_small = b.small_get_s();
+    let a_small = a.get_small_signed();
+    let b_small = b.get_small_signed();
     return EqResult::Concluded(a_small.cmp(&b_small));
   }
 
@@ -367,8 +366,8 @@ fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Ordering {
 /// a deeper comparison is required, we will return `EqResult::CompareNested`.
 /// This will be pushed to a helper stack by the caller (`cmp_terms()`).
 unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
-  let mut aa = a.cons_get_ptr();
-  let mut bb = b.cons_get_ptr();
+  let mut aa = a.get_cons_ptr();
+  let mut bb = b.get_cons_ptr();
 
   loop {
     // Check the heads
@@ -396,8 +395,8 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     }
 
     // Take the next linked cons cell and continue comparing
-    aa = atl.cons_get_ptr();
-    bb = btl.cons_get_ptr();
+    aa = atl.get_cons_ptr();
+    bb = btl.get_cons_ptr();
   }
 }
 

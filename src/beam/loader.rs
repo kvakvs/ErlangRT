@@ -37,7 +37,6 @@ use emulator::module;
 
 use term::fterm::FTerm;
 use term::lterm::*;
-use term::raw::*;
 use term::term_builder::TermBuilder;
 
 
@@ -295,7 +294,7 @@ impl Loader {
 
     self.postprocess_parse_raw_code()?;
     //unsafe { disasm::disasm(self.code.as_slice(), None) }
-    self.postprocess_fix_labels();
+    self.postprocess_fix_labels()?;
     self.postprocess_setup_imports()?;
 
     Ok(())
@@ -637,19 +636,21 @@ impl Loader {
           let heap_jtab = boxed::Tuple::create_into(
             &mut self.lit_heap, jtab.len()
           )?;
-          self.code.push(heap_jtab.make_term().raw());
+          self.code.push(LTerm::make_boxed(heap_jtab).raw());
 
           // Each value convert to LTerm and also push forming a tuple
           for (index, t) in jtab.iter().enumerate() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
-              let ploc = PatchLocation::PatchJtabElement(heap_jtab.make_term(), index);
+              let ploc = PatchLocation::PatchJtabElement(
+                LTerm::make_boxed(heap_jtab), index
+              );
               self.maybe_convert_label(LabelId(f), ploc)
             } else {
               t.to_lterm(&mut self.lit_heap).raw()
             };
 
-            unsafe { heap_jtab.set_raw_word_base0(index, new_t) }
+            unsafe { boxed::Tuple::set_raw_word_base0(heap_jtab, index, new_t) }
           }
         }
 
@@ -704,7 +705,7 @@ impl Loader {
 
 
   /// Analyze the code and replace label values with known label locations.
-  fn postprocess_fix_labels(&mut self) {
+  fn postprocess_fix_labels(&mut self) -> Hopefully<()> {
     // Postprocess self.replace_labels, assuming that at this point labels exist
     let mut repl = Vec::<PatchLocation>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
@@ -717,15 +718,16 @@ impl Loader {
         },
 
         PatchLocation::PatchJtabElement(jtab, index) => {
-          let jtab_ptr = boxed::Tuple::from_ptr(jtab.box_ptr_mut());
+          let jtab_ptr = boxed::Tuple::from_pointer_mut(jtab.get_box_ptr_mut())?;
           unsafe {
-            let val = jtab_ptr.get_element_base0(index);
-            jtab_ptr.set_raw_word_base0(index,
-                                       self.postprocess_fix_1_label(val))
+            let val = boxed::Tuple::get_element_base0(jtab_ptr, index);
+            boxed::Tuple::set_raw_word_base0(jtab_ptr, index,
+                                             self.postprocess_fix_1_label(val))
           }
         }
       } // match
     } // for ploc
+    Ok(())
   }
 
 
@@ -734,7 +736,7 @@ impl Loader {
   /// to be put back into memory.
   fn postprocess_fix_1_label(&self, val: LTerm) -> Word {
     // Convert from LTerm smallint to integer and then to labelid
-    let unfixed = val.small_get_s() as Word;
+    let unfixed = val.get_small_signed() as Word;
 
     // Zero label id means no location, so we will store NIL [] there
     if unfixed > 0 {
@@ -811,7 +813,7 @@ impl Loader {
   /// unsigned and writes an LTerm pointer to a literal {M,F,Arity} tuple.
   fn rewrite_import_index_arg(&self, cp: CodePtrMut, n: isize) {
     let import0 = unsafe { LTerm::from_raw(cp.read_n(n)) };
-    let import1 = self.imports[import0.small_get_u()].raw();
+    let import1 = self.imports[import0.get_small_unsigned()].raw();
     unsafe { cp.write_n(n, import1) }
   }
 
@@ -822,7 +824,7 @@ impl Loader {
   /// freed together with the code, so it should be safe to use the pointer.
   fn rewrite_lambda_index_arg(&self, cp: CodePtrMut, n: isize) {
     let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
-    let lambda_p = &self.lambdas[lambda_i.small_get_u()] as *const FunEntry;
+    let lambda_p = &self.lambdas[lambda_i.get_small_unsigned()] as *const FunEntry;
     let lambda_term = LTerm::make_cp(lambda_p as *const Word);
     unsafe { cp.write_n(n, lambda_term.raw()) }
   }

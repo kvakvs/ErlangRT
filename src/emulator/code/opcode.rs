@@ -5,7 +5,6 @@
 use beam::gen_op;
 use rt_defs::SpecialTag;
 use rt_defs::Word;
-use term::immediate;
 use term::lterm::LTerm;
 
 

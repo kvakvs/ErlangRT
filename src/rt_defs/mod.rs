@@ -101,3 +101,9 @@ pub enum SpecialConst {
   EmptyList,
   EmptyBinary,
 }
+
+
+/// For n bytes calculate how many words are required to store this
+pub fn storage_bytes_to_words(n: Word) -> Word {
+  (n + WORD_BYTES - 1) / WORD_BYTES
+}

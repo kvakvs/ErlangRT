@@ -1,14 +1,14 @@
 use std::cmp::Ordering;
 
+use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use beam::disp_result::{DispatchResult};
 use emulator::code::{CodePtr};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
+use emulator::vm::{VM};
 use term::compare;
-use term::lterm::*;
-use emulator::vm::VM;
+use term::lterm::{LTerm};
 
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
@@ -75,7 +75,7 @@ fn shared_equality_opcode(_vm: &VM, ctx: &mut Context,
   let a = ctx.fetch_and_load(hp);
   let b = ctx.fetch_and_load(hp);
 
-  assert_eq!(false, fail_label.is_nil());
+  assert_eq!(false, fail_label == LTerm::nil());
 
   if invert {
     // Invert defines opposite meaning, desired result becomes undesired

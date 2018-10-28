@@ -1,9 +1,11 @@
 use emulator::heap::Heap;
-use emulator::heap::IHeap;
+use term::lterm::LTerm;
 use fail::Error;
 use fail::Hopefully;
+use rt_defs::{Word};
 use term::boxed::{BoxHeader, BoxTypeTag};
 use term::boxed;
+
 
 /// A fixed-size array which stores everything in its allocated memory on
 /// process heap.
@@ -32,11 +34,33 @@ impl Tuple {
   }
 
 
-  pub fn from_pointer(p: *const Word) -> Hopefully<*const Tuple> {
+  pub fn from_pointer<T>(p: *const T) -> Hopefully<*const Tuple> {
     let tp = p as *const Tuple;
     if tp.header.get_tag() != BoxTypeTag::Tuple {
       return Err(Error::BoxedIsNotATuple)
     }
     Ok(tp)
+  }
+
+
+  pub fn from_pointer_mut<T>(p: *mut T) -> Hopefully<*mut Tuple> {
+    let tp = p as *mut Tuple;
+    if tp.header.get_tag() != BoxTypeTag::Tuple {
+      return Err(Error::BoxedIsNotATuple)
+    }
+    Ok(tp)
+  }
+
+
+  pub unsafe fn set_raw_word_base0(this: *mut Tuple, index: Word, val: Word) {
+    debug_assert!(index < this.arity());
+    let p = this as *mut Word;
+    *p.offset(index as isize + 1) = val
+  }
+
+
+  pub unsafe fn get_element_base0(this: *const Tuple, i: Word) -> LTerm {
+    let p = this as *const Word;
+    *p.offset(i as isize + 1)
   }
 }

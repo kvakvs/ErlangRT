@@ -44,7 +44,7 @@ pub trait IHeap {
   unsafe fn heap_end(&self) -> *const Word;
 
   /// Expand heap to host `n` words of data
-  fn heap_allocate(&mut self, n: Word, init_nil: bool) -> Result<*mut Word, HeapError>;
+  fn heap_alloc(&mut self, n: Word, init_nil: bool) -> Result<*mut Word, HeapError>;
 
   //  /// Allocate words on heap enough to store bignum digits and copy the given
   //  /// bignum to memory, return the pointer.

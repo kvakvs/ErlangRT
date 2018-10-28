@@ -2,7 +2,6 @@ use bif::result::{BifResult};
 use emulator::process::Process;
 use term::boxed;
 use term::lterm::*;
-use term::raw::*;
 
 use num;
 
@@ -52,7 +51,7 @@ pub fn ubif_splus_2_2(cur_proc: &mut Process,
 fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> BifResult
 {
   // Both a and b are small, we've got an easy time
-  let iresult = a.small_get_s() - b.small_get_s();
+  let iresult = a.get_small_signed() - b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
     return BifResult::Value(LTerm::make_small_signed(iresult))
@@ -66,7 +65,7 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> BifResult
 fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> BifResult
 {
   // Both a and b are small, we've got an easy time
-  let iresult = a.small_get_s() + b.small_get_s();
+  let iresult = a.get_small_signed() + b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
     return BifResult::Value(LTerm::make_small_signed(iresult))
@@ -82,7 +81,7 @@ fn create_bigint(cur_proc: &mut Process, iresult: isize) -> BifResult {
   // TODO: Make a tool function for this, also ext_term_format:decode_big
   let heap = &mut cur_proc.heap;
   let rbig_result = unsafe {
-    boxed::Bignum::place_into(heap, big)
+    boxed::Bignum::create_into(heap, big)
   };
 
   match rbig_result {

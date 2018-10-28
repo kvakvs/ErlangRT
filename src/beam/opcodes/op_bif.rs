@@ -70,7 +70,7 @@ pub fn opcode_gc_bif1(_vm: &VM, ctx: &mut Context,
   assert_arity(gen_op::OPCODE_GC_BIF1, 5);
 
   let fail = ctx.fetch_term();
-  ctx.live = ctx.fetch_term().small_get_u();
+  ctx.live = ctx.fetch_term().get_small_unsigned();
   let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(1);
   let dst = ctx.fetch_term();
@@ -88,7 +88,7 @@ pub fn opcode_gc_bif2(_vm: &VM, ctx: &mut Context,
   assert_arity(gen_op::OPCODE_GC_BIF2, 6);
 
   let fail = ctx.fetch_term();
-  ctx.live = ctx.fetch_term().small_get_u();
+  ctx.live = ctx.fetch_term().get_small_unsigned();
   let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(2);
   let dst = ctx.fetch_term();
@@ -106,7 +106,7 @@ pub fn opcode_gc_bif3(_vm: &VM, ctx: &mut Context,
   assert_arity(gen_op::OPCODE_GC_BIF2, 7);
 
   let fail = ctx.fetch_term();
-  ctx.live = ctx.fetch_term().small_get_u();
+  ctx.live = ctx.fetch_term().get_small_unsigned();
   let target = ctx.fetch_and_load(&curr_p.heap);
   let args = ctx.fetch_slice(3);
   let dst = ctx.fetch_term();

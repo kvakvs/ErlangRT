@@ -10,7 +10,6 @@ use emulator::process::{Process};
 use fail;
 use term::boxed;
 use term::lterm::*;
-use term::raw::*;
 
 use std::slice;
 use term::boxed::import;

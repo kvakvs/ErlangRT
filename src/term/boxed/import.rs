@@ -1,5 +1,16 @@
-use term::boxed::BoxHeader;
+use bif::{BifFn, find_bif};
+use emulator::code::pointer::CodePtr;
+use emulator::code_srv::CodeServer;
+use emulator::heap::{Heap};
 use emulator::mfa::MFArity;
+use fail::Error;
+use fail::Hopefully;
+use rt_defs::{storage_bytes_to_words};
+use term::boxed::{BoxHeader, BoxTypeTag};
+use term::lterm::*;
+
+use std::mem::size_of;
+use core::ptr;
 
 pub struct Import {
   header: BoxHeader,
@@ -8,5 +19,49 @@ pub struct Import {
 }
 
 impl Import {
+  const fn storage_size() -> usize {
+    storage_bytes_to_words(size_of::<Import>())
+  }
+
+  pub unsafe fn place_into(hp: &mut Heap,
+                           mfarity: MFArity,
+                           is_bif: bool) -> Hopefully<LTerm>
+  {
+    let n_words = Import::storage_size();
+    let this = hp.alloc_words::<Import>(n_words, false)?;
+
+    ptr::write(this,
+               Import {
+                 header: BoxHeader::new(BoxTypeTag::Import, n_words),
+                 mfarity,
+                 is_bif,
+               });
+    Ok(LTerm::make_boxed(this))
+  }
+
+
+  pub unsafe fn const_from_term(t: LTerm) -> Hopefully<*const Import> {
+    helper_get_const_from_boxed_term::<Import>(
+      t, BoxTypeTag::Import, Error::BoxedIsNotAnImport)
+  }
+
+
+  pub unsafe fn mut_from_term(t: LTerm) -> Hopefully<*mut Import> {
+    helper_get_mut_from_boxed_term::<Import>(
+      t, BoxTypeTag::Import, Error::BoxedIsNotAnImport)
+  }
+
+
+  /// Lookup a function, referred by this object and possibly attempt code
+  /// loading if the module was missing. Return a code pointer.
+  pub fn resolve(&self, code_server: &mut CodeServer) -> Hopefully<CodePtr> {
+    code_server.lookup_and_load(&self.mfarity)
+  }
+
+
+  /// Assuming that this object refers to a BIF function, perform a BIF lookup.
+  pub fn resolve_bif(&self) -> Hopefully<BifFn> {
+    find_bif(&self.mfarity)
+  }
 
 }

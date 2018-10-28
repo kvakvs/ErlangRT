@@ -1,4 +1,5 @@
 use term::boxed::BoxHeader;
+use rt_defs::{Word};
 
 pub enum BoxBinaryPayload {
   // contains size, followed in memory by the data bytes

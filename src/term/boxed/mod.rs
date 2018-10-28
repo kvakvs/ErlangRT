@@ -42,6 +42,8 @@ pub enum BoxTypeTag {
   ExternalPort,
   Closure, // A function object with frozen (captured) variable values
   Float,
+  Import,
+  Export,
 }
 
 /// Term header in memory, followed by corresponding data.

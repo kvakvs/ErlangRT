@@ -8,7 +8,6 @@ use emulator::vm::VM;
 use rt_defs::{Arity};
 use term::boxed;
 use term::lterm::*;
-use term::raw::*;
 
 
 fn module() -> &'static str { "runtime_ctx.call_closure: " }

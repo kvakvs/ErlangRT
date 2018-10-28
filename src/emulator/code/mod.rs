@@ -12,6 +12,7 @@ pub use emulator::code::pointer::*;
 
 
 /// Code array stores opcodes/jump table offsets and args encoded as `LTerm`
+// TODO: Make code vec of LTerm?
 pub type Code = Vec<Word>;
 
 

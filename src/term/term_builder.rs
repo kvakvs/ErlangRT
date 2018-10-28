@@ -2,10 +2,8 @@
 //! decouple libraries from the actual term implementation).
 use emulator::atom;
 use emulator::heap::{Heap};
-use emulator::heap::IHeap;
 use rt_defs::term_builder::{ITermBuilder, IListBuilder, ITupleBuilder};
 use term::lterm::*;
-use term::raw::*;
 use term::boxed;
 
 use num;
@@ -48,11 +46,11 @@ pub struct ListBuilder {
 
 impl ListBuilder {
   unsafe fn new(heap: *mut Heap) -> Hopefully<ListBuilder> {
-    let p = (*heap).heap_allocate(2, true)?;
+    let p = (*heap).alloc_words::<LTerm>(2, true)?;
 
     Ok(ListBuilder {
-      p: p as *mut LTerm,
-      p0: p as *mut LTerm,
+      p: p,
+      p0: p,
       heap,
     })
   }
@@ -64,9 +62,7 @@ impl IListBuilder<LTerm> for ListBuilder {
   }
 
   unsafe fn next(&mut self) {
-    let new_cell = (*self.heap).heap_allocate(
-      2, true
-    )? as *mut LTerm;
+    let new_cell = (*self.heap).alloc_words::<LTerm>(2, true)?;
     self.p.set_tl(new_cell.make_cons());
     self.p = new_cell
   }
@@ -141,14 +137,14 @@ impl ITermBuilder for TermBuilder {
   }
 
 
-  fn create_tuple_builder(&mut self, sz: usize) -> Self::TupleBuilderT {
+  fn create_tuple_builder(&mut self, sz: usize) -> Hopefully<Self::TupleBuilderT> {
     let ref_heap = unsafe { self.heap.as_mut() }.unwrap();
-    let raw_tuple = allocate_tuple(ref_heap, sz).unwrap();
-    TupleBuilder::new(raw_tuple)
+    let raw_tuple = boxed::Tuple::create_into(ref_heap, sz)?;
+    Ok(TupleBuilder::new(raw_tuple))
   }
 
 
-  fn create_list_builder(&mut self) -> Self::ListBuilderT {
+  fn create_list_builder(&mut self) -> Hopefully<Self::ListBuilderT> {
     unsafe { ListBuilder::new(self.heap) }
   }
 }

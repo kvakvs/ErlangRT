@@ -2,10 +2,7 @@
 
 use rt_defs::*;
 use term::boxed;
-use term::immediate;
 use term::lterm::*;
-use term::primary;
-use term::raw::*;
 
 
 fn module() -> &'static str { "classify: " }

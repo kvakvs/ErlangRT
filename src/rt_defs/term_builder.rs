@@ -1,4 +1,5 @@
 use num;
+use fail::Hopefully;
 
 
 /// A generic trait used to hide Raw Tuple interface and decouple tuple parsing
@@ -39,10 +40,10 @@ pub trait ITermBuilder {
   type ListBuilderT: IListBuilder<Self::TermT>;
 
   /// Build a bignum object from a `num::BigInt`.
-  unsafe fn create_bignum(&self, n: num::BigInt) -> Self::TermT;
+  unsafe fn create_bignum(&self, n: num::BigInt) -> Hopefully<Self::TermT>;
 
   /// Build a binary from bytes.
-  unsafe fn create_binary(&mut self, b: &[u8]) -> Self::TermT;
+  unsafe fn create_binary(&mut self, b: &[u8]) -> Hopefully<Self::TermT>;
 
   /// Create an atom from a string or return an existing atom.
   fn create_atom_str(&self, a: &str) -> Self::TermT;
@@ -57,8 +58,8 @@ pub trait ITermBuilder {
   fn create_empty_binary(&self) -> Self::TermT;
 
   /// Get a proxy object for building a tuple.
-  fn create_tuple_builder(&mut self, sz: usize) -> Self::TupleBuilderT;
+  fn create_tuple_builder(&mut self, sz: usize) -> Hopefully<Self::TupleBuilderT>;
 
   /// Get a proxy object for building a list (forward builder).
-  fn create_list_builder(&mut self) -> Self::ListBuilderT;
+  fn create_list_builder(&mut self) -> Hopefully<Self::ListBuilderT>;
 }

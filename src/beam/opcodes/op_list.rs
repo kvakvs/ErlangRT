@@ -3,12 +3,12 @@
 use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use emulator::code::CodePtr;
+use emulator::code::{CodePtr};
 use emulator::heap::{allocate_cons};
-use emulator::process::Process;
-use emulator::runtime_ctx::Context;
-use term::lterm::*;
-use emulator::vm::VM;
+use emulator::process::{Process};
+use emulator::runtime_ctx::{Context};
+use emulator::vm::{VM};
+use term::lterm::{LTerm};
 
 
 fn module() -> &'static str { "opcodes::op_list: " }
@@ -24,11 +24,11 @@ pub fn opcode_is_nonempty_list(_vm: &VM, ctx: &mut Context,
 
   let fail = ctx.fetch_term(); // jump if not a list
 
-  assert!(fail.is_cp() || fail.is_nil());
+  assert!(fail.is_cp() || fail == LTerm::nil());
 
   let list = ctx.fetch_and_load(&curr_p.heap);
 
-  if list.is_nil() && !list.is_cons() && !fail.is_nil() {
+  if list == LTerm::nil() && !list.is_cons() && fail != LTerm::nil() {
     // jump to fail label
     ctx.ip = CodePtr::from_cp(fail)
   }
@@ -45,11 +45,11 @@ pub fn opcode_is_nil(_vm: &VM, ctx: &mut Context,
   // Structure: is_nil(fail:CP, value:src)
   assert_arity(gen_op::OPCODE_IS_NIL, 2);
   let fail = ctx.fetch_term(); // jump if not a list
-  assert!(fail.is_cp() || fail.is_nil());
+  assert!(fail.is_cp() || fail == LTerm::nil());
 
   let list = ctx.fetch_and_load(&curr_p.heap);
 
-  if !list.is_nil() && !fail.is_nil() {
+  if list != LTerm::nil() && fail != LTerm::nil() {
     // jump to fail label
     ctx.ip = CodePtr::from_cp(fail)
   }
@@ -72,15 +72,15 @@ pub fn opcode_get_list(_vm: &VM, ctx: &mut Context,
   let hd = ctx.fetch_term(); // put src's head into hd
   let tl = ctx.fetch_term(); // put src's tail into tl
 
-  if src.is_nil() {
+  if src == LTerm::nil() {
     panic!("Attempt to get_list on a nil[]");
   }
   assert!(src.is_cons(), "{}get_list: expected a cons, got {}", module(), src);
 
   unsafe {
-    let cons_p = src.cons_get_ptr();
-    ctx.store(cons_p.hd(), hd, hp);
-    ctx.store(cons_p.tl(), tl, hp);
+    let cons_p = src.get_cons_ptr();
+    ctx.store((*cons_p).hd(), hd, hp);
+    ctx.store((*cons_p).tl(), tl, hp);
   }
 
   DispatchResult::Normal
@@ -102,9 +102,9 @@ pub fn opcode_put_list(_vm: &VM, ctx: &mut Context,
 
   unsafe {
     let cons_p = allocate_cons(hp).unwrap();
-    cons_p.set_hd(hd);
-    cons_p.set_tl(tl);
-    ctx.store(cons_p.make_cons(), dst, hp);
+    (*cons_p).set_hd(hd);
+    (*cons_p).set_tl(tl);
+    ctx.store(LTerm::make_cons(cons_p), dst, hp);
   }
 
   DispatchResult::Normal

@@ -76,14 +76,14 @@
 //
 //  unsafe fn cons_is_ascii_string(&self) -> bool {
 //    // TODO: List iterator
-//    let mut cons_p = self.cons_get_ptr();
+//    let mut cons_p = self.get_cons_ptr();
 //    loop {
 //      let hd = cons_p.hd();
 //      if !hd.is_small() {
 //        return false
 //      }
 //
-//      let hd_value = hd.small_get_s();
+//      let hd_value = hd.get_small_signed();
 //      if hd_value < 32 || hd_value >= 127 {
 //        return false
 //      }
@@ -93,7 +93,7 @@
 //        // NIL [] tail is required for a true string
 //        return tl.is_nil()
 //      }
-//      cons_p = tl.cons_get_ptr();
+//      cons_p = tl.get_cons_ptr();
 //    }
 //  }
 //}

@@ -1,16 +1,17 @@
-use emulator::function::CallableLocation;
-use emulator::function::FunEntry;
-use emulator::heap::Heap;
-use emulator::heap::IHeap;
-use emulator::mfa::MFArity;
-use fail::Hopefully;
+use emulator::function::{FunEntry, CallableLocation};
+use emulator::heap::{Heap};
+use emulator::mfa::{MFArity};
+use fail::{Hopefully};
+use rt_defs::{Word, Arity, storage_bytes_to_words};
 use term::boxed::{BoxHeader, BoxTypeTag};
-use term::lterm::LTerm;
+use term::lterm::*;
 
 use std::mem::size_of;
 use std::ptr;
 use fail::Error;
-use core::cmp;
+
+
+const fn module() -> &'static str { "closure: " }
 
 
 /// Boxed `Closure` is placed on heap and referred via LTerm::p
@@ -29,13 +30,14 @@ pub struct Closure {
 impl Closure {
   #[inline]
   const fn storage_size(nfree: Word) -> Word {
-    size_of::<Closure>() + nfree
+    storage_bytes_to_words(size_of::<Closure>()) + nfree
   }
 
 
-  fn new(mfa: MFArity, nfree: u32) -> HOClosure {
+  fn new(mfa: MFArity, nfree: u32) -> Closure {
+    let arity = Closure::storage_size(nfree) - 1;
     Closure {
-      header: BoxHeader::new(BoxTypeTag::Closure),
+      header: BoxHeader::new(BoxTypeTag::Closure, arity),
       mfa,
       dst: CallableLocation::NeedUpdate,
       nfree: nfree as Arity,
@@ -49,7 +51,7 @@ impl Closure {
                            frozen: &[LTerm]) -> Hopefully<LTerm>
   {
     let n_words = Closure::storage_size(fe.nfree);
-    let this = hp.heap_allocate(n_words, false)? as *mut Closure;
+    let this = hp.alloc_words::<Closure>(n_words, false)?;
 
     assert_eq!(frozen.len(), fe.nfree as usize);
     println!("{}new closure: {} frozen={} nfree={}", module(),
@@ -67,23 +69,16 @@ impl Closure {
     Ok(LTerm::make_box(this as *const Word))
   }
 
-  #[inline]
-  pub unsafe fn const_from_term(t: LTerm) -> Hopefully<*const HOClosure> {
-    if !t.is_boxed() { return Err(Error::TermIsNotABoxed) }
-    let cptr = t.get_box_ptr() as *const Closure;
-    if unsafe { cptr.header.t != BoxTypeTag::Closure } {
-      return Err(Error::BoxedIsNotAClosure)
-    }
-    cptr
+
+  pub unsafe fn const_from_term(t: LTerm) -> Hopefully<*const Closure> {
+    helper_get_const_from_boxed_term::<Closure>(
+      t, BoxTypeTag::Closure, Error::BoxedIsNotAClosure)
   }
 
 
-  #[inline]
-  pub unsafe fn mut_from_term(t: LTerm) -> *mut HOClosure {
-    debug_assert!(t.is_boxed());
-    let cptr = t.get_box_ptr() as *mut Closure;
-    unsafe { debug_assert!(cptr.header.t == BoxTypeTag::Closure) }
-    cptr
+  pub unsafe fn mut_from_term(t: LTerm) -> Hopefully<*mut Closure> {
+    helper_get_mut_from_boxed_term::<Closure>(
+      t, BoxTypeTag::Closure, Error::BoxedIsNotAClosure)
   }
 
 }

@@ -10,8 +10,6 @@ use emulator::runtime_ctx;
 use emulator::runtime_ctx::Context;
 use emulator::vm::VM;
 use std::slice;
-use term::lterm::*;
-use term::raw::*;
 
 
 #[inline]
@@ -22,7 +20,7 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
   assert_arity(gen_op::OPCODE_MAKE_FUN2, 1);
 
   let fe_box = ctx.fetch_term();
-  let fe = fe_box.cp_get_ptr() as *const FunEntry;
+  let fe = fe_box.get_cp_ptr::<FunEntry>();
 
   //panic!("boom");
   let hp = &mut curr_p.heap;
@@ -46,15 +44,15 @@ pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
   // Expects: x[0..arity-1] = args. x[arity] = fun object
   assert_arity(gen_op::OPCODE_CALL_FUN, 1);
 
-  let arity = ctx.fetch_term().small_get_u();
+  let arity = ctx.fetch_term().get_small_unsigned();
   let args = unsafe { slice::from_raw_parts(&ctx.regs[0], arity) };
 
   // Take function object argument
   let fobj = ctx.regs[arity];
-  if let Ok(closure) = unsafe { boxed::Closure::from_term(fobj) } {
+  if let Ok(closure) = unsafe { boxed::Closure::const_from_term(fobj) } {
     // `fobj` is a callable closure made with `fun() -> code end`
     runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
-  } else if let Ok(export) = unsafe { boxed::Export::from_term(fobj) } {
+  } else if let Ok(export) = unsafe { boxed::Export::const_from_term(fobj) } {
     // `fobj` is an export made with `fun module:name/0`
     runtime_ctx::call_export::apply(
       ctx, curr_p, export, args, true,

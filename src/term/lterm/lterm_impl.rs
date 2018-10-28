@@ -8,17 +8,13 @@
 use emulator::atom;
 use emulator::heap::{IHeap};
 use rt_defs::*;
-use super::super::lterm::*;
-use term::immediate;
 use term::boxed::{BoxHeader, BoxTypeTag};
 use term::boxed;
-use term::primary;
-use term::raw::*;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
-use fail::Hopefully;
+use fail::{Hopefully,Error};
 
 
 /// A low-level term is either a pointer to memory term or an Immediate with
@@ -93,7 +89,6 @@ impl LTerm {
 
 
   // TODO: Some safety checks maybe? But oh well
-  #[inline]
   pub const fn make_boxed<T>(p: *const T) -> LTerm {
     LTerm { value: p as Word }
   }
@@ -126,19 +121,16 @@ impl LTerm {
 
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
-  #[inline]
   pub const fn is_boxed(self) -> bool {
     self.get_term_tag() == TermTag::Boxed
   }
 
 
-  #[inline]
   pub fn get_box_ptr(self) -> *const BoxHeader {
     self.p as *const BoxHeader
   }
 
 
-  #[inline]
   pub fn get_box_ptr_mut(self) -> *mut BoxHeader {
     self.p
   }
@@ -241,24 +233,48 @@ impl LTerm {
     self.value & HIGHEST_BIT_CP == HIGHEST_BIT_CP
   }
 
+
+  pub fn get_cp_ptr<T>(self) -> *const T {
+    debug_assert_eq!(self.value & HIGHEST_BIT_CP, HIGHEST_BIT_CP);
+    self.p as *const T
+  }
+
+
   //
-  // Tuples
+  // Lists/Cons cells
   //
 
-//  pub fn header_get_arity(self) -> Word {
-//    assert!(self.is_boxed());
-//    primary::header::get_arity(self.value)
-//  }
+  /// Check whether the value is a CONS pointer
+  pub const fn is_cons(self) -> bool {
+    self.get_term_tag() == TermTag::Cons
+  }
+
+  pub fn get_cons_ptr(self) -> *const boxed::Cons {
+    debug_assert!(self.is_cons());
+    (self.p & !TERM_TAG_MASK) as *const boxed::Cons
+  }
 
 
-//  pub fn header_get_type(self) -> Word {
-//    assert!(self.is_boxed());
-//    primary::header::get_tag(self.value)
-//  }
+  pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
+    debug_assert!(self.is_cons());
+    (self.p & !TERM_TAG_MASK) as *mut boxed::Cons
+  }
+
+
+  /// Create a LTerm from pointer to Cons cell
+  pub const fn make_cons(p: *const boxed::Cons) -> LTerm {
+    LTerm { value: (p as Word) | (TermTag::Cons as Word) }
+  }
 
   //
   // Small Integers
   //
+
+  /// Check whether the value is a small integer
+  pub const fn is_small(self) -> bool {
+    self.get_term_tag() == TermTag::Small
+  }
+
 
   pub const fn make_small_unsigned(val: Word) -> LTerm {
     LTerm::make_from_tag_and_value(TermTag::Small, val)
@@ -275,8 +291,13 @@ impl LTerm {
   }
 
 
-  pub const fn get_small_value(self) -> SWord {
+  pub const fn get_small_signed(self) -> SWord {
     (self.value as SWord) >> TERM_TAG_BITS
+  }
+
+
+  pub const fn get_small_unsigned(self) -> Word {
+    self.get_term_val_without_tag()
   }
 
   //
@@ -358,7 +379,7 @@ impl LTerm {
   pub unsafe fn format_cons(self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "[")?;
 
-    let mut raw_cons = self.cons_get_ptr();
+    let mut raw_cons = self.get_cons_ptr();
     loop {
       write!(f, "{}", raw_cons.hd())?;
       let tl = raw_cons.tl();
@@ -368,7 +389,7 @@ impl LTerm {
       } else if tl.is_cons() {
         // List continues, print a comma and follow the tail
         write!(f, ", ")?;
-        raw_cons = tl.cons_get_ptr();
+        raw_cons = tl.get_cons_ptr();
       } else {
         // Improper list, show tail
         write!(f, "| {}", tl)?;
@@ -382,16 +403,16 @@ impl LTerm {
   pub unsafe fn format_cons_ascii(self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "\"")?;
 
-    let mut raw_cons = self.cons_get_ptr();
+    let mut raw_cons = self.get_cons_ptr();
     loop {
-      write!(f, "{}", raw_cons.hd().small_get_u() as u8 as char)?;
+      write!(f, "{}", raw_cons.hd().get_small_unsigned() as u8 as char)?;
       let tl = raw_cons.tl();
       if tl.is_nil() {
         // Proper list ends here, do not show the tail
         break;
       } else if tl.is_cons() {
         // List continues, follow the tail
-        raw_cons = tl.cons_get_ptr();
+        raw_cons = tl.get_cons_ptr();
       } else {
         // Improper list, must not happen because we checked for proper NIL
         // tail in cons_is_ascii_string. Let's do some panic!
@@ -438,7 +459,7 @@ impl fmt::Display for LTerm {
           self.format_cons(f)
         }
       },
-      TermTag::Small => write!(f, "{}", self.get_small_value()),
+      TermTag::Small => write!(f, "{}", self.get_small_signed()),
       TermTag::Special => self.format_special(f),
       TermTag::LocalPid => {
         write!(f, "LocalPid({})", self.get_term_val_without_tag())
@@ -468,64 +489,91 @@ impl fmt::Display for LTerm {
 // Testing section
 //
 
-#[cfg(test)]
-mod tests {
-  use std::ptr;
-  use std::mem;
+//#[cfg(test)]
+//mod tests {
+//  use std::ptr;
+//  use std::mem;
+//
+//  use rt_defs::*;
+//  use super::*;
+//  use term::lterm::aspect_smallint::*;
+//
+//  #[test]
+//  fn test_nil_is_not_atom() {
+//    // Some obscure bit mishandling made nil be recognized as atom
+//    let n = LTerm::nil();
+//    assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
+//            n, n.raw(), immediate::get_imm2_prefix(n.raw()),
+//            immediate::IMM2_ATOM_PREFIX);
+//  }
+//
+//  #[test]
+//  fn test_term_size() {
+//    assert_eq!(mem::size_of::<LTerm>(), WORD_BYTES);
+//  }
+//
+//  #[test]
+//  fn test_small_unsigned() {
+//    let s1 = make_small_u(1);
+//    assert_eq!(1, s1.get_small_unsigned());
+//
+//    let s2 = make_small_u(MAX_UNSIGNED_SMALL);
+//    assert_eq!(MAX_UNSIGNED_SMALL, s2.get_small_unsigned());
+//  }
+//
+//
+//  #[test]
+//  fn test_small_signed_1() {
+//    let s2 = make_small_s(1);
+//    let s2_out = s2.get_small_signed();
+//    assert_eq!(1, s2_out, "Expect 1, have 0x{:x}", s2_out);
+//
+//    let s1 = make_small_s(-1);
+//    let s1_out = s1.get_small_signed();
+//    assert_eq!(-1, s1_out, "Expect -1, have 0x{:x}", s1_out);
+//  }
+//
+//
+//  #[test]
+//  fn test_small_signed_limits() {
+//    let s2 = make_small_s(MAX_POS_SMALL);
+//    assert_eq!(MAX_POS_SMALL, s2.get_small_signed());
+//
+//    let s3 = make_small_s(MIN_NEG_SMALL);
+//    assert_eq!(MIN_NEG_SMALL, s3.get_small_signed());
+//  }
+//
+//
+//  #[test]
+//  fn test_cp() {
+//    let s1 = make_cp(ptr::null());
+//    assert_eq!(s1.cp_get_ptr(), ptr::null());
+//  }
+//}
 
-  use rt_defs::*;
-  use super::*;
-  use term::lterm::aspect_smallint::*;
 
-  #[test]
-  fn test_nil_is_not_atom() {
-    // Some obscure bit mishandling made nil be recognized as atom
-    let n = LTerm::nil();
-    assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
-            n, n.raw(), immediate::get_imm2_prefix(n.raw()),
-            immediate::IMM2_ATOM_PREFIX);
+
+pub unsafe fn helper_get_const_from_boxed_term<T>(
+  t: LTerm,
+  box_type: BoxTypeTag,
+  err: Error
+) -> Hopefully<*const T> {
+  if !t.is_boxed() { return Err(Error::TermIsNotABoxed) }
+  let cptr = t.get_box_ptr() as *const T;
+  if unsafe { cptr.header.t != box_type } {
+    return Err(err)
   }
-
-  #[test]
-  fn test_term_size() {
-    assert_eq!(mem::size_of::<LTerm>(), WORD_BYTES);
-  }
-
-  #[test]
-  fn test_small_unsigned() {
-    let s1 = make_small_u(1);
-    assert_eq!(1, s1.small_get_u());
-
-    let s2 = make_small_u(MAX_UNSIGNED_SMALL);
-    assert_eq!(MAX_UNSIGNED_SMALL, s2.small_get_u());
-  }
+  Ok(cptr)
+}
 
 
-  #[test]
-  fn test_small_signed_1() {
-    let s2 = make_small_s(1);
-    let s2_out = s2.small_get_s();
-    assert_eq!(1, s2_out, "Expect 1, have 0x{:x}", s2_out);
-
-    let s1 = make_small_s(-1);
-    let s1_out = s1.small_get_s();
-    assert_eq!(-1, s1_out, "Expect -1, have 0x{:x}", s1_out);
-  }
-
-
-  #[test]
-  fn test_small_signed_limits() {
-    let s2 = make_small_s(MAX_POS_SMALL);
-    assert_eq!(MAX_POS_SMALL, s2.small_get_s());
-
-    let s3 = make_small_s(MIN_NEG_SMALL);
-    assert_eq!(MIN_NEG_SMALL, s3.small_get_s());
-  }
-
-
-  #[test]
-  fn test_cp() {
-    let s1 = make_cp(ptr::null());
-    assert_eq!(s1.cp_get_ptr(), ptr::null());
-  }
+pub unsafe fn helper_get_mut_from_boxed_term<T>(
+  t: LTerm,
+  box_type: BoxTypeTag,
+  err: Error
+) -> Hopefully<*mut T> {
+  debug_assert!(t.is_boxed());
+  let cptr = t.get_box_ptr() as *mut T;
+  unsafe { debug_assert_eq!(cptr.header.t, box_type) }
+  Ok(cptr)
 }

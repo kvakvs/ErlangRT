@@ -4,7 +4,6 @@ use rt_defs::stack::IStack;
 use rt_defs::Word;
 use term::lterm::*;
 use term::boxed;
-use term::raw::*;
 
 use std::fmt;
 
@@ -20,6 +19,9 @@ pub struct Heap {
   stop: Word,
   /// Stack end, marks end of heap also.
   send: Word,
+}
+
+impl Heap {
 }
 
 
@@ -76,9 +78,8 @@ impl IHeap for Heap {
   }
 
 
-  /// Expand heap to host `n` words of data
-  fn heap_allocate(&mut self, n: Word, init_nil: bool)
-    -> Result<*mut Word, HeapError>
+  fn heap_alloc(&mut self, n: Word, init_nil: bool)
+                 -> Result<*mut Word, HeapError>
   {
     let pos = self.htop;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
@@ -233,6 +234,13 @@ impl IStack<LTerm> for Heap {
 pub fn allocate_cons(hp: &mut Heap)
   -> Result<*mut boxed::Cons, HeapError>
 {
-  let p = hp.heap_allocate(2, false)?;
-  Ok(p as *mut boxed::Cons)
+  let p = hp.alloc_words::<boxed::Cons>(2, false)?;
+  Ok(p)
+}
+
+
+/// Expand heap to host `n` words of data
+fn alloc_words<ResultType>(hp: &mut IHeap, n: Word, init_nil: bool)
+                           -> Result<*mut ResultType, HeapError> {
+  hp.heap_alloc(n, init_nil) as *mut ResultType
 }

@@ -11,7 +11,6 @@ use emulator::runtime_ctx::{Context};
 use emulator::vm::VM;
 use rt_defs::stack::IStack;
 use term::lterm::*;
-use term::raw::*;
 use term::boxed;
 
 
@@ -27,10 +26,10 @@ pub fn opcode_call(_vm: &VM, ctx: &mut Context,
   assert_arity(gen_op::OPCODE_CALL, 2);
 
   let arity = ctx.fetch_term();
-  ctx.live = arity.small_get_u();
+  ctx.live = arity.get_small_unsigned();
 
   let location = ctx.fetch_term();
-  debug_assert!(location.is_box(),
+  debug_assert!(location.is_boxed(),
                 "Call location must be a box (have {})", location);
 
   ctx.cp = ctx.ip; // Points at the next opcode after this
@@ -49,10 +48,10 @@ pub fn opcode_call_only(_vm: &VM, ctx: &mut Context,
   assert_arity(gen_op::OPCODE_CALL_ONLY, 2);
 
   let arity = ctx.fetch_term();
-  ctx.live = arity.small_get_u();
+  ctx.live = arity.get_small_unsigned();
 
   let location = ctx.fetch_term();
-  debug_assert!(location.is_box(),
+  debug_assert!(location.is_boxed(),
                 "Call location must be a box (have {})", location);
 
   ctx.ip = CodePtr::from_cp(location);
@@ -70,7 +69,7 @@ pub fn opcode_call_ext_only(vm: &VM, ctx: &mut Context,
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
 
-  let arity = ctx.fetch_term().small_get_u();
+  let arity = ctx.fetch_term().get_small_unsigned();
   let args = ctx.registers_slice(arity);
   shared_call_ext(vm, ctx, curr_p,
                   LTerm::nil(),
@@ -88,7 +87,7 @@ pub fn opcode_call_ext(vm: &VM, ctx: &mut Context,
   // Structure: call_ext(arity:int, destination:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT, 2);
 
-  let arity = ctx.fetch_term().small_get_u();
+  let arity = ctx.fetch_term().get_small_unsigned();
   let args = ctx.registers_slice(arity);
   shared_call_ext(vm, ctx, curr_p,
                   LTerm::nil(),
@@ -108,7 +107,7 @@ fn shared_call_ext(vm: &VM, ctx: &mut Context,
   // HOImport object on heap which contains m:f/arity
   let imp0 = ctx.fetch_term();
 
-  match unsafe { boxed::Import::from_term(imp0) } {
+  match unsafe { boxed::Import::const_from_term(imp0) } {
     Ok(import_ptr) =>
       unsafe {
         if (*import_ptr).is_bif {

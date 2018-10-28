@@ -34,6 +34,7 @@ pub enum Error {
   //--- VM Checks --
   TermIsNotABoxed,
   BoxedIsNotAClosure,
+  BoxedIsNotAnImport,
   BoxedIsNotATuple,
   HeapObjNotAType, // remove
 }
