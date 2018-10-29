@@ -128,7 +128,7 @@ impl IHeap for Heap {
 /// This is used by heap walkers such as "dump.rs"
 pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
   let last = hp.htop as isize;
-  let begin = hp.heap_begin() as *const Word;
+  let begin = hp.heap_begin() as *const LTerm;
   iter::HeapIterator::new(begin, begin.offset(last))
 }
 
@@ -234,7 +234,7 @@ impl IStack<LTerm> for Heap {
 pub fn allocate_cons(hp: &mut Heap)
   -> Result<*mut boxed::Cons, HeapError>
 {
-  let p = hp.alloc_words::<boxed::Cons>(2, false)?;
+  let p = alloc_words::<boxed::Cons>(hp, 2, false)?;
   Ok(p)
 }
 
@@ -242,5 +242,6 @@ pub fn allocate_cons(hp: &mut Heap)
 /// Expand heap to host `n` words of data
 fn alloc_words<ResultType>(hp: &mut IHeap, n: Word, init_nil: bool)
                            -> Result<*mut ResultType, HeapError> {
-  hp.heap_alloc(n, init_nil) as *mut ResultType
+  let result = hp.heap_alloc(n, init_nil)? as *mut ResultType;
+  Ok(result)
 }

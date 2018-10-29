@@ -49,9 +49,9 @@ impl fmt::Display for CodePtr {
 
 
 impl CodePtr {
-  pub fn new(p: *const Word) -> CodePtr {
-    assert_ne!(p as Word, 0xcea);
-    CodePtr(p)
+  pub fn new<T>(p: *const T) -> CodePtr {
+    // assert_ne!(p as Word, 0xcea);
+    CodePtr(p as *const Word)
   }
 
 
@@ -74,7 +74,7 @@ impl CodePtr {
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
-      assert!(p.is_null() || p.get_term_tag() == TermTag::Special,
+      assert!(p.is_null() || (*p).get_term_tag() == TermTag::Special,
               "A CodePtr must be null or point to an imm3 tagged opcode");
     }
     CodePtr::new(p)
@@ -88,7 +88,7 @@ impl CodePtr {
 
   #[inline]
   pub fn null() -> CodePtr {
-    CodePtr::new(::std::ptr::null())
+    CodePtr::new::<Word>(::std::ptr::null())
   }
 
 

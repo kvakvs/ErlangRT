@@ -27,9 +27,9 @@ use emulator::runtime_ctx::Context;
 #[cfg(debug_assertions)]
 pub fn assert_arity(op: RawOpcode, val: Word) {
   debug_assert!(op < gen_op::OPCODE_MAX, "Opcode is too large");
-  debug_assert_eq!(gen_op::ARITY_MAP[op as usize] as Word, val,
+  debug_assert_eq!(gen_op::ARITY_MAP[op.get() as usize] as Word, val,
                    "Opcode {}={} arity is expected to be {}",
-                   gen_op::opcode_name(op as u8), op, val);
+                   gen_op::opcode_name(op), op.get(), val);
 }
 
 
@@ -42,5 +42,5 @@ pub fn assert_arity(_op: RawOpcode, _val: Word) {}
 pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {
   println!("{}", ctx);
   panic!("vm_dispatch: Opcode {:?} '{}' not implemented",
-         op, gen_op::opcode_name(op))
+         op.get(), gen_op::opcode_name(op))
 }

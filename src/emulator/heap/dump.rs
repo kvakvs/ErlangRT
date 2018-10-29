@@ -1,6 +1,6 @@
 //! Debug tool to display Erlang heap contents.
 use emulator::heap::{Heap, heap_iter, IHeap, IHeapIterator};
-use rt_defs::TermTag;
+use rt_defs::{TermTag, Word};
 
 
 impl Heap {
@@ -27,7 +27,7 @@ impl Heap {
       // Display a warning if boxed points outside the current heap
       match val_at_addr.get_term_tag() {
         x if x == TermTag::Boxed => {
-          let p = val_at_addr.get_box_ptr();
+          let p = val_at_addr.get_box_ptr() as *const Word;
           if p < self.heap_begin() || p >= self.heap_end() {
             output += " <- heap bounds!";
           }

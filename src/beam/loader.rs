@@ -14,16 +14,11 @@ use std::mem;
 use std::io::{Read, Cursor};
 use compress::zlib;
 
-use term::boxed;
 use beam::compact_term;
 use beam::gen_op;
 use bif;
-use fail::{Hopefully, Error};
-use rt_defs::{Word, Arity};
-use rt_util::bin_reader::{BinaryReader, ReadError};
-use rt_util::ext_term_format as etf;
-
 use emulator::atom;
+use emulator::code::opcode::RawOpcode;
 use emulator::code::pointer::CodePtrMut;
 use emulator::code::{LabelId, CodeOffset, Code, opcode};
 use emulator::code;
@@ -34,7 +29,11 @@ use emulator::function::{FunEntry};
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::mfa::MFArity;
 use emulator::module;
-
+use fail::{Hopefully, Error};
+use rt_defs::{Word, Arity};
+use rt_util::bin_reader::{BinaryReader, ReadError};
+use rt_util::ext_term_format as etf;
+use term::boxed;
 use term::fterm::FTerm;
 use term::lterm::*;
 use term::term_builder::TermBuilder;
@@ -539,7 +538,7 @@ impl Loader {
     let code_size = {
       let mut s = 0usize;
       while !r.eof() {
-        let op: opcode::RawOpcode = r.read_u8();
+        let op = opcode::RawOpcode(r.read_u8());
         let arity = gen_op::opcode_arity(op) as usize;
         for _i in 0..arity {
           let _arg0 = compact_term::read(&mut r).unwrap();
@@ -559,7 +558,7 @@ impl Loader {
     r.reset();
     while !r.eof() {
       // Read the opcode from the code section
-      let op: opcode::RawOpcode = r.read_u8();
+      let op = opcode::RawOpcode(r.read_u8());
 
       // Read `arity` args, and convert them to reasonable runtime values
       let arity = gen_op::opcode_arity(op);
@@ -576,7 +575,7 @@ impl Loader {
 
       match op {
         // add nothing for label, but record its location
-        x if x == gen_op::OPCODE_LABEL => {
+        gen_op::OPCODE_LABEL => {
           if let FTerm::SmallInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
@@ -588,7 +587,7 @@ impl Loader {
         }
 
         // add nothing for line, but TODO: Record line contents
-        x if x == gen_op::OPCODE_LINE => {}
+        gen_op::OPCODE_LINE => {}
 
         // else push the op and convert all args to LTerms, also remember
         // code offsets for label values
@@ -718,7 +717,7 @@ impl Loader {
         },
 
         PatchLocation::PatchJtabElement(jtab, index) => {
-          let jtab_ptr = boxed::Tuple::from_pointer_mut(jtab.get_box_ptr_mut())?;
+          let jtab_ptr = boxed::Tuple::from_pointer_mut(jtab.get_box_ptr_mut::<boxed::Tuple>())?;
           unsafe {
             let val = boxed::Tuple::get_element_base0(jtab_ptr, index);
             boxed::Tuple::set_raw_word_base0(jtab_ptr, index,
@@ -863,6 +862,6 @@ impl Loader {
 
 /// Report a bad opcode arg
 // TODO: Use this more, than just label opcode
-fn op_badarg_panic(op: u8, args: &[FTerm], argi: Word) {
-  panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op, argi, args)
+fn op_badarg_panic(op: RawOpcode, args: &[FTerm], argi: Word) {
+  panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op.get(), argi, args)
 }

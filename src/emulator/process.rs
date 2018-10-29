@@ -77,7 +77,7 @@ impl Process {
   pub fn new(pid: LTerm, _parent_pid: LTerm, mfarity: &MFArity,
              prio: scheduler::Prio, code_server: &mut CodeServer) -> Hopefully<Process> {
     assert!(pid.is_local_pid());
-    assert!(_parent_pid.is_local_pid() || _parent_pid.is_nil());
+    assert!(_parent_pid.is_local_pid() || _parent_pid == LTerm::nil());
 
     // Process must start with some code location
     match code_server.lookup_and_load(mfarity) {

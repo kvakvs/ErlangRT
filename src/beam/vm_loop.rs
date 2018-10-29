@@ -35,7 +35,7 @@ impl VM {
       // Take next opcode
       let op = opcode::from_memory_word(ctx.fetch());
       assert!(op <= gen_op::OPCODE_MAX,
-              "Opcode too big (wrong memory address?) got 0x{:x}", op);
+              "Opcode too big (wrong memory address?) got 0x{:x}", op.get());
 
       // Handle next opcode
       match dispatch_op_inline(self, op, &mut ctx, curr_p) {

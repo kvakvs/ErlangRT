@@ -9,7 +9,16 @@ use term::lterm::LTerm;
 
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
-pub type RawOpcode = u8;
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+pub struct RawOpcode(pub u8);
+
+impl RawOpcode {
+  pub fn get(self) -> u8 {
+    let RawOpcode(raw8) = self;
+    raw8
+  }
+}
+//pub type RawOpcode = u8;
 
 
 /// Convert the raw (numeric) opcode into memory format. This is a simple
@@ -18,7 +27,8 @@ pub type RawOpcode = u8;
 #[inline]
 #[cfg(debug_assertions)]
 pub fn to_memory_word(raw: RawOpcode) -> Word {
-  LTerm::make_special(SpecialTag::Opcode, raw).raw()
+  let RawOpcode(raw8) = raw;
+  LTerm::make_special(SpecialTag::Opcode, raw8 as Word).raw()
 }
 
 
@@ -31,15 +41,15 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 
 /// Convert the opcode from memory format into raw. For debug build it was
 /// decorated as Immediate3.
-#[inline]
 #[cfg(debug_assertions)]
 pub fn from_memory_word(m: Word) -> RawOpcode {
   let as_term = LTerm::from_raw(m);
   debug_assert_eq!(as_term.get_special_tag(), SpecialTag::Opcode,
                    "Opcode 0x{:x} from code memory must be tagged as Special/Opcode",
                    m);
-  let opc = as_term.get_special_value();
-  debug_assert!(opc <= gen_op::OPCODE_MAX as Word);
+  debug_assert!(as_term.get_special_value() < 256);
+  let opc = RawOpcode(as_term.get_special_value() as u8);
+  debug_assert!(opc <= gen_op::OPCODE_MAX);
   opc as RawOpcode
 }
 
@@ -60,8 +70,9 @@ pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   debug_assert_eq!(as_term.get_special_tag(), SpecialTag::Opcode,
                    "Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
                    m, p);
-  let opc = as_term.get_special_value();
-  debug_assert!(opc <= gen_op::OPCODE_MAX as Word);
+  debug_assert!(as_term.get_special_value() < 256);
+  let opc = RawOpcode(as_term.get_special_value() as u8);
+  debug_assert!(opc <= gen_op::OPCODE_MAX);
   opc as RawOpcode
 }
 

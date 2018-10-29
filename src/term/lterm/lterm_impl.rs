@@ -8,13 +8,13 @@
 use emulator::atom;
 use emulator::heap::{IHeap};
 use rt_defs::*;
-use term::boxed::{BoxHeader, BoxTypeTag};
 use term::boxed;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
 use fail::{Hopefully,Error};
+use term::boxed::BoxTypeTag;
 
 
 /// A low-level term is either a pointer to memory term or an Immediate with
@@ -126,37 +126,38 @@ impl LTerm {
   }
 
 
-  pub fn get_box_ptr(self) -> *const BoxHeader {
-    self.p as *const BoxHeader
+  pub fn get_box_ptr<T>(self) -> *const T {
+    self.p as *const T
   }
 
 
-  pub fn get_box_ptr_mut(self) -> *mut BoxHeader {
-    self.p
+  pub fn get_box_ptr_mut<T>(self) -> *mut T {
+    self.p as *mut T
   }
 
 
-  #[inline]
   pub fn is_binary(self) -> bool {
     self.is_boxed() && self.p.t == BoxTypeTag::Binary
   }
 
 
-  #[inline]
   pub fn is_immediate(self) -> bool {
     self.get_term_tag() != TermTag::Boxed
   }
 
 
   /// Check whether the value is tagged as atom
-  #[inline]
   pub fn is_atom(self) -> bool {
     self.get_term_tag() == TermTag::Atom
   }
 
 
+  pub fn is_local_pid(self) -> bool {
+    self.get_term_tag() == TermTag::LocalPid
+  }
+
+
   /// Return true if a value's tag will fit into a single word
-  #[inline]
   pub fn is_internal_immediate(self) -> bool {
     self.get_term_tag() == TermTag::Special
   }

@@ -57,6 +57,7 @@ pub enum ExceptionType {
 pub const TERM_TAG_BITS: Word = 3;
 pub const TERM_TAG_MASK: Word = (1 << TERM_TAG_BITS) - 1;
 
+#[derive(Eq, PartialEq, Debug)]
 pub enum TermTag {
   Boxed,
   Header,
@@ -87,8 +88,10 @@ pub enum TermTag {
 pub const TERM_SPECIAL_TAG_BITS: Word = 3;
 pub const TERM_SPECIAL_TAG_MASK: Word = (1 << TERM_SPECIAL_TAG_BITS) - 1;
 
+#[derive(Eq, PartialEq, Debug)]
 pub enum SpecialTag {
-  Const, // special constants such as NIL, empty tuple, binary etc
+  Const,
+  // special constants such as NIL, empty tuple, binary etc
   RegX,
   RegY,
   RegFP,

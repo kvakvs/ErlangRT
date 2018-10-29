@@ -8,7 +8,6 @@ use emulator::code::{CodePtr};
 use emulator::mfa::{MFArity};
 use emulator::process::{Process};
 use fail;
-use term::boxed;
 use term::lterm::*;
 
 use std::slice;
@@ -109,7 +108,7 @@ pub fn apply(ctx: &mut Context,
 
     BifResult::Value(val) => {
       // if dst is not NIL, store the result in it
-      if !dst.is_nil() {
+      if dst != LTerm::nil() {
         ctx.store(val, dst, &mut curr_p.heap)
       }
       DispatchResult::Normal
@@ -136,8 +135,8 @@ enum BifResolutionResult {
 #[inline]
 fn callbif_resolve_import(imp: LTerm) -> BifResolutionResult
 {
-  // Possibly a HOImport object on heap which contains m:f/arity
-  let tmp1 = unsafe { boxed::Import::from_term(imp) };
+  // Possibly a boxed::Import object on heap which contains m:f/arity
+  let tmp1 = unsafe { imp.get_box_ptr::<LTerm>() };
 
   let import = match tmp1 {
     Ok(i) => i,

@@ -27,7 +27,7 @@ impl IHeapIterator<*const LTerm> for HeapIterator {
     let val = *self.p;
     let size = match val.get_term_tag() {
       TermTag::Header => boxed::headerword_to_arity(val.raw()),
-      _ => 1isize,
+      _ => 1usize,
     };
 
     self.p.add(size);

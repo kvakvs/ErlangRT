@@ -34,18 +34,20 @@ impl Tuple {
   }
 
 
-  pub fn from_pointer<T>(p: *const T) -> Hopefully<*const Tuple> {
+  /// Convert any p into *const Tuple + checking the header word to be Tule
+  pub unsafe fn from_pointer<T>(p: *const T) -> Hopefully<*const Tuple> {
     let tp = p as *const Tuple;
-    if tp.header.get_tag() != BoxTypeTag::Tuple {
+    if (*tp).header.get_tag() != BoxTypeTag::Tuple {
       return Err(Error::BoxedIsNotATuple)
     }
     Ok(tp)
   }
 
 
-  pub fn from_pointer_mut<T>(p: *mut T) -> Hopefully<*mut Tuple> {
+  /// Convert any p into *mut Tuple + checking the header word to be Tule
+  pub unsafe fn from_pointer_mut<T>(p: *mut T) -> Hopefully<*mut Tuple> {
     let tp = p as *mut Tuple;
-    if tp.header.get_tag() != BoxTypeTag::Tuple {
+    if (*tp).header.get_tag() != BoxTypeTag::Tuple {
       return Err(Error::BoxedIsNotATuple)
     }
     Ok(tp)

@@ -31,10 +31,10 @@ pub unsafe fn disasm_op(ip0: *const Word,
     print!("{} ", mfa)
   }
 
-  print!("{:p}: {} ", ip, gen_op::opcode_name(op as u8));
+  print!("{:p}: {} ", ip, gen_op::opcode_name(op));
   ip = ip.offset(1);
 
-  let n_args = gen_op::opcode_arity(op as u8) as Word;
+  let n_args = gen_op::opcode_arity(op) as Word;
   disasm_op_args(ip, n_args);
 
   println!();
