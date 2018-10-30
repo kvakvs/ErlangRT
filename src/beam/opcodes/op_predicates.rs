@@ -7,6 +7,7 @@ use emulator::code::{CodePtr};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use emulator::vm::{VM};
+use fail::{Hopefully};
 use term::compare;
 use term::lterm::{LTerm};
 
@@ -14,7 +15,7 @@ use term::lterm::{LTerm};
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
 #[inline]
 pub fn opcode_is_eq_exact(vm: &VM, ctx: &mut Context,
-                          curr_p: &mut Process) -> DispatchResult {
+                          curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: is_eq_exact(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ_EXACT, 3);
   shared_equality_opcode(vm, ctx, curr_p,
@@ -27,7 +28,7 @@ pub fn opcode_is_eq_exact(vm: &VM, ctx: &mut Context,
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
 #[inline]
 pub fn opcode_is_lt(vm: &VM, ctx: &mut Context,
-                    curr_p: &mut Process) -> DispatchResult {
+                    curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: is_lt(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_LT, 3);
   shared_equality_opcode(vm, ctx, curr_p,
@@ -40,7 +41,7 @@ pub fn opcode_is_lt(vm: &VM, ctx: &mut Context,
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
 #[inline]
 pub fn opcode_is_eq(vm: &VM, ctx: &mut Context,
-                    curr_p: &mut Process) -> DispatchResult {
+                    curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: is_eq(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
   shared_equality_opcode(vm, ctx, curr_p,
@@ -53,7 +54,7 @@ pub fn opcode_is_eq(vm: &VM, ctx: &mut Context,
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
 #[inline]
 pub fn opcode_is_ge(vm: &VM, ctx: &mut Context,
-                    curr_p: &mut Process) -> DispatchResult {
+                    curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: is_eq(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
   shared_equality_opcode(vm, ctx, curr_p,
@@ -69,7 +70,7 @@ fn shared_equality_opcode(_vm: &VM, ctx: &mut Context,
                           curr_p: &mut Process,
                           exact: bool,
                           desired_result: Ordering,
-                          invert: bool) -> DispatchResult {
+                          invert: bool) -> Hopefully<DispatchResult> {
   let hp = &curr_p.heap;
   let fail_label = ctx.fetch_term();
   let a = ctx.fetch_and_load(hp);
@@ -87,5 +88,5 @@ fn shared_equality_opcode(_vm: &VM, ctx: &mut Context,
     ctx.ip = CodePtr::from_cp(fail_label)
   }
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }

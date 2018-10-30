@@ -4,14 +4,15 @@
 use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use emulator::code::CodePtr;
-use emulator::process::Process;
+use emulator::code::{CodePtr};
+use emulator::process::{Process};
 use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::{Context};
-use emulator::vm::VM;
-use rt_defs::stack::IStack;
-use term::lterm::*;
+use emulator::vm::{VM};
+use fail::{Hopefully};
+use rt_defs::stack::{IStack};
 use term::boxed;
+use term::lterm::*;
 
 
 fn module() -> &'static str { "opcodes::op_execution: " }
@@ -21,7 +22,7 @@ fn module() -> &'static str { "opcodes::op_execution: " }
 /// in `ctx.cp`.
 #[inline]
 pub fn opcode_call(_vm: &VM, ctx: &mut Context,
-                   _curr_p: &mut Process) -> DispatchResult {
+                   _curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: call(arity:int, loc:CP)
   assert_arity(gen_op::OPCODE_CALL, 2);
 
@@ -35,7 +36,7 @@ pub fn opcode_call(_vm: &VM, ctx: &mut Context,
   ctx.cp = ctx.ip; // Points at the next opcode after this
   ctx.ip = CodePtr::from_cp(location);
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }
 
 
@@ -43,7 +44,7 @@ pub fn opcode_call(_vm: &VM, ctx: &mut Context,
 /// Behaves like a jump?
 #[inline]
 pub fn opcode_call_only(_vm: &VM, ctx: &mut Context,
-                        _curr_p: &mut Process) -> DispatchResult {
+                        _curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: call_only(arity:int, loc:cp)
   assert_arity(gen_op::OPCODE_CALL_ONLY, 2);
 
@@ -56,7 +57,7 @@ pub fn opcode_call_only(_vm: &VM, ctx: &mut Context,
 
   ctx.ip = CodePtr::from_cp(location);
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }
 
 
@@ -65,7 +66,7 @@ pub fn opcode_call_only(_vm: &VM, ctx: &mut Context,
 /// point to an external function or a BIF. Does not update the `ctx.cp`.
 #[inline]
 pub fn opcode_call_ext_only(vm: &VM, ctx: &mut Context,
-                            curr_p: &mut Process) -> DispatchResult {
+                            curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: call_ext_only(arity:int, import:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
 
@@ -83,7 +84,7 @@ pub fn opcode_call_ext_only(vm: &VM, ctx: &mut Context,
 /// function or a BIF. Updates the `ctx.cp` with return IP.
 #[inline]
 pub fn opcode_call_ext(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> DispatchResult {
+                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: call_ext(arity:int, destination:boxed)
   assert_arity(gen_op::OPCODE_CALL_EXT, 2);
 
@@ -101,7 +102,7 @@ fn shared_call_ext(vm: &VM, ctx: &mut Context,
                    curr_p: &mut Process,
                    fail_label: LTerm,
                    args: &[LTerm],
-                   save_cp: bool) -> DispatchResult {
+                   save_cp: bool) -> Hopefully<DispatchResult> {
   ctx.live = args.len();
 
   // HOImport object on heap which contains m:f/arity
@@ -128,13 +129,13 @@ fn shared_call_ext(vm: &VM, ctx: &mut Context,
           ctx.ip = (*import_ptr).resolve(
             vm.code_server.borrow_mut().as_mut()
           ).unwrap();
-          DispatchResult::Normal
+          Ok(DispatchResult::Normal)
         }
       },
     Err(_err) => {
       // Create a `{badfun, _}` error
       //panic!("bad call_ext target {}", imp0);
-      DispatchResult::badfun_val(imp0, &mut curr_p.heap)
+      Ok(DispatchResult::badfun_val(imp0, &mut curr_p.heap))
     }
   }
 }
@@ -144,7 +145,7 @@ fn shared_call_ext(vm: &VM, ctx: &mut Context,
 /// the process has no more code to execute and will end with reason `normal`.
 #[inline]
 pub fn opcode_return(_vm: &VM, ctx: &mut Context,
-                     curr_p: &mut Process) -> DispatchResult {
+                     curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: return()
   assert_arity(gen_op::OPCODE_RETURN, 0);
 
@@ -160,13 +161,13 @@ pub fn opcode_return(_vm: &VM, ctx: &mut Context,
   ctx.ip = ctx.cp;
   ctx.cp = CodePtr::null();
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }
 
 
 #[inline]
 pub fn opcode_func_info(_vm: &VM, ctx: &mut Context,
-                        _curr_p: &mut Process) -> DispatchResult {
+                        _curr_p: &mut Process) -> Hopefully<DispatchResult> {
   assert_arity(gen_op::OPCODE_FUNC_INFO, 3);
   let m = ctx.fetch_term();
   let f = ctx.fetch_term();
@@ -180,11 +181,11 @@ pub fn opcode_func_info(_vm: &VM, ctx: &mut Context,
 /// Create an error:badmatch exception
 #[inline]
 pub fn opcode_badmatch(_vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> DispatchResult {
+                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: badmatch(LTerm)
   assert_arity(gen_op::OPCODE_BADMATCH, 1);
 
   let hp = &mut curr_p.heap;
   let val = ctx.fetch_and_load(hp);
-  DispatchResult::badmatch_val(val, hp)
+  Ok(DispatchResult::badmatch_val(val, hp))
 }

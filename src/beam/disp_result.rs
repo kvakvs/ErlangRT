@@ -12,7 +12,7 @@ use term::lterm::LTerm;
 pub enum DispatchResult {
   Normal,
   Yield,
-  Error(ExceptionType, LTerm),
+  Exc(ExceptionType, LTerm),
 }
 
 impl DispatchResult {
@@ -22,23 +22,23 @@ impl DispatchResult {
 
   pub fn badmatch_val(val: LTerm, hp: &mut Heap) -> DispatchResult {
     let badmatch_tuple = make_badmatch(val, hp);
-    DispatchResult::Error(ExceptionType::Error, badmatch_tuple)
+    DispatchResult::Exc(ExceptionType::Error, badmatch_tuple)
   }
 
   pub fn badarity() -> DispatchResult {
-    DispatchResult::Error(ExceptionType::Error, gen_atoms::BADARITY)
+    DispatchResult::Exc(ExceptionType::Error, gen_atoms::BADARITY)
   }
 
   pub fn undef() -> DispatchResult {
-    DispatchResult::Error(ExceptionType::Error, gen_atoms::UNDEF)
+    DispatchResult::Exc(ExceptionType::Error, gen_atoms::UNDEF)
   }
 
   pub fn badfun() -> DispatchResult {
-    DispatchResult::Error(ExceptionType::Error, gen_atoms::BADFUN)
+    DispatchResult::Exc(ExceptionType::Error, gen_atoms::BADFUN)
   }
 
   pub fn badfun_val(val: LTerm, hp: &mut Heap) -> DispatchResult {
     let badfun_tuple = make_badfun(val, hp);
-    DispatchResult::Error(ExceptionType::Error, badfun_tuple)
+    DispatchResult::Exc(ExceptionType::Error, badfun_tuple)
   }
 }

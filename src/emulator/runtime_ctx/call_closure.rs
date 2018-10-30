@@ -1,10 +1,11 @@
-use super::Context;
 use std::ptr;
 
 use beam::disp_result::{DispatchResult};
-use emulator::function::CallableLocation;
+use super::{Context};
+use emulator::function::{CallableLocation};
 use emulator::process::{Process};
-use emulator::vm::VM;
+use emulator::vm::{VM};
+use fail::{Hopefully};
 use rt_defs::{Arity};
 use term::boxed;
 use term::lterm::*;
@@ -19,7 +20,7 @@ pub fn apply(vm: &VM,
              ctx: &mut Context,
              _curr_p: &mut Process,
              closure: *const boxed::Closure,
-             args: &[LTerm]) -> DispatchResult
+             args: &[LTerm]) -> Hopefully<DispatchResult>
 {
   let in_arity = args.len();
 
@@ -47,5 +48,5 @@ pub fn apply(vm: &VM,
     CallableLocation::NeedUpdate =>
       panic!("Must not have this value here"),
   };
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }

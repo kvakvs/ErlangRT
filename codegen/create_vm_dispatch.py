@@ -22,11 +22,12 @@ use beam::disp_result::{{DispatchResult}};
 use emulator::code::opcode::RawOpcode;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use fail::{{Hopefully}};
 
 
 #[inline]
 pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, \
-curr_p: &mut Process) -> DispatchResult {{
+curr_p: &mut Process) -> Hopefully<DispatchResult> {{
   match op {{""".format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
@@ -39,7 +40,7 @@ curr_p: &mut Process) -> DispatchResult {{
     print("""\
     other => unknown_opcode(other, ctx),
   }
-  DispatchResult::Yield
+  Ok(DispatchResult::Yield)
 }
 """)
 

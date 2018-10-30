@@ -2,10 +2,11 @@ use super::Context;
 
 use beam::disp_result::{DispatchResult};
 use bif;
-use emulator::code_srv::CodeServer;
+use emulator::code_srv::{CodeServer};
 use emulator::process::{Process};
 use emulator::runtime_ctx::call_bif::{CallBifTarget};
 use emulator::runtime_ctx::call_bif;
+use fail::{Hopefully};
 use rt_defs::{Arity};
 use term::boxed;
 use term::lterm::*;
@@ -21,7 +22,7 @@ pub fn apply(ctx: &mut Context,
              export: *const boxed::Export,
              args: &[LTerm],
              save_cp: bool,
-             code_server: &mut CodeServer) -> DispatchResult
+             code_server: &mut CodeServer) -> Hopefully<DispatchResult>
 {
   // The `fobj` is a callable closure made with `fun() -> code end`
   let arity = args.len();
@@ -30,7 +31,7 @@ pub fn apply(ctx: &mut Context,
   let mfa = unsafe { (*export).exp.mfa };
   if mfa.arity != arity as Arity {
     println!("{}badarity target_arity={} expected_arity={}", module(), mfa.arity, arity);
-    return DispatchResult::badarity()
+    return Ok(DispatchResult::badarity())
   }
 
   if bif::is_bif(&mfa) {
@@ -45,10 +46,12 @@ pub fn apply(ctx: &mut Context,
         if save_cp { ctx.cp = ctx.ip }
         ctx.ip = ip
       },
-      Err(_e) => return DispatchResult::undef()
+      Err(_e) => {
+        return Ok(DispatchResult::undef())
+      }
     }
   }
 
   //panic!("call_export")
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }

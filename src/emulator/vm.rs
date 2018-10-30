@@ -66,7 +66,7 @@ impl VM {
   /// Time slice ends when a current process yields or when reduction count
   /// reaches zero.
   /// Returns: false if VM has quit, true if can continue.
-  pub fn tick(&mut self) -> bool {
+  pub fn tick(&mut self) -> Hopefully<bool> {
     self.dispatch()
   }
 

@@ -1,18 +1,19 @@
+use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
 use emulator::code::{CodePtr};
+use emulator::heap::{IHeap};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
-use beam::disp_result::{DispatchResult};
-use emulator::heap::{IHeap};
+use emulator::vm::{VM};
+use fail::{Hopefully};
 use rt_defs::stack::{IStack};
-use emulator::vm::VM;
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
 pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
-                            curr_p: &mut Process) -> DispatchResult {
+                            curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: allocate_zero(need:int, live:int)
   assert_arity(gen_op::OPCODE_ALLOCATE_ZERO, 2);
 
@@ -32,14 +33,14 @@ pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
   }
 
   // hp.stack_info();
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
 pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> DispatchResult {
+                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
   opcode_allocate_zero(vm, ctx, curr_p)
 }
 
@@ -48,7 +49,7 @@ pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
 /// words from the stack.
 #[inline]
 pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
-                         curr_p: &mut Process) -> DispatchResult {
+                         curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: deallocate(n:int)
   assert_arity(gen_op::OPCODE_DEALLOCATE, 1);
 
@@ -57,7 +58,7 @@ pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
   let new_cp = curr_p.heap.stack_deallocate(n_free);
   ctx.cp = CodePtr::from_cp(new_cp);
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }
 
 
@@ -65,7 +66,7 @@ pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
 /// GC using `live` amount of registers as a part of root set.
 #[inline]
 pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
-                        curr_p: &mut Process) -> DispatchResult {
+                        curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: test_heap(heap_need:int, live:int)
   assert_arity(gen_op::OPCODE_TEST_HEAP, 2);
 
@@ -77,5 +78,5 @@ pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
     panic!("TODO GC here or fail");
   }
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }

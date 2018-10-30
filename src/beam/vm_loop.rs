@@ -5,7 +5,8 @@ use emulator::code::{opcode, CodePtr};
 use emulator::disasm;
 use emulator::runtime_ctx::{Context};
 use emulator::scheduler::{SliceResult};
-use emulator::vm::VM;
+use emulator::vm::{VM};
+use fail::{Hopefully};
 
 //fn module() -> &'static str { "vm_loop: " }
 
@@ -15,12 +16,12 @@ impl VM {
   /// Fetch an opcode and execute it.
   /// Reduce the reduction (instruction) count and once it reaches zero, return.
   /// Call dispatch again to schedule another process.
-  pub fn dispatch(&mut self) -> bool {
+  pub fn dispatch(&mut self) -> Hopefully<bool> {
     let mut ctx = Context::new(CodePtr::null());
 
     let mut scheduler = self.scheduler.borrow_mut();
     let curr_p = match scheduler.next_process() {
-      None => return false,
+      None => return Ok(false),
       Some(p) => scheduler.lookup_pid_mut(p).unwrap()
     };
     ctx.copy_from(&curr_p.context); // swapin
@@ -38,17 +39,17 @@ impl VM {
               "Opcode too big (wrong memory address?) got 0x{:x}", op.get());
 
       // Handle next opcode
-      match dispatch_op_inline(self, op, &mut ctx, curr_p) {
+      match dispatch_op_inline(self, op, &mut ctx, curr_p)? {
         DispatchResult::Yield => {
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Yield;
-          return true
+          return Ok(true)
         },
-        DispatchResult::Error(exc_type, exc_reason) => {
+        DispatchResult::Exc(exc_type, exc_reason) => {
           curr_p.exception(exc_type, exc_reason);
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Exception;
-          return true
+          return Ok(true)
         },
         DispatchResult::Normal => {
           curr_p.timeslice_result = SliceResult::None;

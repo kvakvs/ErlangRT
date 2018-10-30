@@ -1,7 +1,7 @@
-use std::convert::From;
+//use std::convert::From;
 use std::fmt;
 
-use fail;
+//use fail;
 use term::lterm::LTerm;
 use rt_defs::{ExceptionType};
 
@@ -13,14 +13,12 @@ pub enum BifResult {
   Value(LTerm),
   /// The bif has created an exception.
   Exception(ExceptionType, LTerm),
-  /// Something has failed in the runtime.
-  Fail(fail::Error),
 }
 
 
-impl From<fail::Error> for BifResult {
-  fn from(e: fail::Error) -> Self { BifResult::Fail(e) }
-}
+//impl From<fail::Error> for BifResult {
+//  fn from(e: fail::Error) -> Self { BifResult::Fail(e) }
+//}
 
 
 impl fmt::Display for BifResult {
@@ -28,7 +26,7 @@ impl fmt::Display for BifResult {
     match *self {
       BifResult::Value(t) => write!(f, "Value({})", t),
       BifResult::Exception(et, rsn) => write!(f, "Exc({:?}, {})", et, rsn),
-      BifResult::Fail(ref e) => write!(f, "{:?}", e),
+//      BifResult::Fail(ref e) => write!(f, "{:?}", e),
     }
   }
 }

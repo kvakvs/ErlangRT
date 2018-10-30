@@ -10,10 +10,11 @@ use beam::disp_result::{DispatchResult};
 use emulator::code::opcode::RawOpcode;
 use emulator::process::Process;
 use emulator::runtime_ctx::Context;
+use fail::{Hopefully};
 
 
 #[inline]
-pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> DispatchResult {
+pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> Hopefully<DispatchResult> {
   match op {
     gen_op::OPCODE_FUNC_INFO => return opcode_func_info(vm, ctx, curr_p),
     gen_op::OPCODE_CALL => return opcode_call(vm, ctx, curr_p),
@@ -45,6 +46,6 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
     gen_op::OPCODE_GC_BIF3 => return opcode_gc_bif3(vm, ctx, curr_p),
     other => unknown_opcode(other, ctx),
   }
-  DispatchResult::Yield
+  Ok(DispatchResult::Yield)
 }
 

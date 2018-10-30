@@ -136,6 +136,22 @@ impl LTerm {
   }
 
 
+  pub fn get_box_ptr_safe<T>(self) -> Hopefully<*const T> {
+    if !self.is_boxed() {
+      return Err(Error::TermIsNotABoxed)
+    }
+    Ok(self.p as *const T)
+  }
+
+
+  pub fn get_box_ptr_safe_mut<T>(self) -> Hopefully<*mut T> {
+    if !self.is_boxed() {
+      return Err(Error::TermIsNotABoxed)
+    }
+    Ok(self.p as *mut T)
+  }
+
+
   pub fn is_binary(self) -> bool {
     self.is_boxed() && self.p.t == BoxTypeTag::Binary
   }

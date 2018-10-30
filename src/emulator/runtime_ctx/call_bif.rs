@@ -7,11 +7,11 @@ use bif;
 use emulator::code::{CodePtr};
 use emulator::mfa::{MFArity};
 use emulator::process::{Process};
-use fail;
 use term::lterm::*;
 
 use std::slice;
 use term::boxed::import;
+use fail::Hopefully;
 
 
 fn module() -> &'static str { "runtime_ctx.call_bif: " }
@@ -55,20 +55,19 @@ pub fn apply(ctx: &mut Context,
              target: CallBifTarget,
              args: &[LTerm],
              dst: LTerm,
-             gc: bool) -> DispatchResult
+             gc: bool) -> Hopefully<DispatchResult>
 {
   let maybe_bif_fn =
     match target {
       CallBifTarget::ImportTerm(ho_imp) =>
-        callbif_resolve_import(ho_imp),
+        callbif_resolve_import(ho_imp)?,
 
-      CallBifTarget::MFArity(mfa) => callbif_resolve_mfa(&mfa),
+      CallBifTarget::MFArity(mfa) =>
+        callbif_resolve_mfa(&mfa)?,
 
       CallBifTarget::ImportPointer(ho_imp_ptr) => {
-        match unsafe { (*ho_imp_ptr).resolve_bif() } {
-          Ok(fn_ptr) => BifResolutionResult::FnPointer(fn_ptr),
-          Err(e) => BifResolutionResult::Fail(e),
-        }
+        let fn_ptr = unsafe { (*ho_imp_ptr).resolve_bif()? };
+        BifResolutionResult::FnPointer(fn_ptr)
       },
 
       CallBifTarget::BifFnPointer(fn_ptr) =>
@@ -78,13 +77,17 @@ pub fn apply(ctx: &mut Context,
   // Now having resolved the bif function, let's call it
 
   let bif_result = match maybe_bif_fn {
-    BifResolutionResult::FnPointer(fn_ptr) =>
-      callbif_apply_bif(ctx, curr_p, fn_ptr, args),
+    BifResolutionResult::FnPointer(fn_ptr) => {
+      callbif_apply_bif(ctx, curr_p, fn_ptr, args)
+    },
 
-    BifResolutionResult::BadfunError(badfun_val) =>
-      return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap),
+    BifResolutionResult::BadfunError(badfun_val) => {
+      return Ok(DispatchResult::badfun_val(badfun_val, &mut curr_p.heap))
+    },
 
-    BifResolutionResult::Fail(e) => return callbif_handle_fail(&e),
+//    BifResolutionResult::Fail(e) => {
+//      return callbif_handle_fail(&e)
+//    },
   };
 
   // Now having called the function let's see if there was some good result or
@@ -100,67 +103,53 @@ pub fn apply(ctx: &mut Context,
         ctx.ip = CodePtr::from_cp(fail_label)
       }
       // Set exception via dispatchresult
-      DispatchResult::Error(ex_type, ex_reason)
+      Ok(DispatchResult::Exc(ex_type, ex_reason))
     },
 
-    BifResult::Fail(f) =>
-      callbif_handle_fail(&f),
+//    BifResult::Fail(f) =>
+//      callbif_handle_fail(&f),
 
     BifResult::Value(val) => {
       // if dst is not NIL, store the result in it
       if dst != LTerm::nil() {
         ctx.store(val, dst, &mut curr_p.heap)
       }
-      DispatchResult::Normal
+      Ok(DispatchResult::Normal)
     },
   }
 }
 
 
-#[inline]
-fn callbif_handle_fail(e: &fail::Error) -> DispatchResult {
-  panic!("{}bif call failed with {:?}", module(), e)
-}
+//#[inline]
+//fn callbif_handle_fail(e: &fail::Error) -> Hopefully<DispatchResult> {
+//  panic!("{}bif call failed with {:?}", module(), e)
+//}
 
 
 enum BifResolutionResult {
   FnPointer(BifFn),
-  BadfunError(LTerm),
-  Fail(fail::Error),
+  BadfunError(LTerm)
 }
 
 
 /// Given a term with import, resolve it to a bif function pointer or fail.
 /// Return: A bif function or an error
-#[inline]
-fn callbif_resolve_import(imp: LTerm) -> BifResolutionResult
+fn callbif_resolve_import(imp: LTerm) -> Hopefully<BifResolutionResult>
 {
   // Possibly a boxed::Import object on heap which contains m:f/arity
-  let tmp1 = unsafe { imp.get_box_ptr::<LTerm>() };
-
-  let import = match tmp1 {
-    Ok(i) => i,
-    Err(_e1) => {
-      // Repack the dispatchresult exception into bifresult exception
-      return BifResolutionResult::BadfunError(imp)
-    },
-  };
+  let imp_p = unsafe { imp.get_box_ptr_safe::<import::Import>()? };
 
   // Here HOImport pointer is found, try and resolve it to a Rust function ptr
-  match unsafe { (*import).resolve_bif() } {
-    Ok(fn_ptr) => BifResolutionResult::FnPointer(fn_ptr),
-    Err(e) => BifResolutionResult::Fail(e),
-  }
+  let fn_ptr = unsafe { (*imp_p).resolve_bif()? };
+  Ok(BifResolutionResult::FnPointer(fn_ptr))
 }
 
 
 /// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.
+// TODO: Remove this and call find_bif directly
 #[inline]
-fn callbif_resolve_mfa(mfa: &MFArity) -> BifResolutionResult {
-  match bif::find_bif(&mfa) {
-    Ok(fn_ptr) => BifResolutionResult::FnPointer(fn_ptr),
-    Err(e) => BifResolutionResult::Fail(e),
-  }
+fn callbif_resolve_mfa(mfa: &MFArity) -> Hopefully<BifResolutionResult> {
+  Ok(BifResolutionResult::FnPointer(bif::find_bif(&mfa)?))
 }
 
 

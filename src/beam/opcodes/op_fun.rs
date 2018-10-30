@@ -1,20 +1,21 @@
 //! Module implements opcodes related to function objects/lambdas.
 
-use beam::disp_result::DispatchResult;
+use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
-use term::boxed;
-use emulator::function::FunEntry;
-use emulator::process::Process;
+use emulator::function::{FunEntry};
+use emulator::process::{Process};
+use emulator::runtime_ctx::{Context};
 use emulator::runtime_ctx;
-use emulator::runtime_ctx::Context;
-use emulator::vm::VM;
+use emulator::vm::{VM};
+use fail::{Hopefully};
 use std::slice;
+use term::boxed;
 
 
 #[inline]
 pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
-                        curr_p: &mut Process) -> DispatchResult {
+                        curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: make_fun2(lambda_index:uint)
   // on load the argument is rewritten with a pointer to the funentry
   assert_arity(gen_op::OPCODE_MAKE_FUN2, 1);
@@ -33,13 +34,13 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
   };
   ctx.regs[0] = closure;
 
-  DispatchResult::Normal
+  Ok(DispatchResult::Normal)
 }
 
 
 #[inline]
 pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> DispatchResult {
+                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
   // Structure: call_fun(arity:uint)
   // Expects: x[0..arity-1] = args. x[arity] = fun object
   assert_arity(gen_op::OPCODE_CALL_FUN, 1);
@@ -59,6 +60,6 @@ pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
       vm.code_server.borrow_mut().as_mut()
     )
   } else {
-    return DispatchResult::badfun()
+    return Ok(DispatchResult::badfun())
   }
 }

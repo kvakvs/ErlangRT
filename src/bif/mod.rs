@@ -31,7 +31,7 @@ use bif::result::{BifResult};
 /// its name and hardcoded in its code), and returns an `LTerm`.
 /// In case of error the `NON_VALUE` should be returned and the process is
 /// informed about error situation (error reason and type are set etc).
-pub type BifFn = fn(cur_proc: &mut Process, args: &[LTerm]) -> BifResult;
+pub type BifFn = fn(cur_proc: &mut Process, args: &[LTerm]) -> Hopefully<BifResult>;
 
 pub fn is_bif(mfa: &MFArity) -> bool {
   // Naive implementation. TODO: Binary search or a hashmap

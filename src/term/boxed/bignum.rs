@@ -1,11 +1,9 @@
 use num::bigint::BigInt;
 
 use emulator::heap::{Heap};
-use fail::Hopefully;
+use fail::{Hopefully};
 use rt_defs::{storage_bytes_to_words};
-//use rt_defs::{Word};
-use term::boxed::BoxHeader;
-use term::lterm::*;
+use term::boxed::{BoxHeader};
 
 use core::ptr;
 use std::mem::size_of;
@@ -35,11 +33,6 @@ impl Bignum {
     ptr::write(this, Bignum::new(n_words, value));
 
     Ok(this)
-  }
-
-
-  pub fn make_term(this: *const Bignum) -> LTerm {
-    LTerm::make_boxed(&this.header)
   }
 
 }

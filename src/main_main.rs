@@ -34,7 +34,7 @@ pub fn entrypoint() {
   ).unwrap();
 
   println!("Process created. Entering main loop...");
-  while beam.tick() {
+  while beam.tick()? {
     thread::sleep(time::Duration::from_millis(0));
   }
 }
