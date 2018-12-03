@@ -1,6 +1,5 @@
 //! Term ordering and classification.
 
-use rt_defs::*;
 use term::boxed;
 use term::lterm::*;
 use term::boxed::BoxHeader;
@@ -48,19 +47,19 @@ pub enum TermClass {
 pub fn classify_term(t: LTerm) -> TermClass {
   let v = t.raw();
   match t.get_term_tag() {
-    TermTag::Boxed => {
+    TERMTAG_BOXED => {
       if t.is_cp() {
         return TermClass::Special_;
       } else {
         unsafe { classify_boxed(t) }
       }
     },
-    TermTag::Header => TermClass::Special_, // won't look into the header
-    TermTag::Small => TermClass::Number,
-    TermTag::Atom => TermClass::Atom,
-    TermTag::LocalPid => TermClass::Pid,
-    TermTag::LocalPort => TermClass::Port,
-    TermTag::Special => classify_special(t),
+    TERMTAG_SMALL => TermClass::Number,
+    TERMTAG_HEADER => TermClass::Special_, // won't look into the header
+    TERMTAG_ATOM => TermClass::Atom,
+    TERMTAG_LOCALPID => TermClass::Pid,
+    TERMTAG_LOCALPORT => TermClass::Port,
+    TERMTAG_SPECIAL => classify_special(t),
     _ => panic!("{}Invalid primary tag", module())
   }
 }
@@ -68,15 +67,15 @@ pub fn classify_term(t: LTerm) -> TermClass {
 
 fn classify_special(val: LTerm) -> TermClass {
   match val.get_special_tag() {
-    SpecialTag::Const => {
+    SPECIALTAG_CONST => {
       if val == LTerm::nil() { TermClass::List }
       else if val == LTerm::empty_binary() { TermClass::Binary }
       else if val == LTerm::empty_tuple() { TermClass::Tuple }
       else { TermClass::Special_ }
     },
-    SpecialTag::RegX |
-    SpecialTag::RegY |
-    SpecialTag::RegFP => TermClass::Special_,
+    SPECIALTAG_REGX |
+    SPECIALTAG_REGY |
+    SPECIALTAG_REGFP => TermClass::Special_,
   }
 }
 
@@ -87,13 +86,13 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
   let val_box_ptr = val.get_box_ptr::<BoxHeader>();
   let box_tag = (*val_box_ptr).get_tag();
   match box_tag {
-    boxed::BoxTypeTag::Tuple => TermClass::Tuple,
-    boxed::BoxTypeTag::Binary => TermClass::Binary,
-    boxed::BoxTypeTag::Tuple => TermClass::Tuple,
-    boxed::BoxTypeTag::ExternalPid => TermClass::Pid,
-    boxed::BoxTypeTag::ExternalRef => TermClass::Ref,
-    boxed::BoxTypeTag::Closure => TermClass::Fun,
-    boxed::BoxTypeTag::Float => TermClass::Number,
+    boxed::BOXTYPETAG_TUPLE => TermClass::Tuple,
+    boxed::BOXTYPETAG_BINARY => TermClass::Binary,
+    boxed::BOXTYPETAG_TUPLE => TermClass::Tuple,
+    boxed::BOXTYPETAG_EXTERNALPID => TermClass::Pid,
+    boxed::BOXTYPETAG_EXTERNALREF => TermClass::Ref,
+    boxed::BOXTYPETAG_CLOSURE => TermClass::Fun,
+    boxed::BOXTYPETAG_FLOAT => TermClass::Number,
     _ => panic!("classify: Unexpected boxed_tag={:?} raw={}",
                 box_tag, val.raw())
   }

@@ -80,10 +80,10 @@ fn shared_equality_opcode(_vm: &VM, ctx: &mut Context,
 
   if invert {
     // Invert defines opposite meaning, desired result becomes undesired
-    if compare::cmp_terms(a, b, exact) == desired_result {
+    if compare::cmp_terms(a, b, exact)? == desired_result {
       ctx.ip = CodePtr::from_cp(fail_label)
     }
-  } else if compare::cmp_terms(a, b, exact) != desired_result {
+  } else if compare::cmp_terms(a, b, exact)? != desired_result {
     // Other than desired_recult will cause jump to 'fail'
     ctx.ip = CodePtr::from_cp(fail_label)
   }

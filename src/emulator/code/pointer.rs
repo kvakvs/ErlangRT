@@ -2,7 +2,7 @@
 
 use emulator::code_srv::CodeServer;
 use emulator::code_srv::module_id::{VersionedModuleId};
-use rt_defs::{TermTag, Word};
+use rt_defs::{Word};
 use term::lterm::*;
 
 use std::fmt;
@@ -74,7 +74,7 @@ impl CodePtr {
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
-      assert!(p.is_null() || (*p).get_term_tag() == TermTag::Special,
+      assert!(p.is_null() || (*p).get_term_tag() == TERMTAG_SPECIAL,
               "A CodePtr must be null or point to an imm3 tagged opcode");
     }
     CodePtr::new(p)

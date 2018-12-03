@@ -2,7 +2,6 @@
 use emulator::heap::IHeapIterator;
 use term::lterm::LTerm;
 use term::boxed;
-use rt_defs::TermTag;
 
 
 // This is used by heap walkers such as "dump.rs"
@@ -26,7 +25,7 @@ impl IHeapIterator<*const LTerm> for HeapIterator {
     // using header arity. Otherwise step by 1 cell
     let val = *self.p;
     let size = match val.get_term_tag() {
-      TermTag::Header => boxed::headerword_to_arity(val.raw()),
+      TERMTAG_HEADER => boxed::headerword_to_arity(val.raw()),
       _ => 1usize,
     };
 

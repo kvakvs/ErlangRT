@@ -25,6 +25,7 @@ pub use self::tuple::{Tuple};
 pub mod cons;
 pub use self::cons::{Cons};
 use rt_defs::*;
+use term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK};
 
 //
 // Structure of a header word:
@@ -35,19 +36,27 @@ const HEADER_TAG_BITS: Word = 3;
 const HEADER_TAG_MASK: Word = (1 << HEADER_TAG_BITS) - 1;
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum BoxTypeTag {
-  Tuple,
-  Binary,
-  BigInteger,
-  ExternalPid,
-  ExternalRef,
-  ExternalPort,
-  Closure,
-  // A function object with frozen (captured) variable values
-  Float,
-  Import,
-  Export,
+pub struct BoxTypeTag(Word);
+
+impl BoxTypeTag {
+  #[inline]
+  pub fn get(self) -> Word {
+    let BoxTypeTag(t) = self;
+    t
+  }
 }
+
+pub const BOXTYPETAG_TUPLE: BoxTypeTag = BoxTypeTag(0);
+pub const BOXTYPETAG_BINARY: BoxTypeTag = BoxTypeTag(1);
+pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(2);
+pub const BOXTYPETAG_EXTERNALPID: BoxTypeTag = BoxTypeTag(3);
+pub const BOXTYPETAG_EXTERNALREF: BoxTypeTag = BoxTypeTag(4);
+pub const BOXTYPETAG_EXTERNALPORT: BoxTypeTag = BoxTypeTag(5);
+// A function object with frozen (captured) variable values
+pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(9);
+pub const BOXTYPETAG_CLOSURE: BoxTypeTag = BoxTypeTag(6);
+pub const BOXTYPETAG_FLOAT: BoxTypeTag = BoxTypeTag(7);
+pub const BOXTYPETAG_IMPORT: BoxTypeTag = BoxTypeTag(8);
 
 /// Term header in memory, followed by corresponding data.
 pub struct BoxHeader {
@@ -57,7 +66,7 @@ pub struct BoxHeader {
 impl BoxHeader {
   pub fn new(t: BoxTypeTag, arity: Word) -> BoxHeader {
     BoxHeader {
-      header_word: (arity << HEADER_TAG_BITS | t) << TERM_TAG_BITS | TermTag::Header
+      header_word: (arity << HEADER_TAG_BITS | t) << TERM_TAG_BITS | TERMTAG_HEADER.get()
     }
   }
 
@@ -83,5 +92,5 @@ pub fn headerword_to_arity(w: Word) -> Word {
 
 
 pub fn headerword_to_boxtype(w: Word) -> BoxTypeTag {
-  (w & TERM_TAG_MASK) as BoxTypeTag
+  BoxTypeTag(w & TERM_TAG_MASK)
 }

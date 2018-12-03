@@ -31,7 +31,7 @@ fn shared_eq(args: &[LTerm], exact: bool) -> Hopefully<LTerm> {
   let a: LTerm = args[0];
   let b: LTerm = args[1];
 
-  match cmp_terms(a, b, exact) {
+  match cmp_terms(a, b, exact)? {
     Ordering::Equal => {
       Ok(gen_atoms::TRUE)
     },

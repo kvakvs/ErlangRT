@@ -26,7 +26,7 @@ impl TupleBuilder {
 
 impl ITupleBuilder<LTerm> for TupleBuilder {
   unsafe fn set_element_base0(&mut self, i: usize, val: LTerm) {
-    self.p.set_element_base0(i, val)
+    boxed::Tuple::set_element_base0(self.p, i, val)
   }
 
   fn make_term(&self) -> LTerm {

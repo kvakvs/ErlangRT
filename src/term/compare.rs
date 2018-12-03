@@ -2,7 +2,7 @@ use emulator::atom;
 use std::cmp::Ordering;
 use term::classify;
 use term::lterm::*;
-use rt_defs::TermTag;
+use fail::Hopefully;
 
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
@@ -29,7 +29,7 @@ enum EqResult {
 
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
-pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
+pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Hopefully<Ordering> {
   // Comparison might want to recurse, to avoid stack growth, do a switch here
   // and continue comparing. We grow `stack` instead of a CPU stack.
   let mut stack = Vec::<ContinueCompare>::new();
@@ -39,7 +39,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
     let eq_result = match op {
       ContinueCompare::AnyType(a1, b1) |
       ContinueCompare::Cons(a1, b1) => {
-        cmp_terms_any_type(a1, b1, exact)
+        cmp_terms_any_type(a1, b1, exact)?
       },
     };
 
@@ -47,7 +47,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
       EqResult::Concluded(result) if result == Ordering::Equal => {
         if stack.is_empty() {
           //println!("comparison {} {} concluded {:?}", a, b, result);
-          return result
+          return Ok(result)
         } else {
           //println!("comparison {} {} got intermediate result {:?}", a, b, result);
           op = stack.pop().unwrap();
@@ -55,7 +55,9 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
         } // stack not empty
       },
 
-      EqResult::Concluded(result) => return result,
+      EqResult::Concluded(result) => {
+        return Ok(result)
+      },
 
       // Nested terms may accidentally compare equal, to be able to return and
       // continue comparing upper level term, we store a `continue_op` on
@@ -70,12 +72,12 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Ordering {
 }
 
 
-fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
+fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
   //println!("cmp any type {} {}", a, b);
 
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
-    return EqResult::Concluded(cmp_atoms(a, b));
+    return Ok(EqResult::Concluded(cmp_atoms(a, b)));
   }
 
   let a_is_small = a.is_small();
@@ -83,16 +85,16 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   if a_is_small && b_is_small {
     let a_small = a.get_small_signed();
     let b_small = b.get_small_signed();
-    return EqResult::Concluded(a_small.cmp(&b_small));
+    return Ok(EqResult::Concluded(a_small.cmp(&b_small)));
   }
 
   let a_is_float = unsafe { a.is_float() };
   let b_is_float = unsafe { b.is_float() };
   // If not exact then allow comparing float to int/bigint
   if !exact && (a_is_float || a_is_small) && (b_is_float || b_is_small) {
-    return EqResult::Concluded(cmp_numbers_not_exact(a, b));
+    return Ok(EqResult::Concluded(cmp_numbers_not_exact(a, b)));
   } else if a_is_float && b_is_float {
-    return EqResult::Concluded(cmp_floats(a, b))
+    return Ok(EqResult::Concluded(cmp_floats(a, b)))
   }
 
   // If types don't compare equal, we can stop comparing here?
@@ -150,7 +152,7 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
-fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
+fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
   let a_val = a.raw();
   let a_prim_tag = a.get_term_tag();
 
@@ -159,17 +161,17 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
   if b_prim_tag != a_prim_tag {
     // different primary types, compare their classes
     // This can be optimized a little but is there any value in optimization?
-    return EqResult::Concluded(cmp_type_order(a, b));
+    return Ok(EqResult::Concluded(cmp_type_order(a, b)));
   }
 
   match a_prim_tag {
-    TermTag::Boxed => {
+    TERMTAG_BOXED => {
       if a.is_cp() || b.is_cp() { panic!("eq_terms for CP is unsupported") }
       cmp_terms_box(a, b)
     },
     _ => {
       // Any non-boxed compare
-      EqResult::Concluded(cmp_terms_immed(a, b, exact))
+      Ok(EqResult::Concluded(cmp_terms_immed(a, b, exact)?))
     },
     _ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
@@ -177,7 +179,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 
 
 // TODO: If this function is used a lot, optimize by doing case on tag bits
-fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
+fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Hopefully<Ordering> {
   let av = a.raw();
   let bv = b.raw();
 
@@ -185,7 +187,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
       || a == LTerm::empty_tuple()
       || a == LTerm::empty_binary())
       && (a.raw() == b.raw()) {
-    return Ordering::Equal;
+    return Ok(Ordering::Equal);
   }
 
   if a.is_local_port() {
@@ -230,9 +232,9 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
     if a_tag == b_tag {
       let a_val = a.get_term_val_without_tag();
       let b_val = b.get_term_val_without_tag();
-      return a_val.cmp(&b_val);
+      return Ok(a_val.cmp(&b_val));
     }
-    return a_tag.cmp(&b_tag);
+    return Ok(a_tag.cmp(&b_tag));
   }
 
   panic!("TODO: eq_terms_immed {} {}", a, b)
@@ -240,7 +242,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
 
 
 #[inline]
-fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
+fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Hopefully<Ordering> {
   if a.is_tuple() {
     if b.is_tuple() {
       panic!("TODO: cmp tuple vs tuple")
@@ -252,7 +254,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
       if !b.is_flat_map() {
         if b.is_hash_map() {
           let b_size = b.map_size();
-          return a.map_size().cmp(&b_size)
+          return Ok(a.map_size().cmp(&b_size))
         }
       } else {
         // Compare two flat maps
@@ -261,7 +263,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
     } else if !b.is_hash_map() {
       if b.is_flat_map() {
         let b_size = b.map_size();
-        return a.map_size().cmp(&b_size)
+        return Ok(a.map_size().cmp(&b_size))
       }
     } else {
       // Compare two hash maps
@@ -285,9 +287,9 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
       // TODO: If b is integer and we don't do exact comparison?
       return cmp_mixed_types(a, b)
     } else {
-      let af = a.get_f64();
-      let bf = b.get_f64();
-      return af.partial_cmp(&bf).unwrap()
+      let a_float = a.get_f64()?;
+      let b_float = b.get_f64()?;
+      return Ok(a_float.partial_cmp(&b_float).unwrap())
     }
   } else if a.is_big_int() {
     if !b.is_big_int() {
@@ -357,7 +359,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
 
 
 /// Deeper comparison of two values with different types
-fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Ordering {
+fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Hopefully<Ordering> {
   panic!("TODO: cmp_mixed_types(a, b)")
 }
 
@@ -401,7 +403,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
 }
 
 
-fn cmp_terms_box(_a: LTerm, _b: LTerm) -> EqResult {
+fn cmp_terms_box(_a: LTerm, _b: LTerm) -> Hopefully<EqResult> {
   // TODO: see if cmp_terms_immed_box can be useful
   panic!("TODO: eq_terms_box")
 }

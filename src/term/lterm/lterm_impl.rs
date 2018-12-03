@@ -6,16 +6,86 @@
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
 use emulator::atom;
-use emulator::heap::{IHeap};
+use emulator::heap::IHeap;
 use rt_defs::*;
 use term::boxed;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
-use fail::{Hopefully,Error};
+use fail::{Hopefully, Error};
 use term::boxed::BoxTypeTag;
 use term::boxed::BoxHeader;
+use std::isize;
+
+//
+// Structure of term:
+// [ Value or a pointer ] [ TAG_* value 3 bits ]
+//
+
+pub const TERM_TAG_BITS: Word = 3;
+pub const TERM_TAG_MASK: Word = (1 << TERM_TAG_BITS) - 1;
+
+/// Max value for a positive small integer packed into immediate2 low level
+/// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
+pub const SMALLEST_SMALL: SWord = isize::MIN >> TERM_TAG_BITS;
+pub const LARGEST_SMALL: SWord = isize::MAX >> TERM_TAG_BITS;
+
+#[derive(Eq, PartialEq, Debug, Ord, PartialOrd)]
+pub struct TermTag(Word);
+
+impl TermTag {
+  #[inline]
+  pub fn get(self) -> Word {
+    let TermTag(t) = self;
+    t
+  }
+}
+
+pub const TERMTAG_BOXED: TermTag = TermTag(0);
+pub const TERMTAG_HEADER: TermTag = TermTag(1);
+pub const TERMTAG_CONS: TermTag = TermTag(2);
+// From here and below, values are immediate (fit into a single word)
+pub const TERMTAG_SMALL: TermTag = TermTag(3);
+pub const TERMTAG_ATOM: TermTag = TermTag(4);
+pub const TERMTAG_LOCALPID: TermTag = TermTag(5);
+pub const TERMTAG_LOCALPORT: TermTag = TermTag(6);
+pub const TERMTAG_SPECIAL: TermTag = TermTag(7);
+
+//
+// Structure of SPECIAL values,
+// they are plethora of term types requiring fewer bits or useful in other ways
+// [ special value ] [ VAL_SPECIAL_... 3 bits ] [ TAG_SPECIAL 3 bits ]
+//
+pub const TERM_SPECIAL_TAG_BITS: Word = 3;
+pub const TERM_SPECIAL_TAG_MASK: Word = (1 << TERM_SPECIAL_TAG_BITS) - 1;
+
+#[derive(Eq, PartialEq, Debug)]
+pub struct SpecialTag(Word);
+
+impl SpecialTag {
+  #[inline]
+  pub fn get(self) -> Word {
+    let SpecialTag(t) = self;
+    t
+  }
+}
+
+// special constants such as NIL, empty tuple, binary etc
+pub const SPECIALTAG_CONST: SpecialTag = SpecialTag(0);
+pub const SPECIALTAG_REGX: SpecialTag = SpecialTag(1);
+pub const SPECIALTAG_REGY: SpecialTag = SpecialTag(2);
+pub const SPECIALTAG_REGFP: SpecialTag = SpecialTag(3);
+// decorates opcodes for easier code walking
+pub const SPECIALTAG_OPCODE: SpecialTag = SpecialTag(4);
+
+
+pub struct SpecialConst(Word);
+
+pub const SPECIALCONST_NIL: SpecialTag = SpecialTag(0);
+pub const SPECIALCONST_EMPTYTUPLE: SpecialTag = SpecialTag(1);
+pub const SPECIALCONST_EMPTYLIST: SpecialTag = SpecialTag(2);
+pub const SPECIALCONST_EMPTYBINARY: SpecialTag = SpecialTag(3);
 
 
 /// A low-level term is either a pointer to memory term or an Immediate with
@@ -43,7 +113,6 @@ impl PartialOrd for LTerm {
 // TODO: Remove deadcode directive later and fix
 #[allow(dead_code)]
 impl LTerm {
-
   /// Retrieve the raw value of a `LTerm` as Word, including tag bits
   /// and everything.
   #[inline]
@@ -52,7 +121,7 @@ impl LTerm {
 
   #[inline]
   pub const fn make_atom(id: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TermTag::Atom, id)
+    LTerm::make_from_tag_and_value(TERMTAG_ATOM, id)
   }
 
 
@@ -66,27 +135,32 @@ impl LTerm {
 
   #[inline]
   pub const fn empty_tuple() -> LTerm {
-    LTerm::make_special(SpecialTag::Const,
-                        SpecialConst::EmptyTuple as Word)
+    LTerm::make_special(SPECIALTAG_CONST,
+                        SPECIALCONST_EMPTYTUPLE.get())
   }
 
 
   #[inline]
   pub const fn empty_binary() -> LTerm {
-    LTerm::make_special(SpecialTag::Const,
-                        SpecialConst::EmptyBinary)
+    LTerm::make_special(SPECIALTAG_CONST,
+                        SPECIALCONST_EMPTYBINARY.get())
   }
 
 
   #[inline]
   pub const fn nil() -> LTerm {
-    LTerm::make_special(SpecialTag::Const,
-                        SpecialConst::EmptyList)
+    LTerm::make_special(SPECIALTAG_CONST,
+                        SPECIALCONST_EMPTYLIST.get())
   }
 
 
-  pub const fn make_from_tag_and_value<VType>(t: TermTag, v: VType) -> LTerm {
-    LTerm::from_raw(v << TERM_TAG_BITS | (t as Word))
+  pub const fn make_from_tag_and_value(t: TermTag, v: Word) -> LTerm {
+    LTerm::from_raw(v << TERM_TAG_BITS | t.get())
+  }
+
+  pub const fn make_from_tag_and_signed_value(t: TermTag, v: SWord) -> LTerm {
+    let raw = v << TERM_TAG_BITS | (t.get() as SWord);
+    LTerm::from_raw(raw as Word)
   }
 
 
@@ -104,87 +178,88 @@ impl LTerm {
 
   /// Check whether a value is a NON_VALUE.
   pub const fn is_non_value(self) -> bool {
-    self.p.is_null()
+    self.value == 0
   }
 
 
   /// Check whether a value is NOT a NON_VALUE.
-  #[inline]
-  pub fn is_value(self) -> bool {
-    ! self.p.is_null()
+  pub const fn is_value(self) -> bool {
+    !self.is_non_value()
   }
 
 
   /// Get tag bits from the p field as integer.
   #[inline]
   pub const fn get_term_tag(self) -> TermTag {
-    self.raw() & TERM_TAG_MASK
+    TermTag(self.raw() & TERM_TAG_MASK)
   }
 
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
   pub const fn is_boxed(self) -> bool {
-    self.get_term_tag() == TermTag::Boxed
+    self.get_term_tag() == TERMTAG_BOXED
   }
 
 
   pub fn get_box_ptr<T>(self) -> *const T {
-    self.p as *const T
+    assert!(self.is_boxed());
+    self.value as *const T
   }
 
 
   pub fn get_box_ptr_mut<T>(self) -> *mut T {
-    self.p as *mut T
+    assert!(self.is_boxed());
+    self.value as *mut T
   }
 
 
   pub fn get_box_ptr_safe<T>(self) -> Hopefully<*const T> {
     if !self.is_boxed() {
-      return Err(Error::TermIsNotABoxed)
+      return Err(Error::TermIsNotABoxed);
     }
-    Ok(self.p as *const T)
+    Ok(self.value as *const T)
   }
 
 
   pub fn get_box_ptr_safe_mut<T>(self) -> Hopefully<*mut T> {
     if !self.is_boxed() {
-      return Err(Error::TermIsNotABoxed)
+      return Err(Error::TermIsNotABoxed);
     }
-    Ok(self.p as *mut T)
+    Ok(self.value as *mut T)
   }
 
 
   pub fn is_binary(self) -> bool {
-    self.is_boxed() && self.p.t == BoxTypeTag::Binary
+    self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
 
 
   pub fn is_immediate(self) -> bool {
-    self.get_term_tag() != TermTag::Boxed
+    self.get_term_tag() != TERMTAG_BOXED
   }
 
 
   /// Check whether the value is tagged as atom
   pub fn is_atom(self) -> bool {
-    self.get_term_tag() == TermTag::Atom
+    self.get_term_tag() == TERMTAG_ATOM
   }
 
 
   pub fn is_local_pid(self) -> bool {
-    self.get_term_tag() == TermTag::LocalPid
+    self.get_term_tag() == TERMTAG_LOCALPID
   }
 
 
   /// Check whether a lterm is boxed and then whether it points to a word of
   /// memory tagged as external pid
   pub fn is_external_pid(self) -> bool {
-    self.is_boxed_of_type(BoxTypeTag::ExternalPid)
+    self.is_boxed_of_type(boxed::BOXTYPETAG_EXTERNALPID)
   }
 
 
   #[inline]
   fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
-    if !self.is_boxed() { return false }
+    if !self.is_boxed() { return false; }
     let p = self.get_box_ptr::<BoxHeader>();
     unsafe { (*p).get_tag() == t }
   }
@@ -192,15 +267,15 @@ impl LTerm {
 
   /// Return true if a value's tag will fit into a single word
   pub fn is_internal_immediate(self) -> bool {
-    self.get_term_tag() == TermTag::Special
+    self.get_term_tag() == TERMTAG_SPECIAL
   }
 
 
   /// For non-pointer Term types get the encoded integer without tag bits
   pub const fn get_term_val_without_tag(self) -> Word {
-    debug_assert!(self.get_term_tag() != TermTag::Boxed
-        && self.get_term_tag() != TermTag::Cons);
-    (self.p as Word) >> TERM_TAG_BITS
+    debug_assert!(self.get_term_tag() != TERMTAG_BOXED
+        && self.get_term_tag() != TERMTAG_CONS);
+    self.value >> TERM_TAG_BITS
   }
 
   //
@@ -214,7 +289,7 @@ impl LTerm {
 
 
   pub fn make_local_pid(pindex: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TermTag::LocalPid, pindex)
+    LTerm::make_from_tag_and_value(TERMTAG_LOCALPID, pindex)
   }
 
 
@@ -228,37 +303,37 @@ impl LTerm {
 
   /// For a special-tagged term extract its special tag
   pub fn get_special_tag(self) -> SpecialTag {
-    debug_assert_eq!(self.get_term_tag(), TermTag::Special);
+    debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
     // cut away term tag bits and extract special tag
-    ((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK) as SpecialTag
+    SpecialTag((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK)
   }
 
 
   /// From a special-tagged term extract its value
   pub fn get_special_value(self) -> Word {
-    debug_assert_eq!(self.get_term_tag(), TermTag::Special);
+    debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
     // cut away term tag bits and special tag, extract the remaining value bits
     self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
   }
 
 
   pub const fn make_special(special_t: SpecialTag, val: Word) -> LTerm {
-    let special_v = val << TERM_SPECIAL_TAG_BITS | (special_t as Word);
-    LTerm::make_from_tag_and_value(TermTag::Special, special_v)
+    let special_v = val << TERM_SPECIAL_TAG_BITS | special_t.get();
+    LTerm::make_from_tag_and_value(TERMTAG_SPECIAL, special_v)
   }
 
 
   pub fn make_xreg(n: Word) -> LTerm {
-    LTerm::make_special(SpecialTag::RegX, n)
+    LTerm::make_special(SPECIALTAG_REGX, n)
   }
 
 
   pub fn make_yreg(n: Word) -> LTerm {
-    LTerm::make_special(SpecialTag::RegY, n)
+    LTerm::make_special(SPECIALTAG_REGY, n)
   }
 
   pub fn make_fpreg(n: Word) -> LTerm {
-    LTerm::make_special(SpecialTag::RegFP, n)
+    LTerm::make_special(SPECIALTAG_REGFP, n)
   }
 
 
@@ -270,7 +345,7 @@ impl LTerm {
 
   pub fn get_cp_ptr<T>(self) -> *const T {
     debug_assert_eq!(self.value & HIGHEST_BIT_CP, HIGHEST_BIT_CP);
-    self.p as *const T
+    (self.value & (HIGHEST_BIT_CP - 1)) as *const T
   }
 
 
@@ -279,7 +354,7 @@ impl LTerm {
   //
 
   pub fn is_tuple(self) -> bool {
-    self.is_boxed_of_type(BoxTypeTag::Tuple)
+    self.is_boxed_of_type(boxed::BOXTYPETAG_TUPLE)
   }
 
   //
@@ -293,24 +368,48 @@ impl LTerm {
 
   /// Check whether the value is a CONS pointer
   pub const fn is_cons(self) -> bool {
-    self.get_term_tag() == TermTag::Cons
+    self.get_term_tag() == TERMTAG_CONS
   }
 
   pub fn get_cons_ptr(self) -> *const boxed::Cons {
     debug_assert!(self.is_cons());
-    (self.p & !TERM_TAG_MASK) as *const boxed::Cons
+    (self.value & TERM_TAG_MASK) as *const boxed::Cons
   }
 
 
   pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
     debug_assert!(self.is_cons());
-    (self.p & !TERM_TAG_MASK) as *mut boxed::Cons
+    (self.value & TERM_TAG_MASK) as *mut boxed::Cons
   }
 
 
   /// Create a LTerm from pointer to Cons cell
   pub const fn make_cons(p: *const boxed::Cons) -> LTerm {
-    LTerm { value: (p as Word) | (TermTag::Cons as Word) }
+    LTerm { value: (p as Word) | TERMTAG_CONS.get() }
+  }
+
+
+  unsafe fn cons_is_ascii_string(&self) -> bool {
+    // TODO: List iterator
+    let mut cons_p = self.get_cons_ptr();
+    loop {
+      let hd = (*cons_p).hd();
+      if !hd.is_small() {
+        return false
+      }
+
+      let hd_value = hd.get_small_signed();
+      if hd_value < 32 || hd_value >= 127 {
+        return false
+      }
+
+      let tl = (*cons_p).tl();
+      if !tl.is_cons() {
+        // NIL [] tail is required for a true string
+        return tl == LTerm::nil()
+      }
+      cons_p = tl.get_cons_ptr();
+    }
   }
 
   //
@@ -319,21 +418,21 @@ impl LTerm {
 
   /// Check whether the value is a small integer
   pub const fn is_small(self) -> bool {
-    self.get_term_tag() == TermTag::Small
+    self.get_term_tag() == TERMTAG_SMALL
   }
 
 
   pub const fn make_small_unsigned(val: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TermTag::Small, val)
+    LTerm::make_from_tag_and_value(TERMTAG_SMALL, val)
   }
 
 
   pub const fn make_small_signed(val: SWord) -> LTerm {
-    LTerm::make_from_tag_and_value(TermTag::Small, val)
+    LTerm::make_from_tag_and_signed_value(TERMTAG_SMALL, val)
   }
 
 
-  pub const fn small_fits<T>(val: T) -> bool {
+  pub const fn small_fits(val: isize) -> bool {
     val >= SMALLEST_SMALL && val <= LARGEST_SMALL
   }
 
@@ -354,7 +453,7 @@ impl LTerm {
   /// Check whether a lterm is boxed and then whether it points to a word of
   /// memory tagged as float
   pub fn is_big_int(self) -> bool {
-    self.is_boxed_of_type(BoxTypeTag::BigInteger)
+    self.is_boxed_of_type(boxed::BOXTYPETAG_BIGINTEGER)
   }
 
 
@@ -375,11 +474,13 @@ impl LTerm {
   /// Check whether a lterm is boxed and then whether it points to a word of
   /// memory tagged as float
   pub fn is_float(self) -> bool {
-    self.is_boxed_of_type(BoxTypeTag::Float)
+    self.is_boxed_of_type(boxed::BOXTYPETAG_FLOAT)
   }
 
-  pub fn get_f64(self) -> f64 {
-    if !self.is_boxed() { return false }
+  pub fn get_f64(self) -> Hopefully<f64> {
+    if !self.is_boxed() {
+      return Err(Error::TermIsNotABoxed);
+    }
     let p = self.get_box_ptr::<BoxHeader>();
     panic!("notimpl: float box")
   }
@@ -424,34 +525,39 @@ impl LTerm {
   fn format_header(value_at_ptr: LTerm,
                    val_ptr: *const Word,
                    f: &mut fmt::Formatter) -> fmt::Result {
-    let arity = boxed::headerword_to_arity(value_at_ptr);
-    let h_tag = boxed::headerword_to_boxtype(value_at_ptr);
+    let arity = boxed::headerword_to_arity(value_at_ptr.raw());
+    let h_tag = boxed::headerword_to_boxtype(value_at_ptr.raw());
 
     match h_tag {
-      boxed::BoxTypeTag::Binary => write!(f, "Bin"),
-      boxed::BoxTypeTag::Tuple => {
+      boxed::BOXTYPETAG_BINARY => write!(f, "Bin"),
+      boxed::BOXTYPETAG_TUPLE => {
         unsafe { LTerm::format_tuple(val_ptr, f) }
-      },
-      boxed::BoxTypeTag::Closure => write!(f, "Fun"),
-      boxed::BoxTypeTag::Float => write!(f, "Float"),
-      boxed::BoxTypeTag::ExternalPid => write!(f, "ExtPid"),
-      boxed::BoxTypeTag::ExternalPort => write!(f, "ExtPort"),
-      boxed::BoxTypeTag::ExternalRef => write!(f, "ExtRef"),
+      }
+      boxed::BOXTYPETAG_CLOSURE => write!(f, "Fun"),
+      boxed::BOXTYPETAG_FLOAT => write!(f, "Float"),
+      boxed::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid"),
+      boxed::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort"),
+      boxed::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef"),
 
-      _ => panic!("Unexpected header tag {}", h_tag)
+      _ => panic!("Unexpected header tag {:?}", h_tag)
     }
   }
 
 
   /// Given `p`, a pointer to tuple header word, format tuple contents.
   unsafe fn format_tuple(p: *const Word, f: &mut fmt::Formatter) -> fmt::Result {
-    let tptr = boxed::Tuple::from_pointer(p);
+    let tptr = match boxed::Tuple::from_pointer(p) {
+      Ok(x) => x,
+      Err(e) => {
+        return write!(f, "<err formatting tuple: {:?}>", e)
+      },
+    };
 
     write!(f, "{{")?;
 
-    let arity = tptr.arity();
+    let arity = (*tptr).get_arity();
     for i in 0..arity {
-      write!(f, "{}", tptr.get_element_base0(i))?;
+      write!(f, "{}", boxed::Tuple::get_element_base0(tptr, i))?;
       if i < arity - 1 {
         write!(f, ", ")?
       }
@@ -465,8 +571,8 @@ impl LTerm {
 
     let mut raw_cons = self.get_cons_ptr();
     loop {
-      write!(f, "{}", raw_cons.hd())?;
-      let tl = raw_cons.tl();
+      write!(f, "{}", (*raw_cons).hd())?;
+      let tl = (*raw_cons).tl();
       if tl == LTerm::nil() {
         // Proper list ends here, do not show the tail
         break;
@@ -477,7 +583,7 @@ impl LTerm {
       } else {
         // Improper list, show tail
         write!(f, "| {}", tl)?;
-        break
+        break;
       }
     }
     write!(f, "]")
@@ -489,8 +595,8 @@ impl LTerm {
 
     let mut raw_cons = self.get_cons_ptr();
     loop {
-      write!(f, "{}", raw_cons.hd().get_small_unsigned() as u8 as char)?;
-      let tl = raw_cons.tl();
+      write!(f, "{}", (*raw_cons).hd().get_small_unsigned() as u8 as char)?;
+      let tl = (*raw_cons).tl();
       if tl == LTerm::nil() {
         // Proper list ends here, do not show the tail
         break;
@@ -511,7 +617,6 @@ impl LTerm {
   pub fn is_same(a: LTerm, b: LTerm) -> bool {
     a.raw() == b.raw()
   }
-
 }
 
 
@@ -519,43 +624,43 @@ impl LTerm {
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self.get_term_tag() {
-      TermTag::Boxed => unsafe {
-        let p = self.box_ptr();
-        if LTerm::is_cp() {
-          write!(f, "CP({:p})", self.cp_get_ptr())
+      TERMTAG_BOXED => unsafe {
+        if self.is_cp() {
+          write!(f, "CP({:p})", self.get_cp_ptr::<Word>())
         } else {
-          LTerm::format_header(*p, p, f)
+          let p = self.get_box_ptr();
+          LTerm::format_header(*p, p as *const Word, f)
         }
       },
 
-      TermTag::Cons => unsafe {
+      TERMTAG_CONS => unsafe {
         if self.cons_is_ascii_string() {
           self.format_cons_ascii(f)
         } else {
           self.format_cons(f)
         }
       },
-      TermTag::Small => write!(f, "{}", self.get_small_signed()),
-      TermTag::Special => self.format_special(f),
-      TermTag::LocalPid => {
+      TERMTAG_SMALL => write!(f, "{}", self.get_small_signed()),
+      TERMTAG_SPECIAL => self.format_special(f),
+      TERMTAG_LOCALPID => {
         write!(f, "LocalPid({})", self.get_term_val_without_tag())
-      },
-      TermTag::LocalPort => {
+      }
+      TERMTAG_LOCALPORT => {
         write!(f, "LocalPort({})", self.get_term_val_without_tag())
-      },
-      TermTag::Atom => {
+      }
+      TERMTAG_ATOM => {
         match atom::to_str(*self) {
           Ok(s) => write!(f, "'{}'", s),
           Err(_e) => write!(f, "Atom?"),
         }
-      },
-      TermTag::Header => {
+      }
+      TERMTAG_HEADER => {
         write!(f, "Header(")?;
         LTerm::format_header(*self, ptr::null(), f)?;
         write!(f, ")")
-      },
+      }
 
-      _ => panic!("Primary tag {} not recognized", self.get_term_tag())
+      _ => panic!("Primary tag {:?} not recognized", self.get_term_tag())
     }
   }
 } // trait Display
@@ -628,16 +733,16 @@ impl fmt::Display for LTerm {
 //}
 
 
-
 pub unsafe fn helper_get_const_from_boxed_term<T>(
   t: LTerm,
   box_type: BoxTypeTag,
-  err: Error
+  err: Error,
 ) -> Hopefully<*const T> {
-  if !t.is_boxed() { return Err(Error::TermIsNotABoxed) }
-  let cptr = t.get_box_ptr() as *const T;
-  if unsafe { cptr.header.t != box_type } {
-    return Err(err)
+  if !t.is_boxed() { return Err(Error::TermIsNotABoxed); }
+  let cptr = t.get_box_ptr::<T>();
+  let hptr = cptr as *const BoxHeader;
+  if unsafe { (*hptr).get_tag() != box_type } {
+    return Err(err);
   }
   Ok(cptr)
 }
@@ -646,10 +751,11 @@ pub unsafe fn helper_get_const_from_boxed_term<T>(
 pub unsafe fn helper_get_mut_from_boxed_term<T>(
   t: LTerm,
   box_type: BoxTypeTag,
-  err: Error
+  err: Error,
 ) -> Hopefully<*mut T> {
   debug_assert!(t.is_boxed());
-  let cptr = t.get_box_ptr() as *mut T;
-  unsafe { debug_assert_eq!(cptr.header.t, box_type) }
+  let cptr = t.get_box_ptr_mut::<T>();
+  let hptr = cptr as *const BoxHeader;
+  unsafe { debug_assert_eq!((*hptr).get_tag(), box_type) }
   Ok(cptr)
 }
