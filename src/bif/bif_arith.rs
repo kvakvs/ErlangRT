@@ -1,4 +1,3 @@
-use bif::result::{BifResult};
 use emulator::process::{Process};
 use fail::{Hopefully};
 use term::boxed;
@@ -13,7 +12,7 @@ fn module() -> &'static str { "bif_arith: " }
 /// Subtraction for 2 mixed terms. Algorithm comes from Erlang/OTP file
 /// `erl_arith.c`, function `erts_mixed_minus`
 pub fn ubif_sminus_2_2(cur_proc: &mut Process,
-                       args: &[LTerm]) -> Hopefully<BifResult> {
+                       args: &[LTerm]) -> Hopefully<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
@@ -31,7 +30,7 @@ pub fn ubif_sminus_2_2(cur_proc: &mut Process,
 
 /// Addition for 2 mixed terms.
 pub fn ubif_splus_2_2(cur_proc: &mut Process,
-                      args: &[LTerm]) -> Hopefully<BifResult> {
+                      args: &[LTerm]) -> Hopefully<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
@@ -49,13 +48,13 @@ pub fn ubif_splus_2_2(cur_proc: &mut Process,
 
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement subtraction, possibly creating a big integer.
-fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> Hopefully<BifResult>
+fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> Hopefully<LTerm>
 {
   // Both a and b are small, we've got an easy time
   let iresult = a.get_small_signed() - b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
-    return Ok(BifResult::Value(LTerm::make_small_signed(iresult)))
+    return Ok(LTerm::make_small_signed(iresult))
   }
 
   create_bigint(cur_proc, iresult)
@@ -64,19 +63,19 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> Hopefully<B
 
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement addition, possibly creating a big integer.
-fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> Hopefully<BifResult>
+fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> Hopefully<LTerm>
 {
   // Both a and b are small, we've got an easy time
   let iresult = a.get_small_signed() + b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
-    return Ok(BifResult::Value(LTerm::make_small_signed(iresult)))
+    return Ok(LTerm::make_small_signed(iresult))
   }
   create_bigint(cur_proc, iresult)
 }
 
 
-fn create_bigint(cur_proc: &mut Process, iresult: isize) -> Hopefully<BifResult> {
+fn create_bigint(cur_proc: &mut Process, iresult: isize) -> Hopefully<LTerm> {
   // We're out of luck - the result is not a small, but we have BigInt!
   let big = num::BigInt::from(iresult);
   // Place a new BigInt on heap
@@ -86,5 +85,5 @@ fn create_bigint(cur_proc: &mut Process, iresult: isize) -> Hopefully<BifResult>
     boxed::Bignum::create_into(heap, big)?
   };
 
-  Ok(BifResult::Value(LTerm::make_boxed(rbig_result)))
+  Ok(LTerm::make_boxed(rbig_result))
 }

@@ -7,6 +7,8 @@ use rt_util::ext_term_format;
 use emulator::heap::HeapError;
 
 use std::convert::From;
+use rt_defs::ExceptionType;
+use term::lterm::LTerm;
 
 
 // TODO: Rename to RTError-something
@@ -32,6 +34,7 @@ pub enum Error {
   //StackIndexRange,
 
   //--- VM Checks --
+  Exception(ExceptionType, LTerm), // type, value
   TermIsNotABoxed,
   BoxedIsNotAClosure,
   BoxedIsNotAnImport,

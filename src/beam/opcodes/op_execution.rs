@@ -135,7 +135,7 @@ fn shared_call_ext(vm: &VM, ctx: &mut Context,
     Err(_err) => {
       // Create a `{badfun, _}` error
       //panic!("bad call_ext target {}", imp0);
-      Ok(DispatchResult::badfun_val(imp0, &mut curr_p.heap))
+      DispatchResult::badfun_val(imp0, &mut curr_p.heap)
     }
   }
 }
@@ -187,5 +187,5 @@ pub fn opcode_badmatch(_vm: &VM, ctx: &mut Context,
 
   let hp = &mut curr_p.heap;
   let val = ctx.fetch_and_load(hp);
-  Ok(DispatchResult::badmatch_val(val, hp))
+  DispatchResult::badmatch_val(val, hp)
 }

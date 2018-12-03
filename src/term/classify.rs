@@ -3,6 +3,7 @@
 use rt_defs::*;
 use term::boxed;
 use term::lterm::*;
+use term::boxed::BoxHeader;
 
 
 fn module() -> &'static str { "classify: " }
@@ -47,8 +48,13 @@ pub enum TermClass {
 pub fn classify_term(t: LTerm) -> TermClass {
   let v = t.raw();
   match t.get_term_tag() {
-    TermTag::Boxed => unsafe { classify_boxed(t) },
-    TermTag::CP => return TermClass::Special_,
+    TermTag::Boxed => {
+      if t.is_cp() {
+        return TermClass::Special_;
+      } else {
+        unsafe { classify_boxed(t) }
+      }
+    },
     TermTag::Header => TermClass::Special_, // won't look into the header
     TermTag::Small => TermClass::Number,
     TermTag::Atom => TermClass::Atom,
@@ -62,9 +68,12 @@ pub fn classify_term(t: LTerm) -> TermClass {
 
 fn classify_special(val: LTerm) -> TermClass {
   match val.get_special_tag() {
-    SpecialTag::EmptyList => TermClass::List,
-    SpecialTag::EmptyTuple => TermClass::Tuple,
-    SpecialTag::EmptyBinary => TermClass::Binary,
+    SpecialTag::Const => {
+      if val == LTerm::nil() { TermClass::List }
+      else if val == LTerm::empty_binary() { TermClass::Binary }
+      else if val == LTerm::empty_tuple() { TermClass::Tuple }
+      else { TermClass::Special_ }
+    },
     SpecialTag::RegX |
     SpecialTag::RegY |
     SpecialTag::RegFP => TermClass::Special_,
@@ -75,8 +84,8 @@ fn classify_special(val: LTerm) -> TermClass {
 /// Given term's raw value `v` and the term itself, try and figure out the
 /// classification value for this term.
 unsafe fn classify_boxed(val: LTerm) -> TermClass {
-  let val_box_ptr = val.get_box_ptr();
-  let box_tag = val_box_ptr.get_tag();
+  let val_box_ptr = val.get_box_ptr::<BoxHeader>();
+  let box_tag = (*val_box_ptr).get_tag();
   match box_tag {
     boxed::BoxTypeTag::Tuple => TermClass::Tuple,
     boxed::BoxTypeTag::Binary => TermClass::Binary,
@@ -85,7 +94,7 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
     boxed::BoxTypeTag::ExternalRef => TermClass::Ref,
     boxed::BoxTypeTag::Closure => TermClass::Fun,
     boxed::BoxTypeTag::Float => TermClass::Number,
-    _ => panic!("classify: Unexpected boxed_tag={} raw={}",
+    _ => panic!("classify: Unexpected boxed_tag={:?} raw={}",
                 box_tag, val.raw())
   }
 }

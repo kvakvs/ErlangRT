@@ -60,6 +60,6 @@ pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
       vm.code_server.borrow_mut().as_mut()
     )
   } else {
-    return Ok(DispatchResult::badfun())
+    DispatchResult::badfun()
   }
 }

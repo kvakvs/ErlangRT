@@ -6,7 +6,6 @@ use term::lterm::{LTerm};
 
 
 pub mod gen_bif; // generated
-pub mod result;
 
 //
 // Bif definitions grouped by topic
@@ -24,14 +23,11 @@ pub use bif::bif_process::*;
 pub use bif::bif_sys::*;
 
 
-use bif::result::{BifResult};
-
-
 /// A BIF function which runs under some process, takes some args (encoded in
 /// its name and hardcoded in its code), and returns an `LTerm`.
 /// In case of error the `NON_VALUE` should be returned and the process is
 /// informed about error situation (error reason and type are set etc).
-pub type BifFn = fn(cur_proc: &mut Process, args: &[LTerm]) -> Hopefully<BifResult>;
+pub type BifFn = fn(cur_proc: &mut Process, args: &[LTerm]) -> Hopefully<LTerm>;
 
 pub fn is_bif(mfa: &MFArity) -> bool {
   // Naive implementation. TODO: Binary search or a hashmap

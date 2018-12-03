@@ -57,7 +57,7 @@ pub enum ExceptionType {
 pub const TERM_TAG_BITS: Word = 3;
 pub const TERM_TAG_MASK: Word = (1 << TERM_TAG_BITS) - 1;
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Ord, PartialOrd)]
 pub enum TermTag {
   Boxed,
   Header,
@@ -67,7 +67,7 @@ pub enum TermTag {
   Atom,
   LocalPid,
   LocalPort,
-  Special,
+  Special,2
 }
 
 //pub const TAG_BOXED: Word = 0; // contains pointer to a value on heap

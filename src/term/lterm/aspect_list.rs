@@ -45,7 +45,7 @@
 //
 //  #[inline]
 //  fn is_list(&self) -> bool {
-//    self.is_cons() || self.is_nil()
+//    self.is_cons() || self == LTerm::nil()
 //  }
 //
 //
@@ -91,7 +91,7 @@
 //      let tl = cons_p.tl();
 //      if !tl.is_cons() {
 //        // NIL [] tail is required for a true string
-//        return tl.is_nil()
+//        return tl == LTerm::nil()
 //      }
 //      cons_p = tl.get_cons_ptr();
 //    }

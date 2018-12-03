@@ -7,10 +7,41 @@ use rt_defs::SpecialTag;
 use rt_defs::Word;
 use term::lterm::LTerm;
 
+//use std::iter;
+
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct RawOpcode(pub u8);
+
+//impl iter::Step for RawOpcode {
+//  fn steps_between(start: &Self, end: &Self) -> Option<usize> {
+//    let RawOpcode(s) = start;
+//    let RawOpcode(e) = end;
+//    Some((e - s) as usize)
+//  }
+//
+//  fn replace_one(&mut self) -> Self {
+//    unimplemented!()
+//  }
+//
+//  fn replace_zero(&mut self) -> Self {
+//    unimplemented!()
+//  }
+//
+//  fn add_one(&self) -> Self {
+//    let RawOpcode(x) = self;
+//  }
+//
+//  fn sub_one(&self) -> Self {
+//    unimplemented!()
+//  }
+//
+//  fn add_usize(&self, n: usize) -> Option<Self> {
+//    unimplemented!()
+//  }
+//}
+
 
 impl RawOpcode {
   pub fn get(self) -> u8 {
@@ -94,10 +125,10 @@ mod tests {
 
   #[test]
   fn test_opcode_word() {
-    for i in 0..gen_op::OPCODE_MAX {
-      let memw = to_memory_word(i);
+    for i in 0..gen_op::OPCODE_MAX.get() {
+      let memw = to_memory_word(RawOpcode(i));
       let opc = from_memory_word(memw);
-      assert_eq!(opc, i);
+      assert_eq!(opc, RawOpcode(i));
     }
   }
 }

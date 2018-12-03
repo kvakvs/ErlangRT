@@ -6,7 +6,7 @@ use emulator::disasm;
 use emulator::runtime_ctx::{Context};
 use emulator::scheduler::{SliceResult};
 use emulator::vm::{VM};
-use fail::{Hopefully};
+use fail::{Hopefully, Error};
 
 //fn module() -> &'static str { "vm_loop: " }
 
@@ -39,19 +39,19 @@ impl VM {
               "Opcode too big (wrong memory address?) got 0x{:x}", op.get());
 
       // Handle next opcode
-      match dispatch_op_inline(self, op, &mut ctx, curr_p)? {
-        DispatchResult::Yield => {
+      match dispatch_op_inline(self, op, &mut ctx, curr_p) {
+        Ok(DispatchResult::Yield) => {
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Yield;
           return Ok(true)
         },
-        DispatchResult::Exc(exc_type, exc_reason) => {
+        Err(Error::Exception(exc_type, exc_reason)) => {
           curr_p.exception(exc_type, exc_reason);
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Exception;
           return Ok(true)
         },
-        DispatchResult::Normal => {
+        Ok(DispatchResult::Normal) => {
           curr_p.timeslice_result = SliceResult::None;
         }, // keep looping
       }

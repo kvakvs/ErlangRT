@@ -1,7 +1,6 @@
 //! Do not import submodules directly, use `use term::lterm::*;` instead.
 
 mod aspect_atom;
-mod aspect_bignum;
 mod aspect_binary;
 mod aspect_boxed;
 mod aspect_cp;
@@ -19,7 +18,6 @@ mod lterm_impl;
 
 
 pub use term::lterm::aspect_atom::*;
-pub use term::lterm::aspect_bignum::*;
 pub use term::lterm::aspect_binary::*;
 pub use term::lterm::aspect_boxed::*;
 pub use term::lterm::aspect_cp::*;

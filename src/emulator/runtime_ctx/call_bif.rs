@@ -1,7 +1,6 @@
 use super::Context;
 
 use beam::disp_result::{DispatchResult};
-use bif::result::{BifResult};
 use bif::{BifFn};
 use bif;
 use emulator::code::{CodePtr};
@@ -11,7 +10,7 @@ use term::lterm::*;
 
 use std::slice;
 use term::boxed::import;
-use fail::Hopefully;
+use fail::{Hopefully, Error};
 
 
 fn module() -> &'static str { "runtime_ctx.call_bif: " }
@@ -82,7 +81,7 @@ pub fn apply(ctx: &mut Context,
     },
 
     BifResolutionResult::BadfunError(badfun_val) => {
-      return Ok(DispatchResult::badfun_val(badfun_val, &mut curr_p.heap))
+      return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap)
     },
 
 //    BifResolutionResult::Fail(e) => {
@@ -93,23 +92,24 @@ pub fn apply(ctx: &mut Context,
   // Now having called the function let's see if there was some good result or
   // an error occured
 
-  println!("call_bif a={} gc={} call result {}", args.len(), gc, bif_result);
+  println!("call_bif a={} gc={} call result {:?}",
+           args.len(), gc, bif_result);
 
   match bif_result {
     // On error and if fail label is a CP, perform a goto
     // Assume that error is already written to `reason` in process
-    BifResult::Exception(ex_type, ex_reason) => {
+    Err(Error::Exception(ex_type, ex_reason)) => {
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
       // Set exception via dispatchresult
-      Ok(DispatchResult::Exc(ex_type, ex_reason))
+      Err(Error::Exception(ex_type, ex_reason))
     },
 
 //    BifResult::Fail(f) =>
 //      callbif_handle_fail(&f),
 
-    BifResult::Value(val) => {
+    Ok(val) => {
       // if dst is not NIL, store the result in it
       if dst != LTerm::nil() {
         ctx.store(val, dst, &mut curr_p.heap)
@@ -159,7 +159,7 @@ fn callbif_resolve_mfa(mfa: &MFArity) -> Hopefully<BifResolutionResult> {
 fn callbif_apply_bif(ctx: &mut Context,
                      curr_p: &mut Process,
                      func_pointer: BifFn,
-                     args: &[LTerm]) -> BifResult
+                     args: &[LTerm]) -> Hopefully<LTerm>
 {
   let n_args = args.len();
 

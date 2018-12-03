@@ -15,6 +15,7 @@ use std::fmt;
 use std::ptr;
 use fail::{Hopefully,Error};
 use term::boxed::BoxTypeTag;
+use term::boxed::BoxHeader;
 
 
 /// A low-level term is either a pointer to memory term or an Immediate with
@@ -57,7 +58,8 @@ impl LTerm {
 
   #[inline]
   pub const fn make_cp<T>(p: *const T) -> LTerm {
-    let tagged_p = (p as Word) | (TermTag::CP as Word);
+    assert_eq!(p as Word & TERM_TAG_MASK, 0); // must be aligned to 8
+    let tagged_p = (p as Word) | HIGHEST_BIT_CP;
     LTerm::from_raw(tagged_p)
   }
 
@@ -173,6 +175,21 @@ impl LTerm {
   }
 
 
+  /// Check whether a lterm is boxed and then whether it points to a word of
+  /// memory tagged as external pid
+  pub fn is_external_pid(self) -> bool {
+    self.is_boxed_of_type(BoxTypeTag::ExternalPid)
+  }
+
+
+  #[inline]
+  fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
+    if !self.is_boxed() { return false }
+    let p = self.get_box_ptr::<BoxHeader>();
+    unsafe { (*p).get_tag() == t }
+  }
+
+
   /// Return true if a value's tag will fit into a single word
   pub fn is_internal_immediate(self) -> bool {
     self.get_term_tag() == TermTag::Special
@@ -258,8 +275,21 @@ impl LTerm {
 
 
   //
-  // Lists/Cons cells
+  // Tuples =========================
   //
+
+  pub fn is_tuple(self) -> bool {
+    self.is_boxed_of_type(BoxTypeTag::Tuple)
+  }
+
+  //
+  // Lists/Cons cells =========================
+  //
+
+  #[inline]
+  pub const fn is_list(self) -> bool {
+    self.is_cons() || self == LTerm::nil()
+  }
 
   /// Check whether the value is a CONS pointer
   pub const fn is_cons(self) -> bool {
@@ -284,7 +314,7 @@ impl LTerm {
   }
 
   //
-  // Small Integers
+  // Small Integers =========================
   //
 
   /// Check whether the value is a small integer
@@ -315,6 +345,43 @@ impl LTerm {
 
   pub const fn get_small_unsigned(self) -> Word {
     self.get_term_val_without_tag()
+  }
+
+  //
+  // Big Integers ==============================
+  //
+
+  /// Check whether a lterm is boxed and then whether it points to a word of
+  /// memory tagged as float
+  pub fn is_big_int(self) -> bool {
+    self.is_boxed_of_type(BoxTypeTag::BigInteger)
+  }
+
+
+  //
+  // Atoms ==============================
+  //
+
+  pub fn atom_index(self) -> Word {
+    debug_assert!(self.is_atom());
+    return self.get_term_val_without_tag();
+  }
+
+
+  //
+  // Float ==============================
+  //
+
+  /// Check whether a lterm is boxed and then whether it points to a word of
+  /// memory tagged as float
+  pub fn is_float(self) -> bool {
+    self.is_boxed_of_type(BoxTypeTag::Float)
+  }
+
+  pub fn get_f64(self) -> f64 {
+    if !self.is_boxed() { return false }
+    let p = self.get_box_ptr::<BoxHeader>();
+    panic!("notimpl: float box")
   }
 
   //
@@ -400,7 +467,7 @@ impl LTerm {
     loop {
       write!(f, "{}", raw_cons.hd())?;
       let tl = raw_cons.tl();
-      if tl.is_nil() {
+      if tl == LTerm::nil() {
         // Proper list ends here, do not show the tail
         break;
       } else if tl.is_cons() {
@@ -424,7 +491,7 @@ impl LTerm {
     loop {
       write!(f, "{}", raw_cons.hd().get_small_unsigned() as u8 as char)?;
       let tl = raw_cons.tl();
-      if tl.is_nil() {
+      if tl == LTerm::nil() {
         // Proper list ends here, do not show the tail
         break;
       } else if tl.is_cons() {
@@ -445,14 +512,6 @@ impl LTerm {
     a.raw() == b.raw()
   }
 
-  //
-  // Atoms ==============================
-  //
-
-  pub fn atom_index(self) -> Word {
-    debug_assert!(self.is_atom());
-    return self.get_term_val_without_tag();
-  }
 }
 
 

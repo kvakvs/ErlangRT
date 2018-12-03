@@ -1,12 +1,12 @@
 use std::ptr;
 
 use beam::disp_result::{DispatchResult};
-use super::{Context};
 use emulator::function::{CallableLocation};
 use emulator::process::{Process};
 use emulator::vm::{VM};
 use fail::{Hopefully};
 use rt_defs::{Arity};
+use super::{Context};
 use term::boxed;
 use term::lterm::*;
 

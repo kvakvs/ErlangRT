@@ -118,12 +118,12 @@ fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
 
 /// Compare two atoms for equality.
 fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
-  assert!(!a.is_nil());
+  assert_ne!(a, LTerm::nil());
   let atomp_a = atom::lookup(a);
   debug_assert!(!atomp_a.is_null(),
                 "cmp_atoms: atom lookup {} failed", a);
 
-  assert!(!b.is_nil());
+  assert_ne!(b, LTerm::nil());
   let atomp_b = atom::lookup(b);
   debug_assert!(!atomp_b.is_null(),
                 "cmp_atoms: atom lookup {} failed", b);
@@ -164,14 +164,14 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> EqResult {
 
   match a_prim_tag {
     TermTag::Boxed => {
+      if a.is_cp() || b.is_cp() { panic!("eq_terms for CP is unsupported") }
       cmp_terms_box(a, b)
     },
-    TermTag::CP => panic!("eq_terms for CP is unsupported"),
     _ => {
       // Any non-boxed compare
       EqResult::Concluded(cmp_terms_immed(a, b, exact))
     },
-    _ => panic!("Primary tag {} eq_terms unsupported", a_prim_tag)
+    _ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
 }
 
@@ -217,7 +217,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
     //return cmp_cons(a, b)
   }
 
-  if a.is_box() {
+  if a.is_boxed() {
     return cmp_terms_immed_box(a, b);
   }
 
@@ -241,8 +241,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Ordering {
 
 #[inline]
 fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
-  if unsafe { a.is_tuple() } {
-    if unsafe { b.is_tuple() } {
+  if a.is_tuple() {
+    if b.is_tuple() {
       panic!("TODO: cmp tuple vs tuple")
     } else {
       return cmp_mixed_types(a, b)
@@ -280,17 +280,17 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Ordering {
     //    A minimal key can only be candidate as tie-breaker if we
     //    have passed that hash value in the other tree (which means
     //    the key did not exist in the other tree).
-  } else if unsafe { a.is_float() } {
-    if !unsafe { b.is_float() } {
+  } else if a.is_float() {
+    if !b.is_float() {
       // TODO: If b is integer and we don't do exact comparison?
       return cmp_mixed_types(a, b)
     } else {
-      let af = unsafe { a.float_get() };
-      let bf = unsafe { b.float_get() };
+      let af = a.get_f64();
+      let bf = b.get_f64();
       return af.partial_cmp(&bf).unwrap()
     }
-  } else if a.is_bignum() {
-    if !b.is_bignum() {
+  } else if a.is_big_int() {
+    if !b.is_big_int() {
       return cmp_mixed_types(a, b)
     }
   } else if a.is_export() {
@@ -371,19 +371,19 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
 
   loop {
     // Check the heads
-    let ahd = aa.hd();
-    let bhd = bb.hd();
+    let ahd = (*aa).hd();
+    let bhd = (*bb).hd();
 
     if !LTerm::is_same(ahd, bhd) {
       //println!("cmp_cons ahd {} bhd {}", ahd, bhd);
       // Recurse into a.hd and b.hd, but push a.tl and b.tl to continue
-      let continue_op = ContinueCompare::Cons(aa.tl(), bb.tl());
+      let continue_op = ContinueCompare::Cons((*aa).tl(), (*bb).tl());
       return EqResult::CompareNested(ahd, bhd, continue_op)
     }
 
     // See the tails
-    let atl = aa.tl();
-    let btl = bb.tl();
+    let atl = (*aa).tl();
+    let btl = (*bb).tl();
 
     if LTerm::is_same(atl, btl) {
       return EqResult::Concluded(Ordering::Equal)

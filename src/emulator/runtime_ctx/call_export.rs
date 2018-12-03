@@ -31,7 +31,7 @@ pub fn apply(ctx: &mut Context,
   let mfa = unsafe { (*export).exp.mfa };
   if mfa.arity != arity as Arity {
     println!("{}badarity target_arity={} expected_arity={}", module(), mfa.arity, arity);
-    return Ok(DispatchResult::badarity())
+    return DispatchResult::badarity()
   }
 
   if bif::is_bif(&mfa) {
@@ -47,7 +47,7 @@ pub fn apply(ctx: &mut Context,
         ctx.ip = ip
       },
       Err(_e) => {
-        return Ok(DispatchResult::undef())
+        return DispatchResult::undef()
       }
     }
   }

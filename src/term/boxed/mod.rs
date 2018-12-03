@@ -34,13 +34,16 @@ use rt_defs::*;
 const HEADER_TAG_BITS: Word = 3;
 const HEADER_TAG_MASK: Word = (1 << HEADER_TAG_BITS) - 1;
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum BoxTypeTag {
   Tuple,
   Binary,
+  BigInteger,
   ExternalPid,
   ExternalRef,
   ExternalPort,
-  Closure, // A function object with frozen (captured) variable values
+  Closure,
+  // A function object with frozen (captured) variable values
   Float,
   Import,
   Export,

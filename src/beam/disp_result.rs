@@ -1,44 +1,45 @@
 use emulator::gen_atoms;
-use emulator::heap::{Heap};
+use emulator::heap::Heap;
 use rt_defs::ExceptionType;
 use term::builders::{make_badmatch, make_badfun};
 use term::lterm::LTerm;
+use fail::{Error, Hopefully};
 
 
 /// Enum is used by VM dispatch handlers for opcodes to indicate whether to
 /// continue, yield (take next process in the queue) or interrupt process
-/// on error.
+/// on error (to return error use Hopefully's Error::Exception/2)
 #[allow(dead_code)]
 pub enum DispatchResult {
   Normal,
   Yield,
-  Exc(ExceptionType, LTerm),
 }
 
 impl DispatchResult {
-//  pub fn badmatch() -> DispatchResult {
-//    DispatchResult::Error(ExceptionType::Error, gen_atoms::BADMATCH)
-//  }
-
-  pub fn badmatch_val(val: LTerm, hp: &mut Heap) -> DispatchResult {
-    let badmatch_tuple = make_badmatch(val, hp);
-    DispatchResult::Exc(ExceptionType::Error, badmatch_tuple)
+  pub fn badmatch_val(val: LTerm, hp: &mut Heap) -> Hopefully<DispatchResult> {
+    let badmatch_tuple = make_badmatch(val, hp)?;
+    Err(Error::Exception(ExceptionType::Error,
+                         badmatch_tuple))
   }
 
-  pub fn badarity() -> DispatchResult {
-    DispatchResult::Exc(ExceptionType::Error, gen_atoms::BADARITY)
+  pub fn badarity() -> Hopefully<DispatchResult> {
+    Err(Error::Exception(ExceptionType::Error,
+                         gen_atoms::BADARITY))
   }
 
-  pub fn undef() -> DispatchResult {
-    DispatchResult::Exc(ExceptionType::Error, gen_atoms::UNDEF)
+  pub fn undef() -> Hopefully<DispatchResult> {
+    Err(Error::Exception(ExceptionType::Error,
+                         gen_atoms::UNDEF))
   }
 
-  pub fn badfun() -> DispatchResult {
-    DispatchResult::Exc(ExceptionType::Error, gen_atoms::BADFUN)
+  pub fn badfun() -> Hopefully<DispatchResult> {
+    Err(Error::Exception(ExceptionType::Error,
+                         gen_atoms::BADFUN))
   }
 
-  pub fn badfun_val(val: LTerm, hp: &mut Heap) -> DispatchResult {
-    let badfun_tuple = make_badfun(val, hp);
-    DispatchResult::Exc(ExceptionType::Error, badfun_tuple)
+  pub fn badfun_val(val: LTerm, hp: &mut Heap) -> Hopefully<DispatchResult> {
+    let badfun_tuple = make_badfun(val, hp)?;
+    Err(Error::Exception(ExceptionType::Error,
+                         badfun_tuple))
   }
 }
