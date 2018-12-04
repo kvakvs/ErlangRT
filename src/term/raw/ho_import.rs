@@ -57,7 +57,7 @@
 //    (size_of::<HOImport>() + WORD_BYTES - 1) / WORD_BYTES
 //  }
 //
-//  pub unsafe fn place_into(hp: &mut Heap,
+//  pub unsafe fn create_into(hp: &mut Heap,
 //                           mfarity: MFArity,
 //                           is_bif: bool) -> Hopefully<LTerm>
 //  {

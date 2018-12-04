@@ -1,5 +1,5 @@
 //! Debug tool to display Erlang heap contents.
-use emulator::heap::{Heap, heap_iter, IHeap, IHeapIterator};
+use emulator::heap::{Heap, heap_iter};
 use rt_defs::{Word};
 use term::lterm::{TERMTAG_BOXED};
 

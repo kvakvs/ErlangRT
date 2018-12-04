@@ -6,16 +6,15 @@
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
 use emulator::atom;
-use emulator::heap::IHeap;
+use emulator::heap::Heap;
+use fail::{Hopefully, Error};
 use rt_defs::*;
+use term::boxed::{BoxHeader, BoxTypeTag};
 use term::boxed;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ptr;
-use fail::{Hopefully, Error};
-use term::boxed::BoxTypeTag;
-use term::boxed::BoxHeader;
 use std::isize;
 
 //
@@ -293,10 +292,10 @@ impl LTerm {
   }
 
 
-  pub fn make_remote_pid(hp: &mut IHeap,
+  pub fn make_remote_pid(hp: &mut Heap,
                          node: LTerm,
                          pindex: Word) -> Hopefully<LTerm> {
-    let rpid_ptr = boxed::RemotePid::create_into(hp, node, pindex)?;
+    let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
     Ok(LTerm::make_boxed(rpid_ptr))
   }
 
@@ -383,8 +382,9 @@ impl LTerm {
   }
 
 
-  /// Create a LTerm from pointer to Cons cell
-  pub const fn make_cons(p: *const boxed::Cons) -> LTerm {
+  /// Create a LTerm from pointer to Cons cell. Pass a pointer to `LTerm` or
+  /// a pointer to `boxed::Cons`.
+  pub const fn make_cons<T>(p: *const T) -> LTerm {
     LTerm { value: (p as Word) | TERMTAG_CONS.get() }
   }
 

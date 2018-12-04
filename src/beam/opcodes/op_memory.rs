@@ -2,7 +2,6 @@ use beam::disp_result::{DispatchResult};
 use beam::gen_op;
 use beam::opcodes::assert_arity;
 use emulator::code::{CodePtr};
-use emulator::heap::{IHeap};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use emulator::vm::{VM};
@@ -73,7 +72,7 @@ pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
   let heap_need = ctx.fetch_term().get_small_unsigned();
   let _live = ctx.fetch_term().get_small_unsigned();
 
-  if !curr_p.heap.heap_have(heap_need) {
+  if !curr_p.heap.have(heap_need) {
     // Heap has not enough, invoke GC and possibly fail
     panic!("TODO GC here or fail");
   }

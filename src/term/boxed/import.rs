@@ -23,7 +23,7 @@ impl Import {
     storage_bytes_to_words(size_of::<Import>())
   }
 
-  pub unsafe fn place_into(hp: &mut Heap,
+  pub unsafe fn create_into(hp: &mut Heap,
                            mfarity: MFArity,
                            is_bif: bool) -> Hopefully<LTerm>
   {

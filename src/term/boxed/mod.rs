@@ -2,7 +2,7 @@
 //! terms in memory.
 
 pub mod pid;
-pub use self::pid::{RemotePid};
+pub use self::pid::ExternalPid;
 
 pub mod closure;
 pub use self::closure::{Closure};

@@ -25,6 +25,6 @@ pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> Hopefully<LTerm
                          args[2].get_small_unsigned() as Arity);
 
   // Create an export on heap and return it
-  let expt = unsafe { boxed::Export::place_into(hp, &mfa)? };
+  let expt = unsafe { boxed::Export::create_into(hp, &mfa)? };
   Ok(expt)
 }

@@ -27,7 +27,7 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
   let hp = &mut curr_p.heap;
   let closure = unsafe {
     let nfree = (*fe).nfree as usize;
-    let p = boxed::Closure::place_into(hp,
+    let p = boxed::Closure::create_into(hp,
                                        fe.as_ref().unwrap(),
                                        &ctx.regs[0..nfree]);
     p.unwrap()

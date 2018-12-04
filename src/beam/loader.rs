@@ -767,7 +767,7 @@ impl Loader {
       let is_bif = bif::is_bif(&mf_arity);
       //println!("is_bif {} for {}", is_bif, mf_arity);
       let ho_imp = unsafe {
-        boxed::Import::place_into(&mut self.lit_heap, mf_arity, is_bif)?
+        boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)?
       };
 
       self.imports.push(ho_imp);

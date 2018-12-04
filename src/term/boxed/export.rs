@@ -31,7 +31,7 @@ impl Export {
 
 
   #[allow(dead_code)]
-  pub unsafe fn place_into(hp: &mut Heap,
+  pub unsafe fn create_into(hp: &mut Heap,
                            mfa: &MFArity) -> Hopefully<LTerm>
   {
     let n_words = Export::storage_size();

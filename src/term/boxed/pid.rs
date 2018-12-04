@@ -1,40 +1,41 @@
-use term::boxed::{BoxTypeTag, BoxHeader};
-use term::lterm::LTerm;
-use emulator::heap::IHeap;
-use rt_defs::{WORD_BYTES, Word};
+use emulator::heap::Heap;
 use fail::Hopefully;
+use rt_defs::{Word, storage_bytes_to_words};
+use term::boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID};
+use term::lterm::LTerm;
 
 use core::ptr;
 use std::mem;
 
 
 /// Represents Pid box on heap.
-pub struct RemotePid {
+pub struct ExternalPid {
   pub header: BoxHeader,
   pub node: LTerm,
   pub id: Word,
 }
 
-impl RemotePid {
-  const fn get_heap_size() -> Word {
-    (mem::size_of::<RemotePid> + WORD_BYTES - 1) / WORD_BYTES
+impl ExternalPid {
+  const fn storage_size() -> Word {
+    storage_bytes_to_words(mem::size_of::<ExternalPid>)
   }
 
-  fn new(node: LTerm, id: Word) -> RemotePid {
-    RemotePid {
-      header: BoxHeader::new(BoxTypeTag::Pid),
+  fn new(node: LTerm, id: Word) -> ExternalPid {
+    ExternalPid {
+      header: BoxHeader::new(BOXTYPETAG_EXTERNALPID,
+                             ExternalPid::storage_size() - 1),
       node,
-      id
+      id,
     }
   }
 
   /// Allocates
-  pub fn create_into(hp: &mut IHeap,
+  pub fn create_into(hp: &mut Heap,
                      node: LTerm,
                      id: Word) -> Hopefully<*mut BoxHeader> {
     // TODO do something with possible error from hp.heap_allocate
-    let p = hp.heap_allocate(RemotePid::get_heap_size())?;
-    unsafe { ptr::write(p, RemotePid::new(node, id)) }
+    let p = hp.heap_allocate(ExternalPid::storage_size())?;
+    unsafe { ptr::write(p, ExternalPid::new(node, id)) }
     Ok(p)
   }
 }

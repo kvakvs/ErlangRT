@@ -40,6 +40,11 @@ pub enum Error {
   BoxedIsNotAnImport,
   BoxedIsNotATuple,
   HeapObjNotAType, // remove
+
+  //--- Binary ---
+  CannotCopyIntoRefbin,
+  HeapBinTooSmall(usize, usize), // want bytes, have bytes
+  ProcBinTooSmall(usize, usize), // want bytes, have bytes
 }
 
 

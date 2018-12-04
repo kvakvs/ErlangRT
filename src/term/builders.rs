@@ -1,7 +1,6 @@
 use emulator::gen_atoms;
 use emulator::heap::Heap;
 use fail::Hopefully;
-use rt_defs::term_builder::*;
 use std::slice;
 use term::lterm::LTerm;
 use term::term_builder::TermBuilder;

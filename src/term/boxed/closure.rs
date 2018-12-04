@@ -46,7 +46,7 @@ impl Closure {
   }
 
 
-  pub unsafe fn place_into(hp: &mut Heap,
+  pub unsafe fn create_into(hp: &mut Heap,
                            fe: &FunEntry,
                            frozen: &[LTerm]) -> Hopefully<LTerm>
   {

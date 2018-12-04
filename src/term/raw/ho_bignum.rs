@@ -84,7 +84,7 @@
 //  /// Allocate space on heap for `n_bytes` and initialize the fields.
 //  /// A pointer to binary is returned which manages heap placement automatically
 //  /// (i.e. heapbin or procbin etc, are used automatically).
-//  pub unsafe fn place_into(hp: &mut Heap,
+//  pub unsafe fn create_into(hp: &mut Heap,
 //                           value: BigInt) -> Hopefully<*mut HOBignum>
 //  {
 //    let n_words = HOBignum::storage_size();
