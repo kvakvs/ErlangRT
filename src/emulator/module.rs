@@ -8,7 +8,7 @@ use emulator::gen_atoms;
 //use emulator::export::Export;
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
-use fail::{Error, Hopefully};
+use fail::{Error, RtResult};
 use rt_defs::{Word, WORD_BYTES};
 use std::collections::BTreeMap;
 use term::lterm::LTerm;
@@ -61,7 +61,7 @@ impl Module {
 
   /// Find a `m:f/arity` in the functions table, `m` is checked to be equal to
   /// this module's name.
-  pub fn lookup(&self, mfa: &MFArity) -> Hopefully<CodePtr> {
+  pub fn lookup(&self, mfa: &MFArity) -> RtResult<CodePtr> {
     assert_eq!(self.name(), mfa.m);
 
     let fa = mfa.get_funarity();
@@ -71,7 +71,7 @@ impl Module {
 
 
   /// Find a `f/arity` in the functions table.
-  pub fn lookup_fa(&self, fa: &FunArity) -> Hopefully<CodePtr> {
+  pub fn lookup_fa(&self, fa: &FunArity) -> RtResult<CodePtr> {
     match self.funs.get(fa) {
       Some(offset) => {
           let p = &self.code[*offset] as *const Word;

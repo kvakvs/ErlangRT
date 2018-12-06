@@ -133,7 +133,7 @@ impl Context {
           return y_result.unwrap();
         }
         SPECIALTAG_REGFP => panic!("todo fpreg load"),
-        SpecialTag(st) => panic!("load: specialtag {} not supported", st),
+        _ => return src,
       }
     }
     // Otherwise return unchanged

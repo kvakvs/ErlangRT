@@ -1,7 +1,7 @@
 use emulator::function::{CallableLocation, FunEntry};
 use emulator::heap::Heap;
 use emulator::mfa::MFArity;
-use fail::Hopefully;
+use fail::RtResult;
 use rt_defs::{storage_bytes_to_words, Arity, Word};
 use term::boxed::{BoxHeader, BOXTYPETAG_CLOSURE};
 use term::lterm::*;
@@ -48,7 +48,7 @@ impl Closure {
   }
 
 
-  pub unsafe fn create_into(hp: &mut Heap, fe: &FunEntry, frozen: &[LTerm]) -> Hopefully<LTerm> {
+  pub unsafe fn create_into(hp: &mut Heap, fe: &FunEntry, frozen: &[LTerm]) -> RtResult<LTerm> {
     let n_words = Closure::storage_size(fe.nfree);
     let this = hp.alloc::<Closure>(n_words, false)?;
 
@@ -76,13 +76,13 @@ impl Closure {
   }
 
 
-  pub unsafe fn const_from_term(t: LTerm) -> Hopefully<*const Closure> {
+  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Closure> {
     helper_get_const_from_boxed_term::<Closure>(t, BOXTYPETAG_CLOSURE, Error::BoxedIsNotAClosure)
   }
 
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: LTerm) -> Hopefully<*mut Closure> {
+  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Closure> {
     helper_get_mut_from_boxed_term::<Closure>(t, BOXTYPETAG_CLOSURE, Error::BoxedIsNotAClosure)
   }
 }

@@ -1,5 +1,5 @@
 use emulator::atom;
-use fail::Hopefully;
+use fail::RtResult;
 use std::cmp::Ordering;
 use term::classify;
 use term::lterm::*;
@@ -31,7 +31,7 @@ enum EqResult {
 
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
-pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Hopefully<Ordering> {
+pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
   // Comparison might want to recurse, to avoid stack growth, do a switch here
   // and continue comparing. We grow `stack` instead of a CPU stack.
   let mut stack = Vec::<ContinueCompare>::new();
@@ -71,7 +71,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> Hopefully<Ordering> {
 }
 
 
-fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
+fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
   //println!("cmp any type {} {}", a, b);
 
   // Compare type tags first
@@ -149,7 +149,7 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
-fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
+fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
   //  let a_val = a.raw();
   let a_prim_tag = a.get_term_tag();
 
@@ -178,7 +178,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
 
 
 // TODO: If this function is used a lot, optimize by doing case on tag bits
-fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Hopefully<Ordering> {
+fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
   //  let av = a.raw();
   //  let bv = b.raw();
 
@@ -213,8 +213,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Hopefully<Ordering> {
       return cmp_mixed_types(a, b);
     }
 
-    panic!("TODO: invoke cmp_cons correctly from here")
-    //return cmp_cons(a, b)
+    //panic!("TODO: invoke cmp_cons correctly from here")
+    return cmp_cons(a, b)
   }
 
   if a.is_boxed() {
@@ -240,7 +240,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Hopefully<Ordering> {
 
 
 #[inline]
-fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Hopefully<Ordering> {
+fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
   if a.is_tuple() {
     if b.is_tuple() {
       panic!("TODO: cmp tuple vs tuple")
@@ -357,7 +357,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> Hopefully<Ordering> {
 
 
 /// Deeper comparison of two values with different types
-fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Hopefully<Ordering> {
+fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> RtResult<Ordering> {
   panic!("TODO: cmp_mixed_types(a, b)")
 }
 
@@ -365,7 +365,7 @@ fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> Hopefully<Ordering> {
 /// Compare two cons (list) cells. In case when first elements are equal and
 /// a deeper comparison is required, we will return `EqResult::CompareNested`.
 /// This will be pushed to a helper stack by the caller (`cmp_terms()`).
-#[allow(dead_code)]
+/// The function cannot fail.
 unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
   let mut aa = a.get_cons_ptr();
   let mut bb = b.get_cons_ptr();
@@ -402,7 +402,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
 }
 
 
-fn cmp_terms_box(_a: LTerm, _b: LTerm) -> Hopefully<EqResult> {
+fn cmp_terms_box(_a: LTerm, _b: LTerm) -> RtResult<EqResult> {
   // TODO: see if cmp_terms_immed_box can be useful
   panic!("TODO: eq_terms_box")
 }

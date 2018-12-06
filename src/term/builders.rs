@@ -1,19 +1,19 @@
 use emulator::gen_atoms;
 use emulator::heap::Heap;
-use fail::Hopefully;
+use fail::RtResult;
 use std::slice;
 use term::lterm::LTerm;
 use term::term_builder::TermBuilder;
 
 
-pub fn make_badfun(arg: LTerm, hp: &mut Heap) -> Hopefully<LTerm> {
+pub fn make_badfun(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   let slice_of_one = unsafe { slice::from_raw_parts(&arg, 1) };
   make_badfun_n(slice_of_one, hp)
 }
 
 
 /// Create a `{badfun, ...}` tuple where `badfun` is followed by multiple args.
-pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> Hopefully<LTerm> {
+pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
   let mut tb = TermBuilder::new(hp);
   let mut val = tb.create_tuple_builder(1 + args.len())?;
   unsafe {
@@ -29,7 +29,7 @@ pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> Hopefully<LTerm> {
 
 
 /// Create a `{badmatch, Arg}`.
-pub fn make_badmatch(arg: LTerm, hp: &mut Heap) -> Hopefully<LTerm> {
+pub fn make_badmatch(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   let mut tb = TermBuilder::new(hp);
   let mut val = tb.create_tuple_builder(2)?;
   unsafe {

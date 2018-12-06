@@ -6,7 +6,7 @@ use emulator::disasm;
 use emulator::runtime_ctx::{Context};
 use emulator::scheduler::{SliceResult};
 use emulator::vm::{VM};
-use fail::{Hopefully, Error};
+use fail::{RtResult, Error};
 
 //fn module() -> &'static str { "vm_loop: " }
 
@@ -16,7 +16,7 @@ impl VM {
   /// Fetch an opcode and execute it.
   /// Reduce the reduction (instruction) count and once it reaches zero, return.
   /// Call dispatch again to schedule another process.
-  pub fn dispatch(&mut self) -> Hopefully<bool> {
+  pub fn dispatch(&mut self) -> RtResult<bool> {
     let mut ctx = Context::new(CodePtr::null());
 
     let mut scheduler = self.scheduler.borrow_mut();

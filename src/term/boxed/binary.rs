@@ -1,6 +1,6 @@
 use core::ptr;
 use emulator::heap::Heap;
-use fail::{Error, Hopefully};
+use fail::{Error, RtResult};
 use rt_defs::{storage_bytes_to_words, Word};
 use term::boxed::{BoxHeader, BOXTYPETAG_BINARY};
 
@@ -34,7 +34,7 @@ impl Binary {
     storage_bytes_to_words(std::mem::size_of::<Binary>()) + storage_bytes_to_words(nbytes)
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, n_bytes: usize) -> Hopefully<*mut Binary> {
+  pub unsafe fn create_into(hp: &mut Heap, n_bytes: usize) -> RtResult<*mut Binary> {
     let n_words = Binary::storage_size(n_bytes);
     let this = hp.alloc::<Binary>(n_words, false)?;
 
@@ -46,7 +46,7 @@ impl Binary {
 
   /// Given a byte array, copy it to the binary's memory (depending on
   /// the binary type).
-  pub unsafe fn store(this: *mut Binary, data: &[u8]) -> Hopefully<()> {
+  pub unsafe fn store(this: *mut Binary, data: &[u8]) -> RtResult<()> {
     let data_len = data.len();
     if data_len == 0 {
       return Ok(());

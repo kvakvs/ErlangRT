@@ -2,7 +2,7 @@
 //! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
 use rt_defs::{Word, SWord};
-use fail::{Hopefully, Error};
+use fail::{RtResult, Error};
 use term::fterm;
 use term::integral::Integral;
 use rt_util::bin_reader::BinaryReader;
@@ -59,7 +59,7 @@ pub enum CTError {
 
 fn module() -> &'static str { "compact_term reader: " }
 
-fn make_err(e: CTError) -> Hopefully<fterm::FTerm> {
+fn make_err(e: CTError) -> RtResult<fterm::FTerm> {
   Err(Error::CodeLoadingCompactTerm(e))
 }
 
@@ -68,7 +68,7 @@ fn make_err(e: CTError) -> Hopefully<fterm::FTerm> {
 //  w as u32
 //}
 
-pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+pub fn read(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let b = r.read_u8();
   let tag = b & 0b111;
   //let err_msg: &'static str = "Failed to parse beam compact term";
@@ -132,7 +132,7 @@ pub fn read(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 #[cfg(feature="r19")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   match b {
     x if x == CTEExtTag::Float as u8 => parse_ext_float(r),
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
@@ -149,7 +149,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 #[cfg(feature="r20")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
@@ -166,7 +166,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 #[cfg(feature="r19")]
-fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+fn parse_ext_float(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
   let fp: f64 = unsafe {
@@ -176,7 +176,7 @@ fn parse_ext_float(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 
-fn parse_ext_fpreg(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
     return Ok(fterm::FTerm::FP_(reg as Word))
@@ -186,7 +186,7 @@ fn parse_ext_fpreg(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 
-fn parse_ext_literal(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
     return Ok(fterm::FTerm::LoadTimeLit(reg as Word))
@@ -196,7 +196,7 @@ fn parse_ext_literal(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
 }
 
 
-fn parse_ext_list(r: &mut BinaryReader) -> Hopefully<fterm::FTerm> {
+fn parse_ext_list(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   // The stream now contains a smallint size, then size/2 pairs of values
   let n_elts= read_int(r);
   let mut el: Vec<fterm::FTerm> = Vec::new();

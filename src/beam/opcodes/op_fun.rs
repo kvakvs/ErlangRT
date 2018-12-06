@@ -8,14 +8,14 @@ use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use emulator::runtime_ctx;
 use emulator::vm::{VM};
-use fail::{Hopefully};
+use fail::{RtResult};
 use std::slice;
 use term::boxed;
 
 
 #[inline]
 pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
-                        curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                        curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: make_fun2(lambda_index:uint)
   // on load the argument is rewritten with a pointer to the funentry
   assert_arity(gen_op::OPCODE_MAKE_FUN2, 1);
@@ -40,7 +40,7 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
 
 #[inline]
 pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                       curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: call_fun(arity:uint)
   // Expects: x[0..arity-1] = args. x[arity] = fun object
   assert_arity(gen_op::OPCODE_CALL_FUN, 1);

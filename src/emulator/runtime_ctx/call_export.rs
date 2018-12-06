@@ -6,7 +6,7 @@ use emulator::code_srv::CodeServer;
 use emulator::process::Process;
 use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::call_bif::CallBifTarget;
-use fail::Hopefully;
+use fail::RtResult;
 use rt_defs::Arity;
 use term::boxed;
 use term::lterm::*;
@@ -26,7 +26,7 @@ pub fn apply(
   args: &[LTerm],
   save_cp: bool,
   code_server: &mut CodeServer,
-) -> Hopefully<DispatchResult> {
+) -> RtResult<DispatchResult> {
   // The `fobj` is a callable closure made with `fun() -> code end`
   let arity = args.len();
   ctx.live = arity + 1;

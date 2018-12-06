@@ -1,5 +1,5 @@
 use emulator::heap::Heap;
-use fail::Hopefully;
+use fail::RtResult;
 use rt_defs::storage_bytes_to_words;
 use term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER};
 
@@ -31,7 +31,7 @@ impl Bignum {
   }
 
 
-  pub unsafe fn create_into(hp: &mut Heap, value: BigInt) -> Hopefully<*mut Bignum> {
+  pub unsafe fn create_into(hp: &mut Heap, value: BigInt) -> RtResult<*mut Bignum> {
     let n_words = Bignum::storage_size();
     let this = hp.alloc::<Bignum>(n_words, false)?;
 

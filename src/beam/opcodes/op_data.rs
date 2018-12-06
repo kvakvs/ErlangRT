@@ -6,7 +6,7 @@ use beam::opcodes::assert_arity;
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use emulator::vm::{VM};
-use fail::{Hopefully};
+use fail::{RtResult};
 
 
 /// Load a value from `src` and store it into `dst`. Source can be any literal
@@ -14,7 +14,7 @@ use fail::{Hopefully};
 /// stack cell.
 #[inline]
 pub fn opcode_move(_vm: &VM, ctx: &mut Context,
-                   curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                   curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: move(src:src, dst:dst)
   // TODO: Optimize this by having specialized move instructions with packed arg
   assert_arity(gen_op::OPCODE_MOVE, 2);

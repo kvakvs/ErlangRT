@@ -13,7 +13,7 @@ use emulator::code::CodePtr;
 use emulator::code::pointer::FarCodePointer;
 use emulator::mfa::MFArity;
 use emulator::module;
-use fail::{Hopefully, Error};
+use fail::{RtResult, Error};
 use term::lterm::*;
 
 
@@ -75,7 +75,7 @@ impl CodeServer {
 
 
   /// Find module:function/arity
-  pub fn lookup(&self, mfarity: &MFArity) -> Hopefully<CodePtr> {
+  pub fn lookup(&self, mfarity: &MFArity) -> RtResult<CodePtr> {
     let m = mfarity.m;
     match self.mods.get(&m) {
       None => {
@@ -88,7 +88,7 @@ impl CodeServer {
 
 
   /// Find the module file from search path and return the path or error.
-  pub fn find_module_file(&mut self, filename: &str) -> Hopefully<PathBuf> {
+  pub fn find_module_file(&mut self, filename: &str) -> RtResult<PathBuf> {
     match first_that_exists(&self.search_path, filename) {
       Some(found_first) => Ok(found_first),
       None => Err(Error::FileNotFound(filename.to_string()))
@@ -113,7 +113,7 @@ impl CodeServer {
 
   /// Lookup, which will attempt to load a missing module if lookup fails
   /// on the first attempt.
-  pub fn lookup_and_load(&mut self, mfarity: &MFArity) -> Hopefully<CodePtr> {
+  pub fn lookup_and_load(&mut self, mfarity: &MFArity) -> RtResult<CodePtr> {
     // Try lookup once, then load if not found
     match self.lookup(mfarity) {
       Ok(ip) => return Ok(ip),
@@ -140,7 +140,7 @@ impl CodeServer {
 
   /// Internal function: runs 3 stages of module loader and returns an atomic
   /// refc (Arc) module pointer or an error
-  fn try_load_module(&mut self, mod_file_path: &PathBuf) -> Hopefully<bool>
+  fn try_load_module(&mut self, mod_file_path: &PathBuf) -> RtResult<bool>
   {
     // Delegate the loading task to BEAM or another loader
     let mut loader = loader::Loader::new();

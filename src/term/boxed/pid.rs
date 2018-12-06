@@ -1,5 +1,5 @@
 use emulator::heap::Heap;
-use fail::Hopefully;
+use fail::RtResult;
 use rt_defs::{storage_bytes_to_words, Word};
 use term::boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID};
 use term::lterm::LTerm;
@@ -28,7 +28,7 @@ impl ExternalPid {
   }
 
   /// Allocates
-  pub fn create_into(hp: &mut Heap, node: LTerm, id: Word) -> Hopefully<*mut BoxHeader> {
+  pub fn create_into(hp: &mut Heap, node: LTerm, id: Word) -> RtResult<*mut BoxHeader> {
     // TODO do something with possible error from hp.heap_allocate
     let p = hp.alloc::<ExternalPid>(ExternalPid::storage_size(), false)?;
     unsafe { ptr::write(p, ExternalPid::new(node, id)) }

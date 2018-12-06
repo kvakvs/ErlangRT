@@ -9,7 +9,7 @@ use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use emulator::vm::{VM};
 use term::lterm::{LTerm};
-use fail::Hopefully;
+use fail::RtResult;
 
 
 fn module() -> &'static str { "opcodes::op_list: " }
@@ -19,7 +19,7 @@ fn module() -> &'static str { "opcodes::op_list: " }
 /// false jump to the label `fail`.
 #[inline]
 pub fn opcode_is_nonempty_list(_vm: &VM, ctx: &mut Context,
-                               curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                               curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: is_nonempty_list(fail:cp, value:src)
   assert_arity(gen_op::OPCODE_IS_NONEMPTY_LIST, 2);
 
@@ -42,7 +42,7 @@ pub fn opcode_is_nonempty_list(_vm: &VM, ctx: &mut Context,
 /// if it is not NIL.
 #[inline]
 pub fn opcode_is_nil(_vm: &VM, ctx: &mut Context,
-                     curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                     curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: is_nil(fail:CP, value:src)
   assert_arity(gen_op::OPCODE_IS_NIL, 2);
   let fail = ctx.fetch_term(); // jump if not a list
@@ -63,7 +63,7 @@ pub fn opcode_is_nil(_vm: &VM, ctx: &mut Context,
 /// `hd` and `tl` destinations respectively.
 #[inline]
 pub fn opcode_get_list(_vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                       curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: get_list(value:src, hd:dst, tl:dst)
   assert_arity(gen_op::OPCODE_GET_LIST, 3);
 
@@ -92,7 +92,7 @@ pub fn opcode_get_list(_vm: &VM, ctx: &mut Context,
 /// new list cell which is stored into `dst`.
 #[inline]
 pub fn opcode_put_list(_vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                       curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: put_list(hd:src, tl:src, dst:dst)
   assert_arity(gen_op::OPCODE_PUT_LIST, 3);
 

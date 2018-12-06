@@ -8,7 +8,7 @@ use emulator::mfa::{MFArgs};
 use emulator::code_srv::CodeServer;
 use emulator::process::Process;
 use emulator::scheduler::{Prio, Scheduler};
-use fail::{Hopefully};
+use fail::{RtResult};
 use term::lterm::*;
 use std::cell::RefCell;
 
@@ -46,7 +46,7 @@ impl VM {
   pub fn create_process(&mut self,
                         parent: LTerm,
                         mfargs: &MFArgs,
-                        prio: Prio) -> Hopefully<LTerm> {
+                        prio: Prio) -> RtResult<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
 
@@ -66,7 +66,7 @@ impl VM {
   /// Time slice ends when a current process yields or when reduction count
   /// reaches zero.
   /// Returns: false if VM has quit, true if can continue.
-  pub fn tick(&mut self) -> Hopefully<bool> {
+  pub fn tick(&mut self) -> RtResult<bool> {
     self.dispatch()
   }
 

@@ -7,7 +7,7 @@ use emulator::process::{Process};
 use emulator::runtime_ctx::call_bif;
 use emulator::runtime_ctx::{Context};
 use emulator::vm::{VM};
-use fail::{Hopefully};
+use fail::{RtResult};
 use term::lterm::*;
 
 
@@ -16,7 +16,7 @@ use term::lterm::*;
 /// Result is stored into `dst`.
 #[inline]
 pub fn opcode_bif0(_vm: &VM, ctx: &mut Context,
-                   curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                   curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: bif0(import:boxed, dst:dst)
   assert_arity(gen_op::OPCODE_BIF0, 2);
 
@@ -34,7 +34,7 @@ pub fn opcode_bif0(_vm: &VM, ctx: &mut Context,
 
 #[inline]
 pub fn opcode_bif1(_vm: &VM, ctx: &mut Context,
-                   curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                   curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: bif1(fail:cp, import:boxed, arg1:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_BIF1, 4);
 
@@ -50,7 +50,7 @@ pub fn opcode_bif1(_vm: &VM, ctx: &mut Context,
 
 #[inline]
 pub fn opcode_bif2(_vm: &VM, ctx: &mut Context,
-                   curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                   curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: bif1(fail:cp, import:boxed, arg1..2:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_BIF2, 5);
 
@@ -66,7 +66,7 @@ pub fn opcode_bif2(_vm: &VM, ctx: &mut Context,
 
 #[inline]
 pub fn opcode_gc_bif1(_vm: &VM, ctx: &mut Context,
-                   curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                   curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_GC_BIF1, 5);
 
@@ -83,7 +83,7 @@ pub fn opcode_gc_bif1(_vm: &VM, ctx: &mut Context,
 
 #[inline]
 pub fn opcode_gc_bif2(_vm: &VM, ctx: &mut Context,
-                      curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                      curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:lterm,
   //                    arg2:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_GC_BIF2, 6);
@@ -101,7 +101,7 @@ pub fn opcode_gc_bif2(_vm: &VM, ctx: &mut Context,
 
 #[inline]
 pub fn opcode_gc_bif3(_vm: &VM, ctx: &mut Context,
-                      curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                      curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:lterm,
   //                    arg2:lterm, arg3:lterm, dst:dst)
   assert_arity(gen_op::OPCODE_GC_BIF2, 7);

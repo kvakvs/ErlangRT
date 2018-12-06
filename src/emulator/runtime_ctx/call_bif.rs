@@ -8,7 +8,7 @@ use emulator::mfa::MFArity;
 use emulator::process::Process;
 use term::lterm::*;
 
-use fail::{Error, Hopefully};
+use fail::{Error, RtResult};
 use std::slice;
 use term::boxed::import;
 
@@ -56,7 +56,7 @@ pub fn apply(
   args: &[LTerm],
   dst: LTerm,
   gc: bool,
-) -> Hopefully<DispatchResult> {
+) -> RtResult<DispatchResult> {
   let maybe_bif_fn = match target {
     CallBifTarget::ImportTerm(ho_imp) => callbif_resolve_import(ho_imp)?,
 
@@ -128,7 +128,7 @@ enum BifResolutionResult {
 
 /// Given a term with import, resolve it to a bif function pointer or fail.
 /// Return: A bif function or an error
-fn callbif_resolve_import(imp: LTerm) -> Hopefully<BifResolutionResult> {
+fn callbif_resolve_import(imp: LTerm) -> RtResult<BifResolutionResult> {
   // Possibly a boxed::Import object on heap which contains m:f/arity
   let imp_p = imp.get_box_ptr_safe::<import::Import>()?;
 
@@ -141,7 +141,7 @@ fn callbif_resolve_import(imp: LTerm) -> Hopefully<BifResolutionResult> {
 /// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.
 // TODO: Remove this and call find_bif directly
 #[inline]
-fn callbif_resolve_mfa(mfa: &MFArity) -> Hopefully<BifResolutionResult> {
+fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
   Ok(BifResolutionResult::FnPointer(bif::find_bif(&mfa)?))
 }
 
@@ -154,7 +154,7 @@ fn callbif_apply_bif(
   curr_p: &mut Process,
   func_pointer: BifFn,
   args: &[LTerm],
-) -> Hopefully<LTerm> {
+) -> RtResult<LTerm> {
   let n_args = args.len();
 
   // Make a slice from the args. Bif arg count can go up to 3

@@ -7,7 +7,7 @@
 
 use emulator::atom;
 use emulator::heap::Heap;
-use fail::{Error, Hopefully};
+use fail::{Error, RtResult};
 use rt_defs::*;
 use term::boxed;
 use term::boxed::{BoxHeader, BoxTypeTag};
@@ -195,7 +195,7 @@ impl LTerm {
   }
 
 
-  pub fn get_box_ptr_safe<T>(self) -> Hopefully<*const T> {
+  pub fn get_box_ptr_safe<T>(self) -> RtResult<*const T> {
     if !self.is_boxed() {
       return Err(Error::TermIsNotABoxed);
     }
@@ -203,7 +203,7 @@ impl LTerm {
   }
 
 
-  pub fn get_box_ptr_safe_mut<T>(self) -> Hopefully<*mut T> {
+  pub fn get_box_ptr_safe_mut<T>(self) -> RtResult<*mut T> {
     if !self.is_boxed() {
       return Err(Error::TermIsNotABoxed);
     }
@@ -277,7 +277,7 @@ impl LTerm {
   }
 
 
-  pub fn make_remote_pid(hp: &mut Heap, node: LTerm, pindex: Word) -> Hopefully<LTerm> {
+  pub fn make_remote_pid(hp: &mut Heap, node: LTerm, pindex: Word) -> RtResult<LTerm> {
     let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
     Ok(LTerm::make_boxed(rpid_ptr))
   }
@@ -354,15 +354,17 @@ impl LTerm {
     self.get_term_tag() == TERMTAG_CONS
   }
 
+
+  #[inline]
   pub fn get_cons_ptr(self) -> *const boxed::Cons {
     debug_assert!(self.is_cons());
-    (self.value & TERM_TAG_MASK) as *const boxed::Cons
+    (self.value & (!TERM_TAG_MASK)) as *const boxed::Cons
   }
 
 
   pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
     debug_assert!(self.is_cons());
-    (self.value & TERM_TAG_MASK) as *mut boxed::Cons
+    (self.value & (!TERM_TAG_MASK)) as *mut boxed::Cons
   }
 
 
@@ -466,7 +468,7 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_FLOAT)
   }
 
-  pub fn get_f64(self) -> Hopefully<f64> {
+  pub fn get_f64(self) -> RtResult<f64> {
     if !self.is_boxed() {
       return Err(Error::TermIsNotABoxed);
     }
@@ -479,32 +481,38 @@ impl LTerm {
   //
 
   fn format_special(self, f: &mut fmt::Formatter) -> fmt::Result {
-    if self == LTerm::nil() {
-      write!(f, "[]")
-    } else if self.is_non_value() {
-      write!(f, "NON_VALUE")
-    } else if self == LTerm::empty_binary() {
-      write!(f, "<<>>")
-    } else if self == LTerm::empty_tuple() {
-      write!(f, "{{}}")
-    } else {
-      write!(f, "Special(0x{:x})", self.get_special_value())
+    match self.get_special_tag() {
+      SPECIALTAG_CONST => {
+        if self == LTerm::nil() {
+          return write!(f, "[]")
+        } else if self.is_non_value() {
+          return write!(f, "NON_VALUE")
+        } else if self == LTerm::empty_binary() {
+          return write!(f, "<<>>")
+        } else if self == LTerm::empty_tuple() {
+          return write!(f, "{{}}")
+        }
+      }
+      SPECIALTAG_REGX => {
+        return write!(f, "X{}", self.get_special_value())
+      },
+      SPECIALTAG_REGY => {
+        return write!(f, "Y{}", self.get_special_value())
+      },
+      SPECIALTAG_REGFP => {
+        return write!(f, "F{}", self.get_special_value())
+      },
+      SPECIALTAG_OPCODE => {
+        return write!(f, "Opcode({})", self.get_special_value())
+      },
+      _ => {},
     }
-    //          immediate::TAG_IMM2_IMM3 => {
-    //            let v3 = immediate::get_imm3_value(v);
-    //
-    //            match immediate::get_imm3_tag(v) {
-    //              immediate::TAG_IMM3_XREG => write!(f, "X({})", v3),
-    //              immediate::TAG_IMM3_YREG => write!(f, "Y({})", v3),
-    //              immediate::TAG_IMM3_FPREG => write!(f, "FP({})", v3),
-    //              immediate::TAG_IMM3_OPCODE => write!(f, "Opcode({})", v3),
-    //              _ => panic!("Immediate3 tag must be in range 0..3")
-    //            }
-    //          }
-    //          _ => panic!("Immediate2 tag must be in range 0..3")
-    //        },
-    //      _ => panic!("Immediate1 tag must be in range 0..3")
-    //    }
+    write!(
+      f,
+      "Special(0x{:x}; 0x{:x})",
+      self.get_special_tag().0,
+      self.get_special_value()
+    )
   }
 
 
@@ -718,7 +726,7 @@ pub unsafe fn helper_get_const_from_boxed_term<T>(
   t: LTerm,
   box_type: BoxTypeTag,
   err: Error,
-) -> Hopefully<*const T> {
+) -> RtResult<*const T> {
   if !t.is_boxed() {
     return Err(Error::TermIsNotABoxed);
   }
@@ -735,7 +743,7 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
   t: LTerm,
   box_type: BoxTypeTag,
   _err: Error,
-) -> Hopefully<*mut T> {
+) -> RtResult<*mut T> {
   debug_assert!(t.is_boxed());
   let cptr = t.get_box_ptr_mut::<T>();
   let hptr = cptr as *const BoxHeader;

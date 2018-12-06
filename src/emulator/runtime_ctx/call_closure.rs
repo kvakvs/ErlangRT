@@ -5,7 +5,7 @@ use beam::disp_result::DispatchResult;
 use emulator::function::CallableLocation;
 use emulator::process::Process;
 use emulator::vm::VM;
-use fail::Hopefully;
+use fail::RtResult;
 use rt_defs::Arity;
 use term::boxed;
 use term::lterm::*;
@@ -24,7 +24,7 @@ pub fn apply(
   _curr_p: &mut Process,
   closure: *const boxed::Closure,
   args: &[LTerm],
-) -> Hopefully<DispatchResult> {
+) -> RtResult<DispatchResult> {
   let in_arity = args.len();
 
   // Actual call is performed for passed args + frozen args, so add them

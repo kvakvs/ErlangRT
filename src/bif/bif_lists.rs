@@ -1,6 +1,6 @@
 use emulator::gen_atoms;
 use emulator::process::{Process};
-use fail::{Hopefully};
+use fail::{RtResult};
 use rt_defs::{ExceptionType};
 use term::lterm::*;
 use fail::Error;
@@ -11,7 +11,7 @@ fn module() -> &'static str { "bif_compare: " }
 
 /// Calculate length of a list by traversing it.
 pub fn gcbif_length_1(_cur_proc: &mut Process,
-                      args: &[LTerm]) -> Hopefully<LTerm> {
+                      args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 1, "{}gcbif_length_1 takes 1 arg", module());
 
   let l0: LTerm = args[0];

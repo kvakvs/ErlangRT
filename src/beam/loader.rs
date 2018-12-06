@@ -29,7 +29,7 @@ use emulator::function::FunEntry;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::mfa::MFArity;
 use emulator::module;
-use fail::{Error, Hopefully};
+use fail::{Error, RtResult};
 use rt_defs::{Arity, Word};
 use rt_util::bin_reader::{BinaryReader, ReadError};
 use rt_util::ext_term_format as etf;
@@ -205,7 +205,7 @@ impl Loader {
   /// Loading the module. Validate the header and iterate over sections,
   /// then call `load_stage2()` to apply changes to the VM, and then finalize
   /// it by calling `load_finalize()` which will return you a module object.
-  pub fn load(&mut self, fname: &PathBuf) -> Hopefully<()> {
+  pub fn load(&mut self, fname: &PathBuf) -> RtResult<()> {
     // Prebuffered BEAM file should be released as soon as the initial phase
     // is done. TODO: [Performance] Use memmapped file?
     let mut r = BinaryReader::from_file(fname);
@@ -290,7 +290,7 @@ impl Loader {
   /// Call this to apply changes to the VM after module loading succeeded. The
   /// module object is not created yet, but some effects like atoms table
   /// we can already apply.
-  pub fn load_stage2(&mut self, code_server: &mut CodeServer) -> Hopefully<()> {
+  pub fn load_stage2(&mut self, code_server: &mut CodeServer) -> RtResult<()> {
     self.stage2_register_atoms(code_server);
     self.stage2_fill_lambdas();
 
@@ -306,7 +306,7 @@ impl Loader {
   /// At this point loading is finished, and we create Erlang module and
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
-  pub fn load_finalize(&mut self) -> Hopefully<module::Ptr> {
+  pub fn load_finalize(&mut self) -> RtResult<module::Ptr> {
     let mut newmod = match self.mod_id {
       Some(mod_id) => module::Module::new(&mod_id),
       None => panic!("{}mod_id must be set at this point", module()),
@@ -332,14 +332,14 @@ impl Loader {
 
   /// Read Attr section: two terms (module attributes and compiler info) encoded
   /// as external term format.
-  fn load_attributes(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
+  fn load_attributes(&mut self, r: &mut BinaryReader) -> RtResult<()> {
     let mut tb = TermBuilder::new(&mut self.lit_heap);
     self.mod_attrs = etf::decode(r, &mut tb)?;
     Ok(())
   }
 
 
-  fn load_compiler_info(&mut self, r: &mut BinaryReader) -> Hopefully<()> {
+  fn load_compiler_info(&mut self, r: &mut BinaryReader) -> RtResult<()> {
     let mut tb = TermBuilder::new(&mut self.lit_heap);
     self.compiler_info = etf::decode(r, &mut tb)?;
     Ok(())
@@ -536,7 +536,7 @@ impl Loader {
   /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
   /// 'drained_code' is 'raw_code' moved out of 'self'
-  fn postprocess_parse_raw_code(&mut self) -> Hopefully<()> {
+  fn postprocess_parse_raw_code(&mut self) -> RtResult<()> {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw.code, &mut raw_code);
@@ -641,7 +641,7 @@ impl Loader {
   /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
   /// container of terms. `LoadTimeLabel` get special treatment as we try to
   /// resolve them into an offset.
-  fn store_opcode_args(&mut self, args: &[FTerm]) -> Hopefully<()> {
+  fn store_opcode_args(&mut self, args: &[FTerm]) -> RtResult<()> {
     for a in args {
       match *a {
         // Ext list is special so we convert it and its contents to lterm
@@ -710,7 +710,7 @@ impl Loader {
 
 
   /// Analyze the code and replace label values with known label locations.
-  fn postprocess_fix_labels(&mut self) -> Hopefully<()> {
+  fn postprocess_fix_labels(&mut self) -> RtResult<()> {
     // Postprocess self.replace_labels, assuming that at this point labels exist
     let mut repl = Vec::<PatchLocation>::new();
     mem::swap(&mut repl, &mut self.replace_labels);
@@ -761,7 +761,7 @@ impl Loader {
 
   /// Analyze the code and for certain opcodes overwrite their import index
   /// args with direct pointer to import heap.
-  fn postprocess_setup_imports(&mut self) -> Hopefully<()> {
+  fn postprocess_setup_imports(&mut self) -> RtResult<()> {
     // Step 1
     // Write imports onto literal heap as {Mod, Fun, Arity} triplets
     //

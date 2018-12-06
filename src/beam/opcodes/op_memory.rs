@@ -5,14 +5,14 @@ use emulator::code::{CodePtr};
 use emulator::process::{Process};
 use emulator::runtime_ctx::{Context};
 use emulator::vm::{VM};
-use fail::{Hopefully};
+use fail::{RtResult};
 use rt_defs::stack::{IStack};
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
 pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
-                            curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                            curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: allocate_zero(need:int, live:int)
   assert_arity(gen_op::OPCODE_ALLOCATE_ZERO, 2);
 
@@ -39,7 +39,7 @@ pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
 pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                       curr_p: &mut Process) -> RtResult<DispatchResult> {
   opcode_allocate_zero(vm, ctx, curr_p)
 }
 
@@ -48,7 +48,7 @@ pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
 /// words from the stack.
 #[inline]
 pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
-                         curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                         curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: deallocate(n:int)
   assert_arity(gen_op::OPCODE_DEALLOCATE, 1);
 
@@ -65,7 +65,7 @@ pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
 /// GC using `live` amount of registers as a part of root set.
 #[inline]
 pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
-                        curr_p: &mut Process) -> Hopefully<DispatchResult> {
+                        curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: test_heap(heap_need:int, live:int)
   assert_arity(gen_op::OPCODE_TEST_HEAP, 2);
 

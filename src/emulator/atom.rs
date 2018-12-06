@@ -7,7 +7,7 @@ use std::u16;
 use std::collections::BTreeMap;
 use std::sync::{Mutex, MutexGuard};
 
-use fail::{Hopefully, Error};
+use fail::{RtResult, Error};
 use rt_defs::Word;
 use term::lterm::*;
 use emulator::gen_atoms;
@@ -136,7 +136,7 @@ pub fn from_str(val: &str) -> LTerm {
 }
 
 
-pub fn to_str(a: LTerm) -> Hopefully<String> {
+pub fn to_str(a: LTerm) -> RtResult<String> {
   assert!(a.is_atom());
   let p = lookup(a);
   if p.is_null() {

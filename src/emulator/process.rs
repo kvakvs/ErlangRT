@@ -9,7 +9,7 @@ use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
 use emulator::mfa::MFArity;
 use emulator::runtime_ctx;
 use emulator::scheduler;
-use fail::Hopefully;
+use fail::RtResult;
 use term::lterm::*;
 
 use std::fmt;
@@ -75,7 +75,7 @@ impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
   pub fn new(pid: LTerm, _parent_pid: LTerm, mfarity: &MFArity,
-             prio: scheduler::Prio, code_server: &mut CodeServer) -> Hopefully<Process> {
+             prio: scheduler::Prio, code_server: &mut CodeServer) -> RtResult<Process> {
     assert!(pid.is_local_pid());
     assert!(_parent_pid.is_local_pid() || _parent_pid == LTerm::nil());
 
@@ -111,7 +111,7 @@ impl Process {
 
 
   #[allow(dead_code)]
-  pub fn jump(&mut self, mfarity: &MFArity, code_server: &mut CodeServer) -> Hopefully<()> {
+  pub fn jump(&mut self, mfarity: &MFArity, code_server: &mut CodeServer) -> RtResult<()> {
     // TODO: Find mfa in code server and set IP to it
     match code_server.lookup_and_load(mfarity) {
       Ok(ip) => {

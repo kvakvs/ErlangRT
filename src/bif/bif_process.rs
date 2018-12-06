@@ -1,20 +1,20 @@
 use emulator::gen_atoms;
 use emulator::mfa::{MFArity};
 use emulator::process::{Process};
-use fail::{Hopefully};
+use fail::{RtResult};
 use rt_defs::{ExceptionType, Arity};
 use term::boxed;
 use term::lterm::*;
 use fail::Error;
 
 
-pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> Hopefully<LTerm> {
+pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {
   Ok(cur_proc.pid)
 }
 
 
 /// Create a function pointer from atom(), atom(), smallint()
-pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> Hopefully<LTerm> {
+pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
     return Err(Error::Exception(ExceptionType::Error,
                                 gen_atoms::BADARG));

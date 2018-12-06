@@ -63,7 +63,7 @@ impl From<HeapError> for Error {
 
 /// A templated error type based on `fail::Error`.
 // TODO: Rename to RTResult-something
-pub type Hopefully<T> = Result<T, Error>;
+pub type RtResult<T> = Result<T, Error>;
 
 //impl fmt::Debug for Error {
 //  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -5,7 +5,7 @@ use emulator::heap::Heap;
 use term::boxed;
 use term::lterm::*;
 
-use fail::Hopefully;
+use fail::RtResult;
 use num;
 
 
@@ -43,7 +43,7 @@ pub struct ListBuilder {
 }
 
 impl ListBuilder {
-  pub unsafe fn new(heap: *mut Heap) -> Hopefully<ListBuilder> {
+  pub unsafe fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
     let p = (*heap).alloc::<LTerm>(2, true)?;
 
     Ok(ListBuilder { p, p0: p, heap })
@@ -53,7 +53,7 @@ impl ListBuilder {
     core::ptr::write(self.p, val)
   }
 
-  pub unsafe fn next(&mut self) -> Hopefully<()> {
+  pub unsafe fn next(&mut self) -> RtResult<()> {
     let new_cell = (*self.heap).alloc::<LTerm>(2, true)?;
     core::ptr::write(self.p.add(1), LTerm::make_cons(new_cell));
     self.p = new_cell;
@@ -85,14 +85,14 @@ impl TermBuilder {
   }
 
 
-  pub unsafe fn create_bignum(&self, n: num::BigInt) -> Hopefully<LTerm> {
+  pub unsafe fn create_bignum(&self, n: num::BigInt) -> RtResult<LTerm> {
     let ref_heap = self.heap.as_mut().unwrap();
     let big_p = boxed::Bignum::create_into(ref_heap, n)?;
     Ok(LTerm::make_boxed(big_p))
   }
 
 
-  pub unsafe fn create_binary(&mut self, data: &[u8]) -> Hopefully<LTerm> {
+  pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<LTerm> {
     debug_assert!(self.heap.is_null() == false);
     let hp = self.heap.as_mut().unwrap();
     let rbin = boxed::Binary::create_into(hp, data.len())?;
@@ -125,14 +125,14 @@ impl TermBuilder {
   //  }
 
 
-  pub fn create_tuple_builder(&mut self, sz: usize) -> Hopefully<TupleBuilder> {
+  pub fn create_tuple_builder(&mut self, sz: usize) -> RtResult<TupleBuilder> {
     let ref_heap = unsafe { self.heap.as_mut() }.unwrap();
     let raw_tuple = boxed::Tuple::create_into(ref_heap, sz)?;
     Ok(TupleBuilder::new(raw_tuple))
   }
 
 
-  pub fn create_list_builder(&mut self) -> Hopefully<ListBuilder> {
+  pub fn create_list_builder(&mut self) -> RtResult<ListBuilder> {
     unsafe { ListBuilder::new(self.heap) }
   }
 }
