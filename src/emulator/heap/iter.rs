@@ -1,6 +1,6 @@
 //! Define `HeapIterator` which can step over the heap
-use term::lterm::{LTerm, TermTag, TERMTAG_HEADER};
 use term::boxed;
+use term::lterm::{LTerm, TermTag, TERMTAG_HEADER};
 
 // This is used by heap walkers such as "dump.rs"
 #[allow(dead_code)]
@@ -28,7 +28,7 @@ impl HeapIterator {
 
     let end = self.end;
     if self.p >= end {
-      return None
+      return None;
     }
 
     Some(self.p)

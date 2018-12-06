@@ -1,27 +1,30 @@
 use core::ptr;
 
-use beam::disp_result::{DispatchResult};
-use emulator::function::{CallableLocation};
-use emulator::process::{Process};
-use emulator::vm::{VM};
-use fail::{Hopefully};
-use rt_defs::{Arity};
-use super::{Context};
+use super::Context;
+use beam::disp_result::DispatchResult;
+use emulator::function::CallableLocation;
+use emulator::process::Process;
+use emulator::vm::VM;
+use fail::Hopefully;
+use rt_defs::Arity;
 use term::boxed;
 use term::lterm::*;
 
 
-fn module() -> &'static str { "runtime_ctx.call_closure: " }
+fn module() -> &'static str {
+  "runtime_ctx.call_closure: "
+}
 
 
 /// The `closure` is a callable closure with some frozen variables made with
 /// `fun() -> code end`.
-pub fn apply(vm: &VM,
-             ctx: &mut Context,
-             _curr_p: &mut Process,
-             closure: *const boxed::Closure,
-             args: &[LTerm]) -> Hopefully<DispatchResult>
-{
+pub fn apply(
+  vm: &VM,
+  ctx: &mut Context,
+  _curr_p: &mut Process,
+  closure: *const boxed::Closure,
+  args: &[LTerm],
+) -> Hopefully<DispatchResult> {
   let in_arity = args.len();
 
   // Actual call is performed for passed args + frozen args, so add them
@@ -36,17 +39,20 @@ pub fn apply(vm: &VM,
   }
 
   if full_arity != in_arity as Arity {
-    println!("{}badarity full_arity={} call_arity={}", module(), full_arity, in_arity);
+    println!(
+      "{}badarity full_arity={} call_arity={}",
+      module(),
+      full_arity,
+      in_arity
+    );
     return DispatchResult::badarity();
   }
 
   ctx.cp = ctx.ip;
   let dst = unsafe { (*closure).dst };
   ctx.ip = match dst {
-    CallableLocation::Code(p) =>
-      p.code_ptr(vm.code_server.borrow().as_ref()),
-    CallableLocation::NeedUpdate =>
-      panic!("Must not have this value here"),
+    CallableLocation::Code(p) => p.code_ptr(vm.code_server.borrow().as_ref()),
+    CallableLocation::NeedUpdate => panic!("Must not have this value here"),
   };
   Ok(DispatchResult::Normal)
 }

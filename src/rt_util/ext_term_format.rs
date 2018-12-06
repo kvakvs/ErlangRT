@@ -1,9 +1,9 @@
-use rt_defs::{Word, SWord};
+use super::bin_reader::BinaryReader;
+use fail::{Error, Hopefully};
 use rt_defs;
-use super::bin_reader::{BinaryReader};
-use term::term_builder::TermBuilder;
+use rt_defs::{SWord, Word};
 use term::lterm::LTerm;
-use fail::{Hopefully, Error};
+use term::term_builder::TermBuilder;
 
 use num;
 use num::ToPrimitive;
@@ -52,7 +52,9 @@ enum Tag {
 }
 
 
-fn module() -> &'static str { "external_term_format: " }
+fn module() -> &'static str {
+  "external_term_format: "
+}
 
 
 fn fail<TermType: Copy>(msg: String) -> Hopefully<TermType> {
@@ -62,8 +64,7 @@ fn fail<TermType: Copy>(msg: String) -> Hopefully<TermType> {
 
 /// Given a binary reader `r` parse term and return it, `heap` is used to
 /// allocate space for larger boxed terms.
-pub fn decode(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+pub fn decode(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let etf_tag = r.read_u8();
   if etf_tag != Tag::ETF as u8 {
     let msg = format!("{}Expected ETF tag byte 131, got {}", module(), etf_tag);
@@ -75,24 +76,18 @@ pub fn decode(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 
 /// Given an encoded term without ETF tag (131u8), read the term from `r` and
 /// place boxed term parts on heap `heap`.
-pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let term_tag = r.read_u8();
   match term_tag {
-    x if x == Tag::List as u8 =>
-      decode_list(r, tb),
+    x if x == Tag::List as u8 => decode_list(r, tb),
 
-    x if x == Tag::String as u8 =>
-      decode_string(r, tb),
+    x if x == Tag::String as u8 => decode_string(r, tb),
 
-    x if x == Tag::AtomDeprecated as u8 =>
-      decode_atom_latin1(r, tb),
+    x if x == Tag::AtomDeprecated as u8 => decode_atom_latin1(r, tb),
 
-    x if x == Tag::SmallInteger as u8 =>
-      decode_u8(r, tb),
+    x if x == Tag::SmallInteger as u8 => decode_u8(r, tb),
 
-    x if x == Tag::Integer as u8 =>
-      decode_s32(r, tb),
+    x if x == Tag::Integer as u8 => decode_s32(r, tb),
 
     x if x == Tag::Nil as u8 => Ok(LTerm::nil()),
 
@@ -116,8 +111,7 @@ pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTe
       decode_big(r, size, tb)
     }
 
-    x if x == Tag::Binary as u8 =>
-      decode_binary(r, tb),
+    x if x == Tag::Binary as u8 => decode_binary(r, tb),
 
     _ => {
       let msg = format!(
@@ -131,10 +125,12 @@ pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTe
 
 
 /// Given `size`, read digits for a bigint.
-fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
-  let sign = if r.read_u8() == 0 { num::bigint::Sign::Plus }
-      else { num::bigint::Sign::Minus };
+fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopefully<LTerm> {
+  let sign = if r.read_u8() == 0 {
+    num::bigint::Sign::Plus
+  } else {
+    num::bigint::Sign::Minus
+  };
   let digits = r.read_bytes(size)?;
   let big = num::BigInt::from_bytes_le(sign, &digits);
 
@@ -149,11 +145,10 @@ fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopeful
 }
 
 
-fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let n_bytes = r.read_u32be() as usize;
   if n_bytes == 0 {
-    return Ok(LTerm::empty_binary())
+    return Ok(LTerm::empty_binary());
   }
 
   let data = r.read_bytes(n_bytes)?;
@@ -162,8 +157,7 @@ fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 
 
 /// Given arity, allocate a tuple and read its elements sequentially.
-fn decode_tuple(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_tuple(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let mut tuple_builder = tb.create_tuple_builder(size)?;
   for i in 0..size {
     let elem = decode_naked(r, tb)?;
@@ -173,30 +167,26 @@ fn decode_tuple(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopef
 }
 
 
-fn decode_u8(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_u8(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let val = r.read_u8();
   Ok(tb.create_small_s(val as SWord))
 }
 
 
-fn decode_s32(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_s32(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let val = r.read_u32be() as i32;
   Ok(tb.create_small_s(val as SWord))
 }
 
 
-fn decode_atom_latin1(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_atom_latin1(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let sz = r.read_u16be();
   let val = r.read_str_latin1(sz as Word).unwrap();
   Ok(tb.create_atom_str(&val))
 }
 
 
-fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let n_elem = r.read_u32be();
   if n_elem == 0 {
     return Ok(LTerm::nil());
@@ -210,7 +200,9 @@ fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
     unsafe { list_builder.set(another) }
 
     if i < n_elem_minus_one {
-      unsafe { list_builder.next(); }
+      unsafe {
+        list_builder.next()?;
+      }
     }
   }
 
@@ -222,8 +214,7 @@ fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 
 
 /// A string of bytes encoded as tag 107 (String) with 16-bit length.
-fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
-{
+fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm> {
   let n_elem = r.read_u16be();
   if n_elem == 0 {
     return Ok(tb.create_nil());
@@ -242,7 +233,9 @@ fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 
     // Keep building forward
     if i < n_elem_minus_one {
-      unsafe { list_builder.next(); }
+      unsafe {
+        list_builder.next()?;
+      }
     }
   }
 

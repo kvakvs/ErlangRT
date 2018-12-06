@@ -1,9 +1,9 @@
 use emulator::heap::Heap;
 use fail::Error;
 use fail::Hopefully;
-use rt_defs::{Word};
-use term::boxed::{BoxHeader, BOXTYPETAG_TUPLE};
+use rt_defs::Word;
 use term::boxed;
+use term::boxed::{BoxHeader, BOXTYPETAG_TUPLE};
 use term::lterm::LTerm;
 
 //use core::ptr;
@@ -39,7 +39,9 @@ impl Tuple {
   pub fn create_into(hp: &mut Heap, arity: Word) -> Hopefully<*mut Tuple> {
     let n = boxed::Tuple::storage_size(arity);
     let p = hp.alloc::<Tuple>(n, false)?;
-    core::ptr::write(p, Tuple::new(arity));
+    unsafe {
+      core::ptr::write(p, Tuple::new(arity));
+    }
     Ok(p)
   }
 
@@ -48,7 +50,7 @@ impl Tuple {
   pub unsafe fn from_pointer<T>(p: *const T) -> Hopefully<*const Tuple> {
     let tp = p as *const Tuple;
     if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
-      return Err(Error::BoxedIsNotATuple)
+      return Err(Error::BoxedIsNotATuple);
     }
     Ok(tp)
   }
@@ -58,7 +60,7 @@ impl Tuple {
   pub unsafe fn from_pointer_mut<T>(p: *mut T) -> Hopefully<*mut Tuple> {
     let tp = p as *mut Tuple;
     if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
-      return Err(Error::BoxedIsNotATuple)
+      return Err(Error::BoxedIsNotATuple);
     }
     Ok(tp)
   }

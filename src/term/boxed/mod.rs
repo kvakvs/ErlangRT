@@ -5,25 +5,25 @@ pub mod pid;
 pub use self::pid::ExternalPid;
 
 pub mod closure;
-pub use self::closure::{Closure};
+pub use self::closure::Closure;
 
 pub mod bignum;
-pub use self::bignum::{Bignum};
+pub use self::bignum::Bignum;
 
 pub mod import;
-pub use self::import::{Import};
+pub use self::import::Import;
 
 pub mod export;
-pub use self::export::{Export};
+pub use self::export::Export;
 
 pub mod binary;
-pub use self::binary::{Binary};
+pub use self::binary::Binary;
 
 pub mod tuple;
-pub use self::tuple::{Tuple};
+pub use self::tuple::Tuple;
 
 pub mod cons;
-pub use self::cons::{Cons};
+pub use self::cons::Cons;
 use rt_defs::*;
 use term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK};
 
@@ -33,6 +33,7 @@ use term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK};
 //
 
 const HEADER_TAG_BITS: Word = 3;
+#[allow(dead_code)]
 const HEADER_TAG_MASK: Word = (1 << HEADER_TAG_BITS) - 1;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -60,19 +61,20 @@ pub const BOXTYPETAG_IMPORT: BoxTypeTag = BoxTypeTag(8);
 
 /// Term header in memory, followed by corresponding data.
 pub struct BoxHeader {
-  header_word: Word
+  header_word: Word,
 }
 
 impl BoxHeader {
   pub fn new(t: BoxTypeTag, arity: Word) -> BoxHeader {
     BoxHeader {
-      header_word: (arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS
-          | TERMTAG_HEADER.get()
+      header_word: (arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS | TERMTAG_HEADER.0,
     }
   }
 
 
-  pub const fn storage_size() -> Word { 1 }
+  pub const fn storage_size() -> Word {
+    1
+  }
 
 
   pub fn get_tag(&self) -> BoxTypeTag {
@@ -80,7 +82,7 @@ impl BoxHeader {
   }
 
 
-  pub fn get_arity(self) -> Word {
+  pub fn get_arity(&self) -> Word {
     headerword_to_arity(self.header_word)
   }
 }

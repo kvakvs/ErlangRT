@@ -1,19 +1,19 @@
 use super::Context;
 
-use beam::disp_result::{DispatchResult};
-use bif::{BifFn};
+use beam::disp_result::DispatchResult;
 use bif;
-use emulator::code::{CodePtr};
-use emulator::mfa::{MFArity};
-use emulator::process::{Process};
+use bif::BifFn;
+use emulator::code::CodePtr;
+use emulator::mfa::MFArity;
+use emulator::process::Process;
 use term::lterm::*;
 
+use fail::{Error, Hopefully};
 use std::slice;
 use term::boxed::import;
-use fail::{Hopefully, Error};
 
 
-fn module() -> &'static str { "runtime_ctx.call_bif: " }
+//fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
 
 //
@@ -48,52 +48,50 @@ pub enum CallBifTarget {
 ///   `gc` if gc is allowed then `ctx.live` will be used as live.
 //#[inline]
 // Inline to allow const folding optimization
-pub fn apply(ctx: &mut Context,
-             curr_p: &mut Process,
-             fail_label: LTerm,
-             target: CallBifTarget,
-             args: &[LTerm],
-             dst: LTerm,
-             gc: bool) -> Hopefully<DispatchResult>
-{
-  let maybe_bif_fn =
-    match target {
-      CallBifTarget::ImportTerm(ho_imp) =>
-        callbif_resolve_import(ho_imp)?,
+pub fn apply(
+  ctx: &mut Context,
+  curr_p: &mut Process,
+  fail_label: LTerm,
+  target: CallBifTarget,
+  args: &[LTerm],
+  dst: LTerm,
+  gc: bool,
+) -> Hopefully<DispatchResult> {
+  let maybe_bif_fn = match target {
+    CallBifTarget::ImportTerm(ho_imp) => callbif_resolve_import(ho_imp)?,
 
-      CallBifTarget::MFArity(mfa) =>
-        callbif_resolve_mfa(&mfa)?,
+    CallBifTarget::MFArity(mfa) => callbif_resolve_mfa(&mfa)?,
 
-      CallBifTarget::ImportPointer(ho_imp_ptr) => {
-        let fn_ptr = unsafe { (*ho_imp_ptr).resolve_bif()? };
-        BifResolutionResult::FnPointer(fn_ptr)
-      },
+    CallBifTarget::ImportPointer(ho_imp_ptr) => {
+      let fn_ptr = unsafe { (*ho_imp_ptr).resolve_bif()? };
+      BifResolutionResult::FnPointer(fn_ptr)
+    }
 
-      CallBifTarget::BifFnPointer(fn_ptr) =>
-        BifResolutionResult::FnPointer(fn_ptr),
-    };
+    CallBifTarget::BifFnPointer(fn_ptr) => BifResolutionResult::FnPointer(fn_ptr),
+  };
 
   // Now having resolved the bif function, let's call it
 
   let bif_result = match maybe_bif_fn {
-    BifResolutionResult::FnPointer(fn_ptr) => {
-      callbif_apply_bif(ctx, curr_p, fn_ptr, args)
-    },
+    BifResolutionResult::FnPointer(fn_ptr) => callbif_apply_bif(ctx, curr_p, fn_ptr, args),
 
     BifResolutionResult::BadfunError(badfun_val) => {
-      return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap)
-    },
-
-//    BifResolutionResult::Fail(e) => {
-//      return callbif_handle_fail(&e)
-//    },
+      return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap);
+    }
+    //    BifResolutionResult::Fail(e) => {
+    //      return callbif_handle_fail(&e)
+    //    },
   };
 
   // Now having called the function let's see if there was some good result or
   // an error occured
 
-  println!("call_bif a={} gc={} call result {:?}",
-           args.len(), gc, bif_result);
+  println!(
+    "call_bif a={} gc={} call result {:?}",
+    args.len(),
+    gc,
+    bif_result
+  );
 
   // On error and if fail label is a CP, perform a goto
   // Assume that error is already written to `reason` in process
@@ -121,18 +119,18 @@ pub fn apply(ctx: &mut Context,
 //}
 
 
+#[allow(dead_code)]
 enum BifResolutionResult {
   FnPointer(BifFn),
-  BadfunError(LTerm)
+  BadfunError(LTerm),
 }
 
 
 /// Given a term with import, resolve it to a bif function pointer or fail.
 /// Return: A bif function or an error
-fn callbif_resolve_import(imp: LTerm) -> Hopefully<BifResolutionResult>
-{
+fn callbif_resolve_import(imp: LTerm) -> Hopefully<BifResolutionResult> {
   // Possibly a boxed::Import object on heap which contains m:f/arity
-  let imp_p = unsafe { imp.get_box_ptr_safe::<import::Import>()? };
+  let imp_p = imp.get_box_ptr_safe::<import::Import>()?;
 
   // Here HOImport pointer is found, try and resolve it to a Rust function ptr
   let fn_ptr = unsafe { (*imp_p).resolve_bif()? };
@@ -151,11 +149,12 @@ fn callbif_resolve_mfa(mfa: &MFArity) -> Hopefully<BifResolutionResult> {
 /// Given a bif function pointer and args with possibly register/slot values
 /// in them, first resolve these args to values, and then call the function
 #[inline]
-fn callbif_apply_bif(ctx: &mut Context,
-                     curr_p: &mut Process,
-                     func_pointer: BifFn,
-                     args: &[LTerm]) -> Hopefully<LTerm>
-{
+fn callbif_apply_bif(
+  ctx: &mut Context,
+  curr_p: &mut Process,
+  func_pointer: BifFn,
+  args: &[LTerm],
+) -> Hopefully<LTerm> {
   let n_args = args.len();
 
   // Make a slice from the args. Bif arg count can go up to 3
@@ -170,9 +169,7 @@ fn callbif_apply_bif(ctx: &mut Context,
   }
 
   // Take n_args elements from args
-  let loaded_args1 = unsafe {
-    slice::from_raw_parts(&loaded_args[0], n_args)
-  };
+  let loaded_args1 = unsafe { slice::from_raw_parts(&loaded_args[0], n_args) };
 
   // Apply the BIF call and return BifResult
   (func_pointer)(curr_p, loaded_args1)

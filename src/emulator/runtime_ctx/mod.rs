@@ -3,19 +3,22 @@
 
 use emulator::code::CodePtr;
 use emulator::heap;
-use rt_defs::{Float, MAX_FPREGS, MAX_XREGS, Word};
 use rt_defs::stack::IStack;
+use rt_defs::{Float, Word, MAX_FPREGS, MAX_XREGS};
 use std::fmt;
 use std::slice;
-use term::lterm::{LTerm, SpecialTag, TERMTAG_SPECIAL, SPECIALTAG_REGX,
-                  SPECIALTAG_REGY, SPECIALTAG_REGFP};
+use term::lterm::{
+  LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY, TERMTAG_SPECIAL,
+};
 
 pub mod call_bif;
 pub mod call_closure;
 pub mod call_export;
 
 
-fn module() -> &'static str { "runtime_ctx: " }
+fn module() -> &'static str {
+  "runtime_ctx: "
+}
 
 
 /// Structure represents the runtime state of a VM process. It is "swapped in"
@@ -80,7 +83,9 @@ impl Context {
   /// Fetch a word from code, assume it is an `LTerm`. The code position is
   /// advanced by 1.
   #[inline]
-  pub fn fetch_term(&mut self) -> LTerm { LTerm::from_raw(self.fetch()) }
+  pub fn fetch_term(&mut self) -> LTerm {
+    LTerm::from_raw(self.fetch())
+  }
 
 
   /// Using current position in code as the starting address, create a new
@@ -96,9 +101,7 @@ impl Context {
 
 
   pub fn registers_slice(&mut self, sz: usize) -> &'static [LTerm] {
-    unsafe {
-      slice::from_raw_parts(self.regs.as_ptr(), sz)
-    }
+    unsafe { slice::from_raw_parts(self.regs.as_ptr(), sz) }
   }
 
 
@@ -167,9 +170,10 @@ impl fmt::Display for Context {
       str_regs += &format!("{}; ", v)
     }
 
-    writeln!(f, concat!(
-        "Emulator state:\n",
-        "ip: {:?}, cp: {:?}\nregs[..10]: {}"
-      ), self.ip, self.cp, str_regs)
+    writeln!(
+      f,
+      concat!("Emulator state:\n", "ip: {:?}, cp: {:?}\nregs[..10]: {}"),
+      self.ip, self.cp, str_regs
+    )
   }
 }

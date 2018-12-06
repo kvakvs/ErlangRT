@@ -8,29 +8,29 @@
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
 //!
 use bytes::Bytes;
-use std::path::PathBuf;
-use std::collections::BTreeMap;
-use std::mem;
-use std::io::{Read, Cursor};
 use compress::zlib;
+use std::collections::BTreeMap;
+use std::io::{Cursor, Read};
+use std::mem;
+use std::path::PathBuf;
 
 use beam::compact_term;
 use beam::gen_op;
 use bif;
 use emulator::atom;
+use emulator::code;
 use emulator::code::opcode::RawOpcode;
 use emulator::code::pointer::CodePtrMut;
-use emulator::code::{LabelId, CodeOffset, Code, opcode};
-use emulator::code;
-use emulator::code_srv::CodeServer;
+use emulator::code::{opcode, Code, CodeOffset, LabelId};
 use emulator::code_srv::module_id::VersionedModuleId;
+use emulator::code_srv::CodeServer;
 use emulator::funarity::FunArity;
-use emulator::function::{FunEntry};
+use emulator::function::FunEntry;
 use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
 use emulator::mfa::MFArity;
 use emulator::module;
-use fail::{Hopefully, Error};
-use rt_defs::{Word, Arity};
+use fail::{Error, Hopefully};
+use rt_defs::{Arity, Word};
 use rt_util::bin_reader::{BinaryReader, ReadError};
 use rt_util::ext_term_format as etf;
 use term::boxed;
@@ -39,7 +39,9 @@ use term::lterm::*;
 use term::term_builder::TermBuilder;
 
 
-pub fn module() -> &'static str { "beam::loader: " }
+pub fn module() -> &'static str {
+  "beam::loader: "
+}
 
 
 /// Imports table item (mfa's referred by this module).
@@ -79,7 +81,7 @@ struct LFun {
 /// a tuple which represents a jump table (pairs value -> label)
 enum PatchLocation {
   PatchCodeOffset(Word),
-  PatchJtabElement(LTerm, Word)
+  PatchJtabElement(LTerm, Word),
 }
 
 
@@ -152,10 +154,9 @@ pub struct Loader {
   imports: Vec<LTerm>,
 
   lambdas: Vec<FunEntry>,
-
-//  /// A map of F/Arity -> HOExport which uses literal heap but those created
-//  /// during runtime will be using process heap.
-//  exports: BTreeMap<FunArity, LTerm>
+  //  /// A map of F/Arity -> HOExport which uses literal heap but those created
+  //  /// during runtime will be using process heap.
+  //  exports: BTreeMap<FunArity, LTerm>
 }
 
 
@@ -186,7 +187,9 @@ impl Loader {
   /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
   /// account special value 0 and offsets the index down by 1.
   fn atom_from_loadtime_index(&self, n: usize) -> LTerm {
-    if n == 0 { return LTerm::nil() }
+    if n == 0 {
+      return LTerm::nil();
+    }
     self.vm_atoms[n as usize - 1]
   }
 
@@ -223,7 +226,7 @@ impl Loader {
         Ok(s) => s,
         // EOF is not an error
         Err(ReadError::PrematureEOF) => break,
-        Err(e) => return Err(Error::ReadError(e))
+        Err(e) => return Err(Error::ReadError(e)),
       };
       let chunk_sz = r.read_u32be();
       let pos_begin = r.pos();
@@ -316,10 +319,10 @@ impl Loader {
       mem::swap(&mut self.lit_heap, &mut newmod.lit_heap);
       mem::swap(&mut self.lambdas, &mut newmod.lambdas);
 
-//      unsafe {
-//        disasm::disasm(&mod1.code, None);
-//        //mod1.lit_heap.dump()
-//      };
+      //      unsafe {
+      //        disasm::disasm(&mod1.code, None);
+      //        //mod1.lit_heap.dump()
+      //      };
     }
 
     Ok(newmod)
@@ -442,7 +445,7 @@ impl Loader {
         code_pos,
         index,
         nfree,
-        ouniq
+        ouniq,
       })
     }
   }
@@ -462,8 +465,11 @@ impl Loader {
           // self.linerefs.push((_fname_index, w));
         }
         FTerm::Atom(a) => _fname_index = a as u32,
-        other => panic!("{}Unexpected data in line info section: {:?}",
-                        module(), other)
+        other => panic!(
+          "{}Unexpected data in line info section: {:?}",
+          module(),
+          other
+        ),
       }
     }
 
@@ -488,9 +494,15 @@ impl Loader {
 
     // Decompress deflated literal table
     let iocursor = Cursor::new(&deflated);
-    zlib::Decoder::new(iocursor).read_to_end(&mut inflated).unwrap();
-    assert_eq!(inflated.len(), uncomp_sz as usize,
-               "{}LitT inflate failed", module());
+    zlib::Decoder::new(iocursor)
+      .read_to_end(&mut inflated)
+      .unwrap();
+    assert_eq!(
+      inflated.len(),
+      uncomp_sz as usize,
+      "{}LitT inflate failed",
+      module()
+    );
 
     // Parse literal table
     //dump_vec(&inflated);
@@ -568,7 +580,7 @@ impl Loader {
         // Atom_ args now can be converted to Atom (VM atoms)
         let arg1 = match self.resolve_loadtime_values(&arg0) {
           Some(tmp) => tmp,
-          None => arg0
+          None => arg0,
         };
         args.push(arg1);
       }
@@ -579,8 +591,7 @@ impl Loader {
           if let FTerm::SmallInt(f) = args[0] {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
-            self.labels.insert(LabelId(f as Word),
-                               CodeOffset(floc));
+            self.labels.insert(LabelId(f as Word), CodeOffset(floc));
           } else {
             op_badarg_panic(op, &args, 0);
           }
@@ -596,7 +607,7 @@ impl Loader {
             // arg[0] mod name, arg[1] fun name, arg[2] arity
             let funarity = FunArity {
               f: args[1].to_lterm(&mut self.lit_heap),
-              arity: args[2].loadtime_word() as Arity
+              arity: args[2].loadtime_word() as Arity,
             };
 
             // Function code begins after the func_info opcode (1+3)
@@ -605,7 +616,7 @@ impl Loader {
               Some(_mod_id) => {
                 self.funs.insert(funarity, fun_begin);
                 ()
-              },
+              }
               None => panic!("{}mod_id must be set at this point", module()),
             }
           }
@@ -616,8 +627,12 @@ impl Loader {
       } // match op
     } // while !r.eof
 
-    assert_eq!(debug_code_start, self.code.as_ptr(),
-               "{}Must do no reallocations", module());
+    assert_eq!(
+      debug_code_start,
+      self.code.as_ptr(),
+      "{}Must do no reallocations",
+      module()
+    );
     Ok(())
   }
 
@@ -632,18 +647,14 @@ impl Loader {
         // Ext list is special so we convert it and its contents to lterm
         FTerm::LoadTimeExtlist(ref jtab) => {
           // Push a header word with length
-          let heap_jtab = boxed::Tuple::create_into(
-            &mut self.lit_heap, jtab.len()
-          )?;
+          let heap_jtab = boxed::Tuple::create_into(&mut self.lit_heap, jtab.len())?;
           self.code.push(LTerm::make_boxed(heap_jtab).raw());
 
           // Each value convert to LTerm and also push forming a tuple
           for (index, t) in jtab.iter().enumerate() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
-              let ploc = PatchLocation::PatchJtabElement(
-                LTerm::make_boxed(heap_jtab), index
-              );
+              let ploc = PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
               self.maybe_convert_label(LabelId(f), ploc)
             } else {
               t.to_lterm(&mut self.lit_heap).raw()
@@ -657,17 +668,14 @@ impl Loader {
         // to convert it to an offset
         FTerm::LoadTimeLabel(f) => {
           let ploc = PatchLocation::PatchCodeOffset(self.code.len());
-          let new_t = self.maybe_convert_label(LabelId(f),
-                                               ploc);
+          let new_t = self.maybe_convert_label(LabelId(f), ploc);
           self.code.push(new_t)
         }
 
         // Load-time literals are already loaded on `self.lit_heap`
-        FTerm::LoadTimeLit(lit_index) => {
-          self.code.push(self.lit_tab[lit_index].raw())
-        }
+        FTerm::LoadTimeLit(lit_index) => self.code.push(self.lit_tab[lit_index].raw()),
 
-          // Otherwise convert via a simple method
+        // Otherwise convert via a simple method
         _ => self.code.push(a.to_lterm(&mut self.lit_heap).raw()),
       }
     } // for a in args
@@ -679,12 +687,10 @@ impl Loader {
   /// destination - a boxed code location pointer to be used by the caller.
   /// Otherwise the `patch_location` is stored to `self.replace_labels` to be
   /// processed later and a `SmallInt` is returned to be used temporarily.
-  fn maybe_convert_label(&mut self, l: LabelId,
-                         patch_loc: PatchLocation) -> Word {
+  fn maybe_convert_label(&mut self, l: LabelId, patch_loc: PatchLocation) -> Word {
     // Resolve the label, if exists in labels table
     match self.labels.get(&l) {
-      Some(offset0) =>
-        self.create_jump_destination(*offset0),
+      Some(offset0) => self.create_jump_destination(*offset0),
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId(label_id) = l;
@@ -714,14 +720,14 @@ impl Loader {
         PatchLocation::PatchCodeOffset(cmd_offset) => {
           let val = LTerm::from_raw(self.code[cmd_offset]);
           self.code[cmd_offset] = self.postprocess_fix_1_label(val)
-        },
+        }
 
         PatchLocation::PatchJtabElement(jtab, index) => {
-          let jtab_ptr = boxed::Tuple::from_pointer_mut(jtab.get_box_ptr_mut::<boxed::Tuple>())?;
+          let tuple_ptr = jtab.get_box_ptr_mut::<boxed::Tuple>();
           unsafe {
+            let jtab_ptr = boxed::Tuple::from_pointer_mut(tuple_ptr)?;
             let val = boxed::Tuple::get_element_base0(jtab_ptr, index);
-            boxed::Tuple::set_raw_word_base0(jtab_ptr, index,
-                                             self.postprocess_fix_1_label(val))
+            boxed::Tuple::set_raw_word_base0(jtab_ptr, index, self.postprocess_fix_1_label(val))
           }
         }
       } // match
@@ -766,9 +772,7 @@ impl Loader {
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
       //println!("is_bif {} for {}", is_bif, mf_arity);
-      let ho_imp = unsafe {
-        boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)?
-      };
+      let ho_imp = unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)? };
 
       self.imports.push(ho_imp);
     }
@@ -776,28 +780,24 @@ impl Loader {
     // Step 2
     // For each opcode if it has import index arg - overwrite it
     //
-    let c_iter = unsafe {
-      code::iter::create_mut(&mut self.code)
-    };
+    let c_iter = unsafe { code::iter::create_mut(&mut self.code) };
     for cp in c_iter {
       let curr_opcode = opcode::from_memory_ptr(cp.ptr());
       match curr_opcode {
         gen_op::OPCODE_MAKE_FUN2 => {
           // arg[0] is export
-//          self.rewrite_import_index_arg(&cp, 1)
+          //          self.rewrite_import_index_arg(&cp, 1)
           self.rewrite_lambda_index_arg(cp, 1)
-        },
-        gen_op::OPCODE_BIF1 |
-        gen_op::OPCODE_BIF2 |
-        gen_op::OPCODE_CALL_EXT |
-        gen_op::OPCODE_CALL_EXT_LAST |
-        gen_op::OPCODE_CALL_EXT_ONLY => {
+        }
+        gen_op::OPCODE_BIF1
+        | gen_op::OPCODE_BIF2
+        | gen_op::OPCODE_CALL_EXT
+        | gen_op::OPCODE_CALL_EXT_LAST
+        | gen_op::OPCODE_CALL_EXT_ONLY => {
           // arg[1] is export
           self.rewrite_import_index_arg(cp, 2)
-        },
-        gen_op::OPCODE_GC_BIF1 |
-        gen_op::OPCODE_GC_BIF2 |
-        gen_op::OPCODE_GC_BIF3 => {
+        }
+        gen_op::OPCODE_GC_BIF1 | gen_op::OPCODE_GC_BIF2 | gen_op::OPCODE_GC_BIF3 => {
           // arg[2] is export
           self.rewrite_import_index_arg(cp, 3)
         }
@@ -840,7 +840,7 @@ impl Loader {
       FTerm::LoadTimeAtom(i) => {
         let aindex = self.atom_from_loadtime_index(i).atom_index();
         Some(FTerm::Atom(aindex))
-      },
+      }
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
       FTerm::LoadTimeExtlist(ref lst) => {
@@ -849,13 +849,13 @@ impl Loader {
         for x in lst.iter() {
           match self.resolve_loadtime_values(x) {
             Some(tmp) => result.push(tmp),
-            None => result.push(x.clone())
+            None => result.push(x.clone()),
           }
-        };
+        }
         Some(FTerm::LoadTimeExtlist(result))
-      },
+      }
       // Otherwise no changes
-      _ => None
+      _ => None,
     }
   }
 }
@@ -863,5 +863,11 @@ impl Loader {
 /// Report a bad opcode arg
 // TODO: Use this more, than just label opcode
 fn op_badarg_panic(op: RawOpcode, args: &[FTerm], argi: Word) {
-  panic!("{}Opcode {} the arg #{} in {:?} is bad", module(), op.get(), argi, args)
+  panic!(
+    "{}Opcode {} the arg #{} in {:?} is bad",
+    module(),
+    op.get(),
+    argi,
+    args
+  )
 }

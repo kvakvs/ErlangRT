@@ -1,7 +1,6 @@
 use std::fmt;
 
-//use bif::BifFn;
-use emulator::code::{FarCodePointer};
+use emulator::code::pointer::FarCodePointer;
 use emulator::mfa::MFArity;
 
 
@@ -26,14 +25,15 @@ impl FunEntry {
 /// Defines where the export is pointing. Could be code pointer or a BIF and
 /// is terminated by a tail call or a return opcode (i.e. safely callable).
 #[derive(PartialEq, Copy, Clone)]
+#[allow(dead_code)]
 pub enum CallableLocation {
   /// The MFA of the export wasn't resolved yet or became invalid.
   NeedUpdate,
   /// Points to Erlang code.
   // TODO: Version/hash/seq id for codeptr if code is reloaded?
   Code(FarCodePointer),
-//  /// Points to a BIF callable function.
-//  Bif(BifFn),
+  //  /// Points to a BIF callable function.
+  //  Bif(BifFn),
 }
 
 
@@ -42,5 +42,3 @@ impl fmt::Debug for CallableLocation {
     write!(f, "CallableLocation()")
   }
 }
-
-

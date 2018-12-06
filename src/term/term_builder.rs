@@ -1,19 +1,19 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
 use emulator::atom;
-use emulator::heap::{Heap};
-use term::lterm::*;
+use emulator::heap::Heap;
 use term::boxed;
+use term::lterm::*;
 
-use num;
 use fail::Hopefully;
+use num;
 
 
 // TODO: Remove templating on term type here
 
 /// A specific tuple builder implementation for `LTerm` and ERT VM.
 pub struct TupleBuilder {
-  p: *mut boxed::Tuple
+  p: *mut boxed::Tuple,
 }
 
 
@@ -46,11 +46,7 @@ impl ListBuilder {
   pub unsafe fn new(heap: *mut Heap) -> Hopefully<ListBuilder> {
     let p = (*heap).alloc::<LTerm>(2, true)?;
 
-    Ok(ListBuilder {
-      p ,
-      p0: p,
-      heap,
-    })
+    Ok(ListBuilder { p, p0: p, heap })
   }
 
   pub unsafe fn set(&mut self, val: LTerm) {
@@ -83,7 +79,9 @@ pub struct TermBuilder {
 
 impl TermBuilder {
   pub fn new(hp: &mut Heap) -> TermBuilder {
-    TermBuilder { heap: hp as *mut Heap }
+    TermBuilder {
+      heap: hp as *mut Heap,
+    }
   }
 
 
@@ -98,7 +96,7 @@ impl TermBuilder {
     debug_assert!(self.heap.is_null() == false);
     let hp = self.heap.as_mut().unwrap();
     let rbin = boxed::Binary::create_into(hp, data.len())?;
-    boxed::Binary::store(rbin, data);
+    boxed::Binary::store(rbin, data)?;
     Ok(LTerm::make_boxed(rbin))
   }
 
@@ -121,10 +119,10 @@ impl TermBuilder {
   }
 
 
-//  #[inline]
-//  pub fn create_empty_binary(&self) -> LTerm {
-//    LTerm::make_empty_binary()
-//  }
+  //  #[inline]
+  //  pub fn create_empty_binary(&self) -> LTerm {
+  //    LTerm::make_empty_binary()
+  //  }
 
 
   pub fn create_tuple_builder(&mut self, sz: usize) -> Hopefully<TupleBuilder> {

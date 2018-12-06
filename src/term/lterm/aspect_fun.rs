@@ -5,9 +5,10 @@
 
 pub trait FunAspect {
   /// Check whether a value is a boxed fun (a closure).
-  fn is_fun(&self) -> bool { false }
+  fn is_fun(&self) -> bool {
+    false
+  }
 }
 
 
-impl FunAspect for super::LTerm {
-}
+impl FunAspect for super::LTerm {}

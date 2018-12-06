@@ -1,12 +1,13 @@
+use core::ptr;
 use emulator::heap::Heap;
-use fail::{Hopefully, Error};
+use fail::{Error, Hopefully};
 use rt_defs::{storage_bytes_to_words, Word};
 use term::boxed::{BoxHeader, BOXTYPETAG_BINARY};
-use core::ptr;
 
+#[allow(dead_code)]
 pub enum BoxBinaryPayload {
   // contains size, followed in memory by the data bytes
-  ProcBin { nbytes: Word } ,
+  ProcBin { nbytes: Word },
   // contains reference to heapbin
   RefBin,
   // stores data on a separate heap somewhere else with refcount
@@ -25,17 +26,15 @@ impl Binary {
     let arity = Binary::storage_size(nbytes) - 1;
     Binary {
       header: BoxHeader::new(BOXTYPETAG_BINARY, arity),
-      payload: BoxBinaryPayload::ProcBin {nbytes}
+      payload: BoxBinaryPayload::ProcBin { nbytes },
     }
   }
 
   pub fn storage_size(nbytes: usize) -> usize {
-    storage_bytes_to_words(std::mem::size_of::<Binary>())
-        + storage_bytes_to_words(nbytes)
+    storage_bytes_to_words(std::mem::size_of::<Binary>()) + storage_bytes_to_words(nbytes)
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, n_bytes: usize) -> Hopefully<*mut Binary>
-  {
+  pub unsafe fn create_into(hp: &mut Heap, n_bytes: usize) -> Hopefully<*mut Binary> {
     let n_words = Binary::storage_size(n_bytes);
     let this = hp.alloc::<Binary>(n_words, false)?;
 
@@ -50,23 +49,21 @@ impl Binary {
   pub unsafe fn store(this: *mut Binary, data: &[u8]) -> Hopefully<()> {
     let data_len = data.len();
     if data_len == 0 {
-      return Ok(())
+      return Ok(());
     }
 
     match (*this).payload {
-      BoxBinaryPayload::ProcBin {nbytes: n} => {
+      BoxBinaryPayload::ProcBin { nbytes: n } => {
         if n < data_len {
-          return Err(Error::ProcBinTooSmall(data_len, n))
+          return Err(Error::ProcBinTooSmall(data_len, n));
         }
-      },
-      BoxBinaryPayload::HeapBin {nbytes: n, refc: _} => {
+      }
+      BoxBinaryPayload::HeapBin { nbytes: n, refc: _ } => {
         if n < data_len {
-          return Err(Error::HeapBinTooSmall(data_len, n))
+          return Err(Error::HeapBinTooSmall(data_len, n));
         }
-      },
-      BoxBinaryPayload::RefBin => {
-        return Err(Error::CannotCopyIntoRefbin)
-      },
+      }
+      BoxBinaryPayload::RefBin => return Err(Error::CannotCopyIntoRefbin),
     }
 
     // Take a byte after the Binary struct, that'll be first data byte

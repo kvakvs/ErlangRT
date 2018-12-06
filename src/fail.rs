@@ -2,12 +2,12 @@
 //! Generic errors used everywhere in the VM runtime.
 //!
 use beam::compact_term::CTError;
-use rt_util::bin_reader;
 use emulator::heap::HeapError;
+use rt_util::bin_reader;
 
-use rt_util::bin_reader::{ReadError};
-use std::convert::From;
 use rt_defs::ExceptionType;
+use rt_util::bin_reader::ReadError;
+use std::convert::From;
 use term::lterm::LTerm;
 
 
@@ -40,7 +40,6 @@ pub enum Error {
   BoxedIsNotAnImport,
   BoxedIsNotAnExport,
   BoxedIsNotATuple,
-  HeapObjNotAType, // remove
 
   //--- Binary ---
   CannotCopyIntoRefbin,
@@ -50,11 +49,15 @@ pub enum Error {
 
 
 impl From<bin_reader::ReadError> for Error {
-  fn from(e: bin_reader::ReadError) -> Self { Error::ReadError(e) }
+  fn from(e: bin_reader::ReadError) -> Self {
+    Error::ReadError(e)
+  }
 }
 
 impl From<HeapError> for Error {
-  fn from(e: HeapError) -> Self { Error::HeapError(e) }
+  fn from(e: HeapError) -> Self {
+    Error::HeapError(e)
+  }
 }
 
 

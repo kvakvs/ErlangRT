@@ -66,8 +66,8 @@ pub mod ptr;
 
 use rt_defs::stack::IStack;
 use rt_defs::Word;
-use term::lterm::*;
 use term::boxed;
+use term::lterm::*;
 
 use std::fmt;
 
@@ -81,8 +81,8 @@ pub const DEFAULT_PROC_HEAP: Word = 8192;
 
 #[derive(Debug)]
 pub enum HeapError {
-  /// Very bad, no more memory to grow.
-  OutOfMemory,
+  // / Very bad, no more memory to grow.
+  //OutOfMemory,
   /// No space left in heap. GC requested.
   HeapIsFull,
   /// Attempt to index outside of the current stack.
@@ -108,7 +108,12 @@ impl Heap {}
 
 impl fmt::Debug for Heap {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "Heap{{ cap: {}, used: {} }}", self.heap_capacity(), self.htop())
+    write!(
+      f,
+      "Heap{{ cap: {}, used: {} }}",
+      self.heap_capacity(),
+      self.htop()
+    )
   }
 }
 
@@ -156,9 +161,7 @@ impl Heap {
   }
 
 
-  pub fn alloc<T>(&mut self, n: Word, init_nil: bool)
-                  -> Result<*mut T, HeapError>
-  {
+  pub fn alloc<T>(&mut self, n: Word, init_nil: bool) -> Result<*mut T, HeapError> {
     let pos = self.htop;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n >= self.stop {
@@ -167,9 +170,7 @@ impl Heap {
 
     // Assume we can grow the data without reallocating
     let raw_nil = LTerm::nil().raw();
-    let new_chunk = unsafe {
-      self.heap_begin_mut().add(self.htop) as *mut Word
-    };
+    let new_chunk = unsafe { self.heap_begin_mut().add(self.htop) as *mut Word };
 
     if init_nil {
       unsafe {
@@ -255,8 +256,7 @@ impl IStack<LTerm> for Heap {
 
   //#[allow(dead_code)]
   fn stack_info(&self) {
-    println!("Stack (s_top {}, s_end {})",
-             self.stop, self.send)
+    println!("Stack (s_top {}, s_end {})", self.stop, self.send)
   }
 
 
@@ -292,14 +292,20 @@ impl IStack<LTerm> for Heap {
   }
 
 
-  fn stack_depth(&self) -> Word { self.send - self.stop }
+  fn stack_depth(&self) -> Word {
+    self.send - self.stop
+  }
 
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   fn stack_deallocate(&mut self, n: Word) -> LTerm {
-    assert!(self.stop + n < self.send,
-            "Failed to dealloc {}+1 words (s_top {}, s_end {})",
-            n, self.stop, self.send);
+    assert!(
+      self.stop + n < self.send,
+      "Failed to dealloc {}+1 words (s_top {}, s_end {})",
+      n,
+      self.stop,
+      self.send
+    );
     let cp = LTerm::from_raw(self.data[self.stop]);
     assert!(cp.is_cp());
     self.stop += n + 1;
@@ -310,9 +316,8 @@ impl IStack<LTerm> for Heap {
 
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
 #[inline]
-pub fn allocate_cons(hp: &mut Heap) -> Result<*mut boxed::Cons, HeapError>
-{
-  hp.alloc::<boxed::Cons>( 2, false)
+pub fn allocate_cons(hp: &mut Heap) -> Result<*mut boxed::Cons, HeapError> {
+  hp.alloc::<boxed::Cons>(2, false)
 }
 
 

@@ -8,13 +8,18 @@
 
 pub trait ReferenceAspect {
   /// Check whether a value is any kind of reference.
-  fn is_ref(&self) -> bool { self.is_local_ref() || self.is_external_ref() }
+  fn is_ref(&self) -> bool {
+    self.is_local_ref() || self.is_external_ref()
+  }
 
-  fn is_local_ref(&self) -> bool { false }
+  fn is_local_ref(&self) -> bool {
+    false
+  }
 
-  fn is_external_ref(&self) -> bool { false }
+  fn is_external_ref(&self) -> bool {
+    false
+  }
 }
 
 
-impl ReferenceAspect for super::LTerm {
-}
+impl ReferenceAspect for super::LTerm {}

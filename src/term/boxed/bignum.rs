@@ -1,12 +1,13 @@
-use emulator::heap::{Heap};
-use fail::{Hopefully};
-use rt_defs::{storage_bytes_to_words};
+use emulator::heap::Heap;
+use fail::Hopefully;
+use rt_defs::storage_bytes_to_words;
 use term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER};
 
 use core::ptr;
 use num::bigint::BigInt;
 
 
+#[allow(dead_code)]
 pub struct Bignum {
   header: BoxHeader,
 
@@ -17,7 +18,6 @@ pub struct Bignum {
 }
 
 impl Bignum {
-
   const fn storage_size() -> usize {
     storage_bytes_to_words(core::mem::size_of::<Bignum>())
   }
@@ -31,9 +31,7 @@ impl Bignum {
   }
 
 
-  pub unsafe fn create_into(hp: &mut Heap,
-                           value: BigInt) -> Hopefully<*mut Bignum>
-  {
+  pub unsafe fn create_into(hp: &mut Heap, value: BigInt) -> Hopefully<*mut Bignum> {
     let n_words = Bignum::storage_size();
     let this = hp.alloc::<Bignum>(n_words, false)?;
 
@@ -41,5 +39,4 @@ impl Bignum {
 
     Ok(this)
   }
-
 }

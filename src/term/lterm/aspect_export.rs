@@ -8,9 +8,10 @@
 
 pub trait ExportAspect {
   /// Check whether a value is a boxed export (M:F/Arity triple).
-  fn is_export(&self) -> bool { false }
+  fn is_export(&self) -> bool {
+    false
+  }
 }
 
 
-impl ExportAspect for super::LTerm {
-}
+impl ExportAspect for super::LTerm {}

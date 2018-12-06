@@ -1,11 +1,10 @@
 //! Debug tool to display Erlang heap contents.
-use emulator::heap::{Heap, heap_iter};
-use rt_defs::{Word};
-use term::lterm::{TERMTAG_BOXED};
+use emulator::heap::{heap_iter, Heap};
+use rt_defs::Word;
+use term::lterm::TERMTAG_BOXED;
 
 
 impl Heap {
-
   /// Print heap contents
   // This function is not used sometimes, this is fine to ignore dead code
   #[allow(dead_code)]
@@ -16,11 +15,19 @@ impl Heap {
       let mut output = String::new();
 
       if cfg!(target_pointer_width = "32") {
-        output += &format!("{:08p}: val=0x{:08x} {}",
-                           addr, val_at_addr.raw(), val_at_addr)
+        output += &format!(
+          "{:08p}: val=0x{:08x} {}",
+          addr,
+          val_at_addr.raw(),
+          val_at_addr
+        )
       } else if cfg!(target_pointer_width = "64") {
-        output += &format!("{:08p}: val=0x{:016x} {}",
-                           addr, val_at_addr.raw(), val_at_addr)
+        output += &format!(
+          "{:08p}: val=0x{:016x} {}",
+          addr,
+          val_at_addr.raw(),
+          val_at_addr
+        )
       } else {
         panic!("Pointer width is expected to be 32 or 64")
       }
@@ -39,5 +46,4 @@ impl Heap {
       println!("{}", output)
     } // for
   }
-
 }
