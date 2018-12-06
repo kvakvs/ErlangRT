@@ -1,9 +1,8 @@
 //!
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
-use rt_defs::Arity;
-//use fail::Hopefully;
-use term::lterm::*;
+use crate::rt_defs::Arity;
+use crate::term::lterm::*;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -18,13 +17,13 @@ pub struct FunArity {
 
 
 impl FunArity {
-//  /// Create an uninitialized function pointer for deferred initialization.
-//  pub fn new_uninit() -> FunArity {
-//    FunArity {
-//      f: LTerm::non_value(),
-//      arity: 0,
-//    }
-//  }
+  //  /// Create an uninitialized function pointer for deferred initialization.
+  //  pub fn new_uninit() -> FunArity {
+  //    FunArity {
+  //      f: LTerm::non_value(),
+  //      arity: 0,
+  //    }
+  //  }
 
   /// Create from a function name and arity.
   pub fn new(f: LTerm, arity: Arity) -> FunArity {

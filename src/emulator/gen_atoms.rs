@@ -3,7 +3,7 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use term::lterm::*;
+use crate::term::lterm::*;
 
 
 pub const SYM_PLUS: LTerm = LTerm::make_atom(0);

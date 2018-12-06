@@ -1,76 +1,67 @@
 use std::cmp::Ordering;
 
-use beam::disp_result::{DispatchResult};
-use beam::gen_op;
-use beam::opcodes::assert_arity;
-use emulator::code::{CodePtr};
-use emulator::process::{Process};
-use emulator::runtime_ctx::{Context};
-use emulator::vm::{VM};
-use fail::{RtResult};
-use term::compare;
-use term::lterm::{LTerm};
+use crate::beam::disp_result::DispatchResult;
+use crate::beam::gen_op;
+use crate::beam::opcodes::assert_arity;
+use crate::emulator::code::CodePtr;
+use crate::emulator::process::Process;
+use crate::emulator::runtime_ctx::Context;
+use crate::emulator::vm::VM;
+use crate::fail::RtResult;
+use crate::term::compare;
+use crate::term::lterm::LTerm;
 
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
 #[inline]
-pub fn opcode_is_eq_exact(vm: &VM, ctx: &mut Context,
-                          curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_eq_exact(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: is_eq_exact(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ_EXACT, 3);
-  shared_equality_opcode(vm, ctx, curr_p,
-                         true,
-                         Ordering::Equal,
-                         false)
+  shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Equal, false)
 }
 
 
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
 #[inline]
-pub fn opcode_is_lt(vm: &VM, ctx: &mut Context,
-                    curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_lt(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: is_lt(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_LT, 3);
-  shared_equality_opcode(vm, ctx, curr_p,
-                         true,
-                         Ordering::Less,
-                         false)
+  shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Less, false)
 }
 
 
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
 #[inline]
-pub fn opcode_is_eq(vm: &VM, ctx: &mut Context,
-                    curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_eq(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: is_eq(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
-  shared_equality_opcode(vm, ctx, curr_p,
-                         false,
-                         Ordering::Equal,
-                         false)
+  shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Equal, false)
 }
 
 
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
 #[inline]
-pub fn opcode_is_ge(vm: &VM, ctx: &mut Context,
-                    curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_ge(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
   // Structure: is_eq(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
-  shared_equality_opcode(vm, ctx, curr_p,
-                         false,
-                         Ordering::Less,
-                         true) // inverted, other than less will be fail
+  shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Less, true) // inverted, other than less will be fail
 }
 
 
 #[inline]
 /// Shared code for equality checks. Assumes arg0 - fail label, arg1,2 - values
-fn shared_equality_opcode(_vm: &VM, ctx: &mut Context,
-                          curr_p: &mut Process,
-                          exact: bool,
-                          desired_result: Ordering,
-                          invert: bool) -> RtResult<DispatchResult> {
+fn shared_equality_opcode(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+  exact: bool,
+  desired_result: Ordering,
+  invert: bool,
+) -> RtResult<DispatchResult> {
   let hp = &curr_p.heap;
   let fail_label = ctx.fetch_term();
   let a = ctx.fetch_and_load(hp);

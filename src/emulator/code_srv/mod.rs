@@ -7,17 +7,19 @@ pub mod module_id;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use beam::loader;
-use emulator::atom;
-use emulator::code::CodePtr;
-use emulator::code::pointer::FarCodePointer;
-use emulator::mfa::MFArity;
-use emulator::module;
-use fail::{RtResult, Error};
-use term::lterm::*;
+use crate::beam::loader;
+use crate::emulator::atom;
+use crate::emulator::code::pointer::FarCodePointer;
+use crate::emulator::code::CodePtr;
+use crate::emulator::mfa::MFArity;
+use crate::emulator::module;
+use crate::fail::{Error, RtResult};
+use crate::term::lterm::*;
 
 
-fn module() -> &'static str { "code_srv: " }
+fn module() -> &'static str {
+  "code_srv: "
+}
 
 
 // Contains 2 versions of module code: current and previous
@@ -81,8 +83,8 @@ impl CodeServer {
       None => {
         let msg = format!("{}Module not found {}", module(), m);
         Err(Error::ModuleNotFound(msg))
-      },
-      Some(mptr) => mptr.curr_modp.lookup(mfarity)
+      }
+      Some(mptr) => mptr.curr_modp.lookup(mfarity),
     }
   }
 
@@ -91,7 +93,7 @@ impl CodeServer {
   pub fn find_module_file(&mut self, filename: &str) -> RtResult<PathBuf> {
     match first_that_exists(&self.search_path, filename) {
       Some(found_first) => Ok(found_first),
-      None => Err(Error::FileNotFound(filename.to_string()))
+      None => Err(Error::FileNotFound(filename.to_string())),
     }
   }
 
@@ -105,7 +107,7 @@ impl CodeServer {
       curr_modp: mod_ptr,
       curr_version: v,
       old_modp: None,
-      old_version: 0
+      old_version: 0,
     };
     self.mods.insert(name, mg);
   }
@@ -130,8 +132,13 @@ impl CodeServer {
       Err(_e) => {
         let mod_str = atom::to_str(mfarity.m)?;
         let fun_str = atom::to_str(mfarity.f)?;
-        let msg = format!("{}Func undef: {}:{}/{}",
-                          module(), mod_str, fun_str, mfarity.arity);
+        let msg = format!(
+          "{}Func undef: {}:{}/{}",
+          module(),
+          mod_str,
+          fun_str,
+          mfarity.arity
+        );
         Err(Error::FunctionNotFound(msg))
       }
     }
@@ -140,8 +147,7 @@ impl CodeServer {
 
   /// Internal function: runs 3 stages of module loader and returns an atomic
   /// refc (Arc) module pointer or an error
-  fn try_load_module(&mut self, mod_file_path: &PathBuf) -> RtResult<bool>
-  {
+  fn try_load_module(&mut self, mod_file_path: &PathBuf) -> RtResult<bool> {
     // Delegate the loading task to BEAM or another loader
     let mut loader = loader::Loader::new();
 
@@ -163,7 +169,7 @@ impl CodeServer {
       let lresult = modp.code_reverse_lookup(ip);
       // TODO: Might be situation when ip points to old version of a module
       if lresult.is_some() {
-        return lresult
+        return lresult;
       }
       // nope, keep searching
     }
@@ -179,13 +185,12 @@ impl CodeServer {
 
 
 /// Iterate through the search path list and try to find a file
-fn first_that_exists(search_path: &[String],
-                     filename: &str) -> Option<PathBuf> {
+fn first_that_exists(search_path: &[String], filename: &str) -> Option<PathBuf> {
   for s in search_path {
     let full_path = format!("{}/{}.beam", s, filename).to_string();
     let p = Path::new(&full_path);
     if p.exists() {
-      return Some(p.to_path_buf())
+      return Some(p.to_path_buf());
     }
   }
   None
@@ -222,4 +227,3 @@ fn first_that_exists(search_path: &[String],
 //  let cs = CODE_SRV.read().unwrap();
 //  cs.lookup_far_pointer(farp)
 //}
-

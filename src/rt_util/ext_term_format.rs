@@ -1,10 +1,9 @@
 use super::bin_reader::BinaryReader;
-use fail::{Error, RtResult};
-use rt_defs;
-use rt_defs::{SWord, Word};
-use term::lterm::LTerm;
-use term::term_builder::TermBuilder;
-
+use crate::fail::{Error, RtResult};
+use crate::rt_defs;
+use crate::rt_defs::{SWord, Word};
+use crate::term::lterm::LTerm;
+use crate::term::term_builder::TermBuilder;
 use num;
 use num::ToPrimitive;
 

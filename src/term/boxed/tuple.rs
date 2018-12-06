@@ -1,10 +1,10 @@
-use emulator::heap::Heap;
-use fail::Error;
-use fail::RtResult;
-use rt_defs::Word;
-use term::boxed;
-use term::boxed::{BoxHeader, BOXTYPETAG_TUPLE};
-use term::lterm::LTerm;
+use crate::emulator::heap::Heap;
+use crate::fail::Error;
+use crate::fail::RtResult;
+use crate::rt_defs::Word;
+use crate::term::boxed;
+use crate::term::boxed::{BoxHeader, BOXTYPETAG_TUPLE};
+use crate::term::lterm::LTerm;
 
 //use core::ptr;
 

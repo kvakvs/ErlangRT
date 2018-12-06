@@ -1,9 +1,9 @@
 //! Module defines pointer types for readonly code and mutable code.
 
-use emulator::code_srv::CodeServer;
-use emulator::code_srv::module_id::{VersionedModuleId};
-use rt_defs::{Word};
-use term::lterm::*;
+use crate::emulator::code_srv::module_id::VersionedModuleId;
+use crate::emulator::code_srv::CodeServer;
+use crate::rt_defs::Word;
+use crate::term::lterm::*;
 
 use std::fmt;
 
@@ -20,7 +20,10 @@ pub struct FarCodePointer {
 #[allow(dead_code)]
 impl FarCodePointer {
   pub fn new(mod_id: &VersionedModuleId, offset: usize) -> FarCodePointer {
-    FarCodePointer { mod_id: *mod_id, offset }
+    FarCodePointer {
+      mod_id: *mod_id,
+      offset,
+    }
   }
 
   #[inline]
@@ -74,8 +77,10 @@ impl CodePtr {
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
-      assert!(p.is_null() || (*p).get_term_tag() == TERMTAG_SPECIAL,
-              "A CodePtr must be null or point to an imm3 tagged opcode");
+      assert!(
+        p.is_null() || (*p).get_term_tag() == TERMTAG_SPECIAL,
+        "A CodePtr must be null or point to an imm3 tagged opcode"
+      );
     }
     CodePtr::new(p)
   }
@@ -99,20 +104,22 @@ impl CodePtr {
   }
 
 
-//  #[inline]
-//  pub fn offset(&self, n: isize) -> CodePtr {
-//    let CodePtr(p) = *self;
-//    let new_p = unsafe { p.offset(n) };
-//    CodePtr(new_p)
-//  }
+  //  #[inline]
+  //  pub fn offset(&self, n: isize) -> CodePtr {
+  //    let CodePtr(p) = *self;
+  //    let new_p = unsafe { p.offset(n) };
+  //    CodePtr(new_p)
+  //  }
 
 
   #[inline]
-  pub fn is_null(&self) -> bool { self.get().is_null() }
+  pub fn is_null(&self) -> bool {
+    self.get().is_null()
+  }
 
 
-//  #[inline]
-//  pub fn is_not_null(&self) -> bool { ! self.is_null() }
+  //  #[inline]
+  //  pub fn is_not_null(&self) -> bool { ! self.is_null() }
 
   pub fn belongs_to(self, slice: &[Word]) -> bool {
     let cbegin = &slice[0] as *const Word;
@@ -129,7 +136,6 @@ pub struct CodePtrMut(pub *mut Word);
 
 
 impl CodePtrMut {
-
   /// Quick access to the contained pointer.
   #[inline]
   pub fn ptr(self) -> *const Word {
@@ -160,5 +166,4 @@ impl CodePtrMut {
     let CodePtrMut(p) = self;
     *(p.offset(n)) = val
   }
-
 }

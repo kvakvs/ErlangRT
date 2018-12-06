@@ -1,8 +1,8 @@
-use emulator::heap::Heap;
-use fail::RtResult;
-use rt_defs::{storage_bytes_to_words, Word};
-use term::boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID};
-use term::lterm::LTerm;
+use crate::emulator::heap::Heap;
+use crate::fail::RtResult;
+use crate::rt_defs::{storage_bytes_to_words, Word};
+use crate::term::boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID};
+use crate::term::lterm::LTerm;
 
 use core::ptr;
 

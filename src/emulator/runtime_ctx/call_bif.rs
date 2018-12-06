@@ -1,16 +1,15 @@
 use super::Context;
 
-use beam::disp_result::DispatchResult;
-use bif;
-use bif::BifFn;
-use emulator::code::CodePtr;
-use emulator::mfa::MFArity;
-use emulator::process::Process;
-use term::lterm::*;
-
-use fail::{Error, RtResult};
+use crate::beam::disp_result::DispatchResult;
+use crate::bif;
+use crate::bif::BifFn;
+use crate::emulator::code::CodePtr;
+use crate::emulator::mfa::MFArity;
+use crate::emulator::process::Process;
+use crate::fail::{Error, RtResult};
+use crate::term::boxed::import;
+use crate::term::lterm::*;
 use std::slice;
-use term::boxed::import;
 
 
 //fn module() -> &'static str { "runtime_ctx.call_bif: " }

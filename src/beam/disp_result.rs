@@ -1,9 +1,9 @@
-use emulator::gen_atoms;
-use emulator::heap::Heap;
-use rt_defs::ExceptionType;
-use term::builders::{make_badmatch, make_badfun};
-use term::lterm::LTerm;
-use fail::{Error, RtResult};
+use crate::emulator::gen_atoms;
+use crate::emulator::heap::Heap;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::ExceptionType;
+use crate::term::builders::{make_badfun, make_badmatch};
+use crate::term::lterm::LTerm;
 
 
 /// Enum is used by VM dispatch handlers for opcodes to indicate whether to
@@ -18,28 +18,23 @@ pub enum DispatchResult {
 impl DispatchResult {
   pub fn badmatch_val(val: LTerm, hp: &mut Heap) -> RtResult<DispatchResult> {
     let badmatch_tuple = make_badmatch(val, hp)?;
-    Err(Error::Exception(ExceptionType::Error,
-                         badmatch_tuple))
+    Err(Error::Exception(ExceptionType::Error, badmatch_tuple))
   }
 
   pub fn badarity() -> RtResult<DispatchResult> {
-    Err(Error::Exception(ExceptionType::Error,
-                         gen_atoms::BADARITY))
+    Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARITY))
   }
 
   pub fn undef() -> RtResult<DispatchResult> {
-    Err(Error::Exception(ExceptionType::Error,
-                         gen_atoms::UNDEF))
+    Err(Error::Exception(ExceptionType::Error, gen_atoms::UNDEF))
   }
 
   pub fn badfun() -> RtResult<DispatchResult> {
-    Err(Error::Exception(ExceptionType::Error,
-                         gen_atoms::BADFUN))
+    Err(Error::Exception(ExceptionType::Error, gen_atoms::BADFUN))
   }
 
   pub fn badfun_val(val: LTerm, hp: &mut Heap) -> RtResult<DispatchResult> {
     let badfun_tuple = make_badfun(val, hp)?;
-    Err(Error::Exception(ExceptionType::Error,
-                         badfun_tuple))
+    Err(Error::Exception(ExceptionType::Error, badfun_tuple))
   }
 }

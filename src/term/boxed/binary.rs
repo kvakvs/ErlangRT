@@ -1,8 +1,8 @@
+use crate::emulator::heap::Heap;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::{storage_bytes_to_words, Word};
+use crate::term::boxed::{BoxHeader, BOXTYPETAG_BINARY};
 use core::ptr;
-use emulator::heap::Heap;
-use fail::{Error, RtResult};
-use rt_defs::{storage_bytes_to_words, Word};
-use term::boxed::{BoxHeader, BOXTYPETAG_BINARY};
 
 #[allow(dead_code)]
 pub enum BoxBinaryPayload {

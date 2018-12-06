@@ -1,9 +1,9 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
-use term::lterm::*;
-use rt_defs::Arity;
-use emulator::funarity::FunArity;
+use crate::emulator::funarity::FunArity;
+use crate::rt_defs::Arity;
+use crate::term::lterm::*;
 
 use std::fmt;
 
@@ -12,21 +12,20 @@ use std::fmt;
 pub struct MFArgs {
   m: LTerm,
   f: LTerm,
-  args: Vec<LTerm>
+  args: Vec<LTerm>,
 }
 
 
 impl MFArgs {
-
   pub fn new(m: LTerm, f: LTerm, args: Vec<LTerm>) -> MFArgs {
-    MFArgs{m, f, args}
+    MFArgs { m, f, args }
   }
 
   pub fn get_mfarity(&self) -> MFArity {
     MFArity {
       m: self.m,
       f: self.f,
-      arity: self.args.len() as Arity
+      arity: self.args.len() as Arity,
     }
   }
 }
@@ -36,26 +35,28 @@ impl MFArgs {
 pub struct MFArity {
   pub m: LTerm,
   pub f: LTerm,
-  pub arity: Arity
+  pub arity: Arity,
 }
 
 
 impl MFArity {
-
   pub fn new(m: LTerm, f: LTerm, arity: Arity) -> MFArity {
     MFArity { m, f, arity }
   }
 
 
   pub fn new_from_funarity(m: LTerm, fa: &FunArity) -> MFArity {
-    MFArity { m, f: fa.f, arity: fa.arity }
+    MFArity {
+      m,
+      f: fa.f,
+      arity: fa.arity,
+    }
   }
 
 
   pub fn get_funarity(&self) -> FunArity {
     FunArity::new(self.f, self.arity)
   }
-
 }
 
 impl fmt::Display for MFArity {

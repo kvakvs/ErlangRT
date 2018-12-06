@@ -1,12 +1,12 @@
-use beam::disp_result::{DispatchResult};
-use beam::gen_op;
-use beam::vm_dispatch::dispatch_op_inline;
-use emulator::code::{opcode, CodePtr};
-use emulator::disasm;
-use emulator::runtime_ctx::{Context};
-use emulator::scheduler::{SliceResult};
-use emulator::vm::{VM};
-use fail::{RtResult, Error};
+use crate::beam::disp_result::DispatchResult;
+use crate::beam::gen_op;
+use crate::beam::vm_dispatch::dispatch_op_inline;
+use crate::emulator::code::{opcode, CodePtr};
+use crate::emulator::disasm;
+use crate::emulator::runtime_ctx::Context;
+use crate::emulator::scheduler::SliceResult;
+use crate::emulator::vm::VM;
+use crate::fail::{Error, RtResult};
 
 //fn module() -> &'static str { "vm_loop: " }
 
@@ -22,21 +22,25 @@ impl VM {
     let mut scheduler = self.scheduler.borrow_mut();
     let curr_p = match scheduler.next_process() {
       None => return Ok(false),
-      Some(p) => scheduler.lookup_pid_mut(p).unwrap()
+      Some(p) => scheduler.lookup_pid_mut(p).unwrap(),
     };
     ctx.copy_from(&curr_p.context); // swapin
 
     loop {
       if cfg!(debug_assertions) {
         print!("[exec] ");
-        unsafe { disasm::disasm_op(ctx.ip.get(),
-                                   self.code_server.borrow().as_ref()); }
+        unsafe {
+          disasm::disasm_op(ctx.ip.get(), self.code_server.borrow().as_ref());
+        }
       }
 
       // Take next opcode
       let op = opcode::from_memory_word(ctx.fetch());
-      assert!(op <= gen_op::OPCODE_MAX,
-              "Opcode too big (wrong memory address?) got 0x{:x}", op.get());
+      assert!(
+        op <= gen_op::OPCODE_MAX,
+        "Opcode too big (wrong memory address?) got 0x{:x}",
+        op.get()
+      );
 
       // Handle next opcode
       let disp_result = dispatch_op_inline(self, op, &mut ctx, curr_p);
@@ -44,18 +48,18 @@ impl VM {
         curr_p.exception(exc_type, exc_reason);
         curr_p.context.copy_from(&ctx); // swapout
         curr_p.timeslice_result = SliceResult::Exception;
-        return Ok(true)
+        return Ok(true);
       }
 
       match disp_result? {
         DispatchResult::Yield => {
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Yield;
-          return Ok(true)
-        },
+          return Ok(true);
+        }
         DispatchResult::Normal => {
           curr_p.timeslice_result = SliceResult::None;
-        }, // keep looping
+        } // keep looping
       }
     } // end loop
   }

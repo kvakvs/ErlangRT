@@ -1,11 +1,11 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
-use emulator::atom;
-use emulator::heap::Heap;
-use term::boxed;
-use term::lterm::*;
+use crate::emulator::atom;
+use crate::emulator::heap::Heap;
+use crate::fail::RtResult;
+use crate::term::boxed;
+use crate::term::lterm::*;
 
-use fail::RtResult;
 use num;
 
 

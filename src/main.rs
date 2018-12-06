@@ -10,15 +10,15 @@
 //#![cfg_attr(feature="clippy", feature(plugin))]
 //#![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate bit_field;
-extern crate bytes;
-extern crate compress;
-extern crate num;
+//extern crate bit_field;
+//extern crate bytes;
+//extern crate compress;
+//extern crate num;
 
 #[macro_use]
 extern crate lazy_static;
 
-extern crate core;
+//extern crate core;
 
 mod beam;
 mod bif;
@@ -30,6 +30,6 @@ mod rt_defs;
 mod rt_util;
 
 
-use main_main::{entrypoint};
+use crate::main_main::{entrypoint};
 
 fn main() { entrypoint(); }

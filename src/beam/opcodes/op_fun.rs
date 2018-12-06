@@ -1,21 +1,25 @@
 //! Module implements opcodes related to function objects/lambdas.
 
-use beam::disp_result::{DispatchResult};
-use beam::gen_op;
-use beam::opcodes::assert_arity;
-use emulator::function::{FunEntry};
-use emulator::process::{Process};
-use emulator::runtime_ctx::{Context};
-use emulator::runtime_ctx;
-use emulator::vm::{VM};
-use fail::{RtResult};
+use crate::beam::disp_result::DispatchResult;
+use crate::beam::gen_op;
+use crate::beam::opcodes::assert_arity;
+use crate::emulator::function::FunEntry;
+use crate::emulator::process::Process;
+use crate::emulator::runtime_ctx;
+use crate::emulator::runtime_ctx::Context;
+use crate::emulator::vm::VM;
+use crate::fail::RtResult;
+use crate::term::boxed;
+
 use std::slice;
-use term::boxed;
 
 
 #[inline]
-pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
-                        curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_make_fun2(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: make_fun2(lambda_index:uint)
   // on load the argument is rewritten with a pointer to the funentry
   assert_arity(gen_op::OPCODE_MAKE_FUN2, 1);
@@ -27,9 +31,7 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
   let hp = &mut curr_p.heap;
   let closure = unsafe {
     let nfree = (*fe).nfree as usize;
-    let p = boxed::Closure::create_into(hp,
-                                       fe.as_ref().unwrap(),
-                                       &ctx.regs[0..nfree]);
+    let p = boxed::Closure::create_into(hp, fe.as_ref().unwrap(), &ctx.regs[0..nfree]);
     p.unwrap()
   };
   ctx.regs[0] = closure;
@@ -39,8 +41,11 @@ pub fn opcode_make_fun2(_vm: &VM, ctx: &mut Context,
 
 
 #[inline]
-pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_call_fun(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: call_fun(arity:uint)
   // Expects: x[0..arity-1] = args. x[arity] = fun object
   assert_arity(gen_op::OPCODE_CALL_FUN, 1);
@@ -56,8 +61,12 @@ pub fn opcode_call_fun(vm: &VM, ctx: &mut Context,
   } else if let Ok(export) = unsafe { boxed::Export::const_from_term(fobj) } {
     // `fobj` is an export made with `fun module:name/0`
     runtime_ctx::call_export::apply(
-      ctx, curr_p, export, args, true,
-      vm.code_server.borrow_mut().as_mut()
+      ctx,
+      curr_p,
+      export,
+      args,
+      true,
+      vm.code_server.borrow_mut().as_mut(),
     )
   } else {
     DispatchResult::badfun()

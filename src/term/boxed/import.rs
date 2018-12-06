@@ -1,13 +1,13 @@
-use bif::{find_bif, BifFn};
-use emulator::code::pointer::CodePtr;
-use emulator::code_srv::CodeServer;
-use emulator::heap::Heap;
-use emulator::mfa::MFArity;
-use fail::Error;
-use fail::RtResult;
-use rt_defs::storage_bytes_to_words;
-use term::boxed::{BoxHeader, BOXTYPETAG_IMPORT};
-use term::lterm::*;
+use crate::bif::{find_bif, BifFn};
+use crate::emulator::code::pointer::CodePtr;
+use crate::emulator::code_srv::CodeServer;
+use crate::emulator::heap::Heap;
+use crate::emulator::mfa::MFArity;
+use crate::fail::Error;
+use crate::fail::RtResult;
+use crate::rt_defs::storage_bytes_to_words;
+use crate::term::boxed::{BoxHeader, BOXTYPETAG_IMPORT};
+use crate::term::lterm::*;
 
 use core::ptr;
 use std::mem::size_of;

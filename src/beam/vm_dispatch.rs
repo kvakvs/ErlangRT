@@ -3,14 +3,14 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use emulator::vm::VM;
-use beam::gen_op;
-use beam::opcodes::*;
-use beam::disp_result::{DispatchResult};
-use emulator::code::opcode::RawOpcode;
-use emulator::process::Process;
-use emulator::runtime_ctx::Context;
-use fail::{RtResult};
+use crate::emulator::vm::VM;
+use crate::beam::gen_op;
+use crate::beam::opcodes::*;
+use crate::beam::disp_result::{DispatchResult};
+use crate::emulator::code::opcode::RawOpcode;
+use crate::emulator::process::Process;
+use crate::emulator::runtime_ctx::Context;
+use crate::fail::{RtResult};
 
 
 #[inline]

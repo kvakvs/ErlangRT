@@ -1,8 +1,8 @@
 //! Module defines `CodeIterator` which can step over the code
-use beam::gen_op;
-use rt_defs::Word;
-use emulator::code::opcode;
-use emulator::code::pointer::{CodePtr, CodePtrMut};
+use crate::beam::gen_op;
+use crate::emulator::code::opcode;
+use crate::emulator::code::pointer::{CodePtr, CodePtrMut};
+use crate::rt_defs::Word;
 
 
 // This is used by read-only code walkers such as "disasm.rs".
@@ -25,22 +25,20 @@ impl CodeIteratorMut {
   pub fn new(begin: CodePtrMut, end: CodePtrMut) -> CodeIteratorMut {
     CodeIteratorMut { p: begin, end }
   }
-
 }
 
 
 impl CodeIterator {
+  //  pub fn new(begin: CodePtr, end: CodePtr) -> CodeIterator {
+  //    CodeIterator { p: begin, end }
+  //  }
 
-//  pub fn new(begin: CodePtr, end: CodePtr) -> CodeIterator {
-//    CodeIterator { p: begin, end }
-//  }
 
-
-//  /// Read current value at the iterator location.
-//  pub unsafe fn read_term(&self) -> LTerm {
-//    let DataPtr::Ptr(p) = self.p;
-//    LTerm::from_raw(*p)
-//  }
+  //  /// Read current value at the iterator location.
+  //  pub unsafe fn read_term(&self) -> LTerm {
+  //    let DataPtr::Ptr(p) = self.p;
+  //    LTerm::from_raw(*p)
+  //  }
 }
 
 
@@ -56,12 +54,10 @@ impl Iterator for CodeIterator {
     let arity = gen_op::opcode_arity(current_op);
 
     // Step forward over opcode and `arity` words (args)
-    let next_p = unsafe {
-      CodePtr::new(p.offset(arity as isize + 1))
-    };
+    let next_p = unsafe { CodePtr::new(p.offset(arity as isize + 1)) };
 
     if next_p >= self.end {
-      return None
+      return None;
     }
 
     self.p = next_p;
@@ -97,7 +93,7 @@ impl Iterator for CodeIteratorMut {
     };
 
     if next_p >= self.end {
-      return None
+      return None;
     }
 
     self.p = next_p;
@@ -110,6 +106,5 @@ impl Iterator for CodeIteratorMut {
 pub unsafe fn create_mut(code: &mut Vec<Word>) -> CodeIteratorMut {
   let begin = &mut code[0] as *mut Word;
   let end = begin.offset(code.len() as isize);
-  CodeIteratorMut::new(CodePtrMut(begin),
-                       CodePtrMut(end))
+  CodeIteratorMut::new(CodePtrMut(begin), CodePtrMut(end))
 }

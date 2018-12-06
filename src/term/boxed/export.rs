@@ -1,11 +1,11 @@
-use emulator::export;
-use emulator::heap::Heap;
-use emulator::mfa::MFArity;
-use fail::{Error, RtResult};
-use rt_defs::storage_bytes_to_words;
-use term::boxed::BoxHeader;
-use term::boxed::BOXTYPETAG_EXPORT;
-use term::lterm::*;
+use crate::emulator::export;
+use crate::emulator::heap::Heap;
+use crate::emulator::mfa::MFArity;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::storage_bytes_to_words;
+use crate::term::boxed::BoxHeader;
+use crate::term::boxed::BOXTYPETAG_EXPORT;
+use crate::term::lterm::*;
 
 use core::ptr;
 

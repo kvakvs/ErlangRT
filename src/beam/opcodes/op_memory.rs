@@ -1,18 +1,21 @@
-use beam::disp_result::{DispatchResult};
-use beam::gen_op;
-use beam::opcodes::assert_arity;
-use emulator::code::{CodePtr};
-use emulator::process::{Process};
-use emulator::runtime_ctx::{Context};
-use emulator::vm::{VM};
-use fail::{RtResult};
-use rt_defs::stack::{IStack};
+use crate::beam::disp_result::DispatchResult;
+use crate::beam::gen_op;
+use crate::beam::opcodes::assert_arity;
+use crate::emulator::code::CodePtr;
+use crate::emulator::process::Process;
+use crate::emulator::runtime_ctx::Context;
+use crate::emulator::vm::VM;
+use crate::fail::RtResult;
+use crate::rt_defs::stack::IStack;
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
-pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
-                            curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_allocate_zero(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: allocate_zero(need:int, live:int)
   assert_arity(gen_op::OPCODE_ALLOCATE_ZERO, 2);
 
@@ -38,8 +41,11 @@ pub fn opcode_allocate_zero(_vm: &VM, ctx: &mut Context,
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
-pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
-                       curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_allocate(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   opcode_allocate_zero(vm, ctx, curr_p)
 }
 
@@ -47,8 +53,11 @@ pub fn opcode_allocate(vm: &VM, ctx: &mut Context,
 /// Pop `cp` from the top of the stack and then deallocate additional `n_free`
 /// words from the stack.
 #[inline]
-pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
-                         curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_deallocate(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: deallocate(n:int)
   assert_arity(gen_op::OPCODE_DEALLOCATE, 1);
 
@@ -64,8 +73,11 @@ pub fn opcode_deallocate(_vm: &VM, ctx: &mut Context,
 /// Check that there are `heap_need` words available on heap, otherwise run the
 /// GC using `live` amount of registers as a part of root set.
 #[inline]
-pub fn opcode_test_heap(_vm: &VM, ctx: &mut Context,
-                        curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_test_heap(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: test_heap(heap_need:int, live:int)
   assert_arity(gen_op::OPCODE_TEST_HEAP, 2);
 

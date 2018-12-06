@@ -5,15 +5,16 @@
 //! there's an memory cost, but we don't care yet. This is only used at the
 //! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
-use rt_defs;
-use rt_defs::{Word, SWord};
-use term::lterm::*;
-use emulator::heap::Heap;
-
+use crate::emulator::heap::Heap;
+use crate::rt_defs;
+use crate::rt_defs::{SWord, Word};
+use crate::term::lterm::*;
 use num::bigint::BigInt;
 use num::FromPrimitive;
 
-fn module() -> &'static str { "term::friendly: " }
+fn module() -> &'static str {
+  "term::friendly: "
+}
 
 
 /// A friendly Rust-enum representing Erlang term both runtime and load-time
@@ -39,7 +40,6 @@ pub enum FTerm {
   //
   // Internal values not visible in the user data
   //
-
   /// A runtime index of X register
   X_(Word),
   /// A runtime index of a stack cell relative to the stack top (Y register)
@@ -51,7 +51,6 @@ pub enum FTerm {
   // BEAM loader specials, these never occur at runtime and finding them
   // in runtime must be an error.
   //
-
   /// A load-time index of label
   LoadTimeLabel(Word),
   /// A load-time atom index in the loader atom table
@@ -69,8 +68,8 @@ impl FTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
   pub fn from_word(s: SWord) -> FTerm {
-    if LTerm::small_fits(s)  {
-      return FTerm::SmallInt(s as SWord)
+    if LTerm::small_fits(s) {
+      return FTerm::SmallInt(s as SWord);
     }
     FTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))
   }
@@ -78,7 +77,7 @@ impl FTerm {
   /// Parse self as Int_ (load-time integer) and return the contained value.
   pub fn loadtime_word(&self) -> SWord {
     if let FTerm::SmallInt(w) = *self {
-      return w
+      return w;
     }
     panic!("{}Expected a smallint, got {:?}", module(), self)
   }
@@ -93,23 +92,23 @@ impl FTerm {
       FTerm::FP_(i) => LTerm::make_fpreg(i),
       FTerm::SmallInt(i) => LTerm::make_small_signed(i),
       FTerm::Nil => LTerm::nil(),
-      _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self)
+      _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self),
     }
   }
 
-//  /// Converts a few special friendly terms, which hold longer structures into
-//  /// an array of Words (raw values of low_level LTerms).
-//  pub fn to_lterm_vec(&self) -> Vec<LTerm> {
-//    match self {
-//      &FTerm::ExtList_(ref v) => {
-//        let mut result: Vec<LTerm> = Vec::with_capacity(v.len() + 1);
-//        result.push(LTerm::make_header(v.len()));
-//        for x in v.iter() {
-//          result.push(x.to_lterm())
-//        };
-//        result
-//      },
-//      _ => panic!("{}Don't know how to convert {:?} to LTerm[]", module(), self)
-//    }
-//  }
+  //  /// Converts a few special friendly terms, which hold longer structures into
+  //  /// an array of Words (raw values of low_level LTerms).
+  //  pub fn to_lterm_vec(&self) -> Vec<LTerm> {
+  //    match self {
+  //      &FTerm::ExtList_(ref v) => {
+  //        let mut result: Vec<LTerm> = Vec::with_capacity(v.len() + 1);
+  //        result.push(LTerm::make_header(v.len()));
+  //        for x in v.iter() {
+  //          result.push(x.to_lterm())
+  //        };
+  //        result
+  //      },
+  //      _ => panic!("{}Don't know how to convert {:?} to LTerm[]", module(), self)
+  //    }
+  //  }
 }

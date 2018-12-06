@@ -24,8 +24,8 @@ pub use self::tuple::Tuple;
 
 pub mod cons;
 pub use self::cons::Cons;
-use rt_defs::*;
-use term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK};
+use crate::rt_defs::*;
+use crate::term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK};
 
 //
 // Structure of a header word:
@@ -53,11 +53,14 @@ pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(2);
 pub const BOXTYPETAG_EXTERNALPID: BoxTypeTag = BoxTypeTag(3);
 pub const BOXTYPETAG_EXTERNALREF: BoxTypeTag = BoxTypeTag(4);
 pub const BOXTYPETAG_EXTERNALPORT: BoxTypeTag = BoxTypeTag(5);
+
 // A function object with frozen (captured) variable values
-pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(9);
 pub const BOXTYPETAG_CLOSURE: BoxTypeTag = BoxTypeTag(6);
+
 pub const BOXTYPETAG_FLOAT: BoxTypeTag = BoxTypeTag(7);
 pub const BOXTYPETAG_IMPORT: BoxTypeTag = BoxTypeTag(8);
+pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(9);
+pub const BOXTYPETAG_MAP: BoxTypeTag = BoxTypeTag(10);
 
 /// Term header in memory, followed by corresponding data.
 pub struct BoxHeader {

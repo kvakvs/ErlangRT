@@ -1,14 +1,13 @@
 //! Module defines types to represent code structures.
+pub mod iter;
 pub mod opcode;
 pub mod pointer;
-pub mod iter;
 
-use rt_defs::Word;
-
+use crate::rt_defs::Word;
 use std::collections::BTreeMap;
 
-pub use emulator::code::opcode::*;
-pub use emulator::code::pointer::*;
+pub use crate::emulator::code::opcode::*;
+pub use crate::emulator::code::pointer::*;
 
 
 /// Code array stores opcodes/jump table offsets and args encoded as `LTerm`
@@ -32,4 +31,3 @@ pub struct CodeOffset(pub Word);
 
 /// Map of label id to offset. Maybe: Use binary search sorted array?
 pub type Labels = BTreeMap<LabelId, CodeOffset>;
-

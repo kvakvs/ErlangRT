@@ -1,26 +1,26 @@
-use emulator::gen_atoms;
-use emulator::process::{Process};
-use term::compare::{cmp_terms};
-use term::lterm::{LTerm};
-use fail::{RtResult};
+use crate::emulator::gen_atoms;
+use crate::emulator::process::Process;
+use crate::fail::RtResult;
+use crate::term::compare::cmp_terms;
+use crate::term::lterm::LTerm;
 
-use std::cmp::{Ordering};
+use std::cmp::Ordering;
 
 
-fn module() -> &'static str { "bif_compare: " }
+fn module() -> &'static str {
+  "bif_compare: "
+}
 
 
 /// Compare 2 terms with '=='
-pub fn ubif_seqeq_2_2(_cur_proc: &mut Process,
-                      args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_seqeq_2_2(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_seqeq_2_2 takes 2 args", module());
   shared_eq(args, false)
 }
 
 
 /// Compare 2 terms with '=:='
-pub fn ubif_seq_2_2(_cur_proc: &mut Process,
-                    args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_seq_2_2(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, true)
 }
@@ -32,11 +32,7 @@ fn shared_eq(args: &[LTerm], exact: bool) -> RtResult<LTerm> {
   let b: LTerm = args[1];
 
   match cmp_terms(a, b, exact)? {
-    Ordering::Equal => {
-      Ok(gen_atoms::TRUE)
-    },
-    _ => {
-      Ok(gen_atoms::FALSE)
-    },
+    Ordering::Equal => Ok(gen_atoms::TRUE),
+    _ => Ok(gen_atoms::FALSE),
   }
 }

@@ -1,7 +1,7 @@
 //! Versioning for modules and unique id to find an older module even if it was
 //! overridden by a newer version.
 
-use term::lterm::*;
+use crate::term::lterm::*;
 
 
 /// An unique identifier of a module where multiple modules with the same
@@ -17,12 +17,11 @@ pub struct VersionedModuleId {
 impl VersionedModuleId {
   pub fn new(module: LTerm, version: usize) -> VersionedModuleId {
     debug_assert!(module.is_atom());
-    VersionedModuleId {
-      module,
-      version
-    }
+    VersionedModuleId { module, version }
   }
 
 
-  pub fn module(&self) -> LTerm { self.module }
+  pub fn module(&self) -> LTerm {
+    self.module
+  }
 }

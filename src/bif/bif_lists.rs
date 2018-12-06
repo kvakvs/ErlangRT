@@ -1,22 +1,23 @@
-use emulator::gen_atoms;
-use emulator::process::{Process};
-use fail::{RtResult};
-use rt_defs::{ExceptionType};
-use term::lterm::*;
-use fail::Error;
+use crate::emulator::gen_atoms;
+use crate::emulator::process::Process;
+use crate::fail::Error;
+use crate::fail::RtResult;
+use crate::rt_defs::ExceptionType;
+use crate::term::lterm::*;
 
 
-fn module() -> &'static str { "bif_compare: " }
+fn module() -> &'static str {
+  "bif_compare: "
+}
 
 
 /// Calculate length of a list by traversing it.
-pub fn gcbif_length_1(_cur_proc: &mut Process,
-                      args: &[LTerm]) -> RtResult<LTerm> {
+pub fn gcbif_length_1(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 1, "{}gcbif_length_1 takes 1 arg", module());
 
   let l0: LTerm = args[0];
   if l0 == LTerm::nil() {
-    return Ok(LTerm::make_small_signed(0))
+    return Ok(LTerm::make_small_signed(0));
   }
 
   let mut lst = l0.get_cons_ptr();
@@ -29,10 +30,9 @@ pub fn gcbif_length_1(_cur_proc: &mut Process,
       lst = tl.get_cons_ptr();
     } else {
       if tl != LTerm::nil() {
-        return Err(Error::Exception(ExceptionType::Error,
-                                    gen_atoms::BADARG))
+        return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
       }
-      return Ok(LTerm::make_small_signed(count))
+      return Ok(LTerm::make_small_signed(count));
     }
   }
 }

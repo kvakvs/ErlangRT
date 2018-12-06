@@ -15,10 +15,10 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use rt_defs::Arity;
-use emulator::gen_atoms;
-use term::lterm::*;
-use bif;
+use crate::rt_defs::Arity;
+use crate::emulator::gen_atoms;
+use crate::term::lterm::*;
+use crate::bif;
 
 
 pub struct BifTabItem {{

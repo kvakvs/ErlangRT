@@ -1,18 +1,19 @@
-use emulator::process::{Process};
-use fail::{RtResult};
-use term::boxed;
-use term::lterm::*;
+use crate::emulator::process::Process;
+use crate::fail::RtResult;
+use crate::term::boxed;
+use crate::term::lterm::*;
 
 use num;
 
 
-fn module() -> &'static str { "bif_arith: " }
+fn module() -> &'static str {
+  "bif_arith: "
+}
 
 
 /// Subtraction for 2 mixed terms. Algorithm comes from Erlang/OTP file
 /// `erl_arith.c`, function `erts_mixed_minus`
-pub fn ubif_sminus_2_2(cur_proc: &mut Process,
-                       args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_sminus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
@@ -29,8 +30,7 @@ pub fn ubif_sminus_2_2(cur_proc: &mut Process,
 
 
 /// Addition for 2 mixed terms.
-pub fn ubif_splus_2_2(cur_proc: &mut Process,
-                      args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_splus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
@@ -48,13 +48,12 @@ pub fn ubif_splus_2_2(cur_proc: &mut Process,
 
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement subtraction, possibly creating a big integer.
-fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm>
-{
+fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
   // Both a and b are small, we've got an easy time
   let iresult = a.get_small_signed() - b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
-    return Ok(LTerm::make_small_signed(iresult))
+    return Ok(LTerm::make_small_signed(iresult));
   }
 
   create_bigint(cur_proc, iresult)
@@ -63,13 +62,12 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LT
 
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement addition, possibly creating a big integer.
-fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm>
-{
+fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
   // Both a and b are small, we've got an easy time
   let iresult = a.get_small_signed() + b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
-    return Ok(LTerm::make_small_signed(iresult))
+    return Ok(LTerm::make_small_signed(iresult));
   }
   create_bigint(cur_proc, iresult)
 }
@@ -81,9 +79,7 @@ fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<LTerm> {
   // Place a new BigInt on heap
   // TODO: Make a tool function for this, also ext_term_format:decode_big
   let heap = &mut cur_proc.heap;
-  let rbig_result = unsafe {
-    boxed::Bignum::create_into(heap, big)?
-  };
+  let rbig_result = unsafe { boxed::Bignum::create_into(heap, big)? };
 
   Ok(LTerm::make_boxed(rbig_result))
 }

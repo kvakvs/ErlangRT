@@ -1,14 +1,13 @@
-use core::ptr;
-
 use super::Context;
-use beam::disp_result::DispatchResult;
-use emulator::function::CallableLocation;
-use emulator::process::Process;
-use emulator::vm::VM;
-use fail::RtResult;
-use rt_defs::Arity;
-use term::boxed;
-use term::lterm::*;
+use crate::beam::disp_result::DispatchResult;
+use crate::emulator::function::CallableLocation;
+use crate::emulator::process::Process;
+use crate::emulator::vm::VM;
+use crate::fail::RtResult;
+use crate::rt_defs::Arity;
+use crate::term::boxed;
+use crate::term::lterm::*;
+use core::ptr;
 
 
 fn module() -> &'static str {

@@ -64,10 +64,10 @@ pub mod ptr;
 //}
 
 
-use rt_defs::stack::IStack;
-use rt_defs::Word;
-use term::boxed;
-use term::lterm::*;
+use crate::rt_defs::stack::IStack;
+use crate::rt_defs::Word;
+use crate::term::boxed;
+use crate::term::lterm::*;
 
 use std::fmt;
 

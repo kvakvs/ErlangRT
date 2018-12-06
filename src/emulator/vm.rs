@@ -3,13 +3,13 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
 
-use rt_defs::Word;
-use emulator::mfa::{MFArgs};
-use emulator::code_srv::CodeServer;
-use emulator::process::Process;
-use emulator::scheduler::{Prio, Scheduler};
-use fail::{RtResult};
-use term::lterm::*;
+use crate::emulator::code_srv::CodeServer;
+use crate::emulator::mfa::MFArgs;
+use crate::emulator::process::Process;
+use crate::emulator::scheduler::{Prio, Scheduler};
+use crate::fail::RtResult;
+use crate::rt_defs::Word;
+use crate::term::lterm::*;
 use std::cell::RefCell;
 
 
@@ -31,7 +31,6 @@ pub struct VM {
 }
 
 impl VM {
-
   /// Create a VM, multiple VMs can be created but atom table and code server
   /// will be shared (global).
   pub fn new() -> VM {
@@ -43,22 +42,24 @@ impl VM {
   }
 
   /// Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self,
-                        parent: LTerm,
-                        mfargs: &MFArgs,
-                        prio: Prio) -> RtResult<LTerm> {
+  pub fn create_process(&mut self, parent: LTerm, mfargs: &MFArgs, prio: Prio) -> RtResult<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
 
     let pid = LTerm::make_local_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
-    match Process::new(pid, parent, &mfarity, prio,
-                       self.code_server.borrow_mut().as_mut()) {
+    match Process::new(
+      pid,
+      parent,
+      &mfarity,
+      prio,
+      self.code_server.borrow_mut().as_mut(),
+    ) {
       Ok(p0) => {
         self.scheduler.borrow_mut().add(pid, p0);
         Ok(pid)
-      },
-      Err(e) => Err(e)
+      }
+      Err(e) => Err(e),
     }
   }
 
@@ -69,5 +70,4 @@ impl VM {
   pub fn tick(&mut self) -> RtResult<bool> {
     self.dispatch()
   }
-
 }

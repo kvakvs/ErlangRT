@@ -1,9 +1,9 @@
-use emulator::gen_atoms;
-use emulator::heap::Heap;
-use fail::RtResult;
+use crate::emulator::gen_atoms;
+use crate::emulator::heap::Heap;
+use crate::fail::RtResult;
+use crate::term::lterm::LTerm;
+use crate::term::term_builder::TermBuilder;
 use std::slice;
-use term::lterm::LTerm;
-use term::term_builder::TermBuilder;
 
 
 pub fn make_badfun(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {

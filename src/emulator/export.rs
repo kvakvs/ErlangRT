@@ -1,4 +1,4 @@
-use emulator::mfa::MFArity;
+use crate::emulator::mfa::MFArity;
 
 
 /// A pointer to a code location: used in funs created with a `fun m:f/a`
@@ -17,12 +17,12 @@ impl Export {
   }
 
 
-//  pub fn new_code_offset(fa: &FunArity,
-//                         mod_id: &VersionedModuleId,
-//                         offset: usize) -> Export
-//  {
-//    let far_offset = FarCodePointer::new(mod_id, offset);
-//    Export::new(MFArity::new_from_funarity(mod_id.module(), &fa))
-//    //  dst: CallableLocation::Code(far_offset))
-//  }
+  //  pub fn new_code_offset(fa: &FunArity,
+  //                         mod_id: &VersionedModuleId,
+  //                         offset: usize) -> Export
+  //  {
+  //    let far_offset = FarCodePointer::new(mod_id, offset);
+  //    Export::new(MFArity::new_from_funarity(mod_id.module(), &fa))
+  //    //  dst: CallableLocation::Code(far_offset))
+  //  }
 }

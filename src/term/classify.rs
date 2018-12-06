@@ -1,11 +1,13 @@
 //! Term ordering and classification.
 
-use term::boxed;
-use term::lterm::*;
-use term::boxed::{BoxHeader};
+use crate::term::boxed;
+use crate::term::boxed::BoxHeader;
+use crate::term::lterm::*;
 
 
-fn module() -> &'static str { "classify: " }
+fn module() -> &'static str {
+  "classify: "
+}
 
 /// Enum defines term classification for order comparisons. Use `cmp` on this
 /// enum to get relative order for two terms. Enum values are listed in
@@ -53,14 +55,14 @@ pub fn classify_term(t: LTerm) -> TermClass {
       } else {
         unsafe { classify_boxed(t) }
       }
-    },
+    }
     TERMTAG_SMALL => TermClass::Number,
     TERMTAG_HEADER => TermClass::Special_, // won't look into the header
     TERMTAG_ATOM => TermClass::Atom,
     TERMTAG_LOCALPID => TermClass::Pid,
     TERMTAG_LOCALPORT => TermClass::Port,
     TERMTAG_SPECIAL => classify_special(t),
-    _ => panic!("{}Invalid primary tag", module())
+    _ => panic!("{}Invalid primary tag", module()),
   }
 }
 
@@ -68,15 +70,18 @@ pub fn classify_term(t: LTerm) -> TermClass {
 fn classify_special(val: LTerm) -> TermClass {
   match val.get_special_tag() {
     SPECIALTAG_CONST => {
-      if val == LTerm::nil() { TermClass::List }
-      else if val == LTerm::empty_binary() { TermClass::Binary }
-      else if val == LTerm::empty_tuple() { TermClass::Tuple }
-      else { TermClass::Special_ }
-    },
-    SPECIALTAG_REGX |
-    SPECIALTAG_REGY |
-    SPECIALTAG_REGFP => TermClass::Special_,
-    SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk)
+      if val == LTerm::nil() {
+        TermClass::List
+      } else if val == LTerm::empty_binary() {
+        TermClass::Binary
+      } else if val == LTerm::empty_tuple() {
+        TermClass::Tuple
+      } else {
+        TermClass::Special_
+      }
+    }
+    SPECIALTAG_REGX | SPECIALTAG_REGY | SPECIALTAG_REGFP => TermClass::Special_,
+    SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk),
   }
 }
 
@@ -93,8 +98,11 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
     boxed::BOXTYPETAG_EXTERNALREF => TermClass::Ref,
     boxed::BOXTYPETAG_CLOSURE => TermClass::Fun,
     boxed::BOXTYPETAG_FLOAT => TermClass::Number,
-    _ => panic!("classify: Unexpected boxed_tag={:?} raw={}",
-                box_tag, val.raw())
+    _ => panic!(
+      "classify: Unexpected boxed_tag={:?} raw={}",
+      box_tag,
+      val.raw()
+    ),
   }
 }
 

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use term::lterm::*;
+use crate::term::lterm::*;
 
 
 pub fn add(_a: LTerm, _b: LTerm) -> LTerm {

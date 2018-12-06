@@ -1,13 +1,12 @@
-use emulator::function::{CallableLocation, FunEntry};
-use emulator::heap::Heap;
-use emulator::mfa::MFArity;
-use fail::RtResult;
-use rt_defs::{storage_bytes_to_words, Arity, Word};
-use term::boxed::{BoxHeader, BOXTYPETAG_CLOSURE};
-use term::lterm::*;
+use crate::emulator::function::{CallableLocation, FunEntry};
+use crate::emulator::heap::Heap;
+use crate::emulator::mfa::MFArity;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::{storage_bytes_to_words, Arity, Word};
+use crate::term::boxed::{BoxHeader, BOXTYPETAG_CLOSURE};
+use crate::term::lterm::*;
 
 use core::ptr;
-use fail::Error;
 use std::mem::size_of;
 
 

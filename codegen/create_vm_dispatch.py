@@ -15,19 +15,19 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use emulator::vm::VM;
-use beam::gen_op;
-use beam::opcodes::*;
-use beam::disp_result::{{DispatchResult}};
-use emulator::code::opcode::RawOpcode;
-use emulator::process::Process;
-use emulator::runtime_ctx::Context;
-use fail::{{Hopefully}};
+use crate::emulator::vm::VM;
+use crate::beam::gen_op;
+use crate::beam::opcodes::*;
+use crate::beam::disp_result::{{DispatchResult}};
+use crate::emulator::code::opcode::RawOpcode;
+use crate::emulator::process::Process;
+use crate::emulator::runtime_ctx::Context;
+use crate::fail::{{RtResult}};
 
 
 #[inline]
 pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, \
-curr_p: &mut Process) -> Hopefully<DispatchResult> {{
+curr_p: &mut Process) -> RtResult<DispatchResult> {{
   match op {{""".format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):

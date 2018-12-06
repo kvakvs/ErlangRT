@@ -3,14 +3,14 @@
 //! this will have to be shared somehow.
 
 use core::ptr;
-use std::u16;
 use std::collections::BTreeMap;
 use std::sync::{Mutex, MutexGuard};
+use std::u16;
 
-use fail::{RtResult, Error};
-use rt_defs::Word;
-use term::lterm::*;
-use emulator::gen_atoms;
+use crate::emulator::gen_atoms;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::Word;
+use crate::term::lterm::*;
 
 
 /// Defines atom properties (length, compare helper integer)
@@ -69,11 +69,10 @@ type IndexLookup = Vec<Atom>;
 /// printing and atom loading facilities without having to pass the VM pointer
 /// all the way down.
 struct AtomStorage {
-//  /// Ever growing array of const pointers to string blocks. Blocks are
-//  /// allocated when the previous block is filled.
-//  /// NOTE: By design these blocks are not movable, make movable maybe?
-//  str_storage: Vec<*const u8>,
-
+  //  /// Ever growing array of const pointers to string blocks. Blocks are
+  //  /// allocated when the previous block is filled.
+  //  /// NOTE: By design these blocks are not movable, make movable maybe?
+  //  str_storage: Vec<*const u8>,
   /// Direct mapping string to atom index
   atoms: Mutex<StrLookup>,
 
@@ -95,9 +94,11 @@ impl AtomStorage {
   }
 
 
-  fn register_atom(atoms: &mut MutexGuard<StrLookup>,
-                   atoms_r: &mut MutexGuard<IndexLookup>,
-                   s: &str) -> Word {
+  fn register_atom(
+    atoms: &mut MutexGuard<StrLookup>,
+    atoms_r: &mut MutexGuard<IndexLookup>,
+    s: &str,
+  ) -> Word {
     let index = atoms_r.len();
     atoms.insert(s.to_string(), index);
     atoms_r.push(Atom::new(s));
@@ -128,9 +129,7 @@ pub fn from_str(val: &str) -> LTerm {
 
   let mut atoms_r = ATOMS.atoms_r.lock().unwrap();
 
-  let index = AtomStorage::register_atom(
-    &mut atoms, &mut atoms_r, val
-  );
+  let index = AtomStorage::register_atom(&mut atoms, &mut atoms_r, val);
 
   LTerm::make_atom(index)
 }
@@ -140,7 +139,7 @@ pub fn to_str(a: LTerm) -> RtResult<String> {
   assert!(a.is_atom());
   let p = lookup(a);
   if p.is_null() {
-    return Err(Error::AtomNotExist(format!("index {}", a.atom_index())))
+    return Err(Error::AtomNotExist(format!("index {}", a.atom_index())));
   }
   Ok(unsafe { (*p).name.clone() })
 }
@@ -151,7 +150,7 @@ pub fn lookup(a: LTerm) -> *const Atom {
   let atoms_r = ATOMS.atoms_r.lock().unwrap();
   let index = a.atom_index();
   if index >= atoms_r.len() {
-    return ptr::null()
+    return ptr::null();
   }
   &atoms_r[index] as *const Atom
 }

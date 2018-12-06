@@ -1,17 +1,17 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
-use emulator::code::{Code, CodePtr};
-use emulator::code_srv::module_id::VersionedModuleId;
-use emulator::funarity::FunArity;
-use emulator::function::{FunEntry};
-use emulator::gen_atoms;
+use crate::emulator::code::{Code, CodePtr};
+use crate::emulator::code_srv::module_id::VersionedModuleId;
+use crate::emulator::funarity::FunArity;
+use crate::emulator::function::FunEntry;
+use crate::emulator::gen_atoms;
 //use emulator::export::Export;
-use emulator::heap::Heap;
-use emulator::mfa::MFArity;
-use fail::{Error, RtResult};
-use rt_defs::{Word, WORD_BYTES};
+use crate::emulator::heap::Heap;
+use crate::emulator::mfa::MFArity;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::{Word, WORD_BYTES};
+use crate::term::lterm::LTerm;
 use std::collections::BTreeMap;
-use term::lterm::LTerm;
 
 
 pub type Ptr = Box<Module>;
@@ -41,15 +41,13 @@ pub struct Module {
 impl Module {
   /// Create an empty module wrapped in atomic refcounted refcell.
   pub fn new(mod_id: &VersionedModuleId) -> Ptr {
-    Box::new(
-      Module {
-        code: Vec::new(),
-        funs: BTreeMap::new(),
-        lit_heap: Heap::new(1),
-        mod_id: *mod_id,
-        lambdas: Vec::new(),
-      }
-    )
+    Box::new(Module {
+      code: Vec::new(),
+      funs: BTreeMap::new(),
+      lit_heap: Heap::new(1),
+      mod_id: *mod_id,
+      lambdas: Vec::new(),
+    })
   }
 
 
@@ -74,12 +72,11 @@ impl Module {
   pub fn lookup_fa(&self, fa: &FunArity) -> RtResult<CodePtr> {
     match self.funs.get(fa) {
       Some(offset) => {
-          let p = &self.code[*offset] as *const Word;
-          Ok(CodePtr::new(p))
-      },
+        let p = &self.code[*offset] as *const Word;
+        Ok(CodePtr::new(p))
+      }
       None => {
-        let msg = format!("Function not found {} in {}",
-                          fa, self.mod_id.module());
+        let msg = format!("Function not found {} in {}", fa, self.mod_id.module());
         Err(Error::FunctionNotFound(msg))
       }
     }
@@ -91,7 +88,7 @@ impl Module {
   // TODO: Use some smart range tree or binary search or something
   pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<MFArity> {
     if !ip.belongs_to(&self.code) {
-      return None
+      return None;
     }
 
     // Find a function with closest code offset less than ip

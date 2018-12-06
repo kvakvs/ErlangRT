@@ -7,36 +7,35 @@
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
 //!
+use crate::beam::compact_term;
+use crate::beam::gen_op;
+use crate::bif;
+use crate::emulator::atom;
+use crate::emulator::code;
+use crate::emulator::code::opcode::RawOpcode;
+use crate::emulator::code::pointer::CodePtrMut;
+use crate::emulator::code::{opcode, Code, CodeOffset, LabelId};
+use crate::emulator::code_srv::module_id::VersionedModuleId;
+use crate::emulator::code_srv::CodeServer;
+use crate::emulator::funarity::FunArity;
+use crate::emulator::function::FunEntry;
+use crate::emulator::heap::{Heap, DEFAULT_LIT_HEAP};
+use crate::emulator::mfa::MFArity;
+use crate::emulator::module;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::{Arity, Word};
+use crate::rt_util::bin_reader::{BinaryReader, ReadError};
+use crate::rt_util::ext_term_format as etf;
+use crate::term::boxed;
+use crate::term::fterm::FTerm;
+use crate::term::lterm::*;
+use crate::term::term_builder::TermBuilder;
 use bytes::Bytes;
 use compress::zlib;
 use std::collections::BTreeMap;
 use std::io::{Cursor, Read};
 use std::mem;
 use std::path::PathBuf;
-
-use beam::compact_term;
-use beam::gen_op;
-use bif;
-use emulator::atom;
-use emulator::code;
-use emulator::code::opcode::RawOpcode;
-use emulator::code::pointer::CodePtrMut;
-use emulator::code::{opcode, Code, CodeOffset, LabelId};
-use emulator::code_srv::module_id::VersionedModuleId;
-use emulator::code_srv::CodeServer;
-use emulator::funarity::FunArity;
-use emulator::function::FunEntry;
-use emulator::heap::{Heap, DEFAULT_LIT_HEAP};
-use emulator::mfa::MFArity;
-use emulator::module;
-use fail::{Error, RtResult};
-use rt_defs::{Arity, Word};
-use rt_util::bin_reader::{BinaryReader, ReadError};
-use rt_util::ext_term_format as etf;
-use term::boxed;
-use term::fterm::FTerm;
-use term::lterm::*;
-use term::term_builder::TermBuilder;
 
 
 pub fn module() -> &'static str {

@@ -1,13 +1,14 @@
 //! Code related to task scheduling and priorities.
-use std::collections::{VecDeque, HashMap};
+use crate::emulator::gen_atoms;
+use crate::emulator::process::{Process, ProcessError};
+use crate::rt_defs::{ExceptionType, Word};
+use crate::term::lterm::*;
+use std::collections::{HashMap, VecDeque};
 
-use rt_defs::{Word, ExceptionType};
-use emulator::process::{Process, ProcessError};
-use emulator::gen_atoms;
-use term::lterm::*;
 
-
-fn module() -> &'static str { "scheduler: " }
+fn module() -> &'static str {
+  "scheduler: "
+}
 
 
 #[derive(Debug, Clone, Copy)]
@@ -71,11 +72,10 @@ pub struct Scheduler {
   /// Currently selected process
   current: Option<LTerm>,
 
-//  /// Wait set for infinitely suspended processes (in endless receive)
-//  wait_inf: HashSet<LTerm>,
-//  /// Wait set for timed suspended processes (waiting for a timer)
-//  wait_timed: HashSet<LTerm>,
-
+  //  /// Wait set for infinitely suspended processes (in endless receive)
+  //  wait_inf: HashSet<LTerm>,
+  //  /// Wait set for timed suspended processes (waiting for a timer)
+  //  wait_timed: HashSet<LTerm>,
   /// Dict of pids to process boxes. Owned by the scheduler
   processes: HashMap<LTerm, Process>,
 }
@@ -83,7 +83,7 @@ pub struct Scheduler {
 
 impl Scheduler {
   pub fn new() -> Scheduler {
-    Scheduler{
+    Scheduler {
       queue_low: VecDeque::new(),
       queue_normal: VecDeque::new(),
       queue_high: VecDeque::new(),
@@ -91,9 +91,8 @@ impl Scheduler {
       advantage_count: 0,
       current: None,
 
-//      wait_inf: HashSet::new(),
-//      wait_timed: HashSet::new(),
-
+      //      wait_inf: HashSet::new(),
+      //      wait_timed: HashSet::new(),
       processes: HashMap::new(),
     }
   }
@@ -138,18 +137,15 @@ impl Scheduler {
       };
 
       match timeslice_result {
-        SliceResult::Yield |
-
-        SliceResult::None => {
+        SliceResult::Yield | SliceResult::None => {
           self.queue(curr_pid);
           self.current = None
-        },
+        }
 
         SliceResult::Finished => {
-          let err = ProcessError::Exception(ExceptionType::Exit,
-                                            gen_atoms::NORMAL);
+          let err = ProcessError::Exception(ExceptionType::Exit, gen_atoms::NORMAL);
           self.exit_process(curr_pid, err)
-        },
+        }
 
         SliceResult::Exception => {
           let p_error = {
@@ -159,9 +155,9 @@ impl Scheduler {
           };
           self.exit_process(curr_pid, p_error);
           self.current = None
-        },
+        }
 
-        SliceResult::Wait => {},
+        SliceResult::Wait => {}
       }
     } // if self.current
 
@@ -193,10 +189,10 @@ impl Scheduler {
 
       if next_pid.is_some() {
         let next_pid1 = next_pid.unwrap();
-//        {
-//          let next_p = self.lookup_pid(&next_pid1).unwrap();
-//          println!("{} next() queue {}", module(), next_p.pid);
-//        }
+        //        {
+        //          let next_p = self.lookup_pid(&next_pid1).unwrap();
+        //          println!("{} next() queue {}", module(), next_p.pid);
+        //        }
 
         self.current = Some(next_pid1)
       }
@@ -236,9 +232,12 @@ impl Scheduler {
     // TODO: notify links
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
-    println!("{}exit_process {} e={}, result x0=?",
-             module(), pid, e //, p.runtime_ctx.regs[0]
-            );
+    println!(
+      "{}exit_process {} e={}, result x0=?",
+      module(),
+      pid,
+      e //, p.runtime_ctx.regs[0]
+    );
 
     //  m_inf_wait.erase(p);
     //  m_timed_wait.erase(p);

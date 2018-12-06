@@ -1,8 +1,8 @@
-use emulator::mfa::MFArity;
-use emulator::process::{Process};
-use fail;
-use fail::{RtResult};
-use term::lterm::{LTerm};
+use crate::emulator::mfa::MFArity;
+use crate::emulator::process::Process;
+use crate::fail;
+use crate::fail::RtResult;
+use crate::term::lterm::LTerm;
 
 
 pub mod gen_bif; // generated
@@ -16,11 +16,11 @@ pub mod bif_lists;
 pub mod bif_process;
 pub mod bif_sys;
 
-pub use bif::bif_arith::*;
-pub use bif::bif_compare::*;
-pub use bif::bif_lists::*;
-pub use bif::bif_process::*;
-pub use bif::bif_sys::*;
+pub use crate::bif::bif_arith::*;
+pub use crate::bif::bif_compare::*;
+pub use crate::bif::bif_lists::*;
+pub use crate::bif::bif_process::*;
+pub use crate::bif::bif_sys::*;
 
 
 /// A BIF function which runs under some process, takes some args (encoded in
@@ -33,7 +33,7 @@ pub fn is_bif(mfa: &MFArity) -> bool {
   // Naive implementation. TODO: Binary search or a hashmap
   for bt in gen_bif::BIF_TABLE {
     if bt.m == mfa.m && bt.f == mfa.f && bt.arity == mfa.arity {
-      return true
+      return true;
     }
   }
   false
@@ -44,7 +44,7 @@ pub fn find_bif(mfa: &MFArity) -> RtResult<BifFn> {
   // Naive implementation. TODO: Binary search or a hashmap
   for bt in gen_bif::BIF_TABLE {
     if bt.m == mfa.m && bt.f == mfa.f && bt.arity == mfa.arity {
-      return Ok(bt.func)
+      return Ok(bt.func);
     }
   }
   Err(fail::Error::BifNotFound(format!("{}", mfa)))

@@ -2,7 +2,7 @@
 name = "erlang_rt"
 version = "0.1.0"
 authors = ["Dmytro Lytovchenko"]
-
+edition = "2018"
 
 [features]
 default = ["r20", "dev_build"]

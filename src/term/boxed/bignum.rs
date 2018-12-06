@@ -1,7 +1,7 @@
-use emulator::heap::Heap;
-use fail::RtResult;
-use rt_defs::storage_bytes_to_words;
-use term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER};
+use crate::emulator::heap::Heap;
+use crate::fail::RtResult;
+use crate::rt_defs::storage_bytes_to_words;
+use crate::term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER};
 
 use core::ptr;
 use num::bigint::BigInt;

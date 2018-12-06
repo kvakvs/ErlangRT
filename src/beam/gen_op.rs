@@ -3,8 +3,8 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use rt_defs::Word;
-use emulator::code::opcode::RawOpcode;
+use crate::rt_defs::Word;
+use crate::emulator::code::opcode::RawOpcode;
 
 
 pub const OPCODE_MAX: RawOpcode = RawOpcode(159);

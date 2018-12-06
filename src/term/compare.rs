@@ -1,8 +1,8 @@
-use emulator::atom;
-use fail::RtResult;
+use crate::emulator::atom;
+use crate::fail::RtResult;
+use crate::term::classify;
+use crate::term::lterm::*;
 use std::cmp::Ordering;
-use term::classify;
-use term::lterm::*;
 
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
@@ -171,8 +171,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
     _ => {
       // Any non-boxed compare
       Ok(EqResult::Concluded(cmp_terms_immed(a, b, exact)?))
-    }
-    //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
+    } //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
 }
 
@@ -213,8 +212,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
       return cmp_mixed_types(a, b);
     }
 
-    //panic!("TODO: invoke cmp_cons correctly from here")
-    return cmp_cons(a, b)
+    panic!("TODO: invoke cmp_cons correctly from here")
+    //return cmp_cons(a, b);
   }
 
   if a.is_boxed() {

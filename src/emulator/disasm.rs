@@ -1,14 +1,13 @@
-use beam::gen_op;
-use emulator::code::{CodePtr, opcode, Labels, RefCode};
-use emulator::code_srv::CodeServer;
-use rt_defs::Word;
-use term::lterm::*;
+use crate::beam::gen_op;
+use crate::emulator::code::{opcode, CodePtr, Labels, RefCode};
+use crate::emulator::code_srv::CodeServer;
+use crate::rt_defs::Word;
+use crate::term::lterm::*;
 
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
-pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>,
-                     code_server: &CodeServer) {
+pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>, code_server: &CodeServer) {
   let mut ip = &code[0] as *const Word;
   let iend = ip.offset(code.len() as isize);
 
@@ -20,8 +19,7 @@ pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>,
 
 /// Given an IP code pointer which points to the opcode - print the opcode and
 /// args. Returns updated IP which points at the next opcode.
-pub unsafe fn disasm_op(ip0: *const Word,
-                        code_server: &CodeServer) -> *const Word {
+pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Word {
   let mut ip = ip0;
 
   let op = opcode::from_memory_ptr(ip);
@@ -45,7 +43,6 @@ pub unsafe fn disasm_op(ip0: *const Word,
 
 unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
   for arg_index in 0..n_args {
-
     let arg_raw = *ip.offset(arg_index as isize);
     let arg = LTerm::from_raw(arg_raw);
 

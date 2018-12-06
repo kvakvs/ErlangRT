@@ -3,19 +3,21 @@
 //! heap, stack, registers, and message queue.
 //!
 
-use rt_defs::{Word, ExceptionType};
-use emulator::code_srv::CodeServer;
-use emulator::heap::{Heap, DEFAULT_PROC_HEAP};
-use emulator::mfa::MFArity;
-use emulator::runtime_ctx;
-use emulator::scheduler;
-use fail::RtResult;
-use term::lterm::*;
+use crate::emulator::code_srv::CodeServer;
+use crate::emulator::heap::{Heap, DEFAULT_PROC_HEAP};
+use crate::emulator::mfa::MFArity;
+use crate::emulator::runtime_ctx;
+use crate::emulator::scheduler;
+use crate::fail::RtResult;
+use crate::rt_defs::{ExceptionType, Word};
+use crate::term::lterm::*;
 
 use std::fmt;
 
 
-fn module() -> &'static str { "process: " }
+fn module() -> &'static str {
+  "process: "
+}
 
 
 #[allow(dead_code)]
@@ -30,12 +32,10 @@ impl fmt::Display for ProcessError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
       ProcessError::None => write!(f, "NoError"),
-      ProcessError::Exception(exc_type, exc_reason) => {
-        match exc_type {
-          ExceptionType::Exit => write!(f, "exit({})", exc_reason),
-          ExceptionType::Throw => write!(f, "throw({})", exc_reason),
-          ExceptionType::Error => write!(f, "error({})", exc_reason),
-        }
+      ProcessError::Exception(exc_type, exc_reason) => match exc_type {
+        ExceptionType::Exit => write!(f, "exit({})", exc_reason),
+        ExceptionType::Throw => write!(f, "throw({})", exc_reason),
+        ExceptionType::Error => write!(f, "error({})", exc_reason),
       },
     }
   }
@@ -48,7 +48,6 @@ pub struct Process {
   //
   // Scheduling and fail state
   //
-
   /// Scheduling priority (selects the runqueue when this process is scheduled)
   pub prio: scheduler::Prio,
   /// Current scheduler queue where this process is registered
@@ -74,8 +73,13 @@ pub struct Process {
 impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
-  pub fn new(pid: LTerm, _parent_pid: LTerm, mfarity: &MFArity,
-             prio: scheduler::Prio, code_server: &mut CodeServer) -> RtResult<Process> {
+  pub fn new(
+    pid: LTerm,
+    _parent_pid: LTerm,
+    mfarity: &MFArity,
+    prio: scheduler::Prio,
+    code_server: &mut CodeServer,
+  ) -> RtResult<Process> {
     assert!(pid.is_local_pid());
     assert!(_parent_pid.is_local_pid() || _parent_pid == LTerm::nil());
 
@@ -97,8 +101,8 @@ impl Process {
         };
         Ok(p)
         //Ok(sync::Arc::new(sync::RwLock::new(p)))
-      },
-      Err(e) => Err(e)
+      }
+      Err(e) => Err(e),
     }
   }
 
@@ -117,8 +121,8 @@ impl Process {
       Ok(ip) => {
         self.context.ip = ip;
         Ok(())
-      },
-      Err(e) => Err(e)
+      }
+      Err(e) => Err(e),
     }
   }
 
@@ -137,7 +141,7 @@ impl Process {
   }
 
 
-//  pub fn clear_error(&mut self) {
-//    self.error = ProcessError::None;
-//  }
+  //  pub fn clear_error(&mut self) {
+  //    self.error = ProcessError::None;
+  //  }
 }

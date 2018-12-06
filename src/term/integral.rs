@@ -1,7 +1,6 @@
 //! Type-safe Erlang integer used during code loading time.
 //!
-use rt_defs::{SWord, WORD_BITS};
-
+use crate::rt_defs::{SWord, WORD_BITS};
 use num;
 use num::ToPrimitive;
 
@@ -16,12 +15,10 @@ pub enum Integral {
 }
 
 impl Integral {
-
   pub fn from_big(big: num::BigInt) -> Integral {
     if big.bits() < WORD_BITS {
       return Integral::Small(big.to_isize().unwrap());
     }
     Integral::BigInt(big)
   }
-
 }

@@ -2,9 +2,9 @@
 //! may be used when running in debug mode for extra safety checks, in release
 //! no checks are done and simple opcode is stored.
 //!
-use beam::gen_op;
-use rt_defs::Word;
-use term::lterm::{LTerm, SPECIALTAG_OPCODE};
+use crate::beam::gen_op;
+use crate::rt_defs::Word;
+use crate::term::lterm::{LTerm, SPECIALTAG_OPCODE};
 
 //use std::iter;
 
@@ -74,9 +74,12 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 #[cfg(debug_assertions)]
 pub fn from_memory_word(m: Word) -> RawOpcode {
   let as_term = LTerm::from_raw(m);
-  debug_assert_eq!(as_term.get_special_tag(), SPECIALTAG_OPCODE,
-                   "Opcode 0x{:x} from code memory must be tagged as Special/Opcode",
-                   m);
+  debug_assert_eq!(
+    as_term.get_special_tag(),
+    SPECIALTAG_OPCODE,
+    "Opcode 0x{:x} from code memory must be tagged as Special/Opcode",
+    m
+  );
   debug_assert!(as_term.get_special_value() < 256);
   let opc = RawOpcode(as_term.get_special_value() as u8);
   debug_assert!(opc <= gen_op::OPCODE_MAX);
@@ -97,9 +100,13 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   let m = unsafe { *p };
   let as_term = LTerm::from_raw(m);
-  debug_assert_eq!(as_term.get_special_tag(), SPECIALTAG_OPCODE,
-                   "Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
-                   m, p);
+  debug_assert_eq!(
+    as_term.get_special_tag(),
+    SPECIALTAG_OPCODE,
+    "Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
+    m,
+    p
+  );
   debug_assert!(as_term.get_special_value() < 256);
   let opc = RawOpcode(as_term.get_special_value() as u8);
   debug_assert!(opc <= gen_op::OPCODE_MAX);

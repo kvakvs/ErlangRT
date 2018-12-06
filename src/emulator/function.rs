@@ -1,7 +1,7 @@
 use std::fmt;
 
-use emulator::code::pointer::FarCodePointer;
-use emulator::mfa::MFArity;
+use crate::emulator::code::pointer::FarCodePointer;
+use crate::emulator::mfa::MFArity;
 
 
 /// Result of Lambda Table loading prepared for use in the runtime.

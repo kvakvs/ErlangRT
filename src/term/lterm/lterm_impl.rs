@@ -5,17 +5,16 @@
 //!
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
-use emulator::atom;
-use emulator::heap::Heap;
-use fail::{Error, RtResult};
-use rt_defs::*;
-use term::boxed;
-use term::boxed::{BoxHeader, BoxTypeTag};
-
+use crate::emulator::atom;
+use crate::emulator::heap::Heap;
+use crate::fail::{Error, RtResult};
+use crate::rt_defs::*;
+use crate::term::boxed;
+use crate::term::boxed::{BoxHeader, BoxTypeTag};
+use core::cmp::Ordering;
+use core::fmt;
+use core::isize;
 use core::ptr;
-use std::cmp::Ordering;
-use std::fmt;
-use std::isize;
 
 //
 // Structure of term:
@@ -484,28 +483,20 @@ impl LTerm {
     match self.get_special_tag() {
       SPECIALTAG_CONST => {
         if self == LTerm::nil() {
-          return write!(f, "[]")
+          return write!(f, "[]");
         } else if self.is_non_value() {
-          return write!(f, "NON_VALUE")
+          return write!(f, "NON_VALUE");
         } else if self == LTerm::empty_binary() {
-          return write!(f, "<<>>")
+          return write!(f, "<<>>");
         } else if self == LTerm::empty_tuple() {
-          return write!(f, "{{}}")
+          return write!(f, "{{}}");
         }
       }
-      SPECIALTAG_REGX => {
-        return write!(f, "X{}", self.get_special_value())
-      },
-      SPECIALTAG_REGY => {
-        return write!(f, "Y{}", self.get_special_value())
-      },
-      SPECIALTAG_REGFP => {
-        return write!(f, "F{}", self.get_special_value())
-      },
-      SPECIALTAG_OPCODE => {
-        return write!(f, "Opcode({})", self.get_special_value())
-      },
-      _ => {},
+      SPECIALTAG_REGX => return write!(f, "X{}", self.get_special_value()),
+      SPECIALTAG_REGY => return write!(f, "Y{}", self.get_special_value()),
+      SPECIALTAG_REGFP => return write!(f, "F{}", self.get_special_value()),
+      SPECIALTAG_OPCODE => return write!(f, "Opcode({})", self.get_special_value()),
+      _ => {}
     }
     write!(
       f,
@@ -612,6 +603,82 @@ impl LTerm {
   pub fn is_same(a: LTerm, b: LTerm) -> bool {
     a.raw() == b.raw()
   }
+
+  //
+  // PORT ===========
+  //
+  /// Check whether a value is any kind of port.
+  pub fn is_port(&self) -> bool {
+    self.is_local_port() || self.is_external_port()
+  }
+
+  pub fn is_local_port(&self) -> bool {
+    false
+  }
+
+  pub fn is_external_port(&self) -> bool {
+    false
+  }
+
+  //
+  // MAP ===============
+  //
+  /// Check whether a value is a map.
+  pub fn is_map(&self) -> bool {
+    self.is_boxed_of_type(boxed::BOXTYPETAG_MAP)
+  }
+
+  /// Check whether a value is a small map < 32 elements (Flat). Does NOT check
+  /// that the value is a map (assert!) assuming that the caller has checked
+  /// it by now.
+  pub fn is_flat_map(&self) -> bool {
+    false
+  }
+
+  /// Check whether a value is a hash map >= 32 elements (HAMT). Does NOT check
+  /// that the value is a map (assert!) assuming that the caller has checked
+  /// it by now.
+  pub fn is_hash_map(&self) -> bool {
+    false
+  }
+
+  pub fn map_size(&self) -> usize {
+    0
+  }
+
+  //
+  // EXPORT ==================
+  //
+  /// Check whether a value is a boxed export (M:F/Arity triple).
+  pub fn is_export(&self) -> bool {
+    self.is_boxed_of_type(boxed::BOXTYPETAG_EXPORT)
+  }
+
+  //
+  // FUN / CLOSURE ==================
+  //
+
+  /// Check whether a value is a boxed fun (a closure).
+  pub fn is_fun(&self) -> bool {
+    self.is_boxed_of_type(boxed::BOXTYPETAG_CLOSURE)
+  }
+
+  //
+  // REFERENCE
+  //
+  /// Check whether a value is any kind of reference.
+  pub fn is_ref(&self) -> bool {
+    self.is_local_ref() || self.is_external_ref()
+  }
+
+  pub fn is_local_ref(&self) -> bool {
+    false
+  }
+
+  pub fn is_external_ref(&self) -> bool {
+    false
+  }
+
 }
 
 

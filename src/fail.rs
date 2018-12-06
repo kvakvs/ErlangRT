@@ -1,14 +1,13 @@
 //!
 //! Generic errors used everywhere in the VM runtime.
 //!
-use beam::compact_term::CTError;
-use emulator::heap::HeapError;
-use rt_util::bin_reader;
-
-use rt_defs::ExceptionType;
-use rt_util::bin_reader::ReadError;
+use crate::beam::compact_term::CTError;
+use crate::emulator::heap::HeapError;
+use crate::rt_defs::ExceptionType;
+use crate::rt_util::bin_reader;
+use crate::rt_util::bin_reader::ReadError;
+use crate::term::lterm::LTerm;
 use std::convert::From;
-use term::lterm::LTerm;
 
 
 // TODO: Rename to RTError-something
