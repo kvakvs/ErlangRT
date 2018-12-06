@@ -66,7 +66,8 @@ pub struct BoxHeader {
 impl BoxHeader {
   pub fn new(t: BoxTypeTag, arity: Word) -> BoxHeader {
     BoxHeader {
-      header_word: (arity << HEADER_TAG_BITS | t) << TERM_TAG_BITS | TERMTAG_HEADER.get()
+      header_word: (arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS
+          | TERMTAG_HEADER.get()
     }
   }
 

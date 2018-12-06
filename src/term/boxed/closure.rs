@@ -3,11 +3,11 @@ use emulator::heap::{Heap};
 use emulator::mfa::{MFArity};
 use fail::{Hopefully};
 use rt_defs::{Word, Arity, storage_bytes_to_words};
-use term::boxed::{BoxHeader, BoxTypeTag};
+use term::boxed::{BoxHeader, BOXTYPETAG_CLOSURE};
 use term::lterm::*;
 
 use std::mem::size_of;
-use std::ptr;
+use core::ptr;
 use fail::Error;
 
 
@@ -34,10 +34,10 @@ impl Closure {
   }
 
 
-  fn new(mfa: MFArity, nfree: u32) -> Closure {
+  fn new(mfa: MFArity, nfree: usize) -> Closure {
     let arity = Closure::storage_size(nfree) - 1;
     Closure {
-      header: BoxHeader::new(BoxTypeTag::Closure, arity),
+      header: BoxHeader::new(BOXTYPETAG_CLOSURE, arity),
       mfa,
       dst: CallableLocation::NeedUpdate,
       nfree: nfree as Arity,
@@ -51,7 +51,7 @@ impl Closure {
                            frozen: &[LTerm]) -> Hopefully<LTerm>
   {
     let n_words = Closure::storage_size(fe.nfree);
-    let this = hp.alloc_words::<Closure>(n_words, false)?;
+    let this = hp.alloc::<Closure>(n_words, false)?;
 
     assert_eq!(frozen.len(), fe.nfree as usize);
     println!("{}new closure: {} frozen={} nfree={}", module(),
@@ -66,19 +66,19 @@ impl Closure {
               dst as *mut Word,
               fe.nfree as usize);
 
-    Ok(LTerm::make_box(this as *const Word))
+    Ok(LTerm::make_boxed(this))
   }
 
 
   pub unsafe fn const_from_term(t: LTerm) -> Hopefully<*const Closure> {
     helper_get_const_from_boxed_term::<Closure>(
-      t, BoxTypeTag::Closure, Error::BoxedIsNotAClosure)
+      t, BOXTYPETAG_CLOSURE, Error::BoxedIsNotAClosure)
   }
 
 
   pub unsafe fn mut_from_term(t: LTerm) -> Hopefully<*mut Closure> {
     helper_get_mut_from_boxed_term::<Closure>(
-      t, BoxTypeTag::Closure, Error::BoxedIsNotAClosure)
+      t, BOXTYPETAG_CLOSURE, Error::BoxedIsNotAClosure)
   }
 
 }

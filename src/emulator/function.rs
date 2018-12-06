@@ -9,15 +9,15 @@ use emulator::mfa::MFArity;
 #[derive(Debug)]
 pub struct FunEntry {
   pub mfa: MFArity,
-  //  code_pos: u32,
-  //  index: u32,
-  pub nfree: u32,
-  //  ouniq: u32,
+  //  code_pos: usize,
+  //  index: usize,
+  pub nfree: usize,
+  //  ouniq: usize,
 }
 
 
 impl FunEntry {
-  pub fn new(mfa: MFArity, nfree: u32) -> FunEntry {
+  pub fn new(mfa: MFArity, nfree: usize) -> FunEntry {
     FunEntry { mfa, nfree }
   }
 }

@@ -54,18 +54,18 @@ impl ListBuilder {
   }
 
   unsafe fn set(&mut self, val: LTerm) {
-    std::ptr::write(self.p, val)
+    core::ptr::write(self.p, val)
   }
 
   unsafe fn next(&mut self) -> Hopefully<()> {
     let new_cell = (*self.heap).alloc::<LTerm>(2, true)?;
-    std::ptr::write(self.p.add(1), LTerm::make_cons(new_cell));
+    core::ptr::write(self.p.add(1), LTerm::make_cons(new_cell));
     self.p = new_cell;
     Ok(())
   }
 
   unsafe fn end(&mut self, _tl: LTerm) {
-    std::ptr::write(self.p.add(1), LTerm::nil())
+    core::ptr::write(self.p.add(1), LTerm::nil())
   }
 
   fn make_term(&self) -> LTerm {

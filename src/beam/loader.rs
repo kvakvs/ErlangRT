@@ -46,8 +46,8 @@ pub fn module() -> &'static str { "beam::loader: " }
 /// Raw data structure as loaded from BEAM file
 #[allow(dead_code)]
 struct LImport {
-  mod_atom_i: u32,
-  fun_atom_i: u32,
+  mod_atom_i: usize,
+  fun_atom_i: usize,
   arity: Arity,
 }
 
@@ -56,9 +56,9 @@ struct LImport {
 /// Raw data structure as loaded from BEAM file.
 #[allow(dead_code)]
 struct LExport {
-  fun_atom_i: u32,
+  fun_atom_i: usize,
   arity: Arity,
-  label: u32,
+  label: usize,
 }
 
 
@@ -67,11 +67,11 @@ struct LExport {
 #[allow(dead_code)]
 struct LFun {
   arity: Arity,
-  fun_atom_i: u32,
-  code_pos: u32,
-  index: u32,
-  nfree: u32,
-  ouniq: u32,
+  fun_atom_i: usize,
+  code_pos: usize,
+  index: usize,
+  nfree: usize,
+  ouniq: usize,
 }
 
 
@@ -185,7 +185,7 @@ impl Loader {
 
   /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
   /// account special value 0 and offsets the index down by 1.
-  fn atom_from_loadtime_index(&self, n: u32) -> LTerm {
+  fn atom_from_loadtime_index(&self, n: usize) -> LTerm {
     if n == 0 { return LTerm::nil() }
     self.vm_atoms[n as usize - 1]
   }
@@ -223,7 +223,7 @@ impl Loader {
         Ok(s) => s,
         // EOF is not an error
         Err(ReadError::PrematureEOF) => break,
-        Err(e) => return Err(Error::CodeLoading(e))
+        Err(e) => return Err(Error::ReadError(e))
       };
       let chunk_sz = r.read_u32be();
       let pos_begin = r.pos();
@@ -399,8 +399,8 @@ impl Loader {
     self.raw.imports.reserve(n_imports as usize);
     for _i in 0..n_imports {
       let imp = LImport {
-        mod_atom_i: r.read_u32be(),
-        fun_atom_i: r.read_u32be(),
+        mod_atom_i: r.read_u32be() as usize,
+        fun_atom_i: r.read_u32be() as usize,
         arity: r.read_u32be() as Arity,
       };
       self.raw.imports.push(imp);
@@ -416,9 +416,9 @@ impl Loader {
     exports.reserve(n_exports as usize);
     for _i in 0..n_exports {
       let exp = LExport {
-        fun_atom_i: r.read_u32be(),
+        fun_atom_i: r.read_u32be() as usize,
         arity: r.read_u32be() as Arity,
-        label: r.read_u32be(),
+        label: r.read_u32be() as usize,
       };
       exports.push(exp);
     }
@@ -430,12 +430,12 @@ impl Loader {
     let n_funs = r.read_u32be();
     self.raw.lambdas.reserve(n_funs as usize);
     for _i in 0..n_funs {
-      let fun_atom = r.read_u32be();
-      let arity = r.read_u32be();
-      let code_pos = r.read_u32be();
-      let index = r.read_u32be();
-      let nfree = r.read_u32be();
-      let ouniq = r.read_u32be();
+      let fun_atom = r.read_u32be() as usize;
+      let arity = r.read_u32be() as usize;
+      let code_pos = r.read_u32be() as usize;
+      let index = r.read_u32be() as usize;
+      let nfree = r.read_u32be() as usize;
+      let ouniq = r.read_u32be() as usize;
       self.raw.lambdas.push(LFun {
         fun_atom_i: fun_atom,
         arity: arity as Arity,

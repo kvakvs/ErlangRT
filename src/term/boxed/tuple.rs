@@ -2,11 +2,11 @@ use emulator::heap::Heap;
 use fail::Error;
 use fail::Hopefully;
 use rt_defs::{Word};
-use term::boxed::{BoxHeader, BoxTypeTag, BOXTYPETAG_TUPLE};
+use term::boxed::{BoxHeader, BOXTYPETAG_TUPLE};
 use term::boxed;
 use term::lterm::LTerm;
 
-//use std::ptr;
+//use core::ptr;
 
 
 /// A fixed-size array which stores everything in its allocated memory on
@@ -30,8 +30,8 @@ impl Tuple {
   }
 
 
-  pub fn get_arity(self) -> Word {
-    self.header.t
+  pub unsafe fn get_arity(this: *const Tuple) -> Word {
+    (*this).header.get_arity()
   }
 
 
@@ -39,14 +39,15 @@ impl Tuple {
   pub fn create_into(hp: &mut Heap, arity: Word) -> Hopefully<*mut Tuple> {
     let n = boxed::Tuple::storage_size(arity);
     let p = hp.alloc::<Tuple>(n, false)?;
-    std::ptr::write(p, Tuple::new(arity))
+    core::ptr::write(p, Tuple::new(arity));
+    Ok(p)
   }
 
 
   /// Convert any p into *const Tuple + checking the header word to be Tule
   pub unsafe fn from_pointer<T>(p: *const T) -> Hopefully<*const Tuple> {
     let tp = p as *const Tuple;
-    if (*tp).header.get_tag() != BoxTypeTag::Tuple {
+    if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
       return Err(Error::BoxedIsNotATuple)
     }
     Ok(tp)
@@ -56,7 +57,7 @@ impl Tuple {
   /// Convert any p into *mut Tuple + checking the header word to be Tule
   pub unsafe fn from_pointer_mut<T>(p: *mut T) -> Hopefully<*mut Tuple> {
     let tp = p as *mut Tuple;
-    if (*tp).header.get_tag() != BoxTypeTag::Tuple {
+    if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
       return Err(Error::BoxedIsNotATuple)
     }
     Ok(tp)
@@ -64,20 +65,21 @@ impl Tuple {
 
 
   pub unsafe fn set_raw_word_base0(this: *mut Tuple, index: Word, val: Word) {
-    debug_assert!(index < this.arity());
+    debug_assert!(index < Tuple::get_arity(this));
     let p = this as *mut Word;
     *p.offset(index as isize + 1) = val
   }
 
 
-  pub unsafe fn set_element_base0(this: *const Tuple, i: Word, val: LTerm) {
-    let p = this as *const Word;
-    std::ptr::write(p.add(i + 1), val.raw())
+  pub unsafe fn set_element_base0(this: *mut Tuple, i: Word, val: LTerm) {
+    // Take i-th word after the tuple header
+    let word_ptr = this.add(1) as *mut Word;
+    core::ptr::write(word_ptr.add(i), val.raw())
   }
 
 
   pub unsafe fn get_element_base0(this: *const Tuple, i: Word) -> LTerm {
-    let p = this as *const Word;
-    *p.offset(i as isize + 1)
+    let word_ptr = this.add(1) as *const LTerm;
+    core::ptr::read(word_ptr.add(i))
   }
 }

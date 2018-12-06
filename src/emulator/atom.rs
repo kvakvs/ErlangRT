@@ -2,7 +2,7 @@
 //! Global is ugly, but necessary for now. If we ever create more than 1 VM,
 //! this will have to be shared somehow.
 
-use std::ptr;
+use core::ptr;
 use std::u16;
 use std::collections::BTreeMap;
 use std::sync::{Mutex, MutexGuard};

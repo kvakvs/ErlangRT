@@ -3,7 +3,7 @@
 //use rt_defs::Word;
 //use term::lterm::*;
 //
-//use std::ptr;
+//use core::ptr;
 //
 //
 //#[derive(Clone)]

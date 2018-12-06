@@ -6,7 +6,7 @@ use emulator::mfa::MFArity;
 use fail::Error;
 use fail::Hopefully;
 use rt_defs::{storage_bytes_to_words};
-use term::boxed::{BoxHeader, BoxTypeTag};
+use term::boxed::{BoxHeader, BOXTYPETAG_IMPORT};
 use term::lterm::*;
 
 use std::mem::size_of;
@@ -28,11 +28,11 @@ impl Import {
                            is_bif: bool) -> Hopefully<LTerm>
   {
     let n_words = Import::storage_size();
-    let this = hp.alloc_words::<Import>(n_words, false)?;
+    let this = hp.alloc::<Import>(n_words, false)?;
 
     ptr::write(this,
                Import {
-                 header: BoxHeader::new(BoxTypeTag::Import, n_words),
+                 header: BoxHeader::new(BOXTYPETAG_IMPORT, n_words),
                  mfarity,
                  is_bif,
                });
@@ -42,13 +42,13 @@ impl Import {
 
   pub unsafe fn const_from_term(t: LTerm) -> Hopefully<*const Import> {
     helper_get_const_from_boxed_term::<Import>(
-      t, BoxTypeTag::Import, Error::BoxedIsNotAnImport)
+      t, BOXTYPETAG_IMPORT, Error::BoxedIsNotAnImport)
   }
 
 
   pub unsafe fn mut_from_term(t: LTerm) -> Hopefully<*mut Import> {
     helper_get_mut_from_boxed_term::<Import>(
-      t, BoxTypeTag::Import, Error::BoxedIsNotAnImport)
+      t, BOXTYPETAG_IMPORT, Error::BoxedIsNotAnImport)
   }
 
 

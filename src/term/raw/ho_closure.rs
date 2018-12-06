@@ -3,7 +3,7 @@
 ////! Do not import this file directly, use `use term::raw::*;` instead.
 //
 //use std::mem::size_of;
-//use std::ptr;
+//use core::ptr;
 //use std::cmp;
 //
 //use emulator::function::FunEntry;

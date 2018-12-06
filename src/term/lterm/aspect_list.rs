@@ -8,7 +8,7 @@
 //use term::primary;
 //use term::raw::*;
 //
-//use std::ptr;
+//use core::ptr;
 //
 //
 //fn module() -> &'static str { "lterm/cons_term: " }

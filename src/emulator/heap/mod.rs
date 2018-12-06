@@ -174,7 +174,7 @@ impl Heap {
     if init_nil {
       unsafe {
         for i in 0..n {
-          std::ptr::write(new_chunk.add(i), raw_nil)
+          core::ptr::write(new_chunk.add(i), raw_nil)
         }
       }
     }

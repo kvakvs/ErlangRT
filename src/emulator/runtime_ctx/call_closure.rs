@@ -1,4 +1,4 @@
-use std::ptr;
+use core::ptr;
 
 use beam::disp_result::{DispatchResult};
 use emulator::function::{CallableLocation};

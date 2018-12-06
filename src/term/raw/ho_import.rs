@@ -2,7 +2,7 @@
 ////! Do not import this file directly, use `use term::raw::*;` instead.
 //
 //use std::mem::size_of;
-//use std::ptr;
+//use core::ptr;
 //
 //use bif::{BifFn, find_bif};
 //use emulator::code::CodePtr;

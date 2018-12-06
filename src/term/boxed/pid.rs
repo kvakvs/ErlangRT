@@ -5,7 +5,6 @@ use term::boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID};
 use term::lterm::LTerm;
 
 use core::ptr;
-use std::mem;
 
 
 /// Represents Pid box on heap.
@@ -17,7 +16,7 @@ pub struct ExternalPid {
 
 impl ExternalPid {
   const fn storage_size() -> Word {
-    storage_bytes_to_words(mem::size_of::<ExternalPid>)
+    storage_bytes_to_words(std::mem::size_of::<ExternalPid>())
   }
 
   fn new(node: LTerm, id: Word) -> ExternalPid {
@@ -34,8 +33,8 @@ impl ExternalPid {
                      node: LTerm,
                      id: Word) -> Hopefully<*mut BoxHeader> {
     // TODO do something with possible error from hp.heap_allocate
-    let p = hp.heap_allocate(ExternalPid::storage_size())?;
+    let p = hp.alloc::<ExternalPid>(ExternalPid::storage_size(), false)?;
     unsafe { ptr::write(p, ExternalPid::new(node, id)) }
-    Ok(p)
+    Ok(p as *mut BoxHeader)
   }
 }

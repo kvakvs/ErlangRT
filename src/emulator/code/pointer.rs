@@ -88,7 +88,7 @@ impl CodePtr {
 
   #[inline]
   pub fn null() -> CodePtr {
-    CodePtr::new::<Word>(::std::ptr::null())
+    CodePtr::new::<Word>(::core::ptr::null())
   }
 
 

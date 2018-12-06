@@ -2,7 +2,7 @@ use emulator::heap::Heap;
 use fail::{Hopefully, Error};
 use rt_defs::{storage_bytes_to_words, Word};
 use term::boxed::{BoxHeader, BOXTYPETAG_BINARY};
-use std::ptr;
+use core::ptr;
 
 pub enum BoxBinaryPayload {
   // contains size, followed in memory by the data bytes
@@ -37,7 +37,7 @@ impl Binary {
   pub unsafe fn create_into(hp: &mut Heap, n_bytes: usize) -> Hopefully<*mut Binary>
   {
     let n_words = Binary::storage_size(n_bytes);
-    let this = hp.alloc_words::<Binary>(n_words, false)?;
+    let this = hp.alloc::<Binary>(n_words, false)?;
 
     ptr::write(this, Binary::new(n_bytes));
 
@@ -54,19 +54,24 @@ impl Binary {
     }
 
     match (*this).payload {
-      BoxBinaryPayload::ProcBin {n} => {
-        return Err(Error::ProcBinTooSmall(data_len, n))
+      BoxBinaryPayload::ProcBin {nbytes: n} => {
+        if n < data_len {
+          return Err(Error::ProcBinTooSmall(data_len, n))
+        }
       },
-      BoxBinaryPayload::HeapBin {n, _refc} => {
-        return Err(Error::HeapBinTooSmall(data_len, n))
+      BoxBinaryPayload::HeapBin {nbytes: n, refc: _} => {
+        if n < data_len {
+          return Err(Error::HeapBinTooSmall(data_len, n))
+        }
       },
       BoxBinaryPayload::RefBin => {
         return Err(Error::CannotCopyIntoRefbin)
       },
     }
 
-    // Take next word after the record end, that'll be first data word.
-    let bin_bytes = this.offset(1) as *mut u8;
+    // Take a byte after the Binary struct, that'll be first data byte
+    let bin_bytes = this.add(1) as *mut u8;
+
     ptr::copy_nonoverlapping(&data[0], bin_bytes, data_len);
     Ok(())
   }

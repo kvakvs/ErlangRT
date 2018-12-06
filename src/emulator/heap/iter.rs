@@ -18,7 +18,7 @@ impl HeapIterator {
   pub unsafe fn next(&mut self) -> Option<*const LTerm> {
     // Peek inside *p to see if we're at a header, and if so - step over it
     // using header arity. Otherwise step by 1 cell
-    let val = std::ptr::read(self.p);
+    let val = core::ptr::read(self.p);
     let size = match val.get_term_tag() {
       TERMTAG_HEADER => boxed::headerword_to_arity(val.raw()),
       _ => 1usize,

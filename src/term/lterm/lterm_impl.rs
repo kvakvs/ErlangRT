@@ -14,7 +14,7 @@ use term::boxed;
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::ptr;
+use core::ptr;
 use std::isize;
 
 //
@@ -555,7 +555,7 @@ impl LTerm {
 
     write!(f, "{{")?;
 
-    let arity = (*tptr).get_arity();
+    let arity = boxed::Tuple::get_arity(tptr);
     for i in 0..arity {
       write!(f, "{}", boxed::Tuple::get_element_base0(tptr, i))?;
       if i < arity - 1 {
@@ -672,7 +672,7 @@ impl fmt::Display for LTerm {
 
 //#[cfg(test)]
 //mod tests {
-//  use std::ptr;
+//  use core::ptr;
 //  use std::mem;
 //
 //  use rt_defs::*;

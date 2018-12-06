@@ -1,27 +1,20 @@
 use rt_defs::{Word, SWord};
 use rt_defs;
-use super::bin_reader::{BinaryReader, ReadError};
+use super::bin_reader::{BinaryReader};
 use term::term_builder::TermBuilder;
 use term::lterm::LTerm;
+use fail::{Hopefully, Error};
 
 use num;
 use num::ToPrimitive;
 
 
-/// Errors indicating a problem with External Term Format parser.
-#[derive(Debug)]
-pub enum ETFError {
-  ParseError(String),
-  ReadError(ReadError),
-}
-
-
-impl From<ReadError> for ETFError {
-  fn from(e: ReadError) -> Self { ETFError::ReadError(e) }
-}
-
-
-pub type Hopefully<T> = Result<T, ETFError>;
+///// Errors indicating a problem with External Term Format parser.
+//#[derive(Debug)]
+//pub enum ETFError {
+//  ParseError(String),
+//  ReadError(ReadError),
+//}
 
 
 #[repr(u8)]
@@ -63,7 +56,7 @@ fn module() -> &'static str { "external_term_format: " }
 
 
 fn fail<TermType: Copy>(msg: String) -> Hopefully<TermType> {
-  Err(ETFError::ParseError(msg))
+  Err(Error::ETFParseError(msg))
 }
 
 
@@ -76,7 +69,7 @@ pub fn decode(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
     let msg = format!("{}Expected ETF tag byte 131, got {}", module(), etf_tag);
     return fail(msg);
   }
-  decode_naked::<TermBuilder>(r, tb)
+  decode_naked(r, tb)
 }
 
 
@@ -152,7 +145,7 @@ fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopeful
   }
 
   // Determine storage size in words
-  Ok(unsafe { tb.create_bignum(big) })
+  unsafe { Ok(tb.create_bignum(big)?) }
 }
 
 
@@ -160,11 +153,11 @@ fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 {
   let n_bytes = r.read_u32be() as usize;
   if n_bytes == 0 {
-    return Ok(LTerm::make_empty_binary())
+    return Ok(LTerm::empty_binary())
   }
 
   let data = r.read_bytes(n_bytes)?;
-  Ok(unsafe { tb.create_binary(&data) })
+  Ok(unsafe { tb.create_binary(&data)? })
 }
 
 

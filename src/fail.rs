@@ -3,9 +3,9 @@
 //!
 use beam::compact_term::CTError;
 use rt_util::bin_reader;
-use rt_util::ext_term_format;
 use emulator::heap::HeapError;
 
+use rt_util::bin_reader::{ReadError};
 use std::convert::From;
 use rt_defs::ExceptionType;
 use term::lterm::LTerm;
@@ -15,10 +15,10 @@ use term::lterm::LTerm;
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),
-  ReadExternalTerm(ext_term_format::ETFError),
+  ETFParseError(String),
+  ReadError(ReadError),
 
   //--- Code loading ---
-  CodeLoading(bin_reader::ReadError),
   CodeLoadingFailed(String),
   CodeLoadingCompactTerm(CTError),
   //PrematureEOF,
@@ -38,6 +38,7 @@ pub enum Error {
   TermIsNotABoxed,
   BoxedIsNotAClosure,
   BoxedIsNotAnImport,
+  BoxedIsNotAnExport,
   BoxedIsNotATuple,
   HeapObjNotAType, // remove
 
@@ -49,11 +50,7 @@ pub enum Error {
 
 
 impl From<bin_reader::ReadError> for Error {
-  fn from(e: bin_reader::ReadError) -> Self { Error::CodeLoading(e) }
-}
-
-impl From<ext_term_format::ETFError> for Error {
-  fn from(e: ext_term_format::ETFError) -> Self { Error::ReadExternalTerm(e) }
+  fn from(e: bin_reader::ReadError) -> Self { Error::ReadError(e) }
 }
 
 impl From<HeapError> for Error {
