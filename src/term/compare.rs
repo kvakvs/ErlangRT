@@ -153,10 +153,10 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
 fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
-  let a_val = a.raw();
+//  let a_val = a.raw();
   let a_prim_tag = a.get_term_tag();
 
-  let b_val = b.raw();
+//  let b_val = b.raw();
   let b_prim_tag = b.get_term_tag();
   if b_prim_tag != a_prim_tag {
     // different primary types, compare their classes
@@ -173,15 +173,15 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> Hopefully<EqResult> {
       // Any non-boxed compare
       Ok(EqResult::Concluded(cmp_terms_immed(a, b, exact)?))
     },
-    _ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
+    //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
 }
 
 
 // TODO: If this function is used a lot, optimize by doing case on tag bits
 fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> Hopefully<Ordering> {
-  let av = a.raw();
-  let bv = b.raw();
+//  let av = a.raw();
+//  let bv = b.raw();
 
   if (a == LTerm::nil()
       || a == LTerm::empty_tuple()

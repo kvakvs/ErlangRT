@@ -164,7 +164,7 @@ fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 /// Given arity, allocate a tuple and read its elements sequentially.
 fn decode_tuple(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> Hopefully<LTerm>
 {
-  let mut tuple_builder = tb.create_tuple_builder(size);
+  let mut tuple_builder = tb.create_tuple_builder(size)?;
   for i in 0..size {
     let elem = decode_naked(r, tb)?;
     unsafe { tuple_builder.set_element_base0(i, elem) }
@@ -202,7 +202,7 @@ fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
     return Ok(LTerm::nil());
   }
 
-  let mut list_builder = tb.create_list_builder();
+  let mut list_builder = tb.create_list_builder()?;
   let n_elem_minus_one = n_elem - 1;
 
   for i in 0..n_elem {
@@ -210,7 +210,7 @@ fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
     unsafe { list_builder.set(another) }
 
     if i < n_elem_minus_one {
-      unsafe { list_builder.next() }
+      unsafe { list_builder.next(); }
     }
   }
 
@@ -230,7 +230,7 @@ fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
   }
 
   // Using mutability build list forward creating many cells and linking them
-  let mut list_builder = tb.create_list_builder();
+  let mut list_builder = tb.create_list_builder()?;
   let n_elem_minus_one = n_elem - 1;
 
   for i in 0..n_elem {
@@ -242,7 +242,7 @@ fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> Hopefully<LTerm>
 
     // Keep building forward
     if i < n_elem_minus_one {
-      unsafe { list_builder.next() }
+      unsafe { list_builder.next(); }
     }
   }
 

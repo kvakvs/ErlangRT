@@ -95,28 +95,23 @@ pub fn apply(ctx: &mut Context,
   println!("call_bif a={} gc={} call result {:?}",
            args.len(), gc, bif_result);
 
-  match bif_result {
-    // On error and if fail label is a CP, perform a goto
-    // Assume that error is already written to `reason` in process
-    Err(Error::Exception(ex_type, ex_reason)) => {
-      if fail_label.is_cp() {
-        ctx.ip = CodePtr::from_cp(fail_label)
-      }
-      // Set exception via dispatchresult
-      Err(Error::Exception(ex_type, ex_reason))
-    },
-
-//    BifResult::Fail(f) =>
-//      callbif_handle_fail(&f),
-
-    Ok(val) => {
-      // if dst is not NIL, store the result in it
-      if dst != LTerm::nil() {
-        ctx.store(val, dst, &mut curr_p.heap)
-      }
-      Ok(DispatchResult::Normal)
-    },
+  // On error and if fail label is a CP, perform a goto
+  // Assume that error is already written to `reason` in process
+  if let Err(Error::Exception(_, _)) = bif_result {
+    if fail_label.is_cp() {
+      ctx.ip = CodePtr::from_cp(fail_label)
+    }
+    // Set exception via dispatchresult
+    return Err(bif_result.unwrap_err());
   }
+
+  let val = bif_result?;
+
+  // if dst is not NIL, store the result in it
+  if dst != LTerm::nil() {
+    ctx.store(val, dst, &mut curr_p.heap)
+  }
+  Ok(DispatchResult::Normal)
 }
 
 

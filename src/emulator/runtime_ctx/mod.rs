@@ -7,7 +7,8 @@ use rt_defs::{Float, MAX_FPREGS, MAX_XREGS, Word};
 use rt_defs::stack::IStack;
 use std::fmt;
 use std::slice;
-use term::lterm::{LTerm};
+use term::lterm::{LTerm, SpecialTag, TERMTAG_SPECIAL, SPECIALTAG_REGX,
+                  SPECIALTAG_REGY, SPECIALTAG_REGFP};
 
 pub mod call_bif;
 pub mod call_closure;
@@ -120,40 +121,44 @@ impl Context {
   /// Read a register otherwise term is returned unchanged.
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
-    match src.get_term_tag() {
-      TAG_REGY => return self.regs[src.get_term_val_without_tag()],
-      TAG_REGY => {
-        let y_index = src.get_term_val_without_tag();
-        let y_result = hp.stack_get_y(y_index);
-        return y_result.unwrap();
-      },
-      TAG_REGFP => panic!("todo fpreg load"),
-      // Otherwise return unchanged
-      _ => src,
+    if src.get_term_tag() == TERMTAG_SPECIAL {
+      match src.get_special_tag() {
+        SPECIALTAG_REGX => return self.regs[src.get_term_val_without_tag()],
+        SPECIALTAG_REGY => {
+          let y_index = src.get_term_val_without_tag();
+          let y_result = hp.stack_get_y(y_index);
+          return y_result.unwrap();
+        }
+        SPECIALTAG_REGFP => panic!("todo fpreg load"),
+        SpecialTag(st) => panic!("load: specialtag {} not supported", st),
+      }
     }
+    // Otherwise return unchanged
+    src
   }
 
 
   /// Copy a value from `src` (possibly a stack cell or a register) to `dst`.
   pub fn store(&mut self, src: LTerm, dst: LTerm, hp: &mut heap::Heap) {
     let src_val = self.load(src, hp);
-    match dst.get_term_tag() {
-      TAG_REGX => {
-        self.regs[dst.get_term_val_without_tag()] = src_val;
-        return;
+    if dst.get_term_tag() == TERMTAG_SPECIAL {
+      match dst.get_special_tag() {
+        SPECIALTAG_REGX => {
+          self.regs[dst.get_term_val_without_tag()] = src_val;
+          return;
+        }
+        SPECIALTAG_REGY => {
+          let y = dst.get_term_val_without_tag();
+          let y_result = hp.stack_set_y(y, src_val);
+          return y_result.unwrap();
+        }
+        SPECIALTAG_REGFP => panic!("todo fpreg store"),
+        SpecialTag(st) => panic!("store: specialtag {} not supported", st),
       }
-      TAG_REGY => {
-        let y = dst.get_term_val_without_tag();
-        let y_result = hp.stack_set_y(y, src_val);
-        return y_result.unwrap();
-      },
-      TAG_REGFP => panic!("todo fpreg store"),
-      _ => {}
     }
     panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
   }
 }
-
 
 impl fmt::Display for Context {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

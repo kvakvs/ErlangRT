@@ -1,5 +1,5 @@
 //! Define `HeapIterator` which can step over the heap
-use term::lterm::LTerm;
+use term::lterm::{LTerm, TermTag, TERMTAG_HEADER};
 use term::boxed;
 
 // This is used by heap walkers such as "dump.rs"
@@ -21,7 +21,7 @@ impl HeapIterator {
     let val = core::ptr::read(self.p);
     let size = match val.get_term_tag() {
       TERMTAG_HEADER => boxed::headerword_to_arity(val.raw()),
-      _ => 1usize,
+      TermTag(_) => 1usize,
     };
 
     self.p.add(size);

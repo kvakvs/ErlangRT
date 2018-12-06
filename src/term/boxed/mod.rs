@@ -75,7 +75,7 @@ impl BoxHeader {
   pub const fn storage_size() -> Word { 1 }
 
 
-  pub fn get_tag(self) -> BoxTypeTag {
+  pub fn get_tag(&self) -> BoxTypeTag {
     headerword_to_boxtype(self.header_word)
   }
 
@@ -92,6 +92,6 @@ pub fn headerword_to_arity(w: Word) -> Word {
 }
 
 
-pub fn headerword_to_boxtype(w: Word) -> BoxTypeTag {
+pub const fn headerword_to_boxtype(w: Word) -> BoxTypeTag {
   BoxTypeTag(w & TERM_TAG_MASK)
 }

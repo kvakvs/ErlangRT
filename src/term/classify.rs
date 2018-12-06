@@ -2,7 +2,7 @@
 
 use term::boxed;
 use term::lterm::*;
-use term::boxed::BoxHeader;
+use term::boxed::{BoxHeader};
 
 
 fn module() -> &'static str { "classify: " }
@@ -45,7 +45,7 @@ pub enum TermClass {
 
 
 pub fn classify_term(t: LTerm) -> TermClass {
-  let v = t.raw();
+  //let _v = t.raw();
   match t.get_term_tag() {
     TERMTAG_BOXED => {
       if t.is_cp() {
@@ -76,6 +76,7 @@ fn classify_special(val: LTerm) -> TermClass {
     SPECIALTAG_REGX |
     SPECIALTAG_REGY |
     SPECIALTAG_REGFP => TermClass::Special_,
+    SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk)
   }
 }
 
@@ -88,7 +89,6 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
   match box_tag {
     boxed::BOXTYPETAG_TUPLE => TermClass::Tuple,
     boxed::BOXTYPETAG_BINARY => TermClass::Binary,
-    boxed::BOXTYPETAG_TUPLE => TermClass::Tuple,
     boxed::BOXTYPETAG_EXTERNALPID => TermClass::Pid,
     boxed::BOXTYPETAG_EXTERNALREF => TermClass::Ref,
     boxed::BOXTYPETAG_CLOSURE => TermClass::Fun,

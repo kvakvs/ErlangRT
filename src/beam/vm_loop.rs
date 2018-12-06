@@ -39,19 +39,21 @@ impl VM {
               "Opcode too big (wrong memory address?) got 0x{:x}", op.get());
 
       // Handle next opcode
-      match dispatch_op_inline(self, op, &mut ctx, curr_p) {
-        Ok(DispatchResult::Yield) => {
+      let disp_result = dispatch_op_inline(self, op, &mut ctx, curr_p);
+      if let Err(Error::Exception(exc_type, exc_reason)) = disp_result {
+        curr_p.exception(exc_type, exc_reason);
+        curr_p.context.copy_from(&ctx); // swapout
+        curr_p.timeslice_result = SliceResult::Exception;
+        return Ok(true)
+      }
+
+      match disp_result? {
+        DispatchResult::Yield => {
           curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Yield;
           return Ok(true)
         },
-        Err(Error::Exception(exc_type, exc_reason)) => {
-          curr_p.exception(exc_type, exc_reason);
-          curr_p.context.copy_from(&ctx); // swapout
-          curr_p.timeslice_result = SliceResult::Exception;
-          return Ok(true)
-        },
-        Ok(DispatchResult::Normal) => {
+        DispatchResult::Normal => {
           curr_p.timeslice_result = SliceResult::None;
         }, // keep looping
       }

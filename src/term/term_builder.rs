@@ -43,7 +43,7 @@ pub struct ListBuilder {
 }
 
 impl ListBuilder {
-  unsafe fn new(heap: *mut Heap) -> Hopefully<ListBuilder> {
+  pub unsafe fn new(heap: *mut Heap) -> Hopefully<ListBuilder> {
     let p = (*heap).alloc::<LTerm>(2, true)?;
 
     Ok(ListBuilder {
@@ -53,22 +53,22 @@ impl ListBuilder {
     })
   }
 
-  unsafe fn set(&mut self, val: LTerm) {
+  pub unsafe fn set(&mut self, val: LTerm) {
     core::ptr::write(self.p, val)
   }
 
-  unsafe fn next(&mut self) -> Hopefully<()> {
+  pub unsafe fn next(&mut self) -> Hopefully<()> {
     let new_cell = (*self.heap).alloc::<LTerm>(2, true)?;
     core::ptr::write(self.p.add(1), LTerm::make_cons(new_cell));
     self.p = new_cell;
     Ok(())
   }
 
-  unsafe fn end(&mut self, _tl: LTerm) {
+  pub unsafe fn end(&mut self, _tl: LTerm) {
     core::ptr::write(self.p.add(1), LTerm::nil())
   }
 
-  fn make_term(&self) -> LTerm {
+  pub fn make_term(&self) -> LTerm {
     LTerm::make_cons(self.p0)
   }
 }
