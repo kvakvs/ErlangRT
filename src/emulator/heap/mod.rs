@@ -3,80 +3,19 @@ pub mod heap_impl;
 pub mod iter;
 pub mod ptr;
 
-//use rt_defs::Word;
-
-
-///// Default heap size for constants (literals) when loading a module.
-//pub const DEFAULT_LIT_HEAP: Word = 8192;
-///// Default heap size when spawning a process. (default: 300)
-//pub const DEFAULT_PROC_HEAP: Word = 8192;
-//
-//
-//pub use emulator::heap::heap_impl::{Heap, allocate_cons, heap_iter};
-//
-//
-//
-//#[derive(Debug)]
-//pub enum HeapError {
-//  /// Very bad, no more memory to grow.
-//  OutOfMemory,
-//  /// No space left in heap. GC requested.
-//  HeapIsFull,
-//  /// Attempt to index outside of the current stack.
-//  StackIndexRange,
-//}
-
-
-// /// Trait represents an object which can do heap operations.
-//pub trait IHeap {
-//  /// How many words do we have before it will require GC/growth.
-//  fn heap_capacity(&self) -> usize;
-//
-//  /// How many words are used.
-//  fn htop(&self) -> usize;
-//
-//  /// This is used by heap walkers such as "dump.rs"
-//  fn heap_begin(&self) -> *const Word;
-//
-//  fn heap_begin_mut(&mut self) -> *mut Word;
-//
-//  /// This is used by heap walkers such as "dump.rs"
-//  unsafe fn heap_end(&self) -> *const Word;
-//
-//  /// Expand heap to host `n` words of data
-//  fn heap_alloc(&mut self, n: Word, init_nil: bool) -> Result<*mut Word, HeapError>;
-//
-//  //  /// Allocate words on heap enough to store bignum digits and copy the given
-//  //  /// bignum to memory, return the pointer.
-//  //  pub fn allocate_big(&mut self, big: &num::BigInt) -> Result<BignumPtr, HeapError> {
-//
-//  // /// Create a constant iterator for walking the heap.
-//  // /// This is used by heap walkers such as "dump.rs"
-//  //unsafe fn heap_iter(&self) -> IHeapIterator<DataPtr>;
-//  //unsafe fn heap_iter<IteratorType>(&self) -> IteratorType;
-//
-//  fn heap_have(&self, need: Word) -> bool;
-//}
-
-// / A heap iterator. Not very `std::iter::Iterator` compatible but simple.
-//pub trait IHeapIterator<PtrType> {
-//  unsafe fn next(&mut self) -> Option<PtrType>;
-//}
-
-
 use crate::rt_defs::stack::IStack;
-use crate::rt_defs::Word;
+use crate::rt_defs::{Word, WordSize};
 use crate::term::boxed;
 use crate::term::lterm::*;
 
-use std::fmt;
+use core::fmt;
 
 
 /// Default heap size for constants (literals) when loading a module.
-pub const DEFAULT_LIT_HEAP: Word = 8192;
+pub const DEFAULT_LIT_HEAP: usize = 8192;
 
 /// Default heap size when spawning a process. (default: 300)
-pub const DEFAULT_PROC_HEAP: Word = 8192;
+pub const DEFAULT_PROC_HEAP: usize = 8192;
 
 
 #[derive(Debug)]
@@ -161,10 +100,11 @@ impl Heap {
   }
 
 
-  pub fn alloc<T>(&mut self, n: Word, init_nil: bool) -> Result<*mut T, HeapError> {
+  pub fn alloc<T>(&mut self, n: WordSize, init_nil: bool) -> Result<*mut T, HeapError> {
     let pos = self.htop;
+    let n_words = n.words();
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
-    if pos + n >= self.stop {
+    if pos + n_words >= self.stop {
       return Err(HeapError::HeapIsFull);
     }
 
@@ -174,13 +114,13 @@ impl Heap {
 
     if init_nil {
       unsafe {
-        for i in 0..n {
+        for i in 0..n_words {
           core::ptr::write(new_chunk.add(i), raw_nil)
         }
       }
     }
 
-    self.htop += n;
+    self.htop += n_words;
 
     Ok(new_chunk as *mut T)
   }
@@ -317,7 +257,7 @@ impl IStack<LTerm> for Heap {
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
 #[inline]
 pub fn allocate_cons(hp: &mut Heap) -> Result<*mut boxed::Cons, HeapError> {
-  hp.alloc::<boxed::Cons>(2, false)
+  hp.alloc::<boxed::Cons>(WordSize::new(2), false)
 }
 
 

@@ -27,8 +27,10 @@ pub use self::tuple::Tuple;
 
 pub mod cons;
 pub use self::cons::Cons;
-use crate::rt_defs::*;
-use crate::term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK};
+use crate::{
+  rt_defs::*,
+  term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK},
+};
 
 //
 // Structure of a header word:
@@ -73,13 +75,14 @@ pub struct BoxHeader {
 impl BoxHeader {
   pub fn new(t: BoxTypeTag, arity: Word) -> BoxHeader {
     BoxHeader {
-      header_word: (arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS | TERMTAG_HEADER.0,
+      header_word: (arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS
+        | TERMTAG_HEADER.0,
     }
   }
 
 
-  pub const fn storage_size() -> Word {
-    1
+  pub const fn storage_size() -> WordSize {
+    WordSize::new(1)
   }
 
 

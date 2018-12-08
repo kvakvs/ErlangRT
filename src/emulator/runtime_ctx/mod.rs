@@ -4,11 +4,11 @@
 use crate::emulator::code::CodePtr;
 use crate::emulator::heap;
 use crate::rt_defs::stack::IStack;
-use crate::rt_defs::{Float, Word, MAX_FPREGS, MAX_XREGS};
+use crate::rt_defs::{Word, MAX_FPREGS, MAX_XREGS};
 use crate::term::lterm::{
   LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY, TERMTAG_SPECIAL,
 };
-use std::fmt;
+use core::fmt;
 use std::slice;
 
 pub mod call_bif;
@@ -37,7 +37,7 @@ pub struct Context {
   pub live: Word,
 
   /// Current state of Y registers.
-  pub fpregs: [Float; MAX_FPREGS],
+  pub fpregs: [f64; MAX_FPREGS],
 }
 
 

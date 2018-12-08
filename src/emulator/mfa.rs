@@ -5,7 +5,7 @@ use crate::emulator::funarity::FunArity;
 use crate::rt_defs::Arity;
 use crate::term::lterm::*;
 
-use std::fmt;
+use core::fmt;
 
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.

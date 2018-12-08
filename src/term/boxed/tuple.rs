@@ -1,12 +1,12 @@
-use crate::emulator::heap::Heap;
-use crate::fail::Error;
-use crate::fail::RtResult;
-use crate::rt_defs::Word;
-use crate::term::boxed;
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_TUPLE};
-use crate::term::lterm::LTerm;
-
-//use core::ptr;
+use crate::{
+  emulator::heap::Heap,
+  fail::{Error, RtResult},
+  rt_defs::{Word, WordSize},
+  term::{
+    boxed::{self, BoxHeader, BOXTYPETAG_TUPLE},
+    lterm::LTerm,
+  },
+};
 
 
 /// A fixed-size array which stores everything in its allocated memory on
@@ -18,8 +18,8 @@ pub struct Tuple {
 impl Tuple {
   /// Size of a tuple in memory with the header word (used for allocations)
   #[inline]
-  pub const fn storage_size(arity: Word) -> Word {
-    arity + BoxHeader::storage_size()
+  pub const fn storage_size(arity: Word) -> WordSize {
+    WordSize::new(arity + BoxHeader::storage_size().words())
   }
 
 

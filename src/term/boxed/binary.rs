@@ -1,11 +1,13 @@
-use crate::emulator::heap::Heap;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::{storage_bytes_to_words, Word};
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_BINARY};
-use core::ptr;
+use crate::{
+  emulator::heap::Heap,
+  fail::{Error, RtResult},
+  rt_defs::{storage_bytes_to_words, Word, WordSize},
+  term::boxed::{BoxHeader, BOXTYPETAG_BINARY},
+};
+use core::{fmt, ptr};
 
 #[allow(dead_code)]
-pub enum BoxBinaryPayload {
+pub enum BinaryType {
   // contains size, followed in memory by the data bytes
   ProcBin { nbytes: Word },
   // contains reference to heapbin
@@ -18,20 +20,23 @@ pub enum BoxBinaryPayload {
 #[allow(dead_code)]
 pub struct Binary {
   header: BoxHeader,
-  pub payload: BoxBinaryPayload,
+  pub bin_type: BinaryType,
 }
 
 impl Binary {
   fn new(nbytes: usize) -> Binary {
-    let arity = Binary::storage_size(nbytes) - 1;
+    let arity = Binary::storage_size(nbytes).words();
     Binary {
       header: BoxHeader::new(BOXTYPETAG_BINARY, arity),
-      payload: BoxBinaryPayload::ProcBin { nbytes },
+      bin_type: BinaryType::ProcBin { nbytes },
     }
   }
 
-  pub fn storage_size(nbytes: usize) -> usize {
-    storage_bytes_to_words(std::mem::size_of::<Binary>()) + storage_bytes_to_words(nbytes)
+  pub fn storage_size(nbytes: usize) -> WordSize {
+    WordSize::new(
+      storage_bytes_to_words(std::mem::size_of::<Binary>()).words()
+        + storage_bytes_to_words(nbytes).words(),
+    )
   }
 
   pub unsafe fn create_into(hp: &mut Heap, n_bytes: usize) -> RtResult<*mut Binary> {
@@ -52,18 +57,18 @@ impl Binary {
       return Ok(());
     }
 
-    match (*this).payload {
-      BoxBinaryPayload::ProcBin { nbytes: n } => {
+    match (*this).bin_type {
+      BinaryType::ProcBin { nbytes: n } => {
         if n < data_len {
           return Err(Error::ProcBinTooSmall(data_len, n));
         }
       }
-      BoxBinaryPayload::HeapBin { nbytes: n, refc: _ } => {
+      BinaryType::HeapBin { nbytes: n, refc: _ } => {
         if n < data_len {
           return Err(Error::HeapBinTooSmall(data_len, n));
         }
       }
-      BoxBinaryPayload::RefBin => return Err(Error::CannotCopyIntoRefbin),
+      BinaryType::RefBin => return Err(Error::CannotCopyIntoRefbin),
     }
 
     // Take a byte after the Binary struct, that'll be first data byte
@@ -71,5 +76,39 @@ impl Binary {
 
     ptr::copy_nonoverlapping(&data[0], bin_bytes, data_len);
     Ok(())
+  }
+
+
+  #[inline]
+  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
+    let p = this.add(1) as *const u8;
+    core::ptr::read(p.add(i))
+  }
+
+
+  /// Called from LTerm formatting function to print binary contents
+  pub unsafe fn format_binary(
+    this: *const Binary,
+    f: &mut fmt::Formatter,
+  ) -> fmt::Result {
+    write!(f, "<<");
+    match (*this).bin_type {
+      BinaryType::RefBin => {
+        write!(f, "#refbin");
+      }
+      BinaryType::ProcBin { nbytes } => {
+        write!(f, "[size={}]", nbytes);
+        for i in 0..nbytes {
+          if i > 0 {
+            write!(f, ", ");
+          }
+          write!(f, "{}", Binary::get_byte(this, i));
+        }
+      }
+      BinaryType::HeapBin { nbytes, refc: _ } => {
+        write!(f, "#heapbin[size={}]", nbytes);
+      }
+    }
+    write!(f, ">>")
   }
 }

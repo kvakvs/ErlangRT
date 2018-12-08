@@ -3,9 +3,9 @@
 use crate::emulator::atom;
 use crate::emulator::heap::Heap;
 use crate::fail::RtResult;
+use crate::rt_defs::WordSize;
 use crate::term::boxed;
 use crate::term::lterm::*;
-
 use num;
 
 
@@ -44,7 +44,7 @@ pub struct ListBuilder {
 
 impl ListBuilder {
   pub unsafe fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
-    let p = (*heap).alloc::<LTerm>(2, true)?;
+    let p = (*heap).alloc::<LTerm>(WordSize::new(2), true)?;
 
     Ok(ListBuilder { p, p0: p, heap })
   }
@@ -54,7 +54,7 @@ impl ListBuilder {
   }
 
   pub unsafe fn next(&mut self) -> RtResult<()> {
-    let new_cell = (*self.heap).alloc::<LTerm>(2, true)?;
+    let new_cell = (*self.heap).alloc::<LTerm>(WordSize::new(2), true)?;
     core::ptr::write(self.p.add(1), LTerm::make_cons(new_cell));
     self.p = new_cell;
     Ok(())

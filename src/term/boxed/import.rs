@@ -1,16 +1,14 @@
-use crate::bif::{find_bif, BifFn};
-use crate::emulator::code::pointer::CodePtr;
-use crate::emulator::code_srv::CodeServer;
-use crate::emulator::heap::Heap;
-use crate::emulator::mfa::MFArity;
-use crate::fail::Error;
-use crate::fail::RtResult;
-use crate::rt_defs::storage_bytes_to_words;
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_IMPORT};
-use crate::term::lterm::*;
-
-use core::ptr;
-use std::mem::size_of;
+use crate::{
+  bif::{find_bif, BifFn},
+  emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
+  fail::{Error, RtResult},
+  rt_defs::{storage_bytes_to_words, WordSize},
+  term::{
+    boxed::{BoxHeader, BOXTYPETAG_IMPORT},
+    lterm::*,
+  },
+};
+use core::{mem::size_of, ptr};
 
 #[allow(dead_code)]
 pub struct Import {
@@ -20,18 +18,22 @@ pub struct Import {
 }
 
 impl Import {
-  const fn storage_size() -> usize {
+  const fn storage_size() -> WordSize {
     storage_bytes_to_words(size_of::<Import>())
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, mfarity: MFArity, is_bif: bool) -> RtResult<LTerm> {
+  pub unsafe fn create_into(
+    hp: &mut Heap,
+    mfarity: MFArity,
+    is_bif: bool,
+  ) -> RtResult<LTerm> {
     let n_words = Import::storage_size();
     let this = hp.alloc::<Import>(n_words, false)?;
 
     ptr::write(
       this,
       Import {
-        header: BoxHeader::new(BOXTYPETAG_IMPORT, n_words),
+        header: BoxHeader::new(BOXTYPETAG_IMPORT, n_words.words()),
         mfarity,
         is_bif,
       },
@@ -41,13 +43,21 @@ impl Import {
 
 
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Import> {
-    helper_get_const_from_boxed_term::<Import>(t, BOXTYPETAG_IMPORT, Error::BoxedIsNotAnImport)
+    helper_get_const_from_boxed_term::<Import>(
+      t,
+      BOXTYPETAG_IMPORT,
+      Error::BoxedIsNotAnImport,
+    )
   }
 
 
   #[allow(dead_code)]
   pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Import> {
-    helper_get_mut_from_boxed_term::<Import>(t, BOXTYPETAG_IMPORT, Error::BoxedIsNotAnImport)
+    helper_get_mut_from_boxed_term::<Import>(
+      t,
+      BOXTYPETAG_IMPORT,
+      Error::BoxedIsNotAnImport,
+    )
   }
 
 

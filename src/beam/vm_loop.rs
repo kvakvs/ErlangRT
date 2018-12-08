@@ -45,6 +45,7 @@ impl VM {
       // Handle next opcode
       let disp_result = dispatch_op_inline(self, op, &mut ctx, curr_p);
       if let Err(Error::Exception(exc_type, exc_reason)) = disp_result {
+        println!("vm: Exception type={:?} reason={}", exc_type, exc_reason);
         curr_p.exception(exc_type, exc_reason);
         curr_p.context.copy_from(&ctx); // swapout
         curr_p.timeslice_result = SliceResult::Exception;

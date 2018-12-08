@@ -1,13 +1,17 @@
-use crate::emulator::function::{CallableLocation, FunEntry};
-use crate::emulator::heap::Heap;
-use crate::emulator::mfa::MFArity;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::{storage_bytes_to_words, Arity, Word};
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_CLOSURE};
-use crate::term::lterm::*;
-
-use core::ptr;
-use std::mem::size_of;
+use crate::{
+  emulator::{
+    function::{CallableLocation, FunEntry},
+    heap::Heap,
+    mfa::MFArity,
+  },
+  fail::{Error, RtResult},
+  rt_defs::{storage_bytes_to_words, Arity, Word, WordSize},
+  term::{
+    boxed::{BoxHeader, BOXTYPETAG_CLOSURE},
+    lterm::*,
+  },
+};
+use core::{mem::size_of, ptr};
 
 
 const fn module() -> &'static str {
@@ -30,13 +34,13 @@ pub struct Closure {
 
 impl Closure {
   #[inline]
-  const fn storage_size(nfree: Word) -> Word {
-    storage_bytes_to_words(size_of::<Closure>()) + nfree
+  const fn storage_size(nfree: Word) -> WordSize {
+    WordSize::new(storage_bytes_to_words(size_of::<Closure>()).words() + nfree)
   }
 
 
   fn new(mfa: MFArity, nfree: usize) -> Closure {
-    let arity = Closure::storage_size(nfree) - 1;
+    let arity = Closure::storage_size(nfree).words() - 1;
     Closure {
       header: BoxHeader::new(BOXTYPETAG_CLOSURE, arity),
       mfa,
@@ -47,7 +51,11 @@ impl Closure {
   }
 
 
-  pub unsafe fn create_into(hp: &mut Heap, fe: &FunEntry, frozen: &[LTerm]) -> RtResult<LTerm> {
+  pub unsafe fn create_into(
+    hp: &mut Heap,
+    fe: &FunEntry,
+    frozen: &[LTerm],
+  ) -> RtResult<LTerm> {
     let n_words = Closure::storage_size(fe.nfree);
     let this = hp.alloc::<Closure>(n_words, false)?;
 
@@ -76,12 +84,20 @@ impl Closure {
 
 
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Closure> {
-    helper_get_const_from_boxed_term::<Closure>(t, BOXTYPETAG_CLOSURE, Error::BoxedIsNotAClosure)
+    helper_get_const_from_boxed_term::<Closure>(
+      t,
+      BOXTYPETAG_CLOSURE,
+      Error::BoxedIsNotAClosure,
+    )
   }
 
 
   #[allow(dead_code)]
   pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Closure> {
-    helper_get_mut_from_boxed_term::<Closure>(t, BOXTYPETAG_CLOSURE, Error::BoxedIsNotAClosure)
+    helper_get_mut_from_boxed_term::<Closure>(
+      t,
+      BOXTYPETAG_CLOSURE,
+      Error::BoxedIsNotAClosure,
+    )
   }
 }

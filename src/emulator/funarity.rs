@@ -5,7 +5,7 @@ use crate::rt_defs::Arity;
 use crate::term::lterm::*;
 
 use std::cmp::Ordering;
-use std::fmt;
+use core::fmt;
 
 
 /// Reference to an internal function in some module.

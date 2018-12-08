@@ -5,7 +5,7 @@ use crate::emulator::code_srv::CodeServer;
 use crate::rt_defs::Word;
 use crate::term::lterm::*;
 
-use std::fmt;
+use core::fmt;
 
 
 /// A cross-module code pointer tied to a specific module of a specific version.

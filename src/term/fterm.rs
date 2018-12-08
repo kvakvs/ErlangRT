@@ -6,7 +6,6 @@
 //! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
 use crate::emulator::heap::Heap;
-use crate::rt_defs;
 use crate::rt_defs::{SWord, Word};
 use crate::term::lterm::*;
 use num::bigint::BigInt;
@@ -35,7 +34,7 @@ pub enum FTerm {
   Tuple(Vec<FTerm>),
   /// zero sized tuple
   Tuple0,
-  Float(rt_defs::Float),
+  Float(f64),
 
   //
   // Internal values not visible in the user data

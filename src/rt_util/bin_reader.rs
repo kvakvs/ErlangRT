@@ -3,7 +3,7 @@ extern crate bytes;
 use self::bytes::ByteOrder;
 
 use std::cmp::min;
-use std::fmt;
+use core::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;

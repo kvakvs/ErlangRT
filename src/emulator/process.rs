@@ -12,7 +12,7 @@ use crate::fail::RtResult;
 use crate::rt_defs::{ExceptionType, Word};
 use crate::term::lterm::*;
 
-use std::fmt;
+use core::fmt;
 
 
 fn module() -> &'static str {
@@ -135,9 +135,9 @@ impl Process {
   /// Sets error state from an opcode or a BIF. VM will hopefully check this
   /// immediately and finish the process or catch the error.
   fn set_error(&mut self, e: ProcessError) -> LTerm {
-    println!("{}{} set_error {}", module(), self.pid, e);
-    self.error = e;
-    LTerm::non_value()
+    panic!("{}{} set_error {}", module(), self.pid, e);
+//    self.error = e;
+//    LTerm::non_value()
   }
 
 

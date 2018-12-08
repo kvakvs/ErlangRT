@@ -1,21 +1,63 @@
 //!
 //! Helper module defines types used everywhere in the VM runtime
 //!
-pub mod term_builder;
 pub mod stack;
+pub mod term_builder;
 
 //extern crate num;
 
 
 //------------------------------------------------------------------------------
 
-use std::{usize, isize};
+use std::{isize, usize};
 
 pub type Word = usize;
 pub type SWord = isize;
 
-/// Replace with appropriate f32 or fixed/compact for embedded platform
-pub type Float = f64;
+#[derive(Copy, Clone)]
+pub struct WordSize(usize);
+
+impl WordSize {
+  #[inline]
+  pub const fn new(words: usize) -> WordSize {
+    WordSize(words)
+  }
+
+  #[inline]
+  pub const fn words(self) -> usize {
+    self.0
+  }
+
+  #[inline]
+  pub const fn bytes(self) -> usize {
+    self.0 * WORD_BYTES
+  }
+}
+
+#[derive(Copy, Clone)]
+pub struct ByteSize(usize);
+
+impl ByteSize {
+  #[inline]
+  pub const fn new(bytes: usize) -> ByteSize {
+    ByteSize(bytes)
+  }
+
+  #[inline]
+  pub const fn bytes(self) -> usize {
+    self.0
+  }
+
+  #[inline]
+  pub const fn words_rounded_down(self) -> usize {
+    self.0 / WORD_BYTES
+  }
+
+  #[inline]
+  pub const fn words_rounded_up(self) -> usize {
+    (self.0 + WORD_BYTES - 1) / WORD_BYTES
+  }
+}
 
 pub type Arity = usize;
 
@@ -46,6 +88,7 @@ pub enum ExceptionType {
 
 
 /// For n bytes calculate how many words are required to store this
-pub const fn storage_bytes_to_words(n: Word) -> Word {
-  (n + WORD_BYTES - 1) / WORD_BYTES
+#[inline]
+pub const fn storage_bytes_to_words(n: Word) -> WordSize {
+  WordSize::new((n + WORD_BYTES - 1) / WORD_BYTES)
 }

@@ -1,8 +1,9 @@
-use crate::emulator::heap::Heap;
-use crate::fail::RtResult;
-use crate::rt_defs::storage_bytes_to_words;
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_FLOAT};
-
+use crate::{
+  emulator::heap::Heap,
+  fail::RtResult,
+  rt_defs::{storage_bytes_to_words, WordSize},
+  term::boxed::{BoxHeader, BOXTYPETAG_FLOAT},
+};
 use core::ptr;
 
 
@@ -14,18 +15,16 @@ pub struct Float {
 
 impl Float {
   #[allow(dead_code)]
-  const fn storage_size() -> usize {
+  const fn storage_size() -> WordSize {
     storage_bytes_to_words(core::mem::size_of::<Float>())
   }
 
 
   #[allow(dead_code)]
   fn new(value: f64) -> Float {
+    let storage_size = storage_bytes_to_words(core::mem::size_of::<Float>());
     Float {
-      header: BoxHeader::new(
-        BOXTYPETAG_FLOAT,
-        storage_bytes_to_words(core::mem::size_of::<Float>()),
-      ),
+      header: BoxHeader::new(BOXTYPETAG_FLOAT, storage_size.words()),
       value,
     }
   }

@@ -1,4 +1,4 @@
-use std::fmt;
+use core::fmt;
 
 use crate::emulator::code::pointer::FarCodePointer;
 use crate::emulator::mfa::MFArity;

@@ -1,8 +1,9 @@
-use crate::emulator::heap::Heap;
-use crate::fail::RtResult;
-use crate::rt_defs::storage_bytes_to_words;
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER};
-
+use crate::{
+  emulator::heap::Heap,
+  fail::RtResult,
+  rt_defs::{storage_bytes_to_words, WordSize},
+  term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER},
+};
 use core::ptr;
 use num::bigint::BigInt;
 
@@ -18,14 +19,14 @@ pub struct Bignum {
 }
 
 impl Bignum {
-  const fn storage_size() -> usize {
+  const fn storage_size() -> WordSize {
     storage_bytes_to_words(core::mem::size_of::<Bignum>())
   }
 
 
-  fn new(n_words: usize, value: BigInt) -> Bignum {
+  fn new(bignum_size: WordSize, value: BigInt) -> Bignum {
     Bignum {
-      header: BoxHeader::new(BOXTYPETAG_BIGINTEGER, n_words),
+      header: BoxHeader::new(BOXTYPETAG_BIGINTEGER, bignum_size.words()),
       value,
     }
   }

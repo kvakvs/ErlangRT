@@ -1,9 +1,12 @@
-use crate::emulator::heap::Heap;
-use crate::fail::RtResult;
-use crate::rt_defs::{storage_bytes_to_words, Word};
-use crate::term::boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID};
-use crate::term::lterm::LTerm;
-
+use crate::{
+  emulator::heap::Heap,
+  fail::RtResult,
+  rt_defs::{storage_bytes_to_words, Word, WordSize},
+  term::{
+    boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID},
+    lterm::LTerm,
+  },
+};
 use core::ptr;
 
 
@@ -15,13 +18,14 @@ pub struct ExternalPid {
 }
 
 impl ExternalPid {
-  const fn storage_size() -> Word {
+  const fn storage_size() -> WordSize {
     storage_bytes_to_words(std::mem::size_of::<ExternalPid>())
   }
 
   fn new(node: LTerm, id: Word) -> ExternalPid {
+    let arity = ExternalPid::storage_size().words() - 1;
     ExternalPid {
-      header: BoxHeader::new(BOXTYPETAG_EXTERNALPID, ExternalPid::storage_size() - 1),
+      header: BoxHeader::new(BOXTYPETAG_EXTERNALPID, arity),
       node,
       id,
     }
