@@ -11,9 +11,9 @@ use std::cmp::Ordering;
 #[allow(dead_code)]
 enum ContinueCompare {
   // This begins the compare while not knowing types for `a` or `b`.
-  AnyType(LTerm, LTerm),
+  AnyType { a: LTerm, b: LTerm },
   // Resume comparing Cons cells, we just reenter `eq_terms_cons`.
-  Cons(LTerm, LTerm),
+  Cons { a: LTerm, b: LTerm },
 }
 
 
@@ -23,23 +23,30 @@ enum EqResult {
   Concluded(Ordering),
   /// Equality is not concluded, but comparing these two terms will give the
   /// result (equivalent to `goto tailrecur_ne` in Erlang/OTP). This happens
-  /// when a beginning elements of a nested structure compares equal but some
-  /// members have to be checked recursively.
-  CompareNested(LTerm, LTerm, ContinueCompare),
+  /// when a first element of a nested structure compares equal but some
+  /// members remain to be checked recursively.
+  CompareNested {
+    a: LTerm,
+    b: LTerm,
+    state: ContinueCompare,
+  },
 }
 
 
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
 pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
-  // Comparison might want to recurse, to avoid stack growth, do a switch here
-  // and continue comparing. We grow `stack` instead of a CPU stack.
-  let mut stack = Vec::<ContinueCompare>::new();
-  let mut op = ContinueCompare::AnyType(a, b);
+  // Comparison might want to recurse.
+  // To avoid stack growth, do a switch here and continue comparing in a loop.
+  // We grow `stack` vector instead of a CPU stack.
+  const DEFAULT_CAPACITY: usize = 8;
+  let mut stack = Vec::<ContinueCompare>::with_capacity(DEFAULT_CAPACITY);
+  let mut op = ContinueCompare::AnyType { a, b };
 
+  // The main comparison loop which is able to step deeper into recursive structures
   loop {
     let eq_result = match op {
-      ContinueCompare::AnyType(a1, b1) | ContinueCompare::Cons(a1, b1) => {
+      ContinueCompare::AnyType { a: a1, b: b1 } | ContinueCompare::Cons { a: a1, b: b1 } => {
         cmp_terms_any_type(a1, b1, exact)?
       }
     };
@@ -61,9 +68,13 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
       // Nested terms may accidentally compare equal, to be able to return and
       // continue comparing upper level term, we store a `continue_op` on
       // `stack`.
-      EqResult::CompareNested(a3, b3, continue_op) => {
+      EqResult::CompareNested {
+        a: a3,
+        b: b3,
+        state: continue_op,
+      } => {
         stack.push(continue_op);
-        op = ContinueCompare::AnyType(a3, b3);
+        op = ContinueCompare::AnyType { a: a3, b: b3 };
         continue;
       }
     }
@@ -71,6 +82,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
 }
 
 
+/// Given a and b, terms, branch on their type and try do draw some conclusions.
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
   //println!("cmp any type {} {}", a, b);
 
@@ -79,6 +91,7 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
     return Ok(EqResult::Concluded(cmp_atoms(a, b)));
   }
 
+  // Maybe both a and b are small integers
   let a_is_small = a.is_small();
   let b_is_small = b.is_small();
   if a_is_small && b_is_small {
@@ -87,8 +100,10 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
     return Ok(EqResult::Concluded(a_small.cmp(&b_small)));
   }
 
+  // Maybe some of a and b are floats
   let a_is_float = a.is_float();
   let b_is_float = b.is_float();
+
   // If not exact then allow comparing float to int/bigint
   if !exact && (a_is_float || a_is_small) && (b_is_float || b_is_small) {
     return Ok(EqResult::Concluded(cmp_numbers_not_exact(a, b)));
@@ -107,8 +122,29 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
 }
 
 
-fn cmp_floats(_a: LTerm, _b: LTerm) -> Ordering {
-  panic!("TODO: eq_floats")
+#[inline]
+fn cmp_floats(a: LTerm, b: LTerm) -> Ordering {
+  // Assume we know both values are floats
+  unsafe {
+    cmp_f64_naive(a.get_f64_unsafe(), b.get_f64_unsafe())
+  }
+}
+
+
+/// Naive f64 comparison, which does not work with NaN and Infinities
+#[inline]
+fn cmp_f64_naive(a: f64, b: f64) -> Ordering {
+  debug_assert!(!a.is_nan());
+  debug_assert!(!b.is_nan());
+  debug_assert!(!a.is_infinite());
+  debug_assert!(!b.is_infinite());
+
+  if a < b {
+    return Ordering::Less;
+  } else if a > b {
+    return Ordering::Greater;
+  }
+  return Ordering::Equal;
 }
 
 
@@ -117,7 +153,7 @@ fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
 }
 
 
-/// Compare two atoms for equality.
+/// Compare two atoms for equality. Returns the ordering result.
 fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
   assert_ne!(a, LTerm::nil());
   let atomp_a = atom::lookup(a);
@@ -168,10 +204,20 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
       }
       cmp_terms_box(a, b)
     }
+
+    TERMTAG_CONS => {
+      if !b.is_cons() {
+        return Ok(EqResult::Concluded(cmp_mixed_types(a, b)?));
+      }
+
+      return Ok(unsafe { cmp_cons(a, b) });
+    }
+
     _ => {
       // Any non-boxed compare
       Ok(EqResult::Concluded(cmp_terms_immed(a, b, exact)?))
-    } //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
+    },
+    //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
 }
 
@@ -207,14 +253,6 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
     }
   }
 
-  if a.is_cons() {
-    if !b.is_cons() {
-      return cmp_mixed_types(a, b);
-    }
-
-    panic!("TODO: invoke cmp_cons correctly from here")
-    //return cmp_cons(a, b);
-  }
 
   if a.is_boxed() {
     return cmp_terms_immed_box(a, b);
@@ -361,42 +399,53 @@ fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> RtResult<Ordering> {
 }
 
 
-/// Compare two cons (list) cells. In case when first elements are equal and
-/// a deeper comparison is required, we will return `EqResult::CompareNested`.
+/// Compare two cons (list) cells.
+/// In case when first elements are equal and a deeper comparison is required,
+/// we will store the position and return `EqResult::CompareNested`.
 /// This will be pushed to a helper stack by the caller (`cmp_terms()`).
 /// The function cannot fail.
 unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
-  let mut aa = a.get_cons_ptr();
-  let mut bb = b.get_cons_ptr();
+  let mut a_ptr = a.get_cons_ptr();
+  let mut b_ptr = b.get_cons_ptr();
 
   loop {
     // Check the heads
-    let ahd = (*aa).hd();
-    let bhd = (*bb).hd();
+    let a_head = (*a_ptr).hd();
+    let b_head = (*b_ptr).hd();
 
-    if !LTerm::is_same(ahd, bhd) {
-      //println!("cmp_cons ahd {} bhd {}", ahd, bhd);
+    if !LTerm::is_same(a_head, b_head) {
       // Recurse into a.hd and b.hd, but push a.tl and b.tl to continue
-      let continue_op = ContinueCompare::Cons((*aa).tl(), (*bb).tl());
-      return EqResult::CompareNested(ahd, bhd, continue_op);
+      let continue_op = ContinueCompare::Cons {
+        a: (*a_ptr).tl(),
+        b: (*b_ptr).tl(),
+      };
+      return EqResult::CompareNested {
+        a: a_head,
+        b: b_head,
+        state: continue_op,
+      };
     }
 
     // See the tails
-    let atl = (*aa).tl();
-    let btl = (*bb).tl();
+    let atl = (*a_ptr).tl();
+    let btl = (*b_ptr).tl();
 
     if LTerm::is_same(atl, btl) {
       return EqResult::Concluded(Ordering::Equal);
     }
     if !atl.is_list() || !btl.is_list() {
       // Just do a regular compare of `a.tl` vs `b.tl`
-      let continue_op = ContinueCompare::AnyType(atl, btl);
-      return EqResult::CompareNested(atl, btl, continue_op);
+      let continue_op = ContinueCompare::AnyType { a: atl, b: btl };
+      return EqResult::CompareNested {
+        a: atl,
+        b: btl,
+        state: continue_op,
+      };
     }
 
     // Take the next linked cons cell and continue comparing
-    aa = atl.get_cons_ptr();
-    bb = btl.get_cons_ptr();
+    a_ptr = atl.get_cons_ptr();
+    b_ptr = btl.get_cons_ptr();
   }
 }
 

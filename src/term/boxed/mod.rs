@@ -1,6 +1,9 @@
 //! Boxed package contains modules which represent different types of
 //! terms in memory.
 
+pub mod float;
+pub use self::float::Float;
+
 pub mod pid;
 pub use self::pid::ExternalPid;
 

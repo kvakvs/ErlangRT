@@ -182,12 +182,14 @@ impl LTerm {
   }
 
 
+  #[inline]
   pub fn get_box_ptr<T>(self) -> *const T {
     assert!(self.is_boxed());
     self.value as *const T
   }
 
 
+  #[inline]
   pub fn get_box_ptr_mut<T>(self) -> *mut T {
     assert!(self.is_boxed());
     self.value as *mut T
@@ -473,6 +475,15 @@ impl LTerm {
     }
     let _p = self.get_box_ptr::<BoxHeader>();
     panic!("notimpl: float box")
+  }
+
+
+  /// Returns float value, performs no extra checks. The caller is responsible
+  /// for the value being a boxed float.
+  #[inline]
+  pub unsafe fn get_f64_unsafe(self) -> f64 {
+    let p = self.get_box_ptr::<boxed::Float>();
+    (*p).value
   }
 
   //

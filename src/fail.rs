@@ -61,15 +61,4 @@ impl From<HeapError> for Error {
 
 
 /// A templated error type based on `fail::Error`.
-// TODO: Rename to RTResult-something
 pub type RtResult<T> = Result<T, Error>;
-
-//impl fmt::Debug for Error {
-//  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//    match self {
-//      &Error::FileNotFound(ref filename) =>
-//        return write!(f, "File not found: {}", filename)
-//    }
-//    write!(f, "Some internal error")
-//  }
-//}
