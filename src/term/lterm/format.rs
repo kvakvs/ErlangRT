@@ -66,9 +66,10 @@ fn format_box_contents(
       let fptr = val_ptr as *const boxed::Float;
       write!(f, "{}", (*fptr).value)
     },
-    boxed::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid"),
-    boxed::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort"),
-    boxed::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef"),
+    boxed::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid<>"),
+    boxed::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort<>"),
+    boxed::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef<>"),
+    boxed::BOXTYPETAG_IMPORT => write!(f, "Import<>"),
 
     _ => panic!("Unexpected header tag {:?}", h_tag),
   }

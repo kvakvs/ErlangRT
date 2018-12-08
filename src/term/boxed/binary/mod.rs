@@ -13,6 +13,7 @@ mod procheap_bin;
 mod refc_bin;
 
 #[derive(Copy, Clone)]
+#[allow(dead_code)]
 pub enum BinaryType {
   // contains size, followed in memory by the data bytes
   ProcessHeap,

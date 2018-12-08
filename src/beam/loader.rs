@@ -820,10 +820,10 @@ impl Loader {
 
   /// Internal helper which takes N'th arg of an opcode, parses it as a small
   /// unsigned and writes an LTerm pointer to a literal {M,F,Arity} tuple.
-  fn rewrite_import_index_arg(&self, cp: CodePtrMut, n: isize) {
+  fn rewrite_import_index_arg(&self, cp: CodePtrMut, n: usize) {
     let import0 = unsafe { LTerm::from_raw(cp.read_n(n)) };
-    let import1 = self.imports[import0.get_small_unsigned()].raw();
-    unsafe { cp.write_n(n, import1) }
+    let import1 = self.imports[import0.get_small_unsigned()];
+    unsafe { cp.write_n(n, import1.raw()) }
   }
 
 
@@ -831,7 +831,7 @@ impl Loader {
   /// argument, replace it with a raw pointer to a loaded `FunEntry`.
   /// The `FunEntry` will be owned by the module we're loading, and will be
   /// freed together with the code, so it should be safe to use the pointer.
-  fn rewrite_lambda_index_arg(&self, cp: CodePtrMut, n: isize) {
+  fn rewrite_lambda_index_arg(&self, cp: CodePtrMut, n: usize) {
     let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let lambda_p = &self.lambdas[lambda_i.get_small_unsigned()] as *const FunEntry;
     let lambda_term = LTerm::make_cp(lambda_p as *const Word);

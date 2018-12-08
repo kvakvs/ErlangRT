@@ -37,10 +37,6 @@ use crate::{
 // [ Arity ... ] [ Header type: 3 bits ] [ Header tag: 3 bits ]
 //
 
-const HEADER_TAG_BITS: Word = 4;
-#[allow(dead_code)]
-const HEADER_TAG_MASK: Word = (1 << HEADER_TAG_BITS) - 1;
-
 #[derive(Debug, Eq, PartialEq)]
 pub struct BoxTypeTag(Word);
 
@@ -69,6 +65,10 @@ pub const BOXTYPETAG_MAP: BoxTypeTag = BoxTypeTag(9);
 pub const BOXTYPETAG_BINARY: BoxTypeTag = BoxTypeTag(10);
 // max 15 (1 << HEADER_TAG_BITS)
 
+const HEADER_TAG_BITS: Word = 4;
+#[allow(dead_code)]
+const HEADER_TAG_MASK: Word = (1 << HEADER_TAG_BITS) - 1;
+
 
 /// Term header in memory, followed by corresponding data.
 pub struct BoxHeader {
@@ -77,10 +77,9 @@ pub struct BoxHeader {
 
 impl BoxHeader {
   pub fn new(t: BoxTypeTag, arity: Word) -> BoxHeader {
-    BoxHeader {
-      header_word: (arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS
-        | TERMTAG_HEADER.0,
-    }
+    let header_word = ((arity << HEADER_TAG_BITS | t.get()) << TERM_TAG_BITS)
+        | TERMTAG_HEADER.get();
+    BoxHeader { header_word }
   }
 
 
@@ -107,5 +106,5 @@ pub fn headerword_to_arity(w: Word) -> Word {
 
 
 pub const fn headerword_to_boxtype(w: Word) -> BoxTypeTag {
-  BoxTypeTag(w & TERM_TAG_MASK)
+  BoxTypeTag((w >> TERM_TAG_BITS) & TERM_TAG_MASK)
 }

@@ -1,13 +1,11 @@
 //! Module defines pointer types for readonly code and mutable code.
 
 use crate::{
-  emulator::code_srv::{module_id::VersionedModuleId, CodeServer},
   defs::Word,
+  emulator::code_srv::{module_id::VersionedModuleId, CodeServer},
   term::lterm::*,
 };
-
 use core::fmt;
-
 
 /// A cross-module code pointer tied to a specific module of a specific version.
 /// Versions are maintained by the Code Server.
@@ -16,7 +14,6 @@ pub struct FarCodePointer {
   pub mod_id: VersionedModuleId,
   pub offset: usize,
 }
-
 
 #[allow(dead_code)]
 impl FarCodePointer {
@@ -34,7 +31,6 @@ impl FarCodePointer {
   }
 }
 
-
 /// Pointer to code location, can only be created to point to some opcode
 /// (instruction begin), and never to the data. During VM execution iterates
 /// over args too, and no extra checks are made.
@@ -44,13 +40,11 @@ impl FarCodePointer {
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub struct CodePtr(*const Word);
 
-
 impl fmt::Display for CodePtr {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "CodePtr(0x{:x})", self.get() as Word)
   }
 }
-
 
 impl CodePtr {
   pub fn new<T>(p: *const T) -> CodePtr {
@@ -58,19 +52,16 @@ impl CodePtr {
     CodePtr(p as *const Word)
   }
 
-
   #[inline]
   pub fn get(self) -> *const Word {
     let CodePtr(p) = self;
     p
   }
 
-
   #[inline]
   pub fn from_cp(cp: LTerm) -> CodePtr {
     CodePtr::from_ptr(cp.get_cp_ptr())
   }
-
 
   #[cfg(debug_assertions)]
   #[inline]
@@ -91,19 +82,16 @@ impl CodePtr {
     CodePtr(p)
   }
 
-
   #[inline]
   pub fn null() -> CodePtr {
     CodePtr::new::<Word>(::core::ptr::null())
   }
-
 
   /// Convert to tagged CP integer
   #[inline]
   pub fn to_cp(self) -> Word {
     LTerm::make_cp(self.get()).raw()
   }
-
 
   //  #[inline]
   //  pub fn offset(&self, n: isize) -> CodePtr {
@@ -112,12 +100,10 @@ impl CodePtr {
   //    CodePtr(new_p)
   //  }
 
-
   #[inline]
   pub fn is_null(&self) -> bool {
     self.get().is_null()
   }
-
 
   //  #[inline]
   //  pub fn is_not_null(&self) -> bool { ! self.is_null() }
@@ -135,7 +121,6 @@ impl CodePtr {
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub struct CodePtrMut(pub *mut Word);
 
-
 impl CodePtrMut {
   /// Quick access to the contained pointer.
   #[inline]
@@ -152,19 +137,17 @@ impl CodePtrMut {
     *p
   }
 
-
   /// Read `n`-th word from code pointer.
   #[inline]
-  pub unsafe fn read_n(self, n: isize) -> Word {
+  pub unsafe fn read_n(self, n: usize) -> Word {
     let CodePtrMut(p) = self;
-    *(p.offset(n))
+    core::ptr::read(p.add(n))
   }
-
 
   /// Write `n`-th word at the code pointer.
   #[inline]
-  pub unsafe fn write_n(self, n: isize, val: Word) {
+  pub unsafe fn write_n(self, n: usize, val: Word) {
     let CodePtrMut(p) = self;
-    *(p.offset(n)) = val
+    core::ptr::write(p.add(n), val)
   }
 }

@@ -27,17 +27,29 @@ pub const SMALLEST_SMALL: SWord = isize::MIN >> TERM_TAG_BITS;
 pub const LARGEST_SMALL: SWord = isize::MAX >> TERM_TAG_BITS;
 
 #[derive(Eq, PartialEq, Debug, Ord, PartialOrd)]
-pub struct TermTag(pub Word);
+pub struct TermTag(Word);
 
-pub const TERMTAG_BOXED: TermTag = TermTag(0);
-pub const TERMTAG_HEADER: TermTag = TermTag(1);
-pub const TERMTAG_CONS: TermTag = TermTag(2);
+impl TermTag {
+  #[inline]
+  pub const fn new(t: Word) -> TermTag {
+    TermTag(t)
+  }
+
+  #[inline]
+  pub const fn get(self) -> Word {
+    self.0
+  }
+}
+
+pub const TERMTAG_BOXED: TermTag = TermTag::new(0);
+pub const TERMTAG_HEADER: TermTag = TermTag::new(1);
+pub const TERMTAG_CONS: TermTag = TermTag::new(2);
 // From here and below, values are immediate (fit into a single word)
-pub const TERMTAG_SMALL: TermTag = TermTag(3);
-pub const TERMTAG_ATOM: TermTag = TermTag(4);
-pub const TERMTAG_LOCALPID: TermTag = TermTag(5);
-pub const TERMTAG_LOCALPORT: TermTag = TermTag(6);
-pub const TERMTAG_SPECIAL: TermTag = TermTag(7);
+pub const TERMTAG_SMALL: TermTag = TermTag::new(3);
+pub const TERMTAG_ATOM: TermTag = TermTag::new(4);
+pub const TERMTAG_LOCALPID: TermTag = TermTag::new(5);
+pub const TERMTAG_LOCALPORT: TermTag = TermTag::new(6);
+pub const TERMTAG_SPECIAL: TermTag = TermTag::new(7);
 
 //
 // Structure of SPECIAL values,
@@ -323,7 +335,7 @@ impl LTerm {
 
   #[inline]
   pub fn is_cp(self) -> bool {
-    debug_assert!(self.is_boxed());
+    if !self.is_boxed() { return false; }
     self.value & HIGHEST_BIT_CP == HIGHEST_BIT_CP
   }
 
