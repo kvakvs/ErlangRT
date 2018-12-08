@@ -1,11 +1,9 @@
-use crate::emulator::gen_atoms;
-use crate::emulator::mfa::MFArity;
-use crate::emulator::process::Process;
-use crate::fail::Error;
-use crate::fail::RtResult;
-use crate::rt_defs::{Arity, ExceptionType};
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  emulator::{gen_atoms, mfa::MFArity, process::Process},
+  fail::{Error, RtResult},
+  defs::{Arity, ExceptionType},
+  term::{boxed, lterm::*},
+};
 
 
 pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {

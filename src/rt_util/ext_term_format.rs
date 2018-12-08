@@ -1,11 +1,10 @@
 use super::bin_reader::BinaryReader;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs;
-use crate::rt_defs::{SWord, Word};
-use crate::term::lterm::LTerm;
-use crate::term::term_builder::TermBuilder;
-use num;
-use num::ToPrimitive;
+use crate::{
+  fail::{Error, RtResult},
+  defs::{self, SWord, Word},
+  term::{lterm::LTerm, term_builder::TermBuilder},
+};
+use num::{self, ToPrimitive};
 
 
 ///// Errors indicating a problem with External Term Format parser.
@@ -134,7 +133,7 @@ fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResul
   let big = num::BigInt::from_bytes_le(sign, &digits);
 
   // Assert that the number fits into small
-  if big.bits() < rt_defs::WORD_BITS - 4 {
+  if big.bits() < defs::WORD_BITS - 4 {
     let b_signed = big.to_isize().unwrap();
     return Ok(tb.create_small_s(b_signed));
   }
@@ -156,7 +155,11 @@ fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> 
 
 
 /// Given arity, allocate a tuple and read its elements sequentially.
-fn decode_tuple(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResult<LTerm> {
+fn decode_tuple(
+  r: &mut BinaryReader,
+  size: Word,
+  tb: &mut TermBuilder,
+) -> RtResult<LTerm> {
   let mut tuple_builder = tb.create_tuple_builder(size)?;
   for i in 0..size {
     let elem = decode_naked(r, tb)?;

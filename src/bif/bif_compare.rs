@@ -1,8 +1,8 @@
-use crate::emulator::gen_atoms;
-use crate::emulator::process::Process;
-use crate::fail::RtResult;
-use crate::term::compare::cmp_terms;
-use crate::term::lterm::LTerm;
+use crate::{
+  emulator::{gen_atoms, process::Process},
+  fail::RtResult,
+  term::{compare::cmp_terms, lterm::LTerm},
+};
 
 use std::cmp::Ordering;
 

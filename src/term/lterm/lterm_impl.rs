@@ -5,13 +5,13 @@
 //!
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
-use crate::emulator::heap::Heap;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::*;
-use crate::term::boxed;
-use crate::term::boxed::{BoxHeader, BoxTypeTag};
-use core::cmp::Ordering;
-use core::isize;
+use crate::{
+  emulator::heap::Heap,
+  fail::{Error, RtResult},
+  defs::*,
+  term::boxed::{self, BoxHeader, BoxTypeTag},
+};
+use core::{cmp::Ordering, isize};
 //
 
 // Structure of term:
@@ -256,7 +256,9 @@ impl LTerm {
   /// For non-pointer Term types get the encoded integer without tag bits
   #[inline]
   pub fn get_term_val_without_tag(self) -> Word {
-    debug_assert!(self.get_term_tag() != TERMTAG_BOXED && self.get_term_tag() != TERMTAG_CONS);
+    debug_assert!(
+      self.get_term_tag() != TERMTAG_BOXED && self.get_term_tag() != TERMTAG_CONS
+    );
     self.value >> TERM_TAG_BITS
   }
 
@@ -298,7 +300,10 @@ impl LTerm {
 
 
   pub const fn make_special(special_t: SpecialTag, val: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TERMTAG_SPECIAL, val << TERM_SPECIAL_TAG_BITS | special_t.0)
+    LTerm::make_from_tag_and_value(
+      TERMTAG_SPECIAL,
+      val << TERM_SPECIAL_TAG_BITS | special_t.0,
+    )
   }
 
 
@@ -576,7 +581,7 @@ impl LTerm {
 //  use core::ptr;
 //  use std::mem;
 //
-//  use rt_defs::*;
+//  use defs::*;
 //  use super::*;
 //  use term::lterm::aspect_smallint::*;
 //

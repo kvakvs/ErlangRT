@@ -1,7 +1,7 @@
 ////! Functions to manipulate an `LTerm` as a float. Part of `LTerm` impl.
 ////! Do not import this file directly, use `use term::lterm::*;` instead.
 //
-//use rt_defs::Float;
+//use defs::Float;
 //use term::primary;
 //use term::lterm::aspect_boxed::BoxedAspect;
 //

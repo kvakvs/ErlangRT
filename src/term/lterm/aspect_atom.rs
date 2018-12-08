@@ -1,7 +1,7 @@
 ////! Functions to manipulate an `LTerm` as an Erlang atom. Part of `LTerm` impl.
 ////! Do not import this file directly, use `use term::lterm::*;` instead.
 //
-//use rt_defs::Word;
+//use defs::Word;
 //use term::immediate;
 //
 //

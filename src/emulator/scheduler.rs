@@ -1,8 +1,12 @@
 //! Code related to task scheduling and priorities.
-use crate::emulator::gen_atoms;
-use crate::emulator::process::{Process, ProcessError};
-use crate::rt_defs::{ExceptionType, Word};
-use crate::term::lterm::*;
+use crate::{
+  emulator::{
+    gen_atoms,
+    process::{Process, ProcessError},
+  },
+  defs::{ExceptionType, Word},
+  term::lterm::*,
+};
 use std::collections::{HashMap, VecDeque};
 
 

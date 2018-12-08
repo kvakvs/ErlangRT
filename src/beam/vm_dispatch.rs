@@ -3,18 +3,20 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use crate::emulator::vm::VM;
-use crate::beam::gen_op;
-use crate::beam::opcodes::*;
-use crate::beam::disp_result::{DispatchResult};
-use crate::emulator::code::opcode::RawOpcode;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::Context;
-use crate::fail::{RtResult};
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op, opcodes::*},
+  emulator::{code::opcode::RawOpcode, process::Process, runtime_ctx::Context, vm::VM},
+  fail::RtResult,
+};
 
 
 #[inline]
-pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn dispatch_op_inline(
+  vm: &VM,
+  op: RawOpcode,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   match op {
     gen_op::OPCODE_FUNC_INFO => return opcode_func_info(vm, ctx, curr_p),
     gen_op::OPCODE_CALL => return opcode_call(vm, ctx, curr_p),
@@ -48,4 +50,3 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
   }
   Ok(DispatchResult::Yield)
 }
-

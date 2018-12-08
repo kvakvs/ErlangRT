@@ -1,10 +1,10 @@
 use crate::{
+  defs::{ByteSize, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
-  rt_defs::{storage_bytes_to_words, WordSize},
   term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER},
 };
-use core::ptr;
+use core::{mem::size_of, ptr};
 use num::bigint::BigInt;
 
 
@@ -14,13 +14,15 @@ pub struct Bignum {
 
   /// The actual value. NOTE: Here we trust the storage class (BigInt)
   /// to manage the memory for its digits on the general application heap.
+  /// This impl stores bignum in dynamic heap with the num library
   // TODO: Not nice! Manage own data for Bignum.
   pub value: BigInt,
 }
 
 impl Bignum {
   const fn storage_size() -> WordSize {
-    storage_bytes_to_words(core::mem::size_of::<Bignum>())
+    // This impl stores bignum in dynamic heap with the num library
+    ByteSize::new(size_of::<Bignum>()).words_rounded_up()
   }
 
 

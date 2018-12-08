@@ -13,8 +13,8 @@
 //mod imm2;
 //mod imm3;
 //
-//use rt_defs;
-//use rt_defs::{Word, SWord};
+//use defs;
+//use defs::{Word, SWord};
 //
 //pub use self::imm1::*;
 //pub use self::imm2::*;
@@ -55,7 +55,7 @@
 //
 //#[inline]
 //pub fn make_xreg_raw(x: Word) -> Word {
-//  assert!(x < rt_defs::MAX_XREGS);
+//  assert!(x < defs::MAX_XREGS);
 //  create_imm3(x, IMM3_XREG_PREFIX)
 //}
 //
@@ -68,7 +68,7 @@
 //
 //#[inline]
 //pub fn make_fpreg_raw(x: Word) -> Word {
-//  assert!(x < rt_defs::MAX_FPREGS);
+//  assert!(x < defs::MAX_FPREGS);
 //  create_imm3(x, IMM3_FPREG_PREFIX)
 //}
 //

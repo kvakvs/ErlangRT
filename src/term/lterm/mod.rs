@@ -14,8 +14,8 @@ mod aspect_port;
 mod aspect_reference;
 mod aspect_smallint;
 mod aspect_tuple;
-mod lterm_impl;
 mod format;
+mod lterm_impl;
 
 
 //pub use term::lterm::aspect_atom::*;

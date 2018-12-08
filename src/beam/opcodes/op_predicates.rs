@@ -1,15 +1,11 @@
 use std::cmp::Ordering;
 
-use crate::beam::disp_result::DispatchResult;
-use crate::beam::gen_op;
-use crate::beam::opcodes::assert_arity;
-use crate::emulator::code::CodePtr;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::Context;
-use crate::emulator::vm::VM;
-use crate::fail::RtResult;
-use crate::term::compare;
-use crate::term::lterm::LTerm;
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  emulator::{code::CodePtr, process::Process, runtime_ctx::Context, vm::VM},
+  fail::RtResult,
+  term::{compare, lterm::LTerm},
+};
 
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
@@ -27,7 +23,11 @@ pub fn opcode_is_eq_exact(
 
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
 #[inline]
-pub fn opcode_is_lt(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_lt(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: is_lt(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_LT, 3);
   shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Less, false)
@@ -36,7 +36,11 @@ pub fn opcode_is_lt(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResul
 
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
 #[inline]
-pub fn opcode_is_eq(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_eq(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: is_eq(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
   shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Equal, false)
@@ -45,7 +49,11 @@ pub fn opcode_is_eq(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResul
 
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
 #[inline]
-pub fn opcode_is_ge(vm: &VM, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_is_ge(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: is_eq(on_false:CP, a:src, b:src)
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
   shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Less, true) // inverted, other than less will be fail

@@ -1,9 +1,9 @@
-use crate::emulator::gen_atoms;
-use crate::emulator::process::Process;
-use crate::fail::Error;
-use crate::fail::RtResult;
-use crate::rt_defs::ExceptionType;
-use crate::term::lterm::*;
+use crate::{
+  emulator::{gen_atoms, process::Process},
+  fail::{Error, RtResult},
+  defs::ExceptionType,
+  term::lterm::*,
+};
 
 
 fn module() -> &'static str {

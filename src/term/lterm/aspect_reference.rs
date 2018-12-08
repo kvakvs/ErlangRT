@@ -2,7 +2,7 @@
 ////! Reference either local or external. Part of `LTerm` impl.
 ////! Do not import this file directly, use `use term::lterm::*;` instead.
 //
-////use rt_defs::Word;
+////use defs::Word;
 ////use term::immediate;
 //
 //

@@ -3,10 +3,7 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use crate::bif;
-use crate::emulator::gen_atoms;
-use crate::rt_defs::Arity;
-use crate::term::lterm::*;
+use crate::{bif, emulator::gen_atoms, defs::Arity, term::lterm::*};
 
 
 pub struct BifTabItem {

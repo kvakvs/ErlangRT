@@ -1,12 +1,11 @@
 use super::Context;
-use crate::beam::disp_result::DispatchResult;
-use crate::emulator::function::CallableLocation;
-use crate::emulator::process::Process;
-use crate::emulator::vm::VM;
-use crate::fail::RtResult;
-use crate::rt_defs::Arity;
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  beam::disp_result::DispatchResult,
+  emulator::{function::CallableLocation, process::Process, vm::VM},
+  fail::RtResult,
+  defs::Arity,
+  term::{boxed, lterm::*},
+};
 use core::ptr;
 
 

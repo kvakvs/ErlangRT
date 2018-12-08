@@ -7,35 +7,40 @@
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
 //!
-use crate::beam::compact_term;
-use crate::beam::gen_op;
-use crate::bif;
-use crate::emulator::atom;
-use crate::emulator::code;
-use crate::emulator::code::opcode::RawOpcode;
-use crate::emulator::code::pointer::CodePtrMut;
-use crate::emulator::code::{opcode, Code, CodeOffset, LabelId};
-use crate::emulator::code_srv::module_id::VersionedModuleId;
-use crate::emulator::code_srv::CodeServer;
-use crate::emulator::funarity::FunArity;
-use crate::emulator::function::FunEntry;
-use crate::emulator::heap::{Heap, DEFAULT_LIT_HEAP};
-use crate::emulator::mfa::MFArity;
-use crate::emulator::module;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::{Arity, Word};
-use crate::rt_util::bin_reader::{BinaryReader, ReadError};
-use crate::rt_util::ext_term_format as etf;
-use crate::term::boxed;
-use crate::term::fterm::FTerm;
-use crate::term::lterm::*;
-use crate::term::term_builder::TermBuilder;
+use crate::{
+  beam::{compact_term, gen_op},
+  bif,
+  emulator::{
+    atom,
+    code::{
+      self,
+      opcode::{self, RawOpcode},
+      pointer::CodePtrMut,
+      Code, CodeOffset, LabelId,
+    },
+    code_srv::{module_id::VersionedModuleId, CodeServer},
+    funarity::FunArity,
+    function::FunEntry,
+    heap::{Heap, DEFAULT_LIT_HEAP},
+    mfa::MFArity,
+    module,
+  },
+  fail::{Error, RtResult},
+  defs::{Arity, Word},
+  rt_util::{
+    bin_reader::{BinaryReader, ReadError},
+    ext_term_format as etf,
+  },
+  term::{boxed, fterm::FTerm, lterm::*, term_builder::TermBuilder},
+};
 use bytes::Bytes;
 use compress::zlib;
-use std::collections::BTreeMap;
-use std::io::{Cursor, Read};
-use std::mem;
-use std::path::PathBuf;
+use std::{
+  collections::BTreeMap,
+  io::{Cursor, Read},
+  mem,
+  path::PathBuf,
+};
 
 
 pub fn module() -> &'static str {
@@ -653,7 +658,8 @@ impl Loader {
           for (index, t) in jtab.iter().enumerate() {
             let new_t = if let FTerm::LoadTimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
-              let ploc = PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
+              let ploc =
+                PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
               self.maybe_convert_label(LabelId(f), ploc)
             } else {
               t.to_lterm(&mut self.lit_heap).raw()
@@ -726,7 +732,11 @@ impl Loader {
           unsafe {
             let jtab_ptr = boxed::Tuple::from_pointer_mut(tuple_ptr)?;
             let val = boxed::Tuple::get_element_base0(jtab_ptr, index);
-            boxed::Tuple::set_raw_word_base0(jtab_ptr, index, self.postprocess_fix_1_label(val))
+            boxed::Tuple::set_raw_word_base0(
+              jtab_ptr,
+              index,
+              self.postprocess_fix_1_label(val),
+            )
           }
         }
       } // match
@@ -771,7 +781,8 @@ impl Loader {
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
       //println!("is_bif {} for {}", is_bif, mf_arity);
-      let ho_imp = unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)? };
+      let ho_imp =
+        unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)? };
 
       self.imports.push(ho_imp);
     }

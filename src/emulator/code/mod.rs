@@ -3,11 +3,10 @@ pub mod iter;
 pub mod opcode;
 pub mod pointer;
 
-use crate::rt_defs::Word;
+use crate::defs::Word;
 use std::collections::BTreeMap;
 
-pub use crate::emulator::code::opcode::*;
-pub use crate::emulator::code::pointer::*;
+pub use crate::emulator::code::{opcode::*, pointer::*};
 
 
 /// Code array stores opcodes/jump table offsets and args encoded as `LTerm`

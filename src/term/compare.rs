@@ -1,7 +1,8 @@
-use crate::emulator::atom;
-use crate::fail::RtResult;
-use crate::term::classify;
-use crate::term::lterm::*;
+use crate::{
+  emulator::atom,
+  fail::RtResult,
+  term::{classify, lterm::*},
+};
 use std::cmp::Ordering;
 
 
@@ -46,9 +47,8 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
   // The main comparison loop which is able to step deeper into recursive structures
   loop {
     let eq_result = match op {
-      ContinueCompare::AnyType { a: a1, b: b1 } | ContinueCompare::Cons { a: a1, b: b1 } => {
-        cmp_terms_any_type(a1, b1, exact)?
-      }
+      ContinueCompare::AnyType { a: a1, b: b1 }
+      | ContinueCompare::Cons { a: a1, b: b1 } => cmp_terms_any_type(a1, b1, exact)?,
     };
 
     match eq_result {
@@ -125,9 +125,7 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
 #[inline]
 fn cmp_floats(a: LTerm, b: LTerm) -> Ordering {
   // Assume we know both values are floats
-  unsafe {
-    cmp_f64_naive(a.get_f64_unsafe(), b.get_f64_unsafe())
-  }
+  unsafe { cmp_f64_naive(a.get_f64_unsafe(), b.get_f64_unsafe()) }
 }
 
 
@@ -216,7 +214,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
     _ => {
       // Any non-boxed compare
       Ok(EqResult::Concluded(cmp_terms_immed(a, b, exact)?))
-    },
+    }
     //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
 }

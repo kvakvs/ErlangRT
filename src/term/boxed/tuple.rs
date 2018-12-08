@@ -1,7 +1,7 @@
 use crate::{
   emulator::heap::Heap,
   fail::{Error, RtResult},
-  rt_defs::{Word, WordSize},
+  defs::{Word, WordSize},
   term::{
     boxed::{self, BoxHeader, BOXTYPETAG_TUPLE},
     lterm::LTerm,

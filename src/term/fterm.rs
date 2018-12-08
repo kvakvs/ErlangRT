@@ -5,11 +5,12 @@
 //! there's an memory cost, but we don't care yet. This is only used at the
 //! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
-use crate::emulator::heap::Heap;
-use crate::rt_defs::{SWord, Word};
-use crate::term::lterm::*;
-use num::bigint::BigInt;
-use num::FromPrimitive;
+use crate::{
+  emulator::heap::Heap,
+  defs::{SWord, Word},
+  term::lterm::*,
+};
+use num::{bigint::BigInt, FromPrimitive};
 
 fn module() -> &'static str {
   "term::friendly: "

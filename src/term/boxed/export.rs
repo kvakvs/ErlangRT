@@ -1,13 +1,14 @@
 use crate::{
+  defs::WordSize,
   emulator::{export, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
-  rt_defs::{storage_bytes_to_words, WordSize},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_EXPORT},
     lterm::*,
   },
 };
-use core::ptr;
+use core::{mem::size_of, ptr};
+use crate::defs::ByteSize;
 
 #[allow(dead_code)]
 pub struct Export {
@@ -18,7 +19,7 @@ pub struct Export {
 impl Export {
   #[inline]
   fn storage_size() -> WordSize {
-    storage_bytes_to_words(core::mem::size_of::<Export>())
+    ByteSize::new(size_of::<Export>()).words_rounded_up()
   }
 
 

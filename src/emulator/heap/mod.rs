@@ -3,10 +3,10 @@ pub mod heap_impl;
 pub mod iter;
 pub mod ptr;
 
-use crate::rt_defs::stack::IStack;
-use crate::rt_defs::{Word, WordSize};
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  defs::{stack::IStack, Word, WordSize},
+  term::{boxed, lterm::*},
+};
 
 use core::fmt;
 

@@ -1,8 +1,8 @@
-use crate::emulator::gen_atoms;
-use crate::emulator::heap::Heap;
-use crate::fail::RtResult;
-use crate::term::lterm::LTerm;
-use crate::term::term_builder::TermBuilder;
+use crate::{
+  emulator::{gen_atoms, heap::Heap},
+  fail::RtResult,
+  term::{lterm::LTerm, term_builder::TermBuilder},
+};
 use std::slice;
 
 

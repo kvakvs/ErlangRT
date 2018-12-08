@@ -1,7 +1,8 @@
-use crate::emulator::process::Process;
-use crate::fail::RtResult;
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  emulator::process::Process,
+  fail::RtResult,
+  term::{boxed, lterm::*},
+};
 
 use num;
 

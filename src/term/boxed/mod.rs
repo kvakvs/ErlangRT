@@ -28,7 +28,7 @@ pub use self::tuple::Tuple;
 pub mod cons;
 pub use self::cons::Cons;
 use crate::{
-  rt_defs::*,
+  defs::*,
   term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK},
 };
 
@@ -37,7 +37,7 @@ use crate::{
 // [ Arity ... ] [ Header type: 3 bits ] [ Header tag: 3 bits ]
 //
 
-const HEADER_TAG_BITS: Word = 3;
+const HEADER_TAG_BITS: Word = 4;
 #[allow(dead_code)]
 const HEADER_TAG_MASK: Word = (1 << HEADER_TAG_BITS) - 1;
 
@@ -53,19 +53,22 @@ impl BoxTypeTag {
 }
 
 pub const BOXTYPETAG_TUPLE: BoxTypeTag = BoxTypeTag(0);
-pub const BOXTYPETAG_BINARY: BoxTypeTag = BoxTypeTag(1);
-pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(2);
-pub const BOXTYPETAG_EXTERNALPID: BoxTypeTag = BoxTypeTag(3);
-pub const BOXTYPETAG_EXTERNALREF: BoxTypeTag = BoxTypeTag(4);
-pub const BOXTYPETAG_EXTERNALPORT: BoxTypeTag = BoxTypeTag(5);
+pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(1);
+pub const BOXTYPETAG_EXTERNALPID: BoxTypeTag = BoxTypeTag(2);
+pub const BOXTYPETAG_EXTERNALREF: BoxTypeTag = BoxTypeTag(3);
+pub const BOXTYPETAG_EXTERNALPORT: BoxTypeTag = BoxTypeTag(4);
 
 // A function object with frozen (captured) variable values
-pub const BOXTYPETAG_CLOSURE: BoxTypeTag = BoxTypeTag(6);
+pub const BOXTYPETAG_CLOSURE: BoxTypeTag = BoxTypeTag(5);
 
-pub const BOXTYPETAG_FLOAT: BoxTypeTag = BoxTypeTag(7);
-pub const BOXTYPETAG_IMPORT: BoxTypeTag = BoxTypeTag(8);
-pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(9);
-pub const BOXTYPETAG_MAP: BoxTypeTag = BoxTypeTag(10);
+pub const BOXTYPETAG_FLOAT: BoxTypeTag = BoxTypeTag(6);
+pub const BOXTYPETAG_IMPORT: BoxTypeTag = BoxTypeTag(7);
+pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(8);
+pub const BOXTYPETAG_MAP: BoxTypeTag = BoxTypeTag(9);
+
+pub const BOXTYPETAG_BINARY: BoxTypeTag = BoxTypeTag(10);
+// max 15 (1 << HEADER_TAG_BITS)
+
 
 /// Term header in memory, followed by corresponding data.
 pub struct BoxHeader {

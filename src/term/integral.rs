@@ -1,8 +1,7 @@
 //! Type-safe Erlang integer used during code loading time.
 //!
-use crate::rt_defs::{SWord, WORD_BITS};
-use num;
-use num::ToPrimitive;
+use crate::defs::{SWord, WORD_BITS};
+use num::{self, ToPrimitive};
 
 
 /// A type-safe way to represent an Erlang integer, which can be either small

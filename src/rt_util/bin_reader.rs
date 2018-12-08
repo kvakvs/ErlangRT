@@ -2,12 +2,8 @@ extern crate bytes;
 
 use self::bytes::ByteOrder;
 
-use std::cmp::min;
 use core::fmt;
-use std::fs::File;
-use std::io::Read;
-use std::path::PathBuf;
-use std::str;
+use std::{cmp::min, fs::File, io::Read, path::PathBuf, str};
 
 type Word = usize;
 
@@ -33,7 +29,9 @@ impl fmt::Display for ReadError {
 pub type Hopefully<T> = Result<T, ReadError>;
 
 
-fn module() -> &'static str { "File reader: " }
+fn module() -> &'static str {
+  "File reader: "
+}
 
 pub struct BinaryReader {
   buf: Vec<u8>,
@@ -49,7 +47,9 @@ impl BinaryReader {
     BinaryReader { buf, pos: 0 }
   }
 
-  pub fn pos(&self) -> Word { self.pos }
+  pub fn pos(&self) -> Word {
+    self.pos
+  }
 
   pub fn seek(&mut self, p: Word) {
     assert!(p <= self.buf.len(), "p={} buf.len()={}", p, self.buf.len());
@@ -62,22 +62,26 @@ impl BinaryReader {
   }
 
   /// Begin reading from 0
-  pub fn reset(&mut self) { self.pos = 0; }
+  pub fn reset(&mut self) {
+    self.pos = 0;
+  }
 
   /// Are we at the end of the buffer yet?
-  pub fn eof(&self) -> bool { self.pos >= self.buf.len() }
+  pub fn eof(&self) -> bool {
+    self.pos >= self.buf.len()
+  }
 
   /// From the buffer take so many bytes as there are in `sample` and compare
   /// them.
-  pub fn ensure_bytes(&mut self, sample: &bytes::Bytes) -> Hopefully<()>
-  {
+  pub fn ensure_bytes(&mut self, sample: &bytes::Bytes) -> Hopefully<()> {
     let actual = self.read_bytes(sample.len()).unwrap();
 
     let b2 = sample.as_ref();
-    if actual.as_slice() == b2 { return Ok(()); }
+    if actual.as_slice() == b2 {
+      return Ok(());
+    }
 
-    let msg = format!("{}Expected: {:?} actual {:?}",
-                      module(), sample, actual);
+    let msg = format!("{}Expected: {:?} actual {:?}", module(), sample, actual);
     Err(ReadError::ReadFailed(msg))
   }
 
@@ -96,7 +100,7 @@ impl BinaryReader {
   }
 
   /// From the buffer take 8 bytes and interpret them as big endian u64.
-  #[cfg(feature="r19")]
+  #[cfg(feature = "r19")]
   pub fn read_u64be(&mut self) -> u64 {
     let r = bytes::BigEndian::read_u64(&self.buf[self.pos..self.pos + 8]);
     self.pos += 8;
@@ -124,7 +128,7 @@ impl BinaryReader {
       Err(e) => {
         let msg = format!("{}Invalid UTF-8 sequence: {}", module(), e);
         Err(ReadError::ReadFailed(msg))
-      },
+      }
     }
   }
 

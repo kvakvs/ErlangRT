@@ -3,14 +3,18 @@
 //! this will have to be shared somehow.
 
 use core::ptr;
-use std::collections::BTreeMap;
-use std::sync::{Mutex, MutexGuard};
-use std::u16;
+use std::{
+  collections::BTreeMap,
+  sync::{Mutex, MutexGuard},
+  u16,
+};
 
-use crate::emulator::gen_atoms;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::Word;
-use crate::term::lterm::*;
+use crate::{
+  emulator::gen_atoms,
+  fail::{Error, RtResult},
+  defs::Word,
+  term::lterm::*,
+};
 
 
 /// Defines atom properties (length, compare helper integer)

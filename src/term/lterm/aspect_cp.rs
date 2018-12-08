@@ -2,8 +2,8 @@
 ////! CP is tagged as Boxed + Top bit set.
 ////! Do not import this file directly, use `use term::lterm::*;` instead.
 //
-//use rt_defs::Word;
-//use rt_defs;
+//use defs::Word;
+//use defs;
 //use term::boxed::BoxHeader;
 //use term::primary;
 //
@@ -18,16 +18,16 @@
 //impl CpAspect for super::LTerm {
 //  #[inline]
 //  fn is_cp(&self) -> bool {
-//    self.is_box() && (self.value & rt_defs::TAG_CP == rt_defs::TAG_CP)
+//    self.is_box() && (self.value & defs::TAG_CP == defs::TAG_CP)
 //  }
 //
 //
 //  #[inline]
 //  fn cp_get_ptr(&self) -> *const Word {
 //    assert!(self.is_box(), "CP value must be boxed (have {})", self);
-//    assert_eq!(self.value & rt_defs::TAG_CP, rt_defs::TAG_CP,
+//    assert_eq!(self.value & defs::TAG_CP, defs::TAG_CP,
 //               "CP value must have its top bit set (have 0x{:x})", self.value);
-//    let untagged_p = self.value & !(rt_defs::TAG_CP | primary::PRIM_MASK);
+//    let untagged_p = self.value & !(defs::TAG_CP | primary::PRIM_MASK);
 //    untagged_p as *const Word
 //  }
 //}
@@ -35,6 +35,6 @@
 //
 //#[inline]
 //pub fn make_cp(p: *const Word) -> super::LTerm {
-//  let tagged_p = (p as Word) | rt_defs::TAG_CP;
+//  let tagged_p = (p as Word) | defs::TAG_CP;
 //  super::LTerm::make_from_boxheader(tagged_p as *const BoxHeader)
 //}

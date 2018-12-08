@@ -10,10 +10,12 @@ pub fn dump_vec(data: &[u8]) {
 
     // Print hex bytes
     for j in 0..16 {
-      if j == 8 { print!("| ") }
+      if j == 8 {
+        print!("| ")
+      }
       if i + j >= data.len() {
         print!("   ");
-        continue
+        continue;
       }
       print!("{:02x} ", data[i + j])
     }
@@ -22,9 +24,11 @@ pub fn dump_vec(data: &[u8]) {
     // Print ASCII repr
     for j in 0..16 {
       if i + j >= data.len() {
-        break
+        break;
       }
-      if j == 8 { print!(" ") }
+      if j == 8 {
+        print!(" ")
+      }
       let c = data[i + j];
       if c >= 32 && c < 127 {
         print!("{}", c as char)

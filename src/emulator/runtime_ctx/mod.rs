@@ -1,12 +1,13 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 
-use crate::emulator::code::CodePtr;
-use crate::emulator::heap;
-use crate::rt_defs::stack::IStack;
-use crate::rt_defs::{Word, MAX_FPREGS, MAX_XREGS};
-use crate::term::lterm::{
-  LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY, TERMTAG_SPECIAL,
+use crate::{
+  emulator::{code::CodePtr, heap},
+  defs::{stack::IStack, Word, MAX_FPREGS, MAX_XREGS},
+  term::lterm::{
+    LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,
+    TERMTAG_SPECIAL,
+  },
 };
 use core::fmt;
 use std::slice;

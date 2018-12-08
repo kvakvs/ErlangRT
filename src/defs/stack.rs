@@ -3,6 +3,7 @@ use crate::emulator::heap::HeapError;
 
 
 /// Defines common interface for stack operations. Implemented by Heaps.
+// TODO: Remove istack, leave Stack as the only impl?
 pub trait IStack<TermType: Copy> {
   fn stack_have(&self, need: Word) -> bool;
 

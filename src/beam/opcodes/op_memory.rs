@@ -1,12 +1,9 @@
-use crate::beam::disp_result::DispatchResult;
-use crate::beam::gen_op;
-use crate::beam::opcodes::assert_arity;
-use crate::emulator::code::CodePtr;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::Context;
-use crate::emulator::vm::VM;
-use crate::fail::RtResult;
-use crate::rt_defs::stack::IStack;
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  emulator::{code::CodePtr, process::Process, runtime_ctx::Context, vm::VM},
+  fail::RtResult,
+  defs::stack::IStack,
+};
 
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.

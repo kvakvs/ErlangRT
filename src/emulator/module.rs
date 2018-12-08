@@ -1,16 +1,19 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
-use crate::emulator::code::{Code, CodePtr};
-use crate::emulator::code_srv::module_id::VersionedModuleId;
-use crate::emulator::funarity::FunArity;
-use crate::emulator::function::FunEntry;
-use crate::emulator::gen_atoms;
+use crate::emulator::{
+  code::{Code, CodePtr},
+  code_srv::module_id::VersionedModuleId,
+  funarity::FunArity,
+  function::FunEntry,
+  gen_atoms,
+};
 //use emulator::export::Export;
-use crate::emulator::heap::Heap;
-use crate::emulator::mfa::MFArity;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::{Word, WORD_BYTES};
-use crate::term::lterm::LTerm;
+use crate::{
+  emulator::{heap::Heap, mfa::MFArity},
+  fail::{Error, RtResult},
+  defs::{Word, WORD_BYTES},
+  term::lterm::LTerm,
+};
 use std::collections::BTreeMap;
 
 

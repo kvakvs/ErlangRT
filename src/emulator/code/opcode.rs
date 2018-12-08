@@ -2,44 +2,16 @@
 //! may be used when running in debug mode for extra safety checks, in release
 //! no checks are done and simple opcode is stored.
 //!
-use crate::beam::gen_op;
-use crate::rt_defs::Word;
-use crate::term::lterm::{LTerm, SPECIALTAG_OPCODE};
-
-//use std::iter;
+use crate::{
+  beam::gen_op,
+  defs::Word,
+  term::lterm::{LTerm, SPECIALTAG_OPCODE},
+};
 
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct RawOpcode(pub u8);
-
-//impl iter::Step for RawOpcode {
-//  fn steps_between(start: &Self, end: &Self) -> Option<usize> {
-//    let RawOpcode(s) = start;
-//    let RawOpcode(e) = end;
-//    Some((e - s) as usize)
-//  }
-//
-//  fn replace_one(&mut self) -> Self {
-//    unimplemented!()
-//  }
-//
-//  fn replace_zero(&mut self) -> Self {
-//    unimplemented!()
-//  }
-//
-//  fn add_one(&self) -> Self {
-//    let RawOpcode(x) = self;
-//  }
-//
-//  fn sub_one(&self) -> Self {
-//    unimplemented!()
-//  }
-//
-//  fn add_usize(&self, n: usize) -> Option<Self> {
-//    unimplemented!()
-//  }
-//}
 
 
 impl RawOpcode {
@@ -48,8 +20,6 @@ impl RawOpcode {
     raw8
   }
 }
-//pub type RawOpcode = u8;
-
 
 /// Convert the raw (numeric) opcode into memory format. This is a simple
 /// value for release build but is decorated for debug build. We use special
@@ -65,7 +35,7 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 #[inline]
 #[cfg(not(debug_assertions))]
 pub fn to_memory_word(raw: RawOpcode) -> Word {
-  raw as Word
+  raw.0 as Word
 }
 
 
@@ -90,7 +60,7 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 #[inline]
 #[cfg(not(debug_assertions))]
 pub fn from_memory_word(m: Word) -> RawOpcode {
-  m as RawOpcode
+  RawOpcode(m as u8)
 }
 
 
@@ -118,7 +88,7 @@ pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
 #[inline]
 #[cfg(not(debug_assertions))]
 pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
-  unsafe { *p as RawOpcode }
+  unsafe { RawOpcode(*p as u8) }
 }
 
 //

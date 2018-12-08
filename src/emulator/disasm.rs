@@ -1,8 +1,12 @@
-use crate::beam::gen_op;
-use crate::emulator::code::{opcode, CodePtr, Labels, RefCode};
-use crate::emulator::code_srv::CodeServer;
-use crate::rt_defs::Word;
-use crate::term::lterm::*;
+use crate::{
+  beam::gen_op,
+  emulator::{
+    code::{opcode, CodePtr, Labels, RefCode},
+    code_srv::CodeServer,
+  },
+  defs::Word,
+  term::lterm::*,
+};
 
 
 /// Print to screen disassembly of the current function.

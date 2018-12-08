@@ -1,14 +1,14 @@
 //! Module implements decoder for compact term format used in BEAM files.
 //! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::{SWord, Word};
-use crate::rt_util::bin_reader::BinaryReader;
-use crate::term::fterm;
-use crate::term::integral::Integral;
+use crate::{
+  fail::{Error, RtResult},
+  defs::{SWord, Word},
+  rt_util::bin_reader::BinaryReader,
+  term::{fterm, integral::Integral},
+};
 
-use num::bigint;
-use num::ToPrimitive;
+use num::{bigint, ToPrimitive};
 
 
 #[repr(u8)]
@@ -140,7 +140,9 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(r),
     x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
-    x if x == CTEExtTag::AllocList as u8 => panic!("Don't know how to decode an alloclist"),
+    x if x == CTEExtTag::AllocList as u8 => {
+      panic!("Don't know how to decode an alloclist")
+    }
     other => {
       let msg = format!("Ext tag {} unknown", other);
       make_err(CTError::BadExtendedTag(msg))
@@ -170,7 +172,7 @@ fn parse_ext_float(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
   let fp: f64 = unsafe { std::mem::transmute::<u64, f64>(fp_bytes) };
-  Ok(fterm::FTerm::Float(fp as rt_defs::Float))
+  Ok(fterm::FTerm::Float(fp as defs::Float))
 }
 
 

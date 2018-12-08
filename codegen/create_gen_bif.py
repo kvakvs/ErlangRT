@@ -15,7 +15,7 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use crate::rt_defs::Arity;
+use crate::defs::Arity;
 use crate::emulator::gen_atoms;
 use crate::term::lterm::*;
 use crate::bif;

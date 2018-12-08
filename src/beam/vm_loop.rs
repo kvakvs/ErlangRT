@@ -1,12 +1,14 @@
-use crate::beam::disp_result::DispatchResult;
-use crate::beam::gen_op;
-use crate::beam::vm_dispatch::dispatch_op_inline;
-use crate::emulator::code::{opcode, CodePtr};
-use crate::emulator::disasm;
-use crate::emulator::runtime_ctx::Context;
-use crate::emulator::scheduler::SliceResult;
-use crate::emulator::vm::VM;
-use crate::fail::{Error, RtResult};
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op, vm_dispatch::dispatch_op_inline},
+  emulator::{
+    code::{opcode, CodePtr},
+    disasm,
+    runtime_ctx::Context,
+    scheduler::SliceResult,
+    vm::VM,
+  },
+  fail::{Error, RtResult},
+};
 
 //fn module() -> &'static str { "vm_loop: " }
 

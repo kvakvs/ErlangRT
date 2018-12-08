@@ -3,13 +3,17 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
 
-use crate::emulator::code_srv::CodeServer;
-use crate::emulator::mfa::MFArgs;
-use crate::emulator::process::Process;
-use crate::emulator::scheduler::{Prio, Scheduler};
-use crate::fail::RtResult;
-use crate::rt_defs::Word;
-use crate::term::lterm::*;
+use crate::{
+  emulator::{
+    code_srv::CodeServer,
+    mfa::MFArgs,
+    process::Process,
+    scheduler::{Prio, Scheduler},
+  },
+  fail::RtResult,
+  defs::Word,
+  term::lterm::*,
+};
 use std::cell::RefCell;
 
 
@@ -42,7 +46,12 @@ impl VM {
   }
 
   /// Spawn a new process, create a new pid, register the process and jump to the MFA
-  pub fn create_process(&mut self, parent: LTerm, mfargs: &MFArgs, prio: Prio) -> RtResult<LTerm> {
+  pub fn create_process(
+    &mut self,
+    parent: LTerm,
+    mfargs: &MFArgs,
+    prio: Prio,
+  ) -> RtResult<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
 

@@ -4,17 +4,22 @@
 //!
 pub mod module_id;
 
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::{
+  collections::BTreeMap,
+  path::{Path, PathBuf},
+};
 
-use crate::beam::loader;
-use crate::emulator::atom;
-use crate::emulator::code::pointer::FarCodePointer;
-use crate::emulator::code::CodePtr;
-use crate::emulator::mfa::MFArity;
-use crate::emulator::module;
-use crate::fail::{Error, RtResult};
-use crate::term::lterm::*;
+use crate::{
+  beam::loader,
+  emulator::{
+    atom,
+    code::{pointer::FarCodePointer, CodePtr},
+    mfa::MFArity,
+    module,
+  },
+  fail::{Error, RtResult},
+  term::lterm::*,
+};
 
 
 fn module() -> &'static str {

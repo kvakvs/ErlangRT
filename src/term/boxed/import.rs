@@ -1,8 +1,8 @@
 use crate::{
   bif::{find_bif, BifFn},
+  defs::{ByteSize, WordSize},
   emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
-  rt_defs::{storage_bytes_to_words, WordSize},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_IMPORT},
     lterm::*,
@@ -19,7 +19,7 @@ pub struct Import {
 
 impl Import {
   const fn storage_size() -> WordSize {
-    storage_bytes_to_words(size_of::<Import>())
+    ByteSize::new(size_of::<Import>()).words_rounded_up()
   }
 
   pub unsafe fn create_into(

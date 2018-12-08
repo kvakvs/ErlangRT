@@ -1,9 +1,12 @@
-use crate::emulator::gen_atoms;
-use crate::emulator::heap::Heap;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::ExceptionType;
-use crate::term::builders::{make_badfun, make_badmatch};
-use crate::term::lterm::LTerm;
+use crate::{
+  emulator::{gen_atoms, heap::Heap},
+  fail::{Error, RtResult},
+  defs::ExceptionType,
+  term::{
+    builders::{make_badfun, make_badmatch},
+    lterm::LTerm,
+  },
+};
 
 
 /// Enum is used by VM dispatch handlers for opcodes to indicate whether to

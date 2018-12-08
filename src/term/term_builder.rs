@@ -1,11 +1,11 @@
 //! Implements term builder for use with library term algorithms (used to
 //! decouple libraries from the actual term implementation).
-use crate::emulator::atom;
-use crate::emulator::heap::Heap;
-use crate::fail::RtResult;
-use crate::rt_defs::WordSize;
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  defs::{ByteSize, WordSize},
+  emulator::{atom, heap::Heap},
+  fail::RtResult,
+  term::{boxed, lterm::*},
+};
 use num;
 
 
@@ -95,7 +95,7 @@ impl TermBuilder {
   pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<LTerm> {
     debug_assert!(self.heap.is_null() == false);
     let hp = self.heap.as_mut().unwrap();
-    let rbin = boxed::Binary::create_into(hp, data.len())?;
+    let rbin = boxed::Binary::create_into(hp, ByteSize::new(data.len()))?;
     boxed::Binary::store(rbin, data)?;
     Ok(LTerm::make_boxed(rbin))
   }

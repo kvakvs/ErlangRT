@@ -3,14 +3,17 @@
 //! heap, stack, registers, and message queue.
 //!
 
-use crate::emulator::code_srv::CodeServer;
-use crate::emulator::heap::{Heap, DEFAULT_PROC_HEAP};
-use crate::emulator::mfa::MFArity;
-use crate::emulator::runtime_ctx;
-use crate::emulator::scheduler;
-use crate::fail::RtResult;
-use crate::rt_defs::{ExceptionType, Word};
-use crate::term::lterm::*;
+use crate::{
+  emulator::{
+    code_srv::CodeServer,
+    heap::{Heap, DEFAULT_PROC_HEAP},
+    mfa::MFArity,
+    runtime_ctx, scheduler,
+  },
+  fail::RtResult,
+  defs::{ExceptionType, Word},
+  term::lterm::*,
+};
 
 use core::fmt;
 
@@ -115,7 +118,11 @@ impl Process {
 
 
   #[allow(dead_code)]
-  pub fn jump(&mut self, mfarity: &MFArity, code_server: &mut CodeServer) -> RtResult<()> {
+  pub fn jump(
+    &mut self,
+    mfarity: &MFArity,
+    code_server: &mut CodeServer,
+  ) -> RtResult<()> {
     // TODO: Find mfa in code server and set IP to it
     match code_server.lookup_and_load(mfarity) {
       Ok(ip) => {
@@ -136,8 +143,8 @@ impl Process {
   /// immediately and finish the process or catch the error.
   fn set_error(&mut self, e: ProcessError) -> LTerm {
     panic!("{}{} set_error {}", module(), self.pid, e);
-//    self.error = e;
-//    LTerm::non_value()
+    //    self.error = e;
+    //    LTerm::non_value()
   }
 
 

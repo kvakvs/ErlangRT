@@ -7,19 +7,17 @@ pub mod op_list;
 pub mod op_memory;
 pub mod op_predicates;
 
-pub use crate::beam::opcodes::op_bif::*;
-pub use crate::beam::opcodes::op_data::*;
-pub use crate::beam::opcodes::op_execution::*;
-pub use crate::beam::opcodes::op_fun::*;
-pub use crate::beam::opcodes::op_list::*;
-pub use crate::beam::opcodes::op_memory::*;
-pub use crate::beam::opcodes::op_predicates::*;
+pub use crate::beam::opcodes::{
+  op_bif::*, op_data::*, op_execution::*, op_fun::*, op_list::*, op_memory::*,
+  op_predicates::*,
+};
 
 
-use crate::beam::gen_op;
-use crate::emulator::code::opcode::RawOpcode;
-use crate::emulator::runtime_ctx::Context;
-use crate::rt_defs::Word;
+use crate::{
+  beam::gen_op,
+  emulator::{code::opcode::RawOpcode, runtime_ctx::Context},
+  defs::Word,
+};
 
 
 /// Run a check whether opcode is not too large (within the supported range).

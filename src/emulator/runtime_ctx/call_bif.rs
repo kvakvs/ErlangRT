@@ -1,14 +1,12 @@
 use super::Context;
 
-use crate::beam::disp_result::DispatchResult;
-use crate::bif;
-use crate::bif::BifFn;
-use crate::emulator::code::CodePtr;
-use crate::emulator::mfa::MFArity;
-use crate::emulator::process::Process;
-use crate::fail::{Error, RtResult};
-use crate::term::boxed::import;
-use crate::term::lterm::*;
+use crate::{
+  beam::disp_result::DispatchResult,
+  bif::{self, BifFn},
+  emulator::{code::CodePtr, mfa::MFArity, process::Process},
+  fail::{Error, RtResult},
+  term::{boxed::import, lterm::*},
+};
 use std::slice;
 
 
@@ -94,10 +92,10 @@ pub fn apply(
       }
       // Set exception via dispatchresult
       return Err(bif_result.unwrap_err());
-    },
+    }
     Err(_) => {
       return Err(bif_result.unwrap_err());
-    },
+    }
     Ok(val) => {
       println!("call_bif a={} gc={} call result {}", args.len(), gc, val);
       // if dst is not NIL, store the result in it

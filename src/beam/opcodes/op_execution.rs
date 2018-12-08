@@ -1,18 +1,18 @@
 //! Module implements opcodes related to execution control: Calls, jumps,
 //! returns etc.
 
-use crate::beam::disp_result::DispatchResult;
-use crate::beam::gen_op;
-use crate::beam::opcodes::assert_arity;
-use crate::emulator::code::CodePtr;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::call_bif;
-use crate::emulator::runtime_ctx::Context;
-use crate::emulator::vm::VM;
-use crate::fail::RtResult;
-use crate::rt_defs::stack::IStack;
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  emulator::{
+    code::CodePtr,
+    process::Process,
+    runtime_ctx::{call_bif, Context},
+    vm::VM,
+  },
+  fail::RtResult,
+  defs::stack::IStack,
+  term::{boxed, lterm::*},
+};
 
 
 fn module() -> &'static str {
@@ -23,7 +23,11 @@ fn module() -> &'static str {
 /// Perform a call to a `location` in code, storing address of the next opcode
 /// in `ctx.cp`.
 #[inline]
-pub fn opcode_call(_vm: &VM, ctx: &mut Context, _curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn opcode_call(
+  _vm: &VM,
+  ctx: &mut Context,
+  _curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
   // Structure: call(arity:int, loc:CP)
   assert_arity(gen_op::OPCODE_CALL, 2);
 

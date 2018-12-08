@@ -1,15 +1,17 @@
 use super::Context;
 
-use crate::beam::disp_result::DispatchResult;
-use crate::bif;
-use crate::emulator::code_srv::CodeServer;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::call_bif;
-use crate::emulator::runtime_ctx::call_bif::CallBifTarget;
-use crate::fail::RtResult;
-use crate::rt_defs::Arity;
-use crate::term::boxed;
-use crate::term::lterm::*;
+use crate::{
+  beam::disp_result::DispatchResult,
+  bif,
+  emulator::{
+    code_srv::CodeServer,
+    process::Process,
+    runtime_ctx::call_bif::{self, CallBifTarget},
+  },
+  fail::RtResult,
+  defs::Arity,
+  term::{boxed, lterm::*},
+};
 
 
 fn module() -> &'static str {

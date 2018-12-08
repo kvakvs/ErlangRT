@@ -5,8 +5,8 @@
 ////!
 ////! Max value for imm3 is 64-8=56, or 32-8=24 bits.
 ////!
-//use rt_defs::Word;
-//use rt_defs;
+//use defs::Word;
+//use defs;
 //use term::immediate::imm2::*;
 //
 //use bit_field::BitField;
@@ -17,7 +17,7 @@
 //
 ///// Bit position for the value after imm1 tag
 //pub const IMM3_VALUE_FIRST: u8 = IMM3_TAG_LAST;
-//pub const IMM3_VALUE_LAST: u8 = rt_defs::WORD_BITS as u8;
+//pub const IMM3_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 //
 //pub const TAG_IMM3_XREG: Word = 0;
 //pub const TAG_IMM3_YREG: Word = 1;

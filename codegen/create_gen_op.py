@@ -14,7 +14,7 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use crate::rt_defs::Word;
+use crate::defs::Word;
 use crate::emulator::code::opcode::RawOpcode;
 
 

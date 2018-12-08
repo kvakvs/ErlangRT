@@ -1,8 +1,8 @@
-use crate::emulator::mfa::MFArity;
-use crate::emulator::process::Process;
-use crate::fail;
-use crate::fail::RtResult;
-use crate::term::lterm::LTerm;
+use crate::{
+  emulator::{mfa::MFArity, process::Process},
+  fail::{self, RtResult},
+  term::lterm::LTerm,
+};
 
 
 pub mod gen_bif; // generated
@@ -16,11 +16,9 @@ pub mod bif_lists;
 pub mod bif_process;
 pub mod bif_sys;
 
-pub use crate::bif::bif_arith::*;
-pub use crate::bif::bif_compare::*;
-pub use crate::bif::bif_lists::*;
-pub use crate::bif::bif_process::*;
-pub use crate::bif::bif_sys::*;
+pub use crate::bif::{
+  bif_arith::*, bif_compare::*, bif_lists::*, bif_process::*, bif_sys::*,
+};
 
 
 /// A BIF function which runs under some process, takes some args (encoded in

@@ -1,9 +1,10 @@
 //! Module defines pointer types for readonly code and mutable code.
 
-use crate::emulator::code_srv::module_id::VersionedModuleId;
-use crate::emulator::code_srv::CodeServer;
-use crate::rt_defs::Word;
-use crate::term::lterm::*;
+use crate::{
+  emulator::code_srv::{module_id::VersionedModuleId, CodeServer},
+  defs::Word,
+  term::lterm::*,
+};
 
 use core::fmt;
 

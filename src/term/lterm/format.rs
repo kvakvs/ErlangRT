@@ -1,11 +1,11 @@
 //! Implement format trait (Display) for LTerm
 // Printing low_level Terms as "{}"
-use crate::emulator::atom;
-use crate::rt_defs::Word;
-use crate::term::boxed;
-use crate::term::lterm::lterm_impl::*;
-use core::fmt;
-use core::ptr;
+use crate::{
+  emulator::atom,
+  defs::Word,
+  term::{boxed, lterm::lterm_impl::*},
+};
+use core::{fmt, ptr};
 
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -54,14 +54,12 @@ fn format_box_contents(
   val_ptr: *const Word,
   f: &mut fmt::Formatter,
 ) -> fmt::Result {
-  //    let arity = boxed::headerword_to_arity(value_at_ptr.raw());
   let h_tag = boxed::headerword_to_boxtype(value_at_ptr.raw());
-
   match h_tag {
     boxed::BOXTYPETAG_BINARY => unsafe {
-      let binptr = val_ptr as *const boxed::Binary;
-      boxed::Binary::format_binary(binptr, f)
+      boxed::Binary::format_binary(val_ptr as *const boxed::Binary, f)
     },
+    boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
     boxed::BOXTYPETAG_TUPLE => unsafe { format_tuple(val_ptr, f) },
     boxed::BOXTYPETAG_CLOSURE => write!(f, "Fun<>"),
     boxed::BOXTYPETAG_FLOAT => unsafe {

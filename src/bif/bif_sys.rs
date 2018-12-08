@@ -1,8 +1,9 @@
-use crate::emulator::process::Process;
-use crate::fail::{Error, RtResult};
-use crate::rt_defs::ExceptionType;
-use crate::term::builders::make_badfun_n;
-use crate::term::lterm::LTerm;
+use crate::{
+  emulator::process::Process,
+  fail::{Error, RtResult},
+  defs::ExceptionType,
+  term::{builders::make_badfun_n, lterm::LTerm},
+};
 
 
 #[allow(dead_code)]

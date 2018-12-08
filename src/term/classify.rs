@@ -1,8 +1,9 @@
 //! Term ordering and classification.
 
-use crate::term::boxed;
-use crate::term::boxed::BoxHeader;
-use crate::term::lterm::*;
+use crate::term::{
+  boxed::{self, BoxHeader},
+  lterm::*,
+};
 
 
 fn module() -> &'static str {

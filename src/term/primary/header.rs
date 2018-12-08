@@ -3,8 +3,8 @@
 ////!
 //use bit_field::BitField;
 //
-//use rt_defs;
-//use rt_defs::Word;
+//use defs;
+//use defs::Word;
 //use term::primary;
 //use term::primary::PRIM_VALUE_FIRST;
 //
@@ -16,7 +16,7 @@
 //
 ///// Bit position for the value after the primary and the header tag.
 //const HEADER_VALUE_FIRST: u8 = HEADER_TAG_LAST;
-//const HEADER_VALUE_LAST: u8 = rt_defs::WORD_BITS as u8;
+//const HEADER_VALUE_LAST: u8 = defs::WORD_BITS as u8;
 //
 //
 //// 0?

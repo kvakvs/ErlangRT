@@ -1,6 +1,6 @@
 ////! Do not import this file directly, use `use term::lterm::*;` instead.
 //
-//use rt_defs::{Word};
+//use defs::{Word};
 //use term::lterm::*;
 //use term::primary;
 //use term::raw::*;

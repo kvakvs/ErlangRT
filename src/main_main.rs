@@ -1,12 +1,10 @@
-use crate::emulator::atom;
-use crate::emulator::mfa::MFArgs;
-use crate::emulator::scheduler::Prio;
-use crate::emulator::vm::VM;
-use crate::term::lterm::*;
+use crate::{
+  emulator::{atom, mfa::MFArgs, scheduler::Prio, vm::VM},
+  term::lterm::*,
+};
 
 
-use std::thread;
-use std::time;
+use std::{thread, time};
 
 
 /// Entry point for the command-line interface

@@ -1,15 +1,16 @@
 //! Module implements opcodes related to function objects/lambdas.
 
-use crate::beam::disp_result::DispatchResult;
-use crate::beam::gen_op;
-use crate::beam::opcodes::assert_arity;
-use crate::emulator::function::FunEntry;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx;
-use crate::emulator::runtime_ctx::Context;
-use crate::emulator::vm::VM;
-use crate::fail::RtResult;
-use crate::term::boxed;
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  emulator::{
+    function::FunEntry,
+    process::Process,
+    runtime_ctx::{self, Context},
+    vm::VM,
+  },
+  fail::RtResult,
+  term::boxed,
+};
 
 use std::slice;
 

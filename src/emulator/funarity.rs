@@ -1,11 +1,10 @@
 //!
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
-use crate::rt_defs::Arity;
-use crate::term::lterm::*;
+use crate::{defs::Arity, term::lterm::*};
 
-use std::cmp::Ordering;
 use core::fmt;
+use std::cmp::Ordering;
 
 
 /// Reference to an internal function in some module.

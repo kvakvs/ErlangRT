@@ -22,14 +22,16 @@ extern crate lazy_static;
 
 mod beam;
 mod bif;
+mod defs;
 mod emulator;
 mod fail;
-mod term;
 mod main_main;
-mod rt_defs;
 mod rt_util;
+mod term;
 
 
-use crate::main_main::{entrypoint};
+use crate::main_main::entrypoint;
 
-fn main() { entrypoint(); }
+fn main() {
+  entrypoint();
+}

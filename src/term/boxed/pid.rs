@@ -1,13 +1,14 @@
 use crate::{
+  defs::{Word, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
-  rt_defs::{storage_bytes_to_words, Word, WordSize},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID},
     lterm::LTerm,
   },
 };
-use core::ptr;
+use core::{mem::size_of, ptr};
+use crate::defs::ByteSize;
 
 
 /// Represents Pid box on heap.
@@ -19,7 +20,7 @@ pub struct ExternalPid {
 
 impl ExternalPid {
   const fn storage_size() -> WordSize {
-    storage_bytes_to_words(std::mem::size_of::<ExternalPid>())
+    ByteSize::new(size_of::<ExternalPid>()).words_rounded_up()
   }
 
   fn new(node: LTerm, id: Word) -> ExternalPid {

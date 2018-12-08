@@ -1,7 +1,9 @@
 //! Debug tool to display Erlang heap contents.
-use crate::emulator::heap::{heap_iter, Heap};
-use crate::rt_defs::Word;
-use crate::term::lterm::TERMTAG_BOXED;
+use crate::{
+  emulator::heap::{heap_iter, Heap},
+  defs::Word,
+  term::lterm::TERMTAG_BOXED,
+};
 
 
 impl Heap {

@@ -4,4 +4,4 @@ pub mod print;
 
 //extern crate num;
 
-//extern crate rt_defs;
+//extern crate defs;

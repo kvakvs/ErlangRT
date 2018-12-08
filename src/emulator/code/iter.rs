@@ -1,8 +1,12 @@
 //! Module defines `CodeIterator` which can step over the code
-use crate::beam::gen_op;
-use crate::emulator::code::opcode;
-use crate::emulator::code::pointer::{CodePtr, CodePtrMut};
-use crate::rt_defs::Word;
+use crate::{
+  beam::gen_op,
+  emulator::code::{
+    opcode,
+    pointer::{CodePtr, CodePtrMut},
+  },
+  defs::Word,
+};
 
 
 // This is used by read-only code walkers such as "disasm.rs".

@@ -1,11 +1,11 @@
 use crate::{
+  defs::{Arity, ByteSize, Word, WordSize},
   emulator::{
     function::{CallableLocation, FunEntry},
     heap::Heap,
     mfa::MFArity,
   },
   fail::{Error, RtResult},
-  rt_defs::{storage_bytes_to_words, Arity, Word, WordSize},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_CLOSURE},
     lterm::*,
@@ -35,7 +35,9 @@ pub struct Closure {
 impl Closure {
   #[inline]
   const fn storage_size(nfree: Word) -> WordSize {
-    WordSize::new(storage_bytes_to_words(size_of::<Closure>()).words() + nfree)
+    ByteSize::new(size_of::<Closure>())
+      .words_rounded_up()
+      .add(nfree)
   }
 
 
