@@ -174,7 +174,7 @@ pub fn opcode_return(
   if ctx.cp.is_null() {
     if curr_p.heap.stack_depth() == 0 {
       // Process end of life: return on empty stack
-      panic!("{}Process exit: normal; x0={}", module(), ctx.regs[0])
+      panic!("{}Process exit: normal; x0={}", module(), ctx.x(0))
     } else {
       panic!("{}Return instruction with 0 in ctx.cp", module())
     }

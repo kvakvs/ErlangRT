@@ -9,12 +9,16 @@ use core::{fmt, ptr};
 
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    if self.is_non_value() {
+      return write!(f, "NON_VALUE");
+    }
     match self.get_term_tag() {
       TERMTAG_BOXED => unsafe {
         if self.is_cp() {
           write!(f, "CP({:p})", self.get_cp_ptr::<Word>())
         } else {
-          let p = self.get_box_ptr();
+          let p = self.get_box_ptr::<LTerm>();
+          // debug_assert!(p.is_null() == false);
           format_box_contents(*p, p as *const Word, f)
         }
       },
@@ -34,7 +38,7 @@ impl fmt::Display for LTerm {
         Ok(s) => write!(f, "'{}'", s),
         Err(_e) => write!(f, "Atom?"),
       },
-      TERMTAG_HEADER => {
+      TERMTAG_HEADER => unsafe {
         write!(f, "Header(")?;
         format_box_contents(*self, ptr::null(), f)?;
         write!(f, ")")
@@ -49,27 +53,30 @@ impl fmt::Display for LTerm {
 /// Attempt to display contents of a tagged header word and the words which
 /// follow it. Arg `p` if not null is used to fetch the following memory words
 /// and display more detail.
-fn format_box_contents(
+unsafe fn format_box_contents(
   value_at_ptr: LTerm,
   val_ptr: *const Word,
   f: &mut fmt::Formatter,
 ) -> fmt::Result {
   let h_tag = boxed::headerword_to_boxtype(value_at_ptr.raw());
   match h_tag {
-    boxed::BOXTYPETAG_BINARY => unsafe {
+    boxed::BOXTYPETAG_BINARY => {
       boxed::Binary::format_binary(val_ptr as *const boxed::Binary, f)
     },
     boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
-    boxed::BOXTYPETAG_TUPLE => unsafe { format_tuple(val_ptr, f) },
+    boxed::BOXTYPETAG_TUPLE => { format_tuple(val_ptr, f) },
     boxed::BOXTYPETAG_CLOSURE => write!(f, "Fun<>"),
-    boxed::BOXTYPETAG_FLOAT => unsafe {
+    boxed::BOXTYPETAG_FLOAT => {
       let fptr = val_ptr as *const boxed::Float;
       write!(f, "{}", (*fptr).value)
     },
     boxed::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid<>"),
     boxed::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort<>"),
     boxed::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef<>"),
-    boxed::BOXTYPETAG_IMPORT => write!(f, "Import<>"),
+    boxed::BOXTYPETAG_IMPORT => {
+      let iptr = val_ptr as *const boxed::Import;
+      write!(f, "Import<{}>", (*iptr).mfarity)
+    },
 
     _ => panic!("Unexpected header tag {:?}", h_tag),
   }

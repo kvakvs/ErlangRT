@@ -70,14 +70,13 @@ pub fn apply(
   // Now having resolved the bif function, let's call it
 
   let bif_result = match maybe_bif_fn {
-    BifResolutionResult::FnPointer(fn_ptr) => callbif_apply_bif(ctx, curr_p, fn_ptr, args),
+    BifResolutionResult::FnPointer(fn_ptr) => {
+      callbif_apply_bif(ctx, curr_p, fn_ptr, args)
+    },
 
     BifResolutionResult::BadfunError(badfun_val) => {
       return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap);
     }
-    //    BifResolutionResult::Fail(e) => {
-    //      return callbif_handle_fail(&e)
-    //    },
   };
 
   // Now having called the function let's see if there was some good result or

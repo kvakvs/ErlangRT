@@ -33,7 +33,8 @@ pub struct Context {
   pub cp: CodePtr,
 
   /// Current state of X registers.
-  pub regs: [LTerm; MAX_XREGS],
+  regs: [LTerm; MAX_XREGS],
+
   /// How many X registers are currently used.
   pub live: Word,
 
@@ -65,6 +66,18 @@ impl Context {
       regs: [LTerm::non_value(); MAX_XREGS],
       live: 0,
     }
+  }
+
+
+  #[inline]
+  pub fn x(&self, index: usize) -> LTerm {
+    self.regs[index]
+  }
+
+
+  #[inline]
+  pub fn set_x(&mut self, index: usize, val: LTerm) {
+    self.regs[index] = val;
   }
 
 
@@ -102,6 +115,7 @@ impl Context {
 
 
   pub fn registers_slice(&mut self, sz: usize) -> &'static [LTerm] {
+    debug_assert!(self.live <= sz, "Trying to slice more registers than live");
     unsafe { slice::from_raw_parts(self.regs.as_ptr(), sz) }
   }
 
@@ -127,7 +141,7 @@ impl Context {
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
     if src.get_term_tag() == TERMTAG_SPECIAL {
       match src.get_special_tag() {
-        SPECIALTAG_REGX => return self.regs[src.get_term_val_without_tag()],
+        SPECIALTAG_REGX => return self.x(src.get_term_val_without_tag()),
         SPECIALTAG_REGY => {
           let y_index = src.get_term_val_without_tag();
           let y_result = hp.stack_get_y(y_index);
@@ -148,7 +162,7 @@ impl Context {
     if dst.get_term_tag() == TERMTAG_SPECIAL {
       match dst.get_special_tag() {
         SPECIALTAG_REGX => {
-          self.regs[dst.get_term_val_without_tag()] = src_val;
+          self.set_x(dst.get_term_val_without_tag(), src_val);
           return;
         }
         SPECIALTAG_REGY => {
@@ -167,7 +181,7 @@ impl Context {
 impl fmt::Display for Context {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut str_regs = String::new();
-    for v in self.regs[0..10].iter() {
+    for v in self.regs[0..self.live].iter() {
       str_regs += &format!("{}; ", v)
     }
 

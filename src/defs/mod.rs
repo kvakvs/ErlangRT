@@ -27,7 +27,7 @@ pub const HIGHEST_BIT_CP: Word = 1 << (WORD_BITS - 1);
 pub const WORD_BYTES: Word = WORD_BITS / 8;
 
 pub const MAX_XREGS: Word = 256;
-pub const MAX_FPREGS: Word = 32;
+pub const MAX_FPREGS: Word = 8;
 
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]

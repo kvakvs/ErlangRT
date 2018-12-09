@@ -30,12 +30,12 @@ pub fn opcode_make_fun2(
 
   //panic!("boom");
   let hp = &mut curr_p.heap;
-  let closure = unsafe {
+  let closure= unsafe {
     let nfree = (*fe).nfree as usize;
-    let p = boxed::Closure::create_into(hp, fe.as_ref().unwrap(), &ctx.regs[0..nfree]);
-    p.unwrap()
+    let frozen = ctx.registers_slice(nfree);
+    boxed::Closure::create_into(hp, fe.as_ref().unwrap(), frozen)?
   };
-  ctx.regs[0] = closure;
+  ctx.set_x(0, closure);
 
   Ok(DispatchResult::Normal)
 }
@@ -52,10 +52,10 @@ pub fn opcode_call_fun(
   assert_arity(gen_op::OPCODE_CALL_FUN, 1);
 
   let arity = ctx.fetch_term().get_small_unsigned();
-  let args = unsafe { slice::from_raw_parts(&ctx.regs[0], arity) };
+  let args = unsafe { slice::from_raw_parts(&ctx.x(0), arity) };
 
   // Take function object argument
-  let fobj = ctx.regs[arity];
+  let fobj = ctx.x(arity);
   if let Ok(closure) = unsafe { boxed::Closure::const_from_term(fobj) } {
     // `fobj` is a callable closure made with `fun() -> code end`
     runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
