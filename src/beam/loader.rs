@@ -10,6 +10,7 @@
 use crate::{
   beam::{compact_term, gen_op},
   bif,
+  defs::{Arity, Word},
   emulator::{
     atom,
     code::{
@@ -26,7 +27,6 @@ use crate::{
     module,
   },
   fail::{Error, RtResult},
-  defs::{Arity, Word},
   rt_util::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
@@ -35,18 +35,16 @@ use crate::{
 };
 use bytes::Bytes;
 use compress::zlib;
+use core::mem;
+use std::collections::BTreeMap;
 use std::{
-  collections::BTreeMap,
   io::{Cursor, Read},
-  mem,
   path::PathBuf,
 };
 
-
-pub fn module() -> &'static str {
+fn module() -> &'static str {
   "beam::loader: "
 }
-
 
 /// Imports table item (mfa's referred by this module).
 /// Raw data structure as loaded from BEAM file
@@ -57,7 +55,6 @@ struct LImport {
   arity: Arity,
 }
 
-
 /// Exports table item, as specified in `-export()` attribute.
 /// Raw data structure as loaded from BEAM file.
 #[allow(dead_code)]
@@ -66,7 +63,6 @@ struct LExport {
   arity: Arity,
   label: usize,
 }
-
 
 /// Function closures used in this file, with info on captured values.
 /// Raw data structure as loaded from BEAM file
@@ -80,14 +76,12 @@ struct LFun {
   ouniq: usize,
 }
 
-
 /// Represents an instruction to patch either a code location or an index in
 /// a tuple which represents a jump table (pairs value -> label)
 enum PatchLocation {
   PatchCodeOffset(Word),
   PatchJtabElement(LTerm, Word),
 }
-
 
 /// Stage 1 raw structures, as loaded and decoded from the beam file but not
 /// ready to be used in runtime
@@ -102,7 +96,6 @@ struct LoaderRaw {
   code: Vec<u8>,
 }
 
-
 impl LoaderRaw {
   fn new() -> LoaderRaw {
     LoaderRaw {
@@ -116,9 +109,8 @@ impl LoaderRaw {
   }
 }
 
-
 /// BEAM loader state.
-pub struct Loader {
+struct Loader {
   mod_id: Option<VersionedModuleId>,
   raw: LoaderRaw,
 
@@ -163,7 +155,6 @@ pub struct Loader {
   //  exports: BTreeMap<FunArity, LTerm>
 }
 
-
 impl Loader {
   /// Construct a new loader state.
   pub fn new() -> Loader {
@@ -187,7 +178,6 @@ impl Loader {
     }
   }
 
-
   /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
   /// account special value 0 and offsets the index down by 1.
   fn atom_from_loadtime_index(&self, n: usize) -> LTerm {
@@ -197,14 +187,12 @@ impl Loader {
     self.vm_atoms[n as usize - 1]
   }
 
-
   fn module_name(&self) -> LTerm {
     match self.mod_id {
       Some(mod_id) => mod_id.module(),
       None => panic!("{}mod_id must be set at this point", module()),
     }
   }
-
 
   /// Loading the module. Validate the header and iterate over sections,
   /// then call `load_stage2()` to apply changes to the VM, and then finalize
@@ -268,7 +256,6 @@ impl Loader {
     Ok(())
   }
 
-
   fn stage2_register_atoms(&mut self, code_server: &mut CodeServer) {
     self.vm_atoms.reserve(self.raw.atoms.len());
     for a in &self.raw.atoms {
@@ -279,7 +266,6 @@ impl Loader {
     self.set_mod_id(code_server)
   }
 
-
   fn stage2_fill_lambdas(&mut self) {
     // Convert LFuns in self.raw.funs to FunEntries
     for rf in &self.raw.lambdas {
@@ -289,7 +275,6 @@ impl Loader {
       self.lambdas.push(FunEntry::new(mfa, rf.nfree))
     }
   }
-
 
   /// Call this to apply changes to the VM after module loading succeeded. The
   /// module object is not created yet, but some effects like atoms table
@@ -305,7 +290,6 @@ impl Loader {
 
     Ok(())
   }
-
 
   /// At this point loading is finished, and we create Erlang module and
   /// return a reference counted pointer to it. VM (the caller) is responsible
@@ -342,13 +326,11 @@ impl Loader {
     Ok(())
   }
 
-
   fn load_compiler_info(&mut self, r: &mut BinaryReader) -> RtResult<()> {
     let mut tb = TermBuilder::new(&mut self.lit_heap);
     self.compiler_info = etf::decode(r, &mut tb)?;
     Ok(())
   }
-
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -361,7 +343,6 @@ impl Loader {
       self.raw.atoms.push(atom_text);
     }
   }
-
 
   /// Approaching Atom section, populate atoms table in the Loader state.
   /// The format is: "Atom"|"AtU8", u32/big count { u8 length, "atomname" }.
@@ -376,14 +357,12 @@ impl Loader {
     }
   }
 
-
   fn set_mod_id(&mut self, code_server: &mut CodeServer) {
     assert!(!self.vm_atoms.is_empty());
     let mod_name = self.vm_atoms[0];
     let ver = code_server.next_module_version(mod_name);
     self.mod_id = Some(VersionedModuleId::new(mod_name, ver))
   }
-
 
   /// Load the `Code` section
   fn load_code(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
@@ -397,7 +376,6 @@ impl Loader {
 
     self.raw.code = r.read_bytes(chunk_sz - 20).unwrap();
   }
-
 
   /// Read the imports table.
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
@@ -413,7 +391,6 @@ impl Loader {
       self.raw.imports.push(imp);
     }
   }
-
 
   /// Read the exports or local functions table (same format).
   /// Format is u32/big count { funindex: u32, arity: u32, label: u32 }
@@ -431,7 +408,6 @@ impl Loader {
     }
     exports
   }
-
 
   fn load_fun_table(&mut self, r: &mut BinaryReader) {
     let n_funs = r.read_u32be();
@@ -453,7 +429,6 @@ impl Loader {
       })
     }
   }
-
 
   fn load_line_info(&mut self, r: &mut BinaryReader) {
     let _version = r.read_u32be(); // must match emulator version 0
@@ -482,7 +457,6 @@ impl Loader {
       let _fstr = r.read_str_utf8(name_size as Word);
     }
   }
-
 
   /// Given the `r`, reader positioned on the contents of "LitT" chunk,
   /// decompress it and feed into `self.decode_literals/1`
@@ -513,7 +487,6 @@ impl Loader {
     self.decode_literals(inflated);
   }
 
-
   /// Given `inflated`, the byte contents of literal table, read the u32/big
   /// `count` and for every encoded term skip u32 and parse the external term
   /// format. Boxed values will go into the `self.lit_heap`.
@@ -535,7 +508,6 @@ impl Loader {
       self.lit_tab.push(literal);
     }
   }
-
 
   /// Assume that loader raw structures are completed, and atoms are already
   /// transferred to the VM, we can now parse opcodes and their args.
@@ -640,7 +612,6 @@ impl Loader {
     Ok(())
   }
 
-
   /// Given arity amount of `args` from another opcode, process them and store
   /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
   /// container of terms. `LoadTimeLabel` get special treatment as we try to
@@ -687,7 +658,6 @@ impl Loader {
     Ok(())
   }
 
-
   /// Given label index `l` check if it is known, then return a new jump
   /// destination - a boxed code location pointer to be used by the caller.
   /// Otherwise the `patch_location` is stored to `self.replace_labels` to be
@@ -704,7 +674,6 @@ impl Loader {
     }
   }
 
-
   /// Given label destination and `self.code` length calculate a relative
   /// signed jump offset for it.
   fn create_jump_destination(&self, dst_offset: CodeOffset) -> Word {
@@ -712,7 +681,6 @@ impl Loader {
     let ptr = &self.code[offs] as *const Word;
     LTerm::make_cp(ptr).raw()
   }
-
 
   /// Analyze the code and replace label values with known label locations.
   fn postprocess_fix_labels(&mut self) -> RtResult<()> {
@@ -744,7 +712,6 @@ impl Loader {
     Ok(())
   }
 
-
   /// Helper for `postprocess_fix_label`, takes a word from code memory or from
   /// a jump table, resolves as if it was a label index, and returns a value
   /// to be put back into memory.
@@ -766,7 +733,6 @@ impl Loader {
       LTerm::nil().raw()
     }
   }
-
 
   /// Analyze the code and for certain opcodes overwrite their import index
   /// args with direct pointer to import heap.
@@ -817,7 +783,6 @@ impl Loader {
     Ok(())
   }
 
-
   /// Internal helper which takes N'th arg of an opcode, parses it as a small
   /// unsigned and writes an LTerm pointer to a literal {M,F,Arity} tuple.
   fn rewrite_import_index_arg(&self, cp: CodePtrMut, n: usize) {
@@ -825,7 +790,6 @@ impl Loader {
     let import1 = self.imports[import0.get_small_unsigned()];
     unsafe { cp.write_n(n, import1.raw()) }
   }
-
 
   /// Given a pointer to a `make_fun2` or similar opcode with a lambda index
   /// argument, replace it with a raw pointer to a loaded `FunEntry`.
@@ -837,7 +801,6 @@ impl Loader {
     let lambda_term = LTerm::make_cp(lambda_p as *const Word);
     unsafe { cp.write_n(n, lambda_term.raw()) }
   }
-
 
   /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
   /// resolve it to a runtime atom index using a lookup table.
@@ -880,4 +843,18 @@ fn op_badarg_panic(op: RawOpcode, args: &[FTerm], argi: Word) {
     argi,
     args
   )
+}
+
+pub fn load_module(
+  code_srv: &mut CodeServer,
+  mod_file_path: &PathBuf,
+) -> RtResult<module::Ptr> {
+  // Delegate the loading task to BEAM or another loader
+  let mut loader = Loader::new();
+
+  // Phase 1: Preload data structures
+  loader.load(mod_file_path)?;
+  loader.load_stage2(code_srv)?;
+
+  loader.load_finalize()
 }

@@ -152,17 +152,10 @@ impl CodeServer {
 
   /// Internal function: runs 3 stages of module loader and returns an atomic
   /// refc (Arc) module pointer or an error
-  fn try_load_module(&mut self, mod_file_path: &PathBuf) -> RtResult<bool> {
-    // Delegate the loading task to BEAM or another loader
-    let mut loader = loader::Loader::new();
-
-    // Phase 1: Preload data structures
-    loader.load(mod_file_path)?;
-    loader.load_stage2(self)?;
-
-    let mod_ptr = loader.load_finalize()?;
+  fn try_load_module(&mut self, mod_file_path: &PathBuf) -> RtResult<()> {
+    let mod_ptr = loader::load_module(self, mod_file_path)?;
     self.module_loaded(mod_ptr);
-    Ok(true)
+    Ok(())
   }
 
 
