@@ -77,6 +77,7 @@ impl Context {
 
   #[inline]
   pub fn set_x(&mut self, index: usize, val: LTerm) {
+    println!("set x{} = {}", index, val);
     self.regs[index] = val;
   }
 
@@ -141,9 +142,11 @@ impl Context {
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
     if src.get_term_tag() == TERMTAG_SPECIAL {
       match src.get_special_tag() {
-        SPECIALTAG_REGX => return self.x(src.get_term_val_without_tag()),
+        SPECIALTAG_REGX => {
+          return self.x(src.get_special_value())
+        },
         SPECIALTAG_REGY => {
-          let y_index = src.get_term_val_without_tag();
+          let y_index = src.get_special_value();
           let y_result = hp.stack_get_y(y_index);
           return y_result.unwrap();
         }
@@ -162,11 +165,11 @@ impl Context {
     if dst.get_term_tag() == TERMTAG_SPECIAL {
       match dst.get_special_tag() {
         SPECIALTAG_REGX => {
-          self.set_x(dst.get_term_val_without_tag(), src_val);
+          self.set_x(dst.get_special_value(), src_val);
           return;
         }
         SPECIALTAG_REGY => {
-          let y = dst.get_term_val_without_tag();
+          let y = dst.get_special_value();
           let y_result = hp.stack_set_y(y, src_val);
           return y_result.unwrap();
         }

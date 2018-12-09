@@ -13,9 +13,6 @@ pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {
 
 /// Create a function pointer from atom(), atom(), smallint()
 pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
-  println!("make_fun arg0 {}", args[0]);
-  println!("make_fun arg1 {}", args[1]);
-  println!("make_fun arg2 {}", args[2]);
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
     return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
   }

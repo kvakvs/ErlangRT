@@ -38,10 +38,10 @@ impl fmt::Display for LTerm {
         Ok(s) => write!(f, "'{}'", s),
         Err(_e) => write!(f, "Atom?"),
       },
-      TERMTAG_HEADER => unsafe {
-        write!(f, "Header(")?;
-        format_box_contents(*self, ptr::null(), f)?;
-        write!(f, ")")
+      TERMTAG_HEADER => {
+        return write!(f, "Header({})", boxed::headerword_to_arity(self.raw()));
+        //format_box_contents(*self, ptr::null(), f)?;
+        //write!(f, ")")
       }
 
       _ => panic!("Primary tag {:?} not recognized", self.get_term_tag()),
@@ -76,6 +76,10 @@ unsafe fn format_box_contents(
     boxed::BOXTYPETAG_IMPORT => {
       let iptr = val_ptr as *const boxed::Import;
       write!(f, "Import<{}>", (*iptr).mfarity)
+    },
+    boxed::BOXTYPETAG_EXPORT => {
+      let eptr = val_ptr as *const boxed::Export;
+      write!(f, "Export<{}>", (*eptr).exp.mfa)
     },
 
     _ => panic!("Unexpected header tag {:?}", h_tag),
