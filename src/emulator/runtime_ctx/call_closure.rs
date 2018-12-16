@@ -1,18 +1,16 @@
 use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
+  defs::Arity,
   emulator::{function::CallableLocation, process::Process, vm::VM},
   fail::RtResult,
-  defs::Arity,
   term::{boxed, lterm::*},
 };
 use core::ptr;
 
-
 fn module() -> &'static str {
   "runtime_ctx.call_closure: "
 }
-
 
 /// The `closure` is a callable closure with some frozen variables made with
 /// `fun() -> code end`.

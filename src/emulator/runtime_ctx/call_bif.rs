@@ -9,14 +9,11 @@ use crate::{
 };
 use std::slice;
 
-
 //fn module() -> &'static str { "runtime_ctx.call_bif: " }
-
 
 //
 // Call Bif generic facilities
 //
-
 
 /// A Bif can be referenced by an import `LTerm`, an `MFArity`...
 #[allow(dead_code)]
@@ -31,7 +28,6 @@ pub enum CallBifTarget {
   /// A resolved pointer to a `BifFn`.
   BifFnPointer(BifFn),
 }
-
 
 /// Generic bif0,1,2 application. Bif0 cannot have a fail label but bif1 and
 /// bif2 can, so on exception a jump will be performed.
@@ -72,7 +68,7 @@ pub fn apply(
   let bif_result = match maybe_bif_fn {
     BifResolutionResult::FnPointer(fn_ptr) => {
       callbif_apply_bif(ctx, curr_p, fn_ptr, args)
-    },
+    }
 
     BifResolutionResult::BadfunError(badfun_val) => {
       return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap);
@@ -106,19 +102,16 @@ pub fn apply(
   }
 }
 
-
 //#[inline]
 //fn callbif_handle_fail(e: &fail::Error) -> Hopefully<DispatchResult> {
 //  panic!("{}bif call failed with {:?}", module(), e)
 //}
-
 
 #[allow(dead_code)]
 enum BifResolutionResult {
   FnPointer(BifFn),
   BadfunError(LTerm),
 }
-
 
 /// Given a term with import, resolve it to a bif function pointer or fail.
 /// Return: A bif function or an error
@@ -131,14 +124,12 @@ fn callbif_resolve_import(imp: LTerm) -> RtResult<BifResolutionResult> {
   Ok(BifResolutionResult::FnPointer(fn_ptr))
 }
 
-
 /// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.
 // TODO: Remove this and call find_bif directly
 #[inline]
 fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
   Ok(BifResolutionResult::FnPointer(bif::find_bif(&mfa)?))
 }
-
 
 /// Given a bif function pointer and args with possibly register/slot values
 /// in them, first resolve these args to values, and then call the function

@@ -1,15 +1,13 @@
 use crate::{
+  defs::ExceptionType,
   emulator::{gen_atoms, mfa::MFArity, process::Process},
   fail::{Error, RtResult},
-  defs::{Arity, ExceptionType},
   term::{boxed, lterm::*},
 };
-
 
 pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {
   Ok(cur_proc.pid)
 }
-
 
 /// Create a function pointer from atom(), atom(), smallint()
 pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
@@ -18,7 +16,7 @@ pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>
   }
 
   let hp = &mut cur_proc.heap;
-  let mfa = MFArity::new(args[0], args[1], args[2].get_small_unsigned() as Arity);
+  let mfa = MFArity::from_slice(&args[0..3]);
 
   // Create an export on heap and return it
   let expt = unsafe { boxed::Export::create_into(hp, &mfa)? };

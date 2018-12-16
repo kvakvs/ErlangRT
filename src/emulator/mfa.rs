@@ -1,10 +1,9 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
-use crate::{emulator::funarity::FunArity, defs::Arity, term::lterm::*};
+use crate::{defs::Arity, emulator::funarity::FunArity, term::lterm::*};
 
 use core::fmt;
-
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
 pub struct MFArgs {
@@ -12,7 +11,6 @@ pub struct MFArgs {
   f: LTerm,
   args: Vec<LTerm>,
 }
-
 
 impl MFArgs {
   pub fn new(m: LTerm, f: LTerm, args: Vec<LTerm>) -> MFArgs {
@@ -28,7 +26,6 @@ impl MFArgs {
   }
 }
 
-
 #[derive(Debug, Copy, Clone)]
 pub struct MFArity {
   pub m: LTerm,
@@ -36,12 +33,18 @@ pub struct MFArity {
   pub arity: Arity,
 }
 
-
 impl MFArity {
   pub fn new(m: LTerm, f: LTerm, arity: Arity) -> MFArity {
     MFArity { m, f, arity }
   }
 
+  pub fn from_slice(lterms: &[LTerm]) -> MFArity {
+    MFArity {
+      m: lterms[0],
+      f: lterms[1],
+      arity: lterms[2].get_small_unsigned(),
+    }
+  }
 
   pub fn new_from_funarity(m: LTerm, fa: &FunArity) -> MFArity {
     MFArity {
@@ -50,7 +53,6 @@ impl MFArity {
       arity: fa.arity,
     }
   }
-
 
   pub fn get_funarity(&self) -> FunArity {
     FunArity::new(self.f, self.arity)

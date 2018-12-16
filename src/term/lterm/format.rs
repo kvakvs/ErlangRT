@@ -1,11 +1,11 @@
 //! Implement format trait (Display) for LTerm
 // Printing low_level Terms as "{}"
 use crate::{
-  emulator::atom,
   defs::Word,
+  emulator::atom,
   term::{boxed, lterm::lterm_impl::*},
 };
-use core::{fmt, ptr};
+use core::fmt;
 
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -49,7 +49,6 @@ impl fmt::Display for LTerm {
   }
 } // trait Display
 
-
 /// Attempt to display contents of a tagged header word and the words which
 /// follow it. Arg `p` if not null is used to fetch the following memory words
 /// and display more detail.
@@ -62,25 +61,25 @@ unsafe fn format_box_contents(
   match h_tag {
     boxed::BOXTYPETAG_BINARY => {
       boxed::Binary::format_binary(val_ptr as *const boxed::Binary, f)
-    },
+    }
     boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
-    boxed::BOXTYPETAG_TUPLE => { format_tuple(val_ptr, f) },
+    boxed::BOXTYPETAG_TUPLE => format_tuple(val_ptr, f),
     boxed::BOXTYPETAG_CLOSURE => write!(f, "Fun<>"),
     boxed::BOXTYPETAG_FLOAT => {
       let fptr = val_ptr as *const boxed::Float;
       write!(f, "{}", (*fptr).value)
-    },
+    }
     boxed::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid<>"),
     boxed::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort<>"),
     boxed::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef<>"),
     boxed::BOXTYPETAG_IMPORT => {
       let iptr = val_ptr as *const boxed::Import;
       write!(f, "Import<{}>", (*iptr).mfarity)
-    },
+    }
     boxed::BOXTYPETAG_EXPORT => {
       let eptr = val_ptr as *const boxed::Export;
       write!(f, "Export<{}>", (*eptr).exp.mfa)
-    },
+    }
 
     _ => panic!("Unexpected header tag {:?}", h_tag),
   }
@@ -136,7 +135,6 @@ unsafe fn format_tuple(p: *const Word, f: &mut fmt::Formatter) -> fmt::Result {
   write!(f, "}}")
 }
 
-
 pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
   write!(f, "[")?;
 
@@ -159,7 +157,6 @@ pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
   }
   write!(f, "]")
 }
-
 
 pub unsafe fn format_cons_ascii(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
   write!(f, "\"")?;

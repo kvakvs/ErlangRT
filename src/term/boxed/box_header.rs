@@ -1,6 +1,6 @@
 use crate::{
   defs::*,
-  term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK},
+  term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS},
 };
 
 //

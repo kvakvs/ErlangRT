@@ -3,21 +3,19 @@ use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
   bif,
+  defs::Arity,
   emulator::{
     code_srv::CodeServer,
     process::Process,
     runtime_ctx::call_bif::{self, CallBifTarget},
   },
   fail::RtResult,
-  defs::Arity,
   term::{boxed, lterm::*},
 };
-
 
 fn module() -> &'static str {
   "runtime_ctx.call_export: "
 }
-
 
 /// The `exp` is an export made with `fun module:name/0` which can point to
 /// either an Erlang function or to a BIF (native built-in function).
