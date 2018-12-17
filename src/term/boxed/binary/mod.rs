@@ -1,3 +1,5 @@
+use crate::term::boxed::binary::binaryheap_bin::BinaryHeapBinary;
+use crate::term::boxed::binary::refc_bin::ReferenceToBinary;
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
@@ -5,8 +7,6 @@ use crate::{
   term::boxed::{binary::procheap_bin::ProcessHeapBinary, BoxHeader, BOXTYPETAG_BINARY},
 };
 use core::{fmt, ptr};
-use crate::term::boxed::binary::binaryheap_bin::BinaryHeapBinary;
-use crate::term::boxed::binary::refc_bin::ReferenceToBinary;
 
 mod binaryheap_bin;
 mod procheap_bin;
@@ -51,10 +51,10 @@ impl Binary {
     match b_type {
       BinaryType::BinaryHeap => {
         header_size = ByteSize::new(std::mem::size_of::<BinaryHeapBinary>());
-      },
+      }
       BinaryType::ProcessHeap => {
         header_size = ByteSize::new(std::mem::size_of::<ProcessHeapBinary>());
-      },
+      }
       BinaryType::RefToBinaryHeap => {
         header_size = ByteSize::new(std::mem::size_of::<ReferenceToBinary>());
       }
@@ -73,7 +73,6 @@ impl Binary {
 
     Ok(this)
   }
-
 
   /// Given a byte array, copy it to the binary's memory (depending on
   /// the binary type).
@@ -100,8 +99,8 @@ impl Binary {
       }
       BinaryType::RefToBinaryHeap => {
         // TODO: Maybe should be possible? Assist with resolution into BinaryHeapBinary
-        return Err(Error::CannotCopyIntoRefbin)
-      },
+        return Err(Error::CannotCopyIntoRefbin);
+      }
     }
 
     // Take a byte after the Binary struct, that'll be first data byte
@@ -111,13 +110,11 @@ impl Binary {
     Ok(())
   }
 
-
   #[inline]
   unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
     let p = this.add(1) as *const u8;
     core::ptr::read(p.add(i))
   }
-
 
   /// Called from LTerm formatting function to print binary contents
   pub unsafe fn format_binary(

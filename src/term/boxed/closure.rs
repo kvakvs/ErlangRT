@@ -11,7 +11,7 @@ use crate::{
     lterm::*,
   },
 };
-use core::{mem::size_of};
+use core::mem::size_of;
 
 const fn module() -> &'static str {
   "closure: "

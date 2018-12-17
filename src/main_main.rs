@@ -3,9 +3,7 @@ use crate::{
   term::lterm::*,
 };
 
-
 use std::{thread, time};
-
 
 /// Entry point for the command-line interface
 #[inline]

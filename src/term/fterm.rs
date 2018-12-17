@@ -6,8 +6,8 @@
 //! loading time, not for internal VM logic. VM uses `low_level::LTerm`
 //!
 use crate::{
-  emulator::heap::Heap,
   defs::{SWord, Word},
+  emulator::heap::Heap,
   term::lterm::*,
 };
 use num::{bigint::BigInt, FromPrimitive};
@@ -15,7 +15,6 @@ use num::{bigint::BigInt, FromPrimitive};
 fn module() -> &'static str {
   "term::friendly: "
 }
-
 
 /// A friendly Rust-enum representing Erlang term both runtime and load-time
 /// values. Make sure to crash nicely when runtime mixes with load-time.

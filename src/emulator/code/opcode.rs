@@ -8,11 +8,9 @@ use crate::{
   term::lterm::{LTerm, SPECIALTAG_OPCODE},
 };
 
-
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct RawOpcode(pub u8);
-
 
 impl RawOpcode {
   pub fn get(self) -> u8 {
@@ -31,13 +29,11 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
   LTerm::make_special(SPECIALTAG_OPCODE, raw8 as Word).raw()
 }
 
-
 #[inline]
 #[cfg(not(debug_assertions))]
 pub fn to_memory_word(raw: RawOpcode) -> Word {
   raw.0 as Word
 }
-
 
 /// Convert the opcode from memory format into raw. For debug build it was
 /// decorated as Immediate3.
@@ -56,13 +52,11 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
   opc as RawOpcode
 }
 
-
 #[inline]
 #[cfg(not(debug_assertions))]
 pub fn from_memory_word(m: Word) -> RawOpcode {
   RawOpcode(m as u8)
 }
-
 
 /// Debug version: Load an opcode and assert that it is decorated as Immediate3.
 #[inline]
@@ -82,7 +76,6 @@ pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   debug_assert!(opc <= gen_op::OPCODE_MAX);
   opc as RawOpcode
 }
-
 
 /// Release version. Load an opcode.
 #[inline]

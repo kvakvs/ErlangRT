@@ -6,7 +6,6 @@ use crate::{
 };
 use core::{mem::size_of, ptr};
 
-
 #[allow(dead_code)]
 pub struct Float {
   header: BoxHeader,
@@ -19,7 +18,6 @@ impl Float {
     ByteSize::new(core::mem::size_of::<Float>()).words_rounded_up()
   }
 
-
   #[allow(dead_code)]
   fn new(value: f64) -> Float {
     let storage_size = ByteSize::new(size_of::<Float>()).words_rounded_up();
@@ -28,7 +26,6 @@ impl Float {
       value,
     }
   }
-
 
   #[allow(dead_code)]
   pub unsafe fn create_into(hp: &mut Heap, value: f64) -> RtResult<*mut Float> {

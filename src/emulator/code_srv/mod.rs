@@ -21,11 +21,9 @@ use crate::{
   term::lterm::*,
 };
 
-
 fn module() -> &'static str {
   "code_srv: "
 }
-
 
 // Contains 2 versions of module code: current and previous
 #[allow(dead_code)]
@@ -37,7 +35,6 @@ struct ModuleGenerations {
   old_version: usize,
 }
 
-
 pub struct CodeServer {
   // Mapping {atom(): ModuleGenerations} where generations contains current
   // and previous mod versions
@@ -45,7 +42,6 @@ pub struct CodeServer {
   search_path: Vec<String>,
   mod_version: usize,
 }
-
 
 //lazy_static! {
 //  static ref CODE_SRV: RwLock<CodeServer> = {
@@ -57,7 +53,6 @@ pub struct CodeServer {
 //    AtomicUsize::new(0)
 //  };
 //}
-
 
 impl CodeServer {
   pub fn new() -> CodeServer {
@@ -71,7 +66,6 @@ impl CodeServer {
     }
   }
 
-
   // Find a module and verify that the given version exists
   pub fn lookup_far_pointer(&self, farp: FarCodePointer) -> Option<CodePtr> {
     match self.mods.get(&farp.mod_id.module) {
@@ -79,7 +73,6 @@ impl CodeServer {
       Some(_mptr) => panic!("Not impl"),
     }
   }
-
 
   /// Find module:function/arity
   pub fn lookup(&self, mfarity: &MFArity) -> RtResult<CodePtr> {
@@ -93,7 +86,6 @@ impl CodeServer {
     }
   }
 
-
   /// Find the module file from search path and return the path or error.
   pub fn find_module_file(&mut self, filename: &str) -> RtResult<PathBuf> {
     match first_that_exists(&self.search_path, filename) {
@@ -101,7 +93,6 @@ impl CodeServer {
       None => Err(Error::FileNotFound(filename.to_string())),
     }
   }
-
 
   /// Notify the code server about the fact that a new module is ready to be
   /// added to the codebase.
@@ -116,7 +107,6 @@ impl CodeServer {
     };
     self.mods.insert(name, mg);
   }
-
 
   /// Lookup, which will attempt to load a missing module if lookup fails
   /// on the first attempt.
@@ -149,7 +139,6 @@ impl CodeServer {
     }
   }
 
-
   /// Internal function: runs 3 stages of module loader and returns an atomic
   /// refc (Arc) module pointer or an error
   fn try_load_module(&mut self, mod_file_path: &PathBuf) -> RtResult<()> {
@@ -157,7 +146,6 @@ impl CodeServer {
     self.module_loaded(mod_ptr);
     Ok(())
   }
-
 
   /// Given a code address try find a module and function where this belongs.
   // TODO: Optimize search by giving a module name hint and using a range tree
@@ -180,7 +168,6 @@ impl CodeServer {
     ver
   }
 }
-
 
 /// Iterate through the search path list and try to find a file
 fn first_that_exists(search_path: &[String], filename: &str) -> Option<PathBuf> {
@@ -205,14 +192,12 @@ fn first_that_exists(search_path: &[String], filename: &str) -> Option<PathBuf> 
 //  cs.lookup(mfarity)
 //}
 
-
 //#[inline]
 //pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
 //  // TODO: Optimize by write-locking the load part and read-locking the lookup part
 //  let mut cs = CODE_SRV.write().unwrap();
 //  cs.lookup_and_load(mfarity)
 //}
-
 
 //#[inline]
 //pub fn code_reverse_lookup(ip: CodePtr) -> Option<MFArity> {

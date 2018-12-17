@@ -4,6 +4,7 @@
 //!
 
 use crate::{
+  defs::{ExceptionType, Word},
   emulator::{
     code_srv::CodeServer,
     heap::{Heap, DEFAULT_PROC_HEAP},
@@ -11,17 +12,14 @@ use crate::{
     runtime_ctx, scheduler,
   },
   fail::RtResult,
-  defs::{ExceptionType, Word},
   term::lterm::*,
 };
 
 use core::fmt;
 
-
 fn module() -> &'static str {
   "process: "
 }
-
 
 #[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -29,7 +27,6 @@ pub enum ProcessError {
   None,
   Exception(ExceptionType, LTerm),
 }
-
 
 impl fmt::Display for ProcessError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -72,7 +69,6 @@ pub struct Process {
   pub error: ProcessError,
 }
 
-
 impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
@@ -109,13 +105,11 @@ impl Process {
     }
   }
 
-
   /// Returns true if there was an error or exception during the last timeslice.
   #[inline]
   pub fn is_failed(&self) -> bool {
     self.error != ProcessError::None
   }
-
 
   #[allow(dead_code)]
   pub fn jump(
@@ -133,11 +127,9 @@ impl Process {
     }
   }
 
-
   pub fn exception(&mut self, exc: ExceptionType, rsn: LTerm) -> LTerm {
     self.set_error(ProcessError::Exception(exc, rsn))
   }
-
 
   /// Sets error state from an opcode or a BIF. VM will hopefully check this
   /// immediately and finish the process or catch the error.
@@ -146,7 +138,6 @@ impl Process {
     //    self.error = e;
     //    LTerm::non_value()
   }
-
 
   //  pub fn clear_error(&mut self) {
   //    self.error = ProcessError::None;

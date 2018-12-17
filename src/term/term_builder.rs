@@ -8,14 +8,12 @@ use crate::{
 };
 use num;
 
-
 // TODO: Remove templating on term type here
 
 /// A specific tuple builder implementation for `LTerm` and ERT VM.
 pub struct TupleBuilder {
   p: *mut boxed::Tuple,
 }
-
 
 impl TupleBuilder {
   pub fn new(p: *mut boxed::Tuple) -> TupleBuilder {
@@ -69,13 +67,11 @@ impl ListBuilder {
   }
 }
 
-
 /// Term Builder implementation for `LTerm` and ERT VM.
 pub struct TermBuilder {
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,
 }
-
 
 impl TermBuilder {
   pub fn new(hp: &mut Heap) -> TermBuilder {
@@ -84,13 +80,11 @@ impl TermBuilder {
     }
   }
 
-
   pub unsafe fn create_bignum(&self, n: num::BigInt) -> RtResult<LTerm> {
     let ref_heap = self.heap.as_mut().unwrap();
     let big_p = boxed::Bignum::create_into(ref_heap, n)?;
     Ok(LTerm::make_boxed(big_p))
   }
-
 
   pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<LTerm> {
     debug_assert!(!self.heap.is_null());
@@ -100,37 +94,31 @@ impl TermBuilder {
     Ok(LTerm::make_boxed(rbin))
   }
 
-
   #[inline]
   pub fn create_atom_str(&self, a: &str) -> LTerm {
     atom::from_str(a)
   }
-
 
   #[inline]
   pub fn create_nil(&self) -> LTerm {
     LTerm::nil()
   }
 
-
   #[inline]
   pub fn create_small_s(&self, n: isize) -> LTerm {
     LTerm::make_small_signed(n)
   }
-
 
   //  #[inline]
   //  pub fn create_empty_binary(&self) -> LTerm {
   //    LTerm::make_empty_binary()
   //  }
 
-
   pub fn create_tuple_builder(&mut self, sz: usize) -> RtResult<TupleBuilder> {
     let ref_heap = unsafe { self.heap.as_mut() }.unwrap();
     let raw_tuple = boxed::Tuple::create_into(ref_heap, sz)?;
     Ok(TupleBuilder::new(raw_tuple))
   }
-
 
   pub fn create_list_builder(&mut self) -> RtResult<ListBuilder> {
     unsafe { ListBuilder::new(self.heap) }

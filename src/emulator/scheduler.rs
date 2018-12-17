@@ -1,19 +1,17 @@
 //! Code related to task scheduling and priorities.
 use crate::{
+  defs::{ExceptionType, Word},
   emulator::{
     gen_atoms,
     process::{Process, ProcessError},
   },
-  defs::{ExceptionType, Word},
   term::lterm::*,
 };
 use std::collections::{HashMap, VecDeque};
 
-
 fn module() -> &'static str {
   "scheduler: "
 }
-
 
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
@@ -25,7 +23,6 @@ pub enum Prio {
   /// Takes priority always over everything else
   High = 2,
 }
-
 
 /// Enum identifies current registration of the process
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -39,7 +36,6 @@ pub enum Queue {
   TimedWait,
   InfiniteWait,
 }
-
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[allow(dead_code)]
@@ -55,10 +51,8 @@ pub enum SliceResult {
   Exception,
 }
 
-
 /// How many Normal processes can be scheduled before Low gets to run.
 const NORMAL_ADVANTAGE: Word = 8;
-
 
 /// Maintains run queues for different priorities and allows queuing processes,
 /// suspending processes, work balancing (TODO), etc.
@@ -84,7 +78,6 @@ pub struct Scheduler {
   processes: HashMap<LTerm, Process>,
 }
 
-
 impl Scheduler {
   pub fn new() -> Scheduler {
     Scheduler {
@@ -101,14 +94,12 @@ impl Scheduler {
     }
   }
 
-
   /// Register a process `proc_` in the process table and also queue it for
   /// execution. This is invoked by vm when a new process is spawned.
   pub fn add(&mut self, pid: LTerm, proc_: Process) {
     self.processes.insert(pid, proc_);
     self.queue(pid);
   }
-
 
   /// Queue a process by its pid. Will `panic!` if the process doesn't exist
   /// or is already queued.
@@ -128,7 +119,6 @@ impl Scheduler {
       Prio::High => self.queue_high.push_back(pid),
     }
   }
-
 
   /// Get another process from the run queue for this scheduler.
   pub fn next_process(&mut self) -> Option<LTerm> {
@@ -205,20 +195,17 @@ impl Scheduler {
     self.current
   }
 
-
   /// Get a read-only process, if it exists. Return `None` if we are sorry.
   pub fn lookup_pid(&self, pid: LTerm) -> Option<&Process> {
     assert!(pid.is_local_pid());
     self.processes.get(&pid)
   }
 
-
   /// Get a reference to process, if it exists. Return `None` if we are sorry.
   pub fn lookup_pid_mut(&mut self, pid: LTerm) -> Option<&mut Process> {
     assert!(pid.is_local_pid());
     self.processes.get_mut(&pid)
   }
-
 
   pub fn exit_process(&mut self, pid: LTerm, e: ProcessError) {
     // assert that process is not in any queue

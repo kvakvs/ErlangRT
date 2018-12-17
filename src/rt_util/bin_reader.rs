@@ -1,7 +1,6 @@
 extern crate bytes;
 
 use self::bytes::ByteOrder;
-
 use core::fmt;
 use std::{cmp::min, fs::File, io::Read, path::PathBuf, str};
 
@@ -15,7 +14,6 @@ pub enum ReadError {
   PrematureEOF,
 }
 
-
 impl fmt::Display for ReadError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
@@ -25,9 +23,7 @@ impl fmt::Display for ReadError {
   }
 }
 
-
 pub type Hopefully<T> = Result<T, ReadError>;
-
 
 fn module() -> &'static str {
   "File reader: "

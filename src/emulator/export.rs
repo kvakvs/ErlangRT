@@ -1,6 +1,5 @@
 use crate::emulator::mfa::MFArity;
 
-
 /// A pointer to a code location: used in funs created with a `fun m:f/a`
 /// expression, in module export table and module local functions table.
 #[derive(Debug, Copy, Clone)]
@@ -10,12 +9,10 @@ pub struct Export {
   // pub dst: CallableLocation,
 }
 
-
 impl Export {
   pub fn new(mfa: MFArity) -> Export {
     Export { mfa }
   }
-
 
   //  pub fn new_code_offset(fa: &FunArity,
   //                         mod_id: &VersionedModuleId,

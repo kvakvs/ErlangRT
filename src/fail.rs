@@ -3,13 +3,12 @@
 //!
 use crate::{
   beam::compact_term::CTError,
-  emulator::heap::HeapError,
   defs::ExceptionType,
+  emulator::heap::HeapError,
   rt_util::bin_reader::{self, ReadError},
   term::lterm::LTerm,
 };
 use std::convert::From;
-
 
 // TODO: Rename to RTError-something
 #[derive(Debug)]
@@ -47,7 +46,6 @@ pub enum Error {
   ProcBinTooSmall(usize, usize), // want bytes, have bytes
 }
 
-
 impl From<bin_reader::ReadError> for Error {
   fn from(e: bin_reader::ReadError) -> Self {
     Error::ReadError(e)
@@ -59,7 +57,6 @@ impl From<HeapError> for Error {
     Error::HeapError(e)
   }
 }
-
 
 /// A templated error type based on `fail::Error`.
 pub type RtResult<T> = Result<T, Error>;

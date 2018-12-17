@@ -41,7 +41,6 @@ impl Import {
     Ok(LTerm::make_boxed(this))
   }
 
-
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Import> {
     helper_get_const_from_boxed_term::<Import>(
       t,
@@ -49,7 +48,6 @@ impl Import {
       Error::BoxedIsNotAnImport,
     )
   }
-
 
   #[allow(dead_code)]
   pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Import> {
@@ -60,13 +58,11 @@ impl Import {
     )
   }
 
-
   /// Lookup a function, referred by this object and possibly attempt code
   /// loading if the module was missing. Return a code pointer.
   pub fn resolve(&self, code_server: &mut CodeServer) -> RtResult<CodePtr> {
     code_server.lookup_and_load(&self.mfarity)
   }
-
 
   /// Assuming that this object refers to a BIF function, perform a BIF lookup.
   pub fn resolve_bif(&self) -> RtResult<BifFn> {

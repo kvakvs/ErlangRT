@@ -1,3 +1,4 @@
+use crate::defs::ByteSize;
 use crate::{
   defs::{Word, WordSize},
   emulator::heap::Heap,
@@ -8,8 +9,6 @@ use crate::{
   },
 };
 use core::{mem::size_of, ptr};
-use crate::defs::ByteSize;
-
 
 /// Represents Pid box on heap.
 pub struct ExternalPid {

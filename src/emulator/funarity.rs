@@ -2,10 +2,8 @@
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
 use crate::{defs::Arity, term::lterm::*};
-
 use core::fmt;
 use std::cmp::Ordering;
-
 
 /// Reference to an internal function in some module.
 #[derive(Debug, Eq, Clone)]
@@ -13,7 +11,6 @@ pub struct FunArity {
   pub f: LTerm,
   pub arity: Arity,
 }
-
 
 impl FunArity {
   //  /// Create an uninitialized function pointer for deferred initialization.
@@ -30,7 +27,6 @@ impl FunArity {
   }
 }
 
-
 impl Ord for FunArity {
   fn cmp(&self, other: &FunArity) -> Ordering {
     let fa = (self.f, self.arity);
@@ -38,20 +34,17 @@ impl Ord for FunArity {
   }
 }
 
-
 impl PartialOrd for FunArity {
   fn partial_cmp(&self, other: &FunArity) -> Option<Ordering> {
     Some(self.cmp(other))
   }
 }
 
-
 impl PartialEq for FunArity {
   fn eq(&self, other: &FunArity) -> bool {
     self.f == other.f && self.arity == other.arity
   }
 }
-
 
 // Printing funarities as "{}"
 impl fmt::Display for FunArity {

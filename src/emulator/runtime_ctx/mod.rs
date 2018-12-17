@@ -106,12 +106,12 @@ impl Context {
   }
 
   pub fn registers_slice(&mut self, sz: usize) -> &'static [LTerm] {
-//    debug_assert!(
-//      self.live >= sz,
-//      "Trying to slice {} (more registers than live {})",
-//      sz,
-//      self.live
-//    );
+    //    debug_assert!(
+    //      self.live >= sz,
+    //      "Trying to slice {} (more registers than live {})",
+    //      sz,
+    //      self.live
+    //    );
     unsafe { slice::from_raw_parts(self.regs.as_ptr(), sz) }
   }
 

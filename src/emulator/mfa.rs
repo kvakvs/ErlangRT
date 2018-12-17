@@ -2,7 +2,6 @@
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
 use crate::{defs::Arity, emulator::funarity::FunArity, term::lterm::*};
-
 use core::fmt;
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.

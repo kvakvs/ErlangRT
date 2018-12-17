@@ -1,3 +1,4 @@
+use crate::defs::ByteSize;
 use crate::{
   defs::WordSize,
   emulator::{export, heap::Heap, mfa::MFArity},
@@ -8,7 +9,6 @@ use crate::{
   },
 };
 use core::{mem::size_of, ptr};
-use crate::defs::ByteSize;
 
 #[allow(dead_code)]
 pub struct Export {
@@ -22,7 +22,6 @@ impl Export {
     ByteSize::new(size_of::<Export>()).words_rounded_up()
   }
 
-
   fn new(mfa: &MFArity) -> Export {
     let n_words = Export::storage_size();
     Export {
@@ -30,7 +29,6 @@ impl Export {
       exp: export::Export::new(*mfa),
     }
   }
-
 
   #[allow(dead_code)]
   pub unsafe fn create_into(hp: &mut Heap, mfa: &MFArity) -> RtResult<LTerm> {
@@ -41,7 +39,6 @@ impl Export {
     Ok(LTerm::make_boxed(this))
   }
 
-
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Export> {
     helper_get_const_from_boxed_term::<Export>(
       t,
@@ -49,7 +46,6 @@ impl Export {
       Error::BoxedIsNotAnExport,
     )
   }
-
 
   #[allow(dead_code)]
   pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Export> {

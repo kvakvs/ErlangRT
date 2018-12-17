@@ -7,7 +7,6 @@ use crate::{
 use core::{mem::size_of, ptr};
 use num::bigint::BigInt;
 
-
 #[allow(dead_code)]
 pub struct Bignum {
   header: BoxHeader,
@@ -25,14 +24,12 @@ impl Bignum {
     ByteSize::new(size_of::<Bignum>()).words_rounded_up()
   }
 
-
   fn new(bignum_size: WordSize, value: BigInt) -> Bignum {
     Bignum {
       header: BoxHeader::new(BOXTYPETAG_BIGINTEGER, bignum_size.words()),
       value,
     }
   }
-
 
   pub unsafe fn create_into(hp: &mut Heap, value: BigInt) -> RtResult<*mut Bignum> {
     let n_words = Bignum::storage_size();

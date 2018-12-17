@@ -1,7 +1,5 @@
-use core::fmt;
-
 use crate::emulator::{code::pointer::FarCodePointer, mfa::MFArity};
-
+use core::fmt;
 
 /// Result of Lambda Table loading prepared for use in the runtime.
 #[derive(Debug)]
@@ -13,13 +11,11 @@ pub struct FunEntry {
   //  ouniq: usize,
 }
 
-
 impl FunEntry {
   pub fn new(mfa: MFArity, nfree: usize) -> FunEntry {
     FunEntry { mfa, nfree }
   }
 }
-
 
 /// Defines where the export is pointing. Could be code pointer or a BIF and
 /// is terminated by a tail call or a return opcode (i.e. safely callable).
@@ -34,7 +30,6 @@ pub enum CallableLocation {
   //  /// Points to a BIF callable function.
   //  Bif(BifFn),
 }
-
 
 impl fmt::Debug for CallableLocation {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

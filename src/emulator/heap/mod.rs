@@ -1,6 +1,5 @@
 pub mod dump;
 pub mod iter;
-pub mod ptr;
 
 use crate::{
   defs::{Word, WordSize},

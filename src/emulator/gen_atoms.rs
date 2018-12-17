@@ -5,7 +5,6 @@
 
 use crate::term::lterm::*;
 
-
 pub const SYM_PLUS: LTerm = LTerm::make_atom(0);
 pub const SYM_MINUS: LTerm = LTerm::make_atom(1);
 pub const SEQ_2: LTerm = LTerm::make_atom(2);

@@ -5,12 +5,10 @@ use crate::{
 };
 use std::slice;
 
-
 pub fn make_badfun(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   let slice_of_one = unsafe { slice::from_raw_parts(&arg, 1) };
   make_badfun_n(slice_of_one, hp)
 }
-
 
 /// Create a `{badfun, ...}` tuple where `badfun` is followed by multiple args.
 pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
@@ -26,7 +24,6 @@ pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
   }
   Ok(val.make_term())
 }
-
 
 /// Create a `{badmatch, Arg}`.
 pub fn make_badmatch(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {

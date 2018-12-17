@@ -1,13 +1,12 @@
 use crate::{
   beam::gen_op,
+  defs::Word,
   emulator::{
     code::{opcode, CodePtr, Labels, RefCode},
     code_srv::CodeServer,
   },
-  defs::Word,
   term::lterm::*,
 };
-
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
@@ -19,7 +18,6 @@ pub unsafe fn disasm(code: RefCode, _labels: Option<&Labels>, code_server: &Code
     ip = disasm_op(ip, code_server);
   }
 }
-
 
 /// Given an IP code pointer which points to the opcode - print the opcode and
 /// args. Returns updated IP which points at the next opcode.
@@ -43,7 +41,6 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
 
   ip.add(n_args)
 }
-
 
 unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
   for arg_index in 0..n_args {

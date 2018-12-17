@@ -4,6 +4,7 @@
 //!
 
 use crate::{
+  defs::Word,
   emulator::{
     code_srv::CodeServer,
     mfa::MFArgs,
@@ -11,11 +12,9 @@ use crate::{
     scheduler::{Prio, Scheduler},
   },
   fail::RtResult,
-  defs::Word,
   term::lterm::*,
 };
 use std::cell::RefCell;
-
 
 //fn module() -> &'static str { "vm: " }
 

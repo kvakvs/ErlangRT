@@ -1,11 +1,10 @@
 use super::bin_reader::BinaryReader;
 use crate::{
-  fail::{Error, RtResult},
   defs::{self, SWord, Word},
+  fail::{Error, RtResult},
   term::{lterm::LTerm, term_builder::TermBuilder},
 };
 use num::{self, ToPrimitive};
-
 
 ///// Errors indicating a problem with External Term Format parser.
 //#[derive(Debug)]
@@ -13,7 +12,6 @@ use num::{self, ToPrimitive};
 //  ParseError(String),
 //  ReadError(ReadError),
 //}
-
 
 #[repr(u8)]
 #[allow(dead_code)]
@@ -49,16 +47,13 @@ enum Tag {
   SmallAtomUtf8 = 119,
 }
 
-
 fn module() -> &'static str {
   "external_term_format: "
 }
 
-
 fn fail<TermType: Copy>(msg: String) -> RtResult<TermType> {
   Err(Error::ETFParseError(msg))
 }
-
 
 /// Given a binary reader `r` parse term and return it, `heap` is used to
 /// allocate space for larger boxed terms.
@@ -70,7 +65,6 @@ pub fn decode(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   }
   decode_naked(r, tb)
 }
-
 
 /// Given an encoded term without ETF tag (131u8), read the term from `r` and
 /// place boxed term parts on heap `heap`.
@@ -121,7 +115,6 @@ pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTer
   }
 }
 
-
 /// Given `size`, read digits for a bigint.
 fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let sign = if r.read_u8() == 0 {
@@ -142,7 +135,6 @@ fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResul
   unsafe { Ok(tb.create_bignum(big)?) }
 }
 
-
 fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let n_bytes = r.read_u32be() as usize;
   if n_bytes == 0 {
@@ -152,7 +144,6 @@ fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> 
   let data = r.read_bytes(n_bytes)?;
   Ok(unsafe { tb.create_binary(&data)? })
 }
-
 
 /// Given arity, allocate a tuple and read its elements sequentially.
 fn decode_tuple(
@@ -168,25 +159,21 @@ fn decode_tuple(
   Ok(tuple_builder.make_term())
 }
 
-
 fn decode_u8(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let val = r.read_u8();
   Ok(tb.create_small_s(val as SWord))
 }
-
 
 fn decode_s32(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let val = r.read_u32be() as i32;
   Ok(tb.create_small_s(val as SWord))
 }
 
-
 fn decode_atom_latin1(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let sz = r.read_u16be();
   let val = r.read_str_latin1(sz as Word).unwrap();
   Ok(tb.create_atom_str(&val))
 }
-
 
 fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let n_elem = r.read_u32be();
@@ -213,7 +200,6 @@ fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   unsafe { list_builder.end(tl) }
   Ok(list_builder.make_term())
 }
-
 
 /// A string of bytes encoded as tag 107 (String) with 16-bit length.
 fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {

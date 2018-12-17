@@ -1,13 +1,12 @@
 use crate::{
+  defs::{Word, WordSize},
   emulator::heap::Heap,
   fail::{Error, RtResult},
-  defs::{Word, WordSize},
   term::{
     boxed::{self, BoxHeader, BOXTYPETAG_TUPLE},
     lterm::LTerm,
   },
 };
-
 
 /// A fixed-size array which stores everything in its allocated memory on
 /// process heap.
@@ -22,18 +21,15 @@ impl Tuple {
     WordSize::new(arity + BoxHeader::storage_size().words())
   }
 
-
   fn new(arity: usize) -> Tuple {
     Tuple {
       header: BoxHeader::new(BOXTYPETAG_TUPLE, arity),
     }
   }
 
-
   pub unsafe fn get_arity(this: *const Tuple) -> Word {
     (*this).header.get_arity()
   }
-
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
   pub fn create_into(hp: &mut Heap, arity: Word) -> RtResult<*mut Tuple> {
@@ -45,7 +41,6 @@ impl Tuple {
     Ok(p)
   }
 
-
   /// Convert any p into *const Tuple + checking the header word to be Tule
   pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Tuple> {
     let tp = p as *const Tuple;
@@ -54,7 +49,6 @@ impl Tuple {
     }
     Ok(tp)
   }
-
 
   /// Convert any p into *mut Tuple + checking the header word to be Tule
   pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Tuple> {
@@ -65,20 +59,17 @@ impl Tuple {
     Ok(tp)
   }
 
-
   pub unsafe fn set_raw_word_base0(this: *mut Tuple, index: Word, val: Word) {
     debug_assert!(index < Tuple::get_arity(this));
     let p = this as *mut Word;
     *p.offset(index as isize + 1) = val
   }
 
-
   pub unsafe fn set_element_base0(this: *mut Tuple, i: Word, val: LTerm) {
     // Take i-th word after the tuple header
     let word_ptr = this.add(1) as *mut Word;
     core::ptr::write(word_ptr.add(i), val.raw())
   }
-
 
   pub unsafe fn get_element_base0(this: *const Tuple, i: Word) -> LTerm {
     let word_ptr = this.add(1) as *const LTerm;

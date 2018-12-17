@@ -7,22 +7,18 @@ use crate::emulator::{
   function::FunEntry,
   gen_atoms,
 };
-//use emulator::export::Export;
 use crate::{
+  defs::{Word, WORD_BYTES},
   emulator::{heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
-  defs::{Word, WORD_BYTES},
   term::lterm::LTerm,
 };
 use std::collections::BTreeMap;
 
-
 pub type Ptr = Box<Module>;
-
 
 /// Stores f/arity mapping to offset in code.
 pub type ModuleFunTable = BTreeMap<FunArity, usize>;
-
 
 /// Represents a module with collection of functions. Modules are refcounted
 /// and can be freed early if the situation allows.
@@ -53,12 +49,10 @@ impl Module {
     })
   }
 
-
   /// Get module name field
   pub fn name(&self) -> LTerm {
     self.mod_id.module()
   }
-
 
   /// Find a `m:f/arity` in the functions table, `m` is checked to be equal to
   /// this module's name.
@@ -69,7 +63,6 @@ impl Module {
     //println!("mod Lookup {}/{}", fa.f, fa.arity);
     self.lookup_fa(&fa)
   }
-
 
   /// Find a `f/arity` in the functions table.
   pub fn lookup_fa(&self, fa: &FunArity) -> RtResult<CodePtr> {
@@ -84,7 +77,6 @@ impl Module {
       }
     }
   }
-
 
   /// Check whether IP belongs to this module's code range, and if so, try and
   /// find the MFA for the code location.
