@@ -1,8 +1,6 @@
 //!
 //! Helper module defines types used everywhere in the VM runtime
 //!
-pub mod stack;
-
 pub mod sizes;
 pub use self::sizes::*;
 
@@ -10,7 +8,6 @@ use std::{isize, usize};
 
 pub type Word = usize;
 pub type SWord = isize;
-
 pub type Arity = usize;
 
 //pub use term::immediate::SMALL_BITS;
@@ -29,7 +26,6 @@ pub const WORD_BYTES: Word = WORD_BITS / 8;
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 8;
 
-
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum ExceptionType {
@@ -37,7 +33,6 @@ pub enum ExceptionType {
   Error,
   Exit,
 }
-
 
 // / For n bytes calculate how many words are required to store this
 //#[inline]

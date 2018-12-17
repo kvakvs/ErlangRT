@@ -1,15 +1,13 @@
 use crate::{
+  defs::ExceptionType,
   emulator::{gen_atoms, process::Process},
   fail::{Error, RtResult},
-  defs::ExceptionType,
   term::lterm::*,
 };
-
 
 fn module() -> &'static str {
   "bif_compare: "
 }
-
 
 /// Calculate length of a list by traversing it.
 pub fn gcbif_length_1(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {

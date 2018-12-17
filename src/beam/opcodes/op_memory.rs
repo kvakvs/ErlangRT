@@ -1,6 +1,5 @@
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
-  defs::stack::IStack,
   emulator::{code::CodePtr, process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
 };

@@ -6,11 +6,9 @@ use crate::{
 
 use std::cmp::Ordering;
 
-
 fn module() -> &'static str {
   "bif_compare: "
 }
-
 
 /// Compare 2 terms with '=='
 pub fn ubif_seqeq_2_2(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
@@ -18,13 +16,11 @@ pub fn ubif_seqeq_2_2(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm
   shared_eq(args, false)
 }
 
-
 /// Compare 2 terms with '=:='
 pub fn ubif_seq_2_2(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, true)
 }
-
 
 #[inline]
 fn shared_eq(args: &[LTerm], exact: bool) -> RtResult<LTerm> {

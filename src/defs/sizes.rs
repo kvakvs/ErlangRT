@@ -32,7 +32,6 @@ impl fmt::Display for WordSize {
   }
 }
 
-
 #[derive(Copy, Clone)]
 pub struct ByteSize(usize);
 

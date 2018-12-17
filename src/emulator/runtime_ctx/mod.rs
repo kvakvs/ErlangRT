@@ -2,7 +2,7 @@
 //! a running process, such as registers, code pointer, etc.
 
 use crate::{
-  defs::{stack::IStack, Word, MAX_FPREGS, MAX_XREGS},
+  defs::{Word, MAX_FPREGS, MAX_XREGS},
   emulator::{code::CodePtr, heap},
   term::lterm::{
     LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,

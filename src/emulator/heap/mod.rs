@@ -3,7 +3,7 @@ pub mod iter;
 pub mod ptr;
 
 use crate::{
-  defs::{stack::IStack, Word, WordSize},
+  defs::{Word, WordSize},
   term::{boxed, lterm::*},
 };
 
@@ -137,9 +137,9 @@ pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
   iter::HeapIterator::new(begin, begin.offset(last))
 }
 
-impl IStack<LTerm> for Heap {
+impl Heap {
   #[inline]
-  fn stack_have(&self, need: Word) -> bool {
+  pub fn stack_have(&self, need: Word) -> bool {
     self.htop + need <= self.stop
   }
 
@@ -153,7 +153,7 @@ impl IStack<LTerm> for Heap {
   //  }
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  fn stack_alloc_unchecked(&mut self, need: Word) {
+  pub fn stack_alloc_unchecked(&mut self, need: Word) {
     self.stop -= need;
 
     // Clear the new cells
@@ -175,24 +175,24 @@ impl IStack<LTerm> for Heap {
   //    Ok(())
   //  }
 
-  //#[allow(dead_code)]
-  fn stack_info(&self) {
+  #[allow(dead_code)]
+  pub fn stack_info(&self) {
     println!("Stack (s_top {}, s_end {})", self.stop, self.send)
   }
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
-  fn stack_push_unchecked(&mut self, val: Word) {
+  pub fn stack_push_unchecked(&mut self, val: Word) {
     self.stop -= 1;
     self.data[self.stop] = val;
   }
 
   /// Check whether `y+1`-th element can be found in stack
   #[inline]
-  fn stack_have_y(&self, y: Word) -> bool {
+  pub fn stack_have_y(&self, y: Word) -> bool {
     self.send - self.stop >= y + 1
   }
 
-  fn stack_set_y(&mut self, index: Word, val: LTerm) -> Result<(), HeapError> {
+  pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> Result<(), HeapError> {
     if !self.stack_have_y(index) {
       return Err(HeapError::StackIndexRange);
     }
@@ -200,7 +200,7 @@ impl IStack<LTerm> for Heap {
     Ok(())
   }
 
-  fn stack_get_y(&self, index: Word) -> Result<LTerm, HeapError> {
+  pub fn stack_get_y(&self, index: Word) -> Result<LTerm, HeapError> {
     if !self.stack_have_y(index) {
       return Err(HeapError::StackIndexRange);
     }
@@ -208,12 +208,12 @@ impl IStack<LTerm> for Heap {
     Ok(LTerm::from_raw(self.data[pos]))
   }
 
-  fn stack_depth(&self) -> Word {
+  pub fn stack_depth(&self) -> Word {
     self.send - self.stop
   }
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
-  fn stack_deallocate(&mut self, n: Word) -> LTerm {
+  pub fn stack_deallocate(&mut self, n: Word) -> LTerm {
     assert!(
       self.stop + n < self.send,
       "Failed to dealloc {}+1 words (s_top {}, s_end {})",

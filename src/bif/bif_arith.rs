@@ -6,11 +6,9 @@ use crate::{
 
 use num;
 
-
 fn module() -> &'static str {
   "bif_arith: "
 }
-
 
 /// Subtraction for 2 mixed terms. Algorithm comes from Erlang/OTP file
 /// `erl_arith.c`, function `erts_mixed_minus`
@@ -29,7 +27,6 @@ pub fn ubif_sminus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm
   }
 }
 
-
 /// Addition for 2 mixed terms.
 pub fn ubif_splus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
@@ -46,7 +43,6 @@ pub fn ubif_splus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>
   }
 }
 
-
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement subtraction, possibly creating a big integer.
 fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
@@ -60,7 +56,6 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LT
   create_bigint(cur_proc, iresult)
 }
 
-
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement addition, possibly creating a big integer.
 fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
@@ -72,7 +67,6 @@ fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> 
   }
   create_bigint(cur_proc, iresult)
 }
-
 
 fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<LTerm> {
   // We're out of luck - the result is not a small, but we have BigInt!

@@ -4,7 +4,6 @@ use crate::{
   term::lterm::LTerm,
 };
 
-
 pub mod gen_bif; // generated
 
 //
@@ -19,7 +18,6 @@ pub mod bif_sys;
 pub use crate::bif::{
   bif_arith::*, bif_compare::*, bif_lists::*, bif_process::*, bif_sys::*,
 };
-
 
 /// A BIF function which runs under some process, takes some args (encoded in
 /// its name and hardcoded in its code), and returns an `LTerm`.
@@ -36,7 +34,6 @@ pub fn is_bif(mfa: &MFArity) -> bool {
   }
   false
 }
-
 
 pub fn find_bif(mfa: &MFArity) -> RtResult<BifFn> {
   // Naive implementation. TODO: Binary search or a hashmap
