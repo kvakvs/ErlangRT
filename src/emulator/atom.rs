@@ -2,20 +2,18 @@
 //! Global is ugly, but necessary for now. If we ever create more than 1 VM,
 //! this will have to be shared somehow.
 
+use crate::{
+  defs::Word,
+  emulator::gen_atoms,
+  fail::{Error, RtResult},
+  term::lterm::*,
+};
 use core::ptr;
 use std::{
   collections::BTreeMap,
   sync::{Mutex, MutexGuard},
   u16,
 };
-
-use crate::{
-  emulator::gen_atoms,
-  fail::{Error, RtResult},
-  defs::Word,
-  term::lterm::*,
-};
-
 
 /// Defines atom properties (length, compare helper integer)
 pub struct Atom {
@@ -28,7 +26,6 @@ pub struct Atom {
   // TODO: Allocate these on atom heap or as a sequence of static blocks
   pub name: String,
 }
-
 
 impl Atom {
   /// Create and fill atom description structure, it will exist forever on the
@@ -61,13 +58,11 @@ impl Atom {
   }
 }
 
-
 /// A quick way to find an atom index by its string.
 type StrLookup = BTreeMap<String, usize>;
 
 /// A quick way to find an atom by its index.
 type IndexLookup = Vec<Atom>;
-
 
 /// Lookup table for atom to atom index and back. Declared static for use by
 /// printing and atom loading facilities without having to pass the VM pointer
@@ -84,7 +79,6 @@ struct AtomStorage {
   atoms_r: Mutex<IndexLookup>,
 }
 
-
 /// Stores atom lookup tables.
 impl AtomStorage {
   pub fn add_init_atoms(&mut self) {
@@ -96,7 +90,6 @@ impl AtomStorage {
       assert_eq!(index, actual_i);
     }
   }
-
 
   fn register_atom(
     atoms: &mut MutexGuard<StrLookup>,
@@ -121,7 +114,6 @@ lazy_static! {
   };
 }
 
-
 // Allocate new atom in the atom table or find existing. Pack the atom index
 // as an immediate2 Term
 pub fn from_str(val: &str) -> LTerm {
@@ -138,7 +130,6 @@ pub fn from_str(val: &str) -> LTerm {
   LTerm::make_atom(index)
 }
 
-
 pub fn to_str(a: LTerm) -> RtResult<String> {
   assert!(a.is_atom());
   let p = lookup(a);
@@ -147,7 +138,6 @@ pub fn to_str(a: LTerm) -> RtResult<String> {
   }
   Ok(unsafe { (*p).name.clone() })
 }
-
 
 pub fn lookup(a: LTerm) -> *const Atom {
   assert!(a.is_atom());

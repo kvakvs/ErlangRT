@@ -591,7 +591,6 @@ impl Loader {
             match self.mod_id {
               Some(_mod_id) => {
                 self.funs.insert(funarity, fun_begin);
-                ()
               }
               None => panic!("{}mod_id must be set at this point", module()),
             }

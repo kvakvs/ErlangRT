@@ -1,5 +1,4 @@
 pub mod dump;
-pub mod heap_impl;
 pub mod iter;
 pub mod ptr;
 
@@ -10,13 +9,11 @@ use crate::{
 
 use core::fmt;
 
-
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: usize = 8192;
 
 /// Default heap size when spawning a process. (default: 300)
 pub const DEFAULT_PROC_HEAP: usize = 8192;
-
 
 #[derive(Debug)]
 pub enum HeapError {
@@ -27,7 +24,6 @@ pub enum HeapError {
   /// Attempt to index outside of the current stack.
   StackIndexRange,
 }
-
 
 /// A heap structure which grows upwards with allocations. Cannot expand
 /// implicitly and will return error when capacity is exceeded. Organize a
@@ -44,7 +40,6 @@ pub struct Heap {
 
 impl Heap {}
 
-
 impl fmt::Debug for Heap {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
@@ -55,7 +50,6 @@ impl fmt::Debug for Heap {
     )
   }
 }
-
 
 impl Heap {
   pub fn new(capacity: Word) -> Heap {
@@ -75,30 +69,25 @@ impl Heap {
     self.data.capacity()
   }
 
-
   /// How many words are used.
   fn htop(&self) -> usize {
     self.htop
   }
-
 
   /// This is used by heap walkers such as "dump.rs"
   fn heap_begin(&self) -> *const Word {
     &self.data[0] as *const Word
   }
 
-
   fn heap_begin_mut(&mut self) -> *mut Word {
     &mut self.data[0] as *mut Word
   }
 
-
   /// This is used by heap walkers such as "dump.rs"
   unsafe fn heap_end(&self) -> *const Word {
     let p = self.heap_begin();
-    p.offset(self.htop as isize)
+    p.add(self.htop)
   }
-
 
   pub fn alloc<T>(&mut self, n: WordSize, init_nil: bool) -> Result<*mut T, HeapError> {
     let pos = self.htop;
@@ -125,7 +114,6 @@ impl Heap {
     Ok(new_chunk as *mut T)
   }
 
-
   //  /// Allocate words on heap enough to store bignum digits and copy the given
   //  /// bignum to memory, return the pointer.
   //  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
@@ -135,13 +123,11 @@ impl Heap {
   //    }
   //  }
 
-
   #[inline]
   pub fn have(&self, need: Word) -> bool {
     self.htop + need <= self.stop
   }
 }
-
 
 /// Create a constant iterator for walking the heap.
 /// This is used by heap walkers such as "dump.rs"
@@ -151,13 +137,11 @@ pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
   iter::HeapIterator::new(begin, begin.offset(last))
 }
 
-
 impl IStack<LTerm> for Heap {
   #[inline]
   fn stack_have(&self, need: Word) -> bool {
     self.htop + need <= self.stop
   }
-
 
   //  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
   //    // Check if heap top is too close to stack top, then fail
@@ -168,7 +152,6 @@ impl IStack<LTerm> for Heap {
   //    Ok(())
   //  }
 
-
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
   fn stack_alloc_unchecked(&mut self, need: Word) {
     self.stop -= need;
@@ -176,13 +159,12 @@ impl IStack<LTerm> for Heap {
     // Clear the new cells
     let raw_nil = LTerm::nil().raw();
     unsafe {
-      let p = self.heap_begin_mut().offset(self.stop as isize);
+      let p = self.heap_begin_mut().add(self.stop);
       for y in 0..need {
-        *p.offset(y as isize) = raw_nil
+        core::ptr::write(p.add(y), raw_nil)
       }
     }
   }
-
 
   // TODO: Add unsafe push without range checks (batch check+multiple push)
   //  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
@@ -193,12 +175,10 @@ impl IStack<LTerm> for Heap {
   //    Ok(())
   //  }
 
-
   //#[allow(dead_code)]
   fn stack_info(&self) {
     println!("Stack (s_top {}, s_end {})", self.stop, self.send)
   }
-
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
   fn stack_push_unchecked(&mut self, val: Word) {
@@ -206,13 +186,11 @@ impl IStack<LTerm> for Heap {
     self.data[self.stop] = val;
   }
 
-
   /// Check whether `y+1`-th element can be found in stack
   #[inline]
   fn stack_have_y(&self, y: Word) -> bool {
     self.send - self.stop >= y + 1
   }
-
 
   fn stack_set_y(&mut self, index: Word, val: LTerm) -> Result<(), HeapError> {
     if !self.stack_have_y(index) {
@@ -222,7 +200,6 @@ impl IStack<LTerm> for Heap {
     Ok(())
   }
 
-
   fn stack_get_y(&self, index: Word) -> Result<LTerm, HeapError> {
     if !self.stack_have_y(index) {
       return Err(HeapError::StackIndexRange);
@@ -231,11 +208,9 @@ impl IStack<LTerm> for Heap {
     Ok(LTerm::from_raw(self.data[pos]))
   }
 
-
   fn stack_depth(&self) -> Word {
     self.send - self.stop
   }
-
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   fn stack_deallocate(&mut self, n: Word) -> LTerm {
@@ -253,13 +228,11 @@ impl IStack<LTerm> for Heap {
   }
 }
 
-
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
 #[inline]
 pub fn allocate_cons(hp: &mut Heap) -> Result<*mut boxed::Cons, HeapError> {
   hp.alloc::<boxed::Cons>(WordSize::new(2), false)
 }
-
 
 // / Expand heap to host `n` words of data
 //fn alloc_words<ResultType>(hp: &mut Heap, n: Word, init_nil: bool)

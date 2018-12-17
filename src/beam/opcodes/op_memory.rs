@@ -1,10 +1,9 @@
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  defs::stack::IStack,
   emulator::{code::CodePtr, process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
-  defs::stack::IStack,
 };
-
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
@@ -35,7 +34,6 @@ pub fn opcode_allocate_zero(
   Ok(DispatchResult::Normal)
 }
 
-
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
 #[inline]
 pub fn opcode_allocate(
@@ -45,7 +43,6 @@ pub fn opcode_allocate(
 ) -> RtResult<DispatchResult> {
   opcode_allocate_zero(vm, ctx, curr_p)
 }
-
 
 /// Pop `cp` from the top of the stack and then deallocate additional `n_free`
 /// words from the stack.
@@ -65,7 +62,6 @@ pub fn opcode_deallocate(
 
   Ok(DispatchResult::Normal)
 }
-
 
 /// Check that there are `heap_need` words available on heap, otherwise run the
 /// GC using `live` amount of registers as a part of root set.

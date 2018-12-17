@@ -12,7 +12,6 @@ use crate::{
 
 //fn module() -> &'static str { "vm_loop: " }
 
-
 impl VM {
   /// Take a process from scheduler.
   /// Fetch an opcode and execute it.

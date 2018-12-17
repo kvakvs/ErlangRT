@@ -1,13 +1,12 @@
 //! Module defines `CodeIterator` which can step over the code
 use crate::{
   beam::gen_op,
+  defs::Word,
   emulator::code::{
     opcode,
     pointer::{CodePtr, CodePtrMut},
   },
-  defs::Word,
 };
-
 
 // This is used by read-only code walkers such as "disasm.rs".
 #[allow(dead_code)]
@@ -15,7 +14,6 @@ pub struct CodeIterator {
   p: CodePtr,
   end: CodePtr,
 }
-
 
 // This is used by code walkers which modify the code values, such as code
 // loader postprocess algorithms.
@@ -31,12 +29,10 @@ impl CodeIteratorMut {
   }
 }
 
-
 impl CodeIterator {
   //  pub fn new(begin: CodePtr, end: CodePtr) -> CodeIterator {
   //    CodeIterator { p: begin, end }
   //  }
-
 
   //  /// Read current value at the iterator location.
   //  pub unsafe fn read_term(&self) -> LTerm {
@@ -45,10 +41,8 @@ impl CodeIterator {
   //  }
 }
 
-
 impl Iterator for CodeIterator {
   type Item = CodePtr;
-
 
   /// Given an iterator (`self`) step forward over its args to find another.
   fn next(&mut self) -> Option<Self::Item> {
@@ -69,7 +63,6 @@ impl Iterator for CodeIterator {
   }
 }
 
-
 ///// Create an iterator for readonly walking the code.
 //pub unsafe fn create(code: &[Word]) -> CodeIterator {
 //  let begin = &code[0] as *const Word;
@@ -78,10 +71,8 @@ impl Iterator for CodeIterator {
 //                    CodePtr::Ptr(last))
 //}
 
-
 impl Iterator for CodeIteratorMut {
   type Item = CodePtrMut;
-
 
   /// Given an iterator (`self`) step forward over its args to find another.
   fn next(&mut self) -> Option<Self::Item> {
@@ -105,10 +96,9 @@ impl Iterator for CodeIteratorMut {
   }
 }
 
-
 /// Create am iterator for walking and modifying the code.
 pub unsafe fn create_mut(code: &mut Vec<Word>) -> CodeIteratorMut {
   let begin = &mut code[0] as *mut Word;
-  let end = begin.offset(code.len() as isize);
+  let end = begin.add(code.len());
   CodeIteratorMut::new(CodePtrMut(begin), CodePtrMut(end))
 }

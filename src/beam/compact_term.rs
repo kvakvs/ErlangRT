@@ -2,14 +2,13 @@
 //! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
 use crate::{
-  fail::{Error, RtResult},
   defs::{SWord, Word},
+  fail::{Error, RtResult},
   rt_util::bin_reader::BinaryReader,
   term::{fterm, integral::Integral},
 };
 
 use num::{bigint, ToPrimitive};
-
 
 #[repr(u8)]
 enum CTETag {
@@ -175,7 +174,6 @@ fn parse_ext_float(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   Ok(fterm::FTerm::Float(fp as defs::Float))
 }
 
-
 fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
@@ -185,7 +183,6 @@ fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   make_err(CTError::BadExtendedTag(msg))
 }
 
-
 fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
@@ -194,7 +191,6 @@ fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let msg = "toExt tag Literal value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
 }
-
 
 fn parse_ext_list(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   // The stream now contains a smallint size, then size/2 pairs of values

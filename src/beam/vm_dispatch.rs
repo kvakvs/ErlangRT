@@ -9,7 +9,6 @@ use crate::{
   fail::RtResult,
 };
 
-
 #[inline]
 pub fn dispatch_op_inline(
   vm: &VM,

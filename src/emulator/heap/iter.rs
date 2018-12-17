@@ -11,7 +11,6 @@ pub struct HeapIterator {
   end: *const LTerm,
 }
 
-
 impl HeapIterator {
   pub fn new(begin: *const LTerm, end: *const LTerm) -> HeapIterator {
     HeapIterator { p: begin, end }

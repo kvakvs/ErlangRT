@@ -11,13 +11,11 @@ use crate::{
     lterm::*,
   },
 };
-use core::{mem::size_of, ptr};
-
+use core::{mem::size_of};
 
 const fn module() -> &'static str {
   "closure: "
 }
-
 
 /// Boxed `Closure` is placed on heap and referred via LTerm::p
 #[allow(dead_code)]
@@ -40,7 +38,6 @@ impl Closure {
       .add(nfree)
   }
 
-
   fn new(mfa: MFArity, nfree: usize) -> Closure {
     let arity = Closure::storage_size(nfree).words() - 1;
     Closure {
@@ -51,7 +48,6 @@ impl Closure {
       frozen: LTerm::non_value(),
     }
   }
-
 
   pub unsafe fn create_into(
     hp: &mut Heap,
@@ -70,12 +66,12 @@ impl Closure {
       fe.nfree
     );
 
-    ptr::write(this, Closure::new(fe.mfa, fe.nfree));
+    core::ptr::write(this, Closure::new(fe.mfa, fe.nfree));
 
     assert_eq!(frozen.len(), fe.nfree as usize);
     // step 1 closure forward, which will point exactly at the frozen location
     let dst = this.offset(1);
-    ptr::copy(
+    core::ptr::copy(
       frozen.as_ptr() as *const Word,
       dst as *mut Word,
       fe.nfree as usize,
@@ -84,7 +80,6 @@ impl Closure {
     Ok(LTerm::make_boxed(this))
   }
 
-
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Closure> {
     helper_get_const_from_boxed_term::<Closure>(
       t,
@@ -92,7 +87,6 @@ impl Closure {
       Error::BoxedIsNotAClosure,
     )
   }
-
 
   #[allow(dead_code)]
   pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Closure> {

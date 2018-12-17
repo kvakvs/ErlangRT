@@ -93,7 +93,7 @@ impl TermBuilder {
 
 
   pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<LTerm> {
-    debug_assert!(self.heap.is_null() == false);
+    debug_assert!(!self.heap.is_null());
     let hp = self.heap.as_mut().unwrap();
     let rbin = boxed::Binary::create_into(hp, ByteSize::new(data.len()))?;
     boxed::Binary::store(rbin, data)?;

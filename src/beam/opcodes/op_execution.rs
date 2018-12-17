@@ -3,6 +3,7 @@
 
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  defs::stack::IStack,
   emulator::{
     code::CodePtr,
     process::Process,
@@ -10,15 +11,12 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  defs::stack::IStack,
   term::{boxed, lterm::*},
 };
-
 
 fn module() -> &'static str {
   "opcodes::op_execution: "
 }
-
 
 /// Perform a call to a `location` in code, storing address of the next opcode
 /// in `ctx.cp`.
@@ -47,7 +45,6 @@ pub fn opcode_call(
   Ok(DispatchResult::Normal)
 }
 
-
 /// Perform a call to a `location` in code, the `ctx.cp` is not updated.
 /// Behaves like a jump?
 #[inline]
@@ -74,7 +71,6 @@ pub fn opcode_call_only(
   Ok(DispatchResult::Normal)
 }
 
-
 /// Performs a tail recursive call to a Destination mfarity (a `HOImport`
 /// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
 /// point to an external function or a BIF. Does not update the `ctx.cp`.
@@ -92,7 +88,6 @@ pub fn opcode_call_ext_only(
   shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
 }
 
-
 /// Performs a call to a Destination mfarity (a `HOImport` object on the heap
 /// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
 /// function or a BIF. Updates the `ctx.cp` with return IP.
@@ -109,7 +104,6 @@ pub fn opcode_call_ext(
   let args = ctx.registers_slice(arity);
   shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, true)
 }
-
 
 #[inline]
 fn shared_call_ext(
@@ -159,7 +153,6 @@ fn shared_call_ext(
   }
 }
 
-
 /// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
 /// the process has no more code to execute and will end with reason `normal`.
 #[inline]
@@ -186,7 +179,6 @@ pub fn opcode_return(
   Ok(DispatchResult::Normal)
 }
 
-
 #[inline]
 pub fn opcode_func_info(
   _vm: &VM,
@@ -201,7 +193,6 @@ pub fn opcode_func_info(
   panic!("{}function_clause {}:{}/{}", module(), m, f, arity)
   //DispatchResult::Error
 }
-
 
 /// Create an error:badmatch exception
 #[inline]

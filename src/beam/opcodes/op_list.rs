@@ -9,11 +9,9 @@ use crate::{
   term::lterm::LTerm,
 };
 
-
 fn module() -> &'static str {
   "opcodes::op_list: "
 }
-
 
 /// Read the source `value` and check whether it is a list and not NIL. On
 /// false jump to the label `fail`.
@@ -40,7 +38,6 @@ pub fn opcode_is_nonempty_list(
   Ok(DispatchResult::Normal)
 }
 
-
 /// Check whether the value `value` is an empty list, jump to the `fail` label
 /// if it is not NIL.
 #[inline]
@@ -63,7 +60,6 @@ pub fn opcode_is_nil(
 
   Ok(DispatchResult::Normal)
 }
-
 
 /// Take a list `value` and split it into a head and tail, they are stored in
 /// `hd` and `tl` destinations respectively.
@@ -100,7 +96,6 @@ pub fn opcode_get_list(
 
   Ok(DispatchResult::Normal)
 }
-
 
 /// Given head and tail sources, `hd` and `tl`, read them and compose into a
 /// new list cell which is stored into `dst`.

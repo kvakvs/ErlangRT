@@ -6,7 +6,6 @@ use crate::{
   fail::RtResult,
 };
 
-
 /// Load a value from `src` and store it into `dst`. Source can be any literal
 /// term, a register or a stack cell. Destination can be any register or a
 /// stack cell.

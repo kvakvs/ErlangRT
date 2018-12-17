@@ -5,7 +5,6 @@ use crate::{
 };
 use std::cmp::Ordering;
 
-
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
 /// is stored in `stack` in `eq_terms()` function and tells where to resume
 /// comparing the previous term.
@@ -16,7 +15,6 @@ enum ContinueCompare {
   // Resume comparing Cons cells, we just reenter `eq_terms_cons`.
   Cons { a: LTerm, b: LTerm },
 }
-
 
 #[allow(dead_code)]
 enum EqResult {
@@ -32,7 +30,6 @@ enum EqResult {
     state: ContinueCompare,
   },
 }
-
 
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
@@ -81,7 +78,6 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
   }
 }
 
-
 /// Given a and b, terms, branch on their type and try do draw some conclusions.
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
   //println!("cmp any type {} {}", a, b);
@@ -121,13 +117,11 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
   cmp_terms_primary(a, b, exact)
 }
 
-
 #[inline]
 fn cmp_floats(a: LTerm, b: LTerm) -> Ordering {
   // Assume we know both values are floats
   unsafe { cmp_f64_naive(a.get_f64_unsafe(), b.get_f64_unsafe()) }
 }
-
 
 /// Naive f64 comparison, which does not work with NaN and Infinities
 #[inline]
@@ -142,14 +136,12 @@ fn cmp_f64_naive(a: f64, b: f64) -> Ordering {
   } else if a > b {
     return Ordering::Greater;
   }
-  return Ordering::Equal;
+  Ordering::Equal
 }
-
 
 fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
   panic!("TODO: eq_numbers_not_exact")
 }
-
 
 /// Compare two atoms for equality. Returns the ordering result.
 fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
@@ -172,14 +164,12 @@ fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
   }
 }
 
-
 /// Compare order of two types without looking into their value.
 fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
   let aclass = classify::classify_term(a);
   let bclass = classify::classify_term(b);
   aclass.cmp(&bclass)
 }
-
 
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
@@ -208,17 +198,15 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
         return Ok(EqResult::Concluded(cmp_mixed_types(a, b)?));
       }
 
-      return Ok(unsafe { cmp_cons(a, b) });
+      Ok(unsafe { cmp_cons(a, b) })
     }
 
     _ => {
       // Any non-boxed compare
       Ok(EqResult::Concluded(cmp_terms_immed(a, b, exact)?))
-    }
-    //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
+    } //_ => panic!("Primary tag {:?} eq_terms unsupported", a_prim_tag)
   }
 }
-
 
 // TODO: If this function is used a lot, optimize by doing case on tag bits
 fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
@@ -251,7 +239,6 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
     }
   }
 
-
   if a.is_boxed() {
     return cmp_terms_immed_box(a, b);
   }
@@ -272,7 +259,6 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
 
   panic!("TODO: eq_terms_immed {} {}", a, b)
 }
-
 
 #[inline]
 fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
@@ -390,12 +376,10 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
   panic!("TODO: eq_terms_immed_box {} {}", a, b)
 }
 
-
 /// Deeper comparison of two values with different types
 fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> RtResult<Ordering> {
   panic!("TODO: cmp_mixed_types(a, b)")
 }
-
 
 /// Compare two cons (list) cells.
 /// In case when first elements are equal and a deeper comparison is required,
@@ -446,7 +430,6 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     b_ptr = btl.get_cons_ptr();
   }
 }
-
 
 fn cmp_terms_box(_a: LTerm, _b: LTerm) -> RtResult<EqResult> {
   // TODO: see if cmp_terms_immed_box can be useful

@@ -1,13 +1,12 @@
 use crate::{
+  defs::ExceptionType,
   emulator::{gen_atoms, heap::Heap},
   fail::{Error, RtResult},
-  defs::ExceptionType,
   term::{
     builders::{make_badfun, make_badmatch},
     lterm::LTerm,
   },
 };
-
 
 /// Enum is used by VM dispatch handlers for opcodes to indicate whether to
 /// continue, yield (take next process in the queue) or interrupt process

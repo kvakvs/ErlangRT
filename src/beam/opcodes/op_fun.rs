@@ -14,7 +14,6 @@ use crate::{
 
 use std::slice;
 
-
 #[inline]
 pub fn opcode_make_fun2(
   _vm: &VM,
@@ -30,7 +29,7 @@ pub fn opcode_make_fun2(
 
   //panic!("boom");
   let hp = &mut curr_p.heap;
-  let closure= unsafe {
+  let closure = unsafe {
     let nfree = (*fe).nfree as usize;
     let frozen = ctx.registers_slice(nfree);
     boxed::Closure::create_into(hp, fe.as_ref().unwrap(), frozen)?
@@ -39,7 +38,6 @@ pub fn opcode_make_fun2(
 
   Ok(DispatchResult::Normal)
 }
-
 
 #[inline]
 pub fn opcode_call_fun(

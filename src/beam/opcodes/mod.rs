@@ -11,14 +11,11 @@ pub use crate::beam::opcodes::{
   op_bif::*, op_data::*, op_execution::*, op_fun::*, op_list::*, op_memory::*,
   op_predicates::*,
 };
-
-
 use crate::{
   beam::gen_op,
-  emulator::{code::opcode::RawOpcode, runtime_ctx::Context},
   defs::Word,
+  emulator::{code::opcode::RawOpcode, runtime_ctx::Context},
 };
-
 
 /// Run a check whether opcode is not too large (within the supported range).
 // TODO: Maybe #[inline] but now let compiler decide
@@ -35,11 +32,9 @@ pub fn assert_arity(op: RawOpcode, val: Word) {
   );
 }
 
-
 #[cfg(not(debug_assertions))]
 #[inline]
 pub fn assert_arity(_op: RawOpcode, _val: Word) {}
-
 
 /// Display an error about opcode not supported/not implemented.
 pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {

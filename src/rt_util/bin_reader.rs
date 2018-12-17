@@ -19,8 +19,8 @@ pub enum ReadError {
 impl fmt::Display for ReadError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      &ReadError::ReadFailed(ref s) => write!(f, "ReadFailed({})", s),
-      &ReadError::PrematureEOF => write!(f, "PrematureEOF"),
+      ReadError::ReadFailed(s) => write!(f, "ReadFailed({})", s),
+      ReadError::PrematureEOF => write!(f, "PrematureEOF"),
     }
   }
 }

@@ -5,7 +5,6 @@ use crate::term::{
   lterm::*,
 };
 
-
 fn module() -> &'static str {
   "classify: "
 }
@@ -46,13 +45,12 @@ pub enum TermClass {
   Special_,
 }
 
-
 pub fn classify_term(t: LTerm) -> TermClass {
   //let _v = t.raw();
   match t.get_term_tag() {
     TERMTAG_BOXED => {
       if t.is_cp() {
-        return TermClass::Special_;
+        TermClass::Special_
       } else {
         unsafe { classify_boxed(t) }
       }
@@ -66,7 +64,6 @@ pub fn classify_term(t: LTerm) -> TermClass {
     _ => panic!("{}Invalid primary tag", module()),
   }
 }
-
 
 fn classify_special(val: LTerm) -> TermClass {
   match val.get_special_tag() {
@@ -85,7 +82,6 @@ fn classify_special(val: LTerm) -> TermClass {
     SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk),
   }
 }
-
 
 /// Given term's raw value `v` and the term itself, try and figure out the
 /// classification value for this term.
@@ -106,7 +102,6 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
     ),
   }
 }
-
 
 ///// Given term's raw value `v` and the term itself, parse its immediate subtags
 ///// and figure out its classification value.

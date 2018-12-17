@@ -85,11 +85,12 @@ pub fn apply(
       if fail_label.is_cp() {
         ctx.ip = CodePtr::from_cp(fail_label)
       }
-      // Set exception via dispatchresult
-      return Err(bif_result.unwrap_err());
+      // Set exception via dispatchresult; pass through the error
+      Err(bif_result.unwrap_err())
     }
     Err(_) => {
-      return Err(bif_result.unwrap_err());
+      // pass through the error
+      Err(bif_result.unwrap_err())
     }
     Ok(val) => {
       println!("call_bif a={} gc={} call result {}", args.len(), gc, val);

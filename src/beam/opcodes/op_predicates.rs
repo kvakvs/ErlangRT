@@ -7,7 +7,6 @@ use crate::{
   term::{compare, lterm::LTerm},
 };
 
-
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
 #[inline]
 pub fn opcode_is_eq_exact(
@@ -19,7 +18,6 @@ pub fn opcode_is_eq_exact(
   assert_arity(gen_op::OPCODE_IS_EQ_EXACT, 3);
   shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Equal, false)
 }
-
 
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
 #[inline]
@@ -33,7 +31,6 @@ pub fn opcode_is_lt(
   shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Less, false)
 }
 
-
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
 #[inline]
 pub fn opcode_is_eq(
@@ -46,7 +43,6 @@ pub fn opcode_is_eq(
   shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Equal, false)
 }
 
-
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
 #[inline]
 pub fn opcode_is_ge(
@@ -58,7 +54,6 @@ pub fn opcode_is_ge(
   assert_arity(gen_op::OPCODE_IS_EQ, 3);
   shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Less, true) // inverted, other than less will be fail
 }
-
 
 #[inline]
 /// Shared code for equality checks. Assumes arg0 - fail label, arg1,2 - values

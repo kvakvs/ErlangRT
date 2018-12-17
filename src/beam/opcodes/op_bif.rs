@@ -11,7 +11,6 @@ use crate::{
   term::lterm::*,
 };
 
-
 /// Call a bif defined by `m:f/0`, a `HOImport` import object stored on heap
 /// there is no way it can fail for bif0 so there is no fail label for bif0,
 /// Result is stored into `dst`.
@@ -33,7 +32,6 @@ pub fn opcode_bif0(
   call_bif::apply(ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
 }
 
-
 #[inline]
 pub fn opcode_bif1(
   _vm: &VM,
@@ -52,7 +50,6 @@ pub fn opcode_bif1(
   call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
 }
 
-
 #[inline]
 pub fn opcode_bif2(
   _vm: &VM,
@@ -70,7 +67,6 @@ pub fn opcode_bif2(
   let cb_target = call_bif::CallBifTarget::ImportTerm(target);
   call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
 }
-
 
 #[inline]
 pub fn opcode_gc_bif1(
@@ -91,7 +87,6 @@ pub fn opcode_gc_bif1(
   call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
 }
 
-
 #[inline]
 pub fn opcode_gc_bif2(
   _vm: &VM,
@@ -111,7 +106,6 @@ pub fn opcode_gc_bif2(
   let cb_target = call_bif::CallBifTarget::ImportTerm(target);
   call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
 }
-
 
 #[inline]
 pub fn opcode_gc_bif3(

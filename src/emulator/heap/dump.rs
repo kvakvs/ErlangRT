@@ -1,10 +1,9 @@
 //! Debug tool to display Erlang heap contents.
 use crate::{
-  emulator::heap::{heap_iter, Heap},
   defs::Word,
+  emulator::heap::{heap_iter, Heap},
   term::lterm::TERMTAG_BOXED,
 };
-
 
 impl Heap {
   /// Print heap contents
@@ -35,14 +34,11 @@ impl Heap {
       }
 
       // Display a warning if boxed points outside the current heap
-      match val_at_addr.get_term_tag() {
-        TERMTAG_BOXED => {
-          let p = val_at_addr.get_box_ptr() as *const Word;
-          if p < self.heap_begin() || p >= self.heap_end() {
-            output += " <- heap bounds!";
-          }
+      if let TERMTAG_BOXED = val_at_addr.get_term_tag() {
+        let p = val_at_addr.get_box_ptr() as *const Word;
+        if p < self.heap_begin() || p >= self.heap_end() {
+          output += " <- heap bounds!";
         }
-        _ => {}
       }
 
       println!("{}", output)
