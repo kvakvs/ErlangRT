@@ -5,6 +5,7 @@
 //!
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
+use crate::emulator::gen_atoms;
 use crate::{
   defs::*,
   emulator::heap::Heap,
@@ -532,6 +533,27 @@ impl LTerm {
   pub fn is_external_ref(self) -> bool {
     false
   }
+
+  //
+  // BOOLEAN ===============
+  //
+  #[inline]
+  pub fn make_bool(v: bool) -> LTerm {
+    if v {
+      return gen_atoms::TRUE;
+    }
+    gen_atoms::FALSE
+  }
+
+  #[inline]
+  pub const fn is_true(self) -> bool {
+    self.value == gen_atoms::TRUE.raw()
+  }
+
+  #[inline]
+  pub const fn is_false(self) -> bool {
+    self.value == gen_atoms::FALSE.raw()
+  }
 }
 
 //
@@ -627,5 +649,5 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
   if (*hptr).get_tag() == box_type {
     return Ok(cptr);
   }
-  Err(Error::BoxedIsNotTaggedAs(box_type))
+  Err(Error::BoxedTagCheckFailed)
 }

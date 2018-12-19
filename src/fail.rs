@@ -1,5 +1,5 @@
 //!
-//! Generic errors used everywhere in the VM runtime.
+//! Generic errors used everywhere in the ErlangRT runtime.
 //!
 use crate::{
   beam::compact_term::CTError,
@@ -9,7 +9,6 @@ use crate::{
   term::lterm::LTerm,
 };
 use std::convert::From;
-use crate::term::boxed::box_header::BoxTypeTag;
 
 // TODO: Rename to RTError-something
 #[derive(Debug)]
@@ -36,14 +35,16 @@ pub enum Error {
   //--- VM Checks --
   Exception(ExceptionType, LTerm), // type, value
   TermIsNotABoxed,
-  BoxedIsNotTaggedAs(BoxTypeTag),
+  // used by `helper_get_mut_from_boxed_term` when boxed tag is different from
+  // what is expected
+  BoxedTagCheckFailed,
   BoxedIsNotAClosure,
   BoxedIsNotAnImport,
   BoxedIsNotAnExport,
   BoxedIsNotATuple,
 
   //--- Binary ---
-  CannotCopyIntoRefbin,
+  CannotCopyIntoRefbin, // To copy into binary, resolve ref into heapbin
   HeapBinTooSmall(usize, usize), // want bytes, have bytes
   ProcBinTooSmall(usize, usize), // want bytes, have bytes
 }

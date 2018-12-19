@@ -5,76 +5,89 @@
 
 use crate::term::lterm::*;
 
+
 pub const SYM_PLUS: LTerm = LTerm::make_atom(0);
 pub const SYM_MINUS: LTerm = LTerm::make_atom(1);
-pub const SEQ_2: LTerm = LTerm::make_atom(2);
-pub const SYM_EQ_EQ: LTerm = LTerm::make_atom(3);
-pub const APPLY: LTerm = LTerm::make_atom(4);
-pub const BADARG: LTerm = LTerm::make_atom(5);
-pub const BADARITH: LTerm = LTerm::make_atom(6);
-pub const BADARITY: LTerm = LTerm::make_atom(7);
-pub const BADFUN: LTerm = LTerm::make_atom(8);
-pub const BADMATCH: LTerm = LTerm::make_atom(9);
-pub const CASE_CLAUSE: LTerm = LTerm::make_atom(10);
-pub const ERLANG: LTerm = LTerm::make_atom(11);
-pub const ERROR: LTerm = LTerm::make_atom(12);
-pub const EXIT: LTerm = LTerm::make_atom(13);
-pub const FALSE: LTerm = LTerm::make_atom(14);
-pub const FUNCTION_CLAUSE: LTerm = LTerm::make_atom(15);
-pub const HIGH: LTerm = LTerm::make_atom(16);
-pub const IF_CLAUSE: LTerm = LTerm::make_atom(17);
-pub const INIT: LTerm = LTerm::make_atom(18);
-pub const KILL: LTerm = LTerm::make_atom(19);
-pub const KILLED: LTerm = LTerm::make_atom(20);
-pub const LENGTH: LTerm = LTerm::make_atom(21);
-pub const LOW: LTerm = LTerm::make_atom(22);
-pub const MAKE_FUN: LTerm = LTerm::make_atom(23);
-pub const NIF_ERROR: LTerm = LTerm::make_atom(24);
-pub const NOCATCH: LTerm = LTerm::make_atom(25);
-pub const NORMAL: LTerm = LTerm::make_atom(26);
-pub const OK: LTerm = LTerm::make_atom(27);
-pub const SELF: LTerm = LTerm::make_atom(28);
-pub const SYSTEM_LIMIT: LTerm = LTerm::make_atom(29);
-pub const THROW: LTerm = LTerm::make_atom(30);
-pub const TRAP_EXIT: LTerm = LTerm::make_atom(31);
-pub const TRUE: LTerm = LTerm::make_atom(32);
-pub const UNDEF: LTerm = LTerm::make_atom(33);
-pub const UNDEFINED: LTerm = LTerm::make_atom(34);
+pub const SNEQEQ_2: LTerm = LTerm::make_atom(2);
+pub const SLT_2: LTerm = LTerm::make_atom(3);
+pub const SNEQ_2: LTerm = LTerm::make_atom(4);
+pub const SEQ_2: LTerm = LTerm::make_atom(5);
+pub const SLE_2: LTerm = LTerm::make_atom(6);
+pub const SYM_EQ_EQ: LTerm = LTerm::make_atom(7);
+pub const SGT_2: LTerm = LTerm::make_atom(8);
+pub const SGE_2: LTerm = LTerm::make_atom(9);
+pub const APPLY: LTerm = LTerm::make_atom(10);
+pub const BADARG: LTerm = LTerm::make_atom(11);
+pub const BADARITH: LTerm = LTerm::make_atom(12);
+pub const BADARITY: LTerm = LTerm::make_atom(13);
+pub const BADFUN: LTerm = LTerm::make_atom(14);
+pub const BADMATCH: LTerm = LTerm::make_atom(15);
+pub const CASE_CLAUSE: LTerm = LTerm::make_atom(16);
+pub const ERLANG: LTerm = LTerm::make_atom(17);
+pub const ERROR: LTerm = LTerm::make_atom(18);
+pub const EXIT: LTerm = LTerm::make_atom(19);
+pub const FALSE: LTerm = LTerm::make_atom(20);
+pub const FUNCTION_CLAUSE: LTerm = LTerm::make_atom(21);
+pub const HIGH: LTerm = LTerm::make_atom(22);
+pub const IF_CLAUSE: LTerm = LTerm::make_atom(23);
+pub const INIT: LTerm = LTerm::make_atom(24);
+pub const KILL: LTerm = LTerm::make_atom(25);
+pub const KILLED: LTerm = LTerm::make_atom(26);
+pub const LENGTH: LTerm = LTerm::make_atom(27);
+pub const LOW: LTerm = LTerm::make_atom(28);
+pub const MAKE_FUN: LTerm = LTerm::make_atom(29);
+pub const NIF_ERROR: LTerm = LTerm::make_atom(30);
+pub const NOCATCH: LTerm = LTerm::make_atom(31);
+pub const NORMAL: LTerm = LTerm::make_atom(32);
+pub const OK: LTerm = LTerm::make_atom(33);
+pub const SELF: LTerm = LTerm::make_atom(34);
+pub const SYSTEM_LIMIT: LTerm = LTerm::make_atom(35);
+pub const THROW: LTerm = LTerm::make_atom(36);
+pub const TRAP_EXIT: LTerm = LTerm::make_atom(37);
+pub const TRUE: LTerm = LTerm::make_atom(38);
+pub const UNDEF: LTerm = LTerm::make_atom(39);
+pub const UNDEFINED: LTerm = LTerm::make_atom(40);
 
 pub static ATOM_INIT_NAMES: &'static [&'static str] = &[
-  "+",               // id=0
-  "-",               // id=1
-  "=:=",             // id=2
-  "==",              // id=3
-  "apply",           // id=4
-  "badarg",          // id=5
-  "badarith",        // id=6
-  "badarity",        // id=7
-  "badfun",          // id=8
-  "badmatch",        // id=9
-  "case_clause",     // id=10
-  "erlang",          // id=11
-  "error",           // id=12
-  "exit",            // id=13
-  "false",           // id=14
-  "function_clause", // id=15
-  "high",            // id=16
-  "if_clause",       // id=17
-  "init",            // id=18
-  "kill",            // id=19
-  "killed",          // id=20
-  "length",          // id=21
-  "low",             // id=22
-  "make_fun",        // id=23
-  "nif_error",       // id=24
-  "nocatch",         // id=25
-  "normal",          // id=26
-  "ok",              // id=27
-  "self",            // id=28
-  "system_limit",    // id=29
-  "throw",           // id=30
-  "trap_exit",       // id=31
-  "true",            // id=32
-  "undef",           // id=33
-  "undefined",       // id=34
+  "+", // id=0
+  "-", // id=1
+  "/=", // id=2
+  "<", // id=3
+  "=/=", // id=4
+  "=:=", // id=5
+  "=<", // id=6
+  "==", // id=7
+  ">", // id=8
+  ">=", // id=9
+  "apply", // id=10
+  "badarg", // id=11
+  "badarith", // id=12
+  "badarity", // id=13
+  "badfun", // id=14
+  "badmatch", // id=15
+  "case_clause", // id=16
+  "erlang", // id=17
+  "error", // id=18
+  "exit", // id=19
+  "false", // id=20
+  "function_clause", // id=21
+  "high", // id=22
+  "if_clause", // id=23
+  "init", // id=24
+  "kill", // id=25
+  "killed", // id=26
+  "length", // id=27
+  "low", // id=28
+  "make_fun", // id=29
+  "nif_error", // id=30
+  "nocatch", // id=31
+  "normal", // id=32
+  "ok", // id=33
+  "self", // id=34
+  "system_limit", // id=35
+  "throw", // id=36
+  "trap_exit", // id=37
+  "true", // id=38
+  "undef", // id=39
+  "undefined", // id=40
 ];

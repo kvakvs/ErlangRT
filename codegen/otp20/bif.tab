@@ -269,14 +269,14 @@ ubif erlang:self/0
 # ubif erlang:'xor'/2
 # ubif erlang:'not'/1
 #
-# ubif erlang:'>'/2			sgt_2
-# ubif erlang:'>='/2			sge_2
-# ubif erlang:'<'/2			slt_2
-# ubif erlang:'=<'/2			sle_2
+ubif erlang:'>'/2			sgt_2
+ubif erlang:'>='/2			sge_2
+ubif erlang:'<'/2			slt_2
+ubif erlang:'=<'/2			sle_2
 ubif erlang:'=:='/2			seq_2
 ubif erlang:'=='/2			seqeq_2
-# ubif erlang:'=/='/2			sneq_2
-# ubif erlang:'/='/2			sneqeq_2
+ubif erlang:'=/='/2			sneq_2
+ubif erlang:'/='/2			sneqeq_2
 ubif erlang:'+'/2			splus_2
 ubif erlang:'-'/2			sminus_2
 # ubif erlang:'*'/2			stimes_2
