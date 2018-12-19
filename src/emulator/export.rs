@@ -1,17 +1,18 @@
+use crate::emulator::code::pointer::VersionedCodePtr;
 use crate::emulator::mfa::MFArity;
 
 /// A pointer to a code location: used in funs created with a `fun m:f/a`
 /// expression, in module export table and module local functions table.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Export {
   /// Where the export points to.
   pub mfa: MFArity,
-  // pub dst: CallableLocation,
+  pub dst: Option<VersionedCodePtr>,
 }
 
 impl Export {
   pub fn new(mfa: MFArity) -> Export {
-    Export { mfa }
+    Export { mfa, dst: None }
   }
 
   //  pub fn new_code_offset(fa: &FunArity,

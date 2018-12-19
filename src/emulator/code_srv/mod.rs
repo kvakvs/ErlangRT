@@ -2,24 +2,23 @@
 //! Code server loads modules and stores them in memory, handles code lookups
 //! as well as dynamic reloading and partial unloading.
 //!
-pub mod module_id;
 
-use std::{
-  collections::BTreeMap,
-  path::{Path, PathBuf},
-};
-
+use crate::emulator::module::Module;
 use crate::{
   beam::loader,
   emulator::{
     atom,
-    code::{pointer::FarCodePointer, CodePtr},
+    code::{pointer::VersionedCodePtr, CodePtr},
     mfa::MFArity,
-    module,
   },
   fail::{Error, RtResult},
   term::lterm::*,
 };
+use std::{
+  collections::BTreeMap,
+  path::{Path, PathBuf},
+};
+use crate::emulator::module::VersionedModuleName;
 
 fn module() -> &'static str {
   "code_srv: "
@@ -28,10 +27,10 @@ fn module() -> &'static str {
 // Contains 2 versions of module code: current and previous
 #[allow(dead_code)]
 struct ModuleGenerations {
-  curr_modp: module::Ptr,
+  curr_modp: Box<Module>,
   curr_version: usize,
   // old module pointer can be None, then version makes no sense
-  old_modp: Option<module::Ptr>,
+  old_modp: Option<Box<Module>>,
   old_version: usize,
 }
 
@@ -67,14 +66,33 @@ impl CodeServer {
   }
 
   // Find a module and verify that the given version exists
-  pub fn lookup_far_pointer(&self, farp: FarCodePointer) -> Option<CodePtr> {
-    match self.mods.get(&farp.mod_id.module) {
-      None => None,
-      Some(_mptr) => panic!("Not impl"),
+  // TODO: Verify version instead of doing this below
+//  pub fn lookup_far_pointer(&self, farp: VersionedCodePtr) -> Option<CodePtr> {
+//    match self.mods.get(&farp.versioned_name.module) {
+//      None => None,
+//      Some(_mptr) => panic!("Not impl"),
+//    }
+//  }
+
+  /// Find module:function/arity
+  /// Returns: Versioned pointer to code, suitable for storing
+  pub fn lookup_versioned(&self, mfarity: &MFArity) -> RtResult<VersionedCodePtr> {
+    let m = mfarity.m;
+    match self.mods.get(&m) {
+      None => {
+        let msg = format!("{}Module not found {}", module(), m);
+        Err(Error::ModuleNotFound(msg))
+      }
+      Some(mptr) => {
+        let v = VersionedModuleName::new(m, mptr.curr_version);
+        let code_p = mptr.curr_modp.lookup(mfarity)?;
+        Ok(VersionedCodePtr::new(v, code_p))
+      },
     }
   }
 
   /// Find module:function/arity
+  /// Returns: Memory pointer to code, not versioned (do not store)
   pub fn lookup(&self, mfarity: &MFArity) -> RtResult<CodePtr> {
     let m = mfarity.m;
     match self.mods.get(&m) {
@@ -96,9 +114,9 @@ impl CodeServer {
 
   /// Notify the code server about the fact that a new module is ready to be
   /// added to the codebase.
-  pub fn module_loaded(&mut self, mod_ptr: module::Ptr) {
-    let name = mod_ptr.mod_id.module;
-    let v = mod_ptr.mod_id.version;
+  pub fn module_loaded(&mut self, mod_ptr: Box<Module>) {
+    let name = mod_ptr.versioned_name.module;
+    let v = mod_ptr.versioned_name.version;
     let mg = ModuleGenerations {
       curr_modp: mod_ptr,
       curr_version: v,

@@ -7,6 +7,7 @@
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
 //!
+use crate::emulator::module::VersionedModuleName;
 use crate::{
   beam::{compact_term, gen_op},
   bif,
@@ -19,7 +20,7 @@ use crate::{
       pointer::CodePtrMut,
       Code, CodeOffset, LabelId,
     },
-    code_srv::{module_id::VersionedModuleId, CodeServer},
+    code_srv::CodeServer,
     funarity::FunArity,
     function::FunEntry,
     heap::{Heap, DEFAULT_LIT_HEAP},
@@ -41,6 +42,7 @@ use std::{
   io::{Cursor, Read},
   path::PathBuf,
 };
+use crate::emulator::module::Module;
 
 fn module() -> &'static str {
   "beam::loader: "
@@ -111,7 +113,7 @@ impl LoaderRaw {
 
 /// BEAM loader state.
 struct Loader {
-  mod_id: Option<VersionedModuleId>,
+  name: Option<VersionedModuleName>,
   raw: LoaderRaw,
 
   //--- Stage 2 structures filled later ---
@@ -160,7 +162,7 @@ impl Loader {
   pub fn new() -> Loader {
     Loader {
       raw: LoaderRaw::new(),
-      mod_id: None,
+      name: None,
 
       lit_tab: Vec::new(),
       lit_heap: Heap::new(DEFAULT_LIT_HEAP),
@@ -188,8 +190,8 @@ impl Loader {
   }
 
   fn module_name(&self) -> LTerm {
-    match self.mod_id {
-      Some(mod_id) => mod_id.module(),
+    match &self.name {
+      Some(mod_id) => mod_id.module,
       None => panic!("{}mod_id must be set at this point", module()),
     }
   }
@@ -294,9 +296,9 @@ impl Loader {
   /// At this point loading is finished, and we create Erlang module and
   /// return a reference counted pointer to it. VM (the caller) is responsible
   /// for adding the module to its code registry.
-  pub fn load_finalize(&mut self) -> RtResult<module::Ptr> {
-    let mut newmod = match self.mod_id {
-      Some(mod_id) => module::Module::new(&mod_id),
+  pub fn load_finalize(&mut self) -> RtResult<Box<Module>> {
+    let mut newmod = match &self.name {
+      Some(mod_id) => Box::new(module::Module::new(mod_id)),
       None => panic!("{}mod_id must be set at this point", module()),
     };
 
@@ -359,9 +361,12 @@ impl Loader {
 
   fn set_mod_id(&mut self, code_server: &mut CodeServer) {
     assert!(!self.vm_atoms.is_empty());
+    // 0-th atom in the atom table is module name
     let mod_name = self.vm_atoms[0];
-    let ver = code_server.next_module_version(mod_name);
-    self.mod_id = Some(VersionedModuleId::new(mod_name, ver))
+    self.name = Some(VersionedModuleName {
+      module: mod_name,
+      version: code_server.next_module_version(mod_name),
+    });
   }
 
   /// Load the `Code` section
@@ -588,11 +593,10 @@ impl Loader {
 
             // Function code begins after the func_info opcode (1+3)
             let fun_begin = self.code.len() + 4;
-            match self.mod_id {
-              Some(_mod_id) => {
-                self.funs.insert(funarity, fun_begin);
-              }
-              None => panic!("{}mod_id must be set at this point", module()),
+            if self.name.is_some() {
+              self.funs.insert(funarity, fun_begin);
+            } else {
+              panic!("{}mod_id must be set at this point", module())
             }
           }
 
@@ -847,7 +851,7 @@ fn op_badarg_panic(op: RawOpcode, args: &[FTerm], argi: Word) {
 pub fn load_module(
   code_srv: &mut CodeServer,
   mod_file_path: &PathBuf,
-) -> RtResult<module::Ptr> {
+) -> RtResult<Box<Module>> {
   // Delegate the loading task to BEAM or another loader
   let mut loader = Loader::new();
 

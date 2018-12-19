@@ -2,7 +2,7 @@ use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
   defs::Arity,
-  emulator::{function::CallableLocation, process::Process, vm::VM},
+  emulator::{process::Process, vm::VM},
   fail::RtResult,
   term::{boxed, lterm::*},
 };
@@ -18,7 +18,7 @@ pub fn apply(
   vm: &VM,
   ctx: &mut Context,
   _curr_p: &mut Process,
-  closure: *const boxed::Closure,
+  closure: *mut boxed::Closure,
   args: &[LTerm],
 ) -> RtResult<DispatchResult> {
   let in_arity = args.len();
@@ -45,10 +45,16 @@ pub fn apply(
   }
 
   ctx.cp = ctx.ip;
-  let dst = unsafe { (*closure).dst };
+  let dst = unsafe { (*closure).dst.clone() };
+
+  // For dst, extract the code pointer, or update it
+  // TODO: Verify code pointer module version, and possibly invalidate it.
+  // OR TODO: subscribe from all exports to the module and get invalidation notifications
   ctx.ip = match dst {
-    CallableLocation::Code(p) => p.code_ptr(vm.code_server.borrow().as_ref()),
-    CallableLocation::NeedUpdate => panic!("Must not have this value here"),
+    Some(p) => p.ptr,
+    None => {
+      unsafe { (*closure).update_location(vm.code_server.borrow_mut().as_mut())? }
+    }
   };
   Ok(DispatchResult::Normal)
 }

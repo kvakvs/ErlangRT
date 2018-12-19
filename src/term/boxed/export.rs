@@ -39,6 +39,7 @@ impl Export {
     Ok(LTerm::make_boxed(this))
   }
 
+  #[allow(dead_code)]
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Export> {
     helper_get_const_from_boxed_term::<Export>(
       t,

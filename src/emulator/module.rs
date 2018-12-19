@@ -2,7 +2,6 @@
 //! literals and attributes.
 use crate::emulator::{
   code::{Code, CodePtr},
-  code_srv::module_id::VersionedModuleId,
   funarity::FunArity,
   function::FunEntry,
   gen_atoms,
@@ -15,16 +14,29 @@ use crate::{
 };
 use std::collections::BTreeMap;
 
-pub type Ptr = Box<Module>;
-
 /// Stores f/arity mapping to offset in code.
 pub type ModuleFunTable = BTreeMap<FunArity, usize>;
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub struct VersionedModuleName {
+  pub module: LTerm,
+  pub version: usize,
+}
+
+impl VersionedModuleName {
+  pub fn new(module: LTerm, version: usize) -> VersionedModuleName {
+    VersionedModuleName {
+      module,
+      version,
+    }
+  }
+}
 
 /// Represents a module with collection of functions. Modules are refcounted
 /// and can be freed early if the situation allows.
 #[derive(Debug)]
 pub struct Module {
-  pub mod_id: VersionedModuleId,
+  pub versioned_name: VersionedModuleName,
 
   /// Map to functions
   pub funs: ModuleFunTable,
@@ -39,19 +51,19 @@ pub struct Module {
 
 impl Module {
   /// Create an empty module wrapped in atomic refcounted refcell.
-  pub fn new(mod_id: &VersionedModuleId) -> Ptr {
-    Box::new(Module {
+  pub fn new(name: &VersionedModuleName) -> Module {
+    Module {
       code: Vec::new(),
       funs: BTreeMap::new(),
       lit_heap: Heap::new(1),
-      mod_id: *mod_id,
+      versioned_name: name.clone(),
       lambdas: Vec::new(),
-    })
+    }
   }
 
   /// Get module name field
   pub fn name(&self) -> LTerm {
-    self.mod_id.module()
+    self.versioned_name.module
   }
 
   /// Find a `m:f/arity` in the functions table, `m` is checked to be equal to
@@ -72,7 +84,10 @@ impl Module {
         Ok(CodePtr::new(p))
       }
       None => {
-        let msg = format!("Function not found {} in {}", fa, self.mod_id.module());
+        let msg = format!(
+          "Function not found {} in {}",
+          fa, self.versioned_name.module
+        );
         Err(Error::FunctionNotFound(msg))
       }
     }
@@ -107,7 +122,7 @@ impl Module {
       }
     }
 
-    let mfa = MFArity::new_from_funarity(self.mod_id.module(), &fa);
+    let mfa = MFArity::new_from_funarity(self.versioned_name.module, &fa);
     Some(mfa)
   }
 }

@@ -8,7 +8,7 @@ use crate::{
 // [ Arity ... ] [ Header type: 3 bits ] [ Header tag: 3 bits ]
 //
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct BoxTypeTag(Word);
 
 impl BoxTypeTag {

@@ -624,6 +624,8 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
   debug_assert!(t.is_boxed());
   let cptr = t.get_box_ptr_mut::<T>();
   let hptr = cptr as *const BoxHeader;
-  debug_assert_eq!((*hptr).get_tag(), box_type);
-  Ok(cptr)
+  if (*hptr).get_tag() == box_type {
+    return Ok(cptr);
+  }
+  Err(Error::BoxedIsNotTaggedAs(box_type))
 }

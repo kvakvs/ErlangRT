@@ -1,34 +1,30 @@
 //! Module defines pointer types for readonly code and mutable code.
 
-use crate::{
-  defs::Word,
-  emulator::code_srv::{module_id::VersionedModuleId, CodeServer},
-  term::lterm::*,
-};
+use crate::emulator::module::VersionedModuleName;
+use crate::{defs::Word, term::lterm::*};
 use core::fmt;
 
 /// A cross-module code pointer tied to a specific module of a specific version.
-/// Versions are maintained by the Code Server.
-#[derive(PartialEq, Debug, Copy, Clone)]
-pub struct FarCodePointer {
-  pub mod_id: VersionedModuleId,
-  pub offset: usize,
+#[derive(Eq, PartialEq, Debug, Clone)]
+pub struct VersionedCodePtr {
+  pub versioned_name: VersionedModuleName,
+  pub ptr: CodePtr,
 }
 
 #[allow(dead_code)]
-impl FarCodePointer {
-  pub fn new(mod_id: &VersionedModuleId, offset: usize) -> FarCodePointer {
-    FarCodePointer {
-      mod_id: *mod_id,
-      offset,
+impl VersionedCodePtr {
+  pub fn new(name: VersionedModuleName, ptr: CodePtr) -> VersionedCodePtr {
+    VersionedCodePtr {
+      versioned_name: name,
+      ptr,
     }
   }
 
-  #[inline]
-  pub fn code_ptr(self: FarCodePointer, code_server: &CodeServer) -> CodePtr {
-    // TODO: assumes the result will contain the value and not panic instead
-    code_server.lookup_far_pointer(self).unwrap()
-  }
+//  #[inline]
+//  pub fn code_ptr(self: VersionedCodePtr, code_server: &CodeServer) -> CodePtr {
+//     TODO: assumes the result will contain the value and not panic instead
+//    code_server.lookup_far_pointer(self).unwrap()
+//  }
 }
 
 /// Pointer to code location, can only be created to point to some opcode
@@ -37,7 +33,7 @@ impl FarCodePointer {
 ///
 /// In debug build additional mark bits `Imm3::OPCODE` are added to this word
 /// and additional check is done here in `CodePtr`.
-#[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialOrd, PartialEq, Eq)]
 pub struct CodePtr(*const Word);
 
 impl fmt::Display for CodePtr {

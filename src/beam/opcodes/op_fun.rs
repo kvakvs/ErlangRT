@@ -54,10 +54,12 @@ pub fn opcode_call_fun(
 
   // Take function object argument
   let fobj = ctx.x(arity);
-  if let Ok(closure) = unsafe { boxed::Closure::const_from_term(fobj) } {
+
+  // need mutable closure to possibly update dst in it later, during `apply`
+  if let Ok(closure) = unsafe { boxed::Closure::mut_from_term(fobj) } {
     // `fobj` is a callable closure made with `fun() -> code end`
     runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
-  } else if let Ok(export) = unsafe { boxed::Export::const_from_term(fobj) } {
+  } else if let Ok(export) = unsafe { boxed::Export::mut_from_term(fobj) } {
     // `fobj` is an export made with `fun module:name/0`
     runtime_ctx::call_export::apply(
       ctx,

@@ -1,10 +1,9 @@
+use crate::emulator::code::pointer::CodePtr;
+use crate::emulator::code::pointer::VersionedCodePtr;
+use crate::emulator::code_srv::CodeServer;
 use crate::{
   defs::{Arity, ByteSize, Word, WordSize},
-  emulator::{
-    function::{CallableLocation, FunEntry},
-    heap::Heap,
-    mfa::MFArity,
-  },
+  emulator::{function::FunEntry, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_CLOSURE},
@@ -23,7 +22,7 @@ pub struct Closure {
   pub header: BoxHeader,
 
   pub mfa: MFArity,
-  pub dst: CallableLocation,
+  pub dst: Option<VersionedCodePtr>,
   pub nfree: usize, // must be word size to avoid alignment of the following data
   // frozen values follow here in memory after the main fields,
   // first is a field, rest will be allocated as extra bytes after
@@ -43,7 +42,7 @@ impl Closure {
     Closure {
       header: BoxHeader::new(BOXTYPETAG_CLOSURE, arity),
       mfa,
-      dst: CallableLocation::NeedUpdate,
+      dst: None,
       nfree: nfree as Arity,
       frozen: LTerm::non_value(),
     }
@@ -80,6 +79,7 @@ impl Closure {
     Ok(LTerm::make_boxed(this))
   }
 
+  #[allow(dead_code)]
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Closure> {
     helper_get_const_from_boxed_term::<Closure>(
       t,
@@ -95,5 +95,14 @@ impl Closure {
       BOXTYPETAG_CLOSURE,
       Error::BoxedIsNotAClosure,
     )
+  }
+
+  /// Given a closure, find new value for the code pointer and update the
+  /// closure. Return: the pointer.
+  pub unsafe fn update_location(&mut self, c_srv: &mut CodeServer) -> RtResult<CodePtr> {
+    let new_dst = c_srv.lookup_versioned(&self.mfa)?;
+    let ptr = new_dst.ptr;
+    self.dst = Some(new_dst);
+    Ok(ptr)
   }
 }

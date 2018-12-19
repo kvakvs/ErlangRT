@@ -9,6 +9,7 @@ use crate::{
   term::lterm::LTerm,
 };
 use std::convert::From;
+use crate::term::boxed::box_header::BoxTypeTag;
 
 // TODO: Rename to RTError-something
 #[derive(Debug)]
@@ -35,6 +36,7 @@ pub enum Error {
   //--- VM Checks --
   Exception(ExceptionType, LTerm), // type, value
   TermIsNotABoxed,
+  BoxedIsNotTaggedAs(BoxTypeTag),
   BoxedIsNotAClosure,
   BoxedIsNotAnImport,
   BoxedIsNotAnExport,
