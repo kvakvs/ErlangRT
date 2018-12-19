@@ -7,6 +7,7 @@ use crate::{
   },
   term::lterm::*,
 };
+use colored::*;
 
 /// Print to screen disassembly of the current function.
 #[allow(dead_code)]
@@ -28,10 +29,14 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
   assert!(op < gen_op::OPCODE_MAX);
 
   if let Some(mfa) = code_server.code_reverse_lookup(CodePtr::new(ip)) {
-    print!("{} ", mfa)
+    print!("{} ", format!("{}", mfa).cyan());
   }
 
-  print!("{:p}: {} ", ip, gen_op::opcode_name(op));
+  print!(
+    "{}: {} ",
+    format!("{:p}", ip).bright_black(),
+    gen_op::opcode_name(op).white()
+  );
   ip = ip.offset(1);
 
   let n_args = gen_op::opcode_arity(op) as Word;
@@ -48,7 +53,7 @@ unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
 
     print!("{}", arg);
     if arg_index < n_args - 1 {
-      print!(", ")
+      print!("{}", ", ".red())
     }
   }
 }

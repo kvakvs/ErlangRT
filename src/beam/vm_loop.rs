@@ -29,7 +29,7 @@ impl VM {
 
     loop {
       if cfg!(debug_assertions) {
-        print!("[exec] ");
+        print!(" ↳ ");
         unsafe {
           disasm::disasm_op(ctx.ip.get(), self.code_server.borrow().as_ref());
         }
