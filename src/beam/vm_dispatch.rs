@@ -32,6 +32,7 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
     gen_op::OPCODE_IS_GE => return opcode_is_ge(vm, ctx, curr_p),
     gen_op::OPCODE_IS_EQ => return opcode_is_eq(vm, ctx, curr_p),
     gen_op::OPCODE_IS_EQ_EXACT => return opcode_is_eq_exact(vm, ctx, curr_p),
+    gen_op::OPCODE_IS_ATOM => return opcode_is_atom(vm, ctx, curr_p),
     gen_op::OPCODE_IS_NIL => return opcode_is_nil(vm, ctx, curr_p),
     gen_op::OPCODE_IS_NONEMPTY_LIST => return opcode_is_nonempty_list(vm, ctx, curr_p),
     gen_op::OPCODE_MOVE => return opcode_move(vm, ctx, curr_p),

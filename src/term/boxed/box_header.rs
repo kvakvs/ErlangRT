@@ -70,7 +70,7 @@ impl BoxHeader {
 
 /// For a header word value, extract bits with arity
 pub fn headerword_to_arity(w: Word) -> Word {
-  w >> TERM_TAG_BITS
+  w >> (TERM_TAG_BITS + BOXTYPE_TAG_BITS)
 }
 
 pub const fn headerword_to_boxtype(w: Word) -> BoxTypeTag {

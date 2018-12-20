@@ -1,4 +1,4 @@
-#====== Calls and Execution Control ======
+#=== === Calls and Execution Control === ===
 call
 call_only
 # call_last
@@ -16,21 +16,32 @@ badmatch
 make_fun2
 call_fun
 
-#====== Memory and Stack ======
+#=== === Memory and Stack === ===
 allocate
 allocate_zero
 deallocate
 move
 test_heap
 
-#====== List Operations ======
+#=== === List Operations === ===
+# is_list
 is_nonempty_list
 is_nil
 get_list
 put_list
 
-#====== Comparisons and Predicates ======
+#=== === Comparisons and Predicates === ===
 is_eq_exact
 is_lt
 is_eq
 is_ge
+
+#=== === Type Tests === ===
+is_atom
+# is_integer
+# is_number
+# is_float
+# is_pid
+# is_reference
+# is_port
+# is_binary
