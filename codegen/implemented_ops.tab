@@ -1,20 +1,21 @@
 #=== === Calls and Execution Control === ===
-call
-call_only
 # call_last
+badmatch
+bif0
+bif1
+bif2
+call
 call_ext
 call_ext_only
-return
+call_fun
+call_only
 func_info
 gc_bif1
 gc_bif2
 gc_bif3
-bif0
-bif1
-bif2
-badmatch
 make_fun2
-call_fun
+return
+select_val
 
 #=== === Memory and Stack === ===
 allocate

@@ -168,6 +168,12 @@ impl Context {
     }
     panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
   }
+
+  #[inline]
+  pub fn jump(&mut self, cp: LTerm) {
+    debug_assert!(cp.is_cp());
+    self.ip = CodePtr::from_cp(cp);
+  }
 }
 
 impl fmt::Display for Context {

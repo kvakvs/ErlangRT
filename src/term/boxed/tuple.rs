@@ -27,8 +27,8 @@ impl Tuple {
     }
   }
 
-  pub unsafe fn get_arity(this: *const Tuple) -> Word {
-    (*this).header.get_arity()
+  pub unsafe fn get_arity(&self) -> Word {
+    self.header.get_arity()
   }
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
@@ -41,7 +41,7 @@ impl Tuple {
     Ok(p)
   }
 
-  /// Convert any p into *const Tuple + checking the header word to be Tule
+  /// Convert any p into *const Tuple + checking the header word to be a Tuple
   pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Tuple> {
     let tp = p as *const Tuple;
     if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
@@ -59,19 +59,26 @@ impl Tuple {
     Ok(tp)
   }
 
+  // Write tuple's i-th element (base 0) as a raw term value
   pub unsafe fn set_raw_word_base0(this: *mut Tuple, index: Word, val: Word) {
-    debug_assert!(index < Tuple::get_arity(this));
+    debug_assert!(index < (*this).get_arity());
     let p = this as *mut Word;
-    *p.offset(index as isize + 1) = val
+    core::ptr::write(p.add(index + 1), val)
   }
 
+  // Write tuple's i-th element (base 0)
+  #[inline]
   pub unsafe fn set_element_base0(this: *mut Tuple, i: Word, val: LTerm) {
+    debug_assert!(i < (*this).get_arity());
     // Take i-th word after the tuple header
-    let word_ptr = this.add(1) as *mut Word;
-    core::ptr::write(word_ptr.add(i), val.raw())
+    let word_ptr = this.add(1) as *mut LTerm;
+    core::ptr::write(word_ptr.add(i), val)
   }
 
+  // Read tuple's i-th element (base 0)
+  #[inline]
   pub unsafe fn get_element_base0(this: *const Tuple, i: Word) -> LTerm {
+    debug_assert!(i < (*this).get_arity());
     let word_ptr = this.add(1) as *const LTerm;
     core::ptr::read(word_ptr.add(i))
   }

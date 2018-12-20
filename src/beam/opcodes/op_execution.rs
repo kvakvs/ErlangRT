@@ -1,6 +1,7 @@
 //! Module implements opcodes related to execution control: Calls, jumps,
 //! returns etc.
 
+use crate::term::compare;
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
   emulator::{
@@ -12,6 +13,7 @@ use crate::{
   fail::RtResult,
   term::{boxed, lterm::*},
 };
+use std::cmp::Ordering;
 
 fn module() -> &'static str {
   "opcodes::op_execution: "
@@ -206,4 +208,37 @@ pub fn opcode_badmatch(
   let hp = &mut curr_p.heap;
   let val = ctx.fetch_and_load(hp);
   DispatchResult::badmatch_val(val, hp)
+}
+
+/// Compares Arg with tuple of pairs {Value1, Label1, ...} and jumps to Label
+/// if it is equal. If none compared, will jump to FailLabel
+#[inline]
+pub fn opcode_select_val(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
+  // Structure: select_val(val:src, on_fail:label, tuple_pairs:src)
+  assert_arity(gen_op::OPCODE_SELECT_VAL, 3);
+  let hp = &curr_p.heap;
+  let val = ctx.fetch_and_load(hp);
+  let fail_label = ctx.fetch_term();
+
+  let pairs_tuple = ctx.fetch_and_load(hp);
+  debug_assert!(pairs_tuple.is_tuple());
+  let tuple_ptr = pairs_tuple.get_box_ptr::<boxed::Tuple>();
+  let pairs_count = unsafe { (*tuple_ptr).get_arity() / 2 };
+
+  for i in 0..pairs_count {
+    let sel_val = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2) };
+    if compare::cmp_terms(val, sel_val, true)? == Ordering::Equal {
+      let sel_label = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2 + 1) };
+      ctx.jump(sel_label);
+      return Ok(DispatchResult::Normal);
+    }
+  }
+
+  // None matched, jump to fail label
+  ctx.jump(fail_label);
+  Ok(DispatchResult::Normal)
 }

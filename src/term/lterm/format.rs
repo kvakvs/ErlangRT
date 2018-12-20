@@ -125,7 +125,7 @@ unsafe fn format_tuple(p: *const Word, f: &mut fmt::Formatter) -> fmt::Result {
 
   write!(f, "{{")?;
 
-  let arity = boxed::Tuple::get_arity(tptr);
+  let arity = (*tptr).get_arity();
   for i in 0..arity {
     write!(f, "{}", boxed::Tuple::get_element_base0(tptr, i))?;
     if i < arity - 1 {

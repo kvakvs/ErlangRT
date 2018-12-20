@@ -42,6 +42,7 @@ const BOXTYPE_TAG_MASK: Word = (1 << BOXTYPE_TAG_BITS) - 1;
 
 /// Term header in memory, followed by corresponding data.
 pub struct BoxHeader {
+  /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
   header_word: Word,
 }
 
@@ -69,6 +70,7 @@ impl BoxHeader {
 }
 
 /// For a header word value, extract bits with arity
+/// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
 pub fn headerword_to_arity(w: Word) -> Word {
   w >> (TERM_TAG_BITS + BOXTYPE_TAG_BITS)
 }

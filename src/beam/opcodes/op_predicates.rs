@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
-  emulator::{code::CodePtr, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
   term::{compare, lterm::LTerm},
 };
@@ -75,11 +75,11 @@ fn shared_equality_opcode(
   if invert {
     // Invert defines opposite meaning, desired result becomes undesired
     if compare::cmp_terms(a, b, exact)? == desired_result {
-      ctx.ip = CodePtr::from_cp(fail_label)
+      ctx.jump(fail_label)
     }
   } else if compare::cmp_terms(a, b, exact)? != desired_result {
     // Other than desired_recult will cause jump to 'fail'
-    ctx.ip = CodePtr::from_cp(fail_label)
+    ctx.jump(fail_label)
   }
 
   Ok(DispatchResult::Normal)

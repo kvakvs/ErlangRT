@@ -1,16 +1,16 @@
-use crate::emulator::vm::VM;
-use crate::emulator::runtime_ctx::Context;
-use crate::emulator::process::Process;
-use crate::fail::RtResult;
 use crate::beam::disp_result::DispatchResult;
 use crate::beam::gen_op;
 use crate::beam::opcodes::assert_arity;
 use crate::emulator::code::pointer::CodePtr;
+use crate::emulator::process::Process;
+use crate::emulator::runtime_ctx::Context;
+use crate::emulator::vm::VM;
+use crate::fail::RtResult;
 
 /// Checks that argument is an atom, otherwise jumps to label.
 #[inline]
 pub fn opcode_is_atom(
-  vm: &VM,
+  _vm: &VM,
   ctx: &mut Context,
   curr_p: &mut Process,
 ) -> RtResult<DispatchResult> {
