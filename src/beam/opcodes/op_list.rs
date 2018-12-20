@@ -2,9 +2,7 @@
 
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
-  emulator::{
-    code::CodePtr, heap::allocate_cons, process::Process, runtime_ctx::Context, vm::VM,
-  },
+  emulator::{heap::allocate_cons, process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
   term::lterm::LTerm,
 };
@@ -32,7 +30,7 @@ pub fn opcode_is_nonempty_list(
 
   if list == LTerm::nil() && !list.is_cons() && fail != LTerm::nil() {
     // jump to fail label
-    ctx.ip = CodePtr::from_cp(fail)
+    ctx.jump(fail)
   }
 
   Ok(DispatchResult::Normal)
@@ -55,7 +53,7 @@ pub fn opcode_is_nil(
 
   if list != LTerm::nil() && fail != LTerm::nil() {
     // jump to fail label
-    ctx.ip = CodePtr::from_cp(fail)
+    ctx.jump(fail)
   }
 
   Ok(DispatchResult::Normal)

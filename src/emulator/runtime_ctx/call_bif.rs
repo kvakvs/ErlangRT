@@ -3,7 +3,7 @@ use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
   bif::{self, BifFn},
-  emulator::{code::CodePtr, mfa::MFArity, process::Process},
+  emulator::{mfa::MFArity, process::Process},
   fail::{Error, RtResult},
   term::{boxed::import, lterm::*},
 };
@@ -83,7 +83,7 @@ pub fn apply(
   match bif_result {
     Err(Error::Exception(_, _)) => {
       if fail_label.is_cp() {
-        ctx.ip = CodePtr::from_cp(fail_label)
+        ctx.jump(fail_label)
       }
       // Set exception via dispatchresult; pass through the error
       Err(bif_result.unwrap_err())

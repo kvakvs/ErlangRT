@@ -1,5 +1,4 @@
 #=== === Calls and Execution Control === ===
-# call_last
 badmatch
 bif0
 bif1
@@ -8,6 +7,7 @@ call
 call_ext
 call_ext_only
 call_fun
+call_last
 call_only
 func_info
 gc_bif1

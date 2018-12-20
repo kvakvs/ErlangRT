@@ -18,6 +18,7 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
   match op {
     gen_op::OPCODE_FUNC_INFO => return opcode_func_info(vm, ctx, curr_p),
     gen_op::OPCODE_CALL => return opcode_call(vm, ctx, curr_p),
+    gen_op::OPCODE_CALL_LAST => return opcode_call_last(vm, ctx, curr_p),
     gen_op::OPCODE_CALL_ONLY => return opcode_call_only(vm, ctx, curr_p),
     gen_op::OPCODE_CALL_EXT => return opcode_call_ext(vm, ctx, curr_p),
     gen_op::OPCODE_BIF0 => return opcode_bif0(vm, ctx, curr_p),

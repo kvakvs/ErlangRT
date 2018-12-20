@@ -1,7 +1,6 @@
 use crate::beam::disp_result::DispatchResult;
 use crate::beam::gen_op;
 use crate::beam::opcodes::assert_arity;
-use crate::emulator::code::pointer::CodePtr;
 use crate::emulator::process::Process;
 use crate::emulator::runtime_ctx::Context;
 use crate::emulator::vm::VM;
@@ -21,7 +20,7 @@ pub fn opcode_is_atom(
   let val = ctx.fetch_and_load(hp);
 
   if !val.is_atom() {
-    ctx.ip = CodePtr::from_cp(fail_label)
+    ctx.jump(fail_label)
   }
 
   Ok(DispatchResult::Normal)

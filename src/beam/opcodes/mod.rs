@@ -18,9 +18,9 @@ use crate::{
   emulator::{code::opcode::RawOpcode, runtime_ctx::Context},
 };
 
-/// Run a check whether opcode is not too large (within the supported range).
-// TODO: Maybe #[inline] but now let compiler decide
-#[cfg(debug_assertions)]
+/// Debug-time assertion to guard against incompatible opcode arity on BEAM
+/// version changes.
+#[inline]
 pub fn assert_arity(op: RawOpcode, val: Word) {
   debug_assert!(op < gen_op::OPCODE_MAX, "Opcode is too large");
   debug_assert_eq!(
@@ -32,10 +32,6 @@ pub fn assert_arity(op: RawOpcode, val: Word) {
     val
   );
 }
-
-#[cfg(not(debug_assertions))]
-#[inline]
-pub fn assert_arity(_op: RawOpcode, _val: Word) {}
 
 /// Display an error about opcode not supported/not implemented.
 pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {

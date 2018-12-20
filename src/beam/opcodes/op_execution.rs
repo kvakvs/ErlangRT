@@ -41,7 +41,7 @@ pub fn opcode_call(
   );
 
   ctx.cp = ctx.ip; // Points at the next opcode after this
-  ctx.ip = CodePtr::from_cp(location);
+  ctx.jump(location);
 
   Ok(DispatchResult::Normal)
 }
@@ -60,15 +60,32 @@ pub fn opcode_call_only(
   let arity = ctx.fetch_term();
   ctx.live = arity.get_small_unsigned();
 
-  let location = ctx.fetch_term();
-  debug_assert!(
-    location.is_boxed(),
-    "Call location must be a box (have {})",
-    location
-  );
+  let dst = ctx.fetch_term();
+  ctx.jump(dst); // jump will assert if the location is cp
+  Ok(DispatchResult::Normal)
+}
 
-  ctx.ip = CodePtr::from_cp(location);
+/// Deallocates stack, and performs a tail-recursive call (jump) to a `location`
+/// in code.
+#[inline]
+pub fn opcode_call_last(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
+  // Structure: call_last(arity:int, dst:cp, dealloc:int)
+  assert_arity(gen_op::OPCODE_CALL_LAST, 3);
 
+  let arity = ctx.fetch_term();
+  ctx.live = arity.get_small_unsigned();
+
+  let dst = ctx.fetch_term();
+
+  let dealloc = ctx.fetch_term();
+  let hp = &mut curr_p.heap;
+  hp.stack_deallocate(dealloc.get_small_unsigned());
+
+  ctx.jump(dst); // jump will assert if the location is cp
   Ok(DispatchResult::Normal)
 }
 
