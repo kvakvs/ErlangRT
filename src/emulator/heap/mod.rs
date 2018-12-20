@@ -180,9 +180,17 @@ impl Heap {
   }
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
+  #[inline]
   pub fn stack_push_unchecked(&mut self, val: Word) {
     self.stop -= 1;
     self.data[self.stop] = val;
+  }
+
+  /// Push a LTerm to stack without checking. Call `stack_have(1)` beforehand.
+  #[inline]
+  pub fn stack_push_lterm_unchecked(&mut self, val: LTerm) {
+    self.stop -= 1;
+    self.data[self.stop] = val.raw();
   }
 
   /// Check whether `y+1`-th element can be found in stack

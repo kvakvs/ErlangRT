@@ -73,19 +73,19 @@ pub fn opcode_call_last(
   ctx: &mut Context,
   curr_p: &mut Process,
 ) -> RtResult<DispatchResult> {
-  // Structure: call_last(arity:int, dst:cp, dealloc:int)
+  // Structure: call_last(arity:smallint, dst:cp, dealloc:smallint)
   assert_arity(gen_op::OPCODE_CALL_LAST, 3);
 
   let arity = ctx.fetch_term();
   ctx.live = arity.get_small_unsigned();
 
-  let dst = ctx.fetch_term();
+  let dst = ctx.fetch_term(); // jump will assert if the location is cp
 
   let dealloc = ctx.fetch_term();
   let hp = &mut curr_p.heap;
-  hp.stack_deallocate(dealloc.get_small_unsigned());
+  ctx.set_cp(hp.stack_deallocate(dealloc.get_small_unsigned()));
 
-  ctx.jump(dst); // jump will assert if the location is cp
+  ctx.jump(dst);
   Ok(DispatchResult::Normal)
 }
 
@@ -157,9 +157,7 @@ fn shared_call_ext(
         if save_cp {
           ctx.cp = ctx.ip; // Points at the next opcode after this
         }
-        ctx.ip = (*import_ptr)
-          .resolve(vm.code_server.borrow_mut().as_mut())
-          .unwrap();
+        ctx.ip = (*import_ptr).resolve(vm.code_server.borrow_mut().as_mut())?;
         Ok(DispatchResult::Normal)
       }
     },
@@ -187,7 +185,10 @@ pub fn opcode_return(
       // Process end of life: return on empty stack
       panic!("{}Process exit: normal; x0={}", module(), ctx.x(0))
     } else {
-      panic!("{}Return instruction with 0 in ctx.cp", module())
+      panic!(
+        "{}Return instruction with 0 in ctx.cp. Possible error in CP value management",
+        module()
+      )
     }
   }
 

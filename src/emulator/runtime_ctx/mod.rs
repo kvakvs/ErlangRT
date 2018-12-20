@@ -170,6 +170,12 @@ impl Context {
   }
 
   #[inline]
+  pub fn set_cp(&mut self, cp: LTerm) {
+    debug_assert!(cp.is_cp());
+    self.cp = CodePtr::from_cp(cp);
+  }
+
+  #[inline]
   pub fn jump(&mut self, cp: LTerm) {
     debug_assert!(cp.is_cp());
     self.ip = CodePtr::from_cp(cp);

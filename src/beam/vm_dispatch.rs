@@ -46,6 +46,7 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
     gen_op::OPCODE_MAKE_FUN2 => return opcode_make_fun2(vm, ctx, curr_p),
     gen_op::OPCODE_GC_BIF1 => return opcode_gc_bif1(vm, ctx, curr_p),
     gen_op::OPCODE_GC_BIF2 => return opcode_gc_bif2(vm, ctx, curr_p),
+    gen_op::OPCODE_TRIM => return opcode_trim(vm, ctx, curr_p),
     gen_op::OPCODE_GC_BIF3 => return opcode_gc_bif3(vm, ctx, curr_p),
     other => unknown_opcode(other, ctx),
   }

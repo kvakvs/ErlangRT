@@ -1,6 +1,6 @@
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
-  emulator::{code::CodePtr, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
 };
 
@@ -55,9 +55,7 @@ pub fn opcode_deallocate(
   assert_arity(gen_op::OPCODE_DEALLOCATE, 1);
 
   let n_free = ctx.fetch_term().get_small_unsigned();
-
-  let new_cp = curr_p.heap.stack_deallocate(n_free);
-  ctx.cp = CodePtr::from_cp(new_cp);
+  ctx.set_cp(curr_p.heap.stack_deallocate(n_free));
 
   Ok(DispatchResult::Normal)
 }
@@ -80,6 +78,28 @@ pub fn opcode_test_heap(
     // Heap has not enough, invoke GC and possibly fail
     panic!("TODO GC here or fail");
   }
+
+  Ok(DispatchResult::Normal)
+}
+
+/// Reduce the stack usage by N words, keeping CP on top of the stack.
+/// Remaining value is used for?
+#[inline]
+pub fn opcode_trim(
+  _vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
+  // Structure: trim(N:smallint, Remaining:smallint)
+  assert_arity(gen_op::OPCODE_TRIM, 2);
+
+  let trim = ctx.fetch_term().get_small_unsigned();
+  let _remaining = ctx.fetch_term();
+
+  let hp = &mut curr_p.heap;
+  let tmp_cp = hp.stack_deallocate(trim);
+  // assume that after trimming the cp will fit back on stack just fine
+  hp.stack_push_lterm_unchecked(tmp_cp);
 
   Ok(DispatchResult::Normal)
 }

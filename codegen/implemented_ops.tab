@@ -23,6 +23,7 @@ allocate_zero
 deallocate
 move
 test_heap
+trim
 
 #=== === List Operations === ===
 # is_list

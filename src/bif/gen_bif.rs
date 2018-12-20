@@ -19,6 +19,8 @@ pub struct BifTabItem {
 
 pub static BIF_TABLE: &'static [BifTabItem] = &[
 
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::STIMES_2, arity: 2,
+        func: bif::ubif_stimes_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SYM_PLUS, arity: 2,
         func: bif::ubif_splus_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SYM_MINUS, arity: 2,

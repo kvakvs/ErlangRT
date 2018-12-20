@@ -59,13 +59,43 @@ fn subtract_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LT
 /// So the check above has concluded that `a` and `b` are both small integers.
 /// Implement addition, possibly creating a big integer.
 fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
-  // Both a and b are small, we've got an easy time
+  // Both a and b are small, we've got an easy time.
+  // The overflow in addition of two smalls will always fit Rust integer because
+  // small use less bits than a Rust integer.
   let iresult = a.get_small_signed() + b.get_small_signed();
   // Even better: the result is also a small
   if LTerm::small_fits(iresult) {
     return Ok(LTerm::make_small_signed(iresult));
   }
   create_bigint(cur_proc, iresult)
+}
+
+/// Multiplication for 2 mixed terms.
+pub fn ubif_stimes_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+  assert_eq!(args.len(), 2, "{}ubif_stimes_2_2 takes 2 args", module());
+  let a: LTerm = args[0];
+  let b: LTerm = args[1];
+  if a.is_small() {
+    if b.is_small() {
+      multiply_two_small(cur_proc, a, b)
+    } else {
+      panic!("{}multiply: b={} other than small notimpl", module(), b)
+    }
+  } else {
+    panic!("{}multiply: a={} other than small notimpl", module(), a)
+  }
+}
+
+/// So the check above has concluded that `a` and `b` are both small integers.
+/// Implement multiplication, possibly creating a big integer.
+fn multiply_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
+  // Both a and b are small, check how many bits will be there in result
+  panic!("notimpl: small multiplication")
+//  let iresult = a.get_small_signed() * b.get_small_signed();
+//  if LTerm::small_fits(iresult) {
+//    return Ok(LTerm::make_small_signed(iresult));
+//  }
+//  create_bigint(cur_proc, iresult)
 }
 
 fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<LTerm> {
