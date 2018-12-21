@@ -1,9 +1,9 @@
 use crate::{
+  emulator::arith::multiplication,
   emulator::process::Process,
   fail::RtResult,
   term::{boxed, lterm::*},
 };
-
 use num;
 
 fn module() -> &'static str {
@@ -20,6 +20,7 @@ pub fn ubif_sminus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm
     if b.is_small() {
       subtract_two_small(cur_proc, a, b)
     } else {
+      // TODO: See Erlang OTP erl_arith.c function erts_mixed_minus
       panic!("{}subtract: b={} other than small notimpl", module(), b)
     }
   } else {
@@ -36,6 +37,7 @@ pub fn ubif_splus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>
     if b.is_small() {
       add_two_small(cur_proc, a, b)
     } else {
+      // TODO: See Erlang OTP erl_arith.c function erts_mixed_plus
       panic!("{}subtract: b={} other than small notimpl", module(), b)
     }
   } else {
@@ -75,29 +77,10 @@ pub fn ubif_stimes_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm
   assert_eq!(args.len(), 2, "{}ubif_stimes_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
-  if a.is_small() {
-    if b.is_small() {
-      multiply_two_small(cur_proc, a, b)
-    } else {
-      panic!("{}multiply: b={} other than small notimpl", module(), b)
-    }
-  } else {
-    panic!("{}multiply: a={} other than small notimpl", module(), a)
-  }
+  return multiplication::multiply(&mut cur_proc.heap, a, b);
 }
 
-/// So the check above has concluded that `a` and `b` are both small integers.
-/// Implement multiplication, possibly creating a big integer.
-fn multiply_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
-  // Both a and b are small, check how many bits will be there in result
-  panic!("notimpl: small multiplication")
-//  let iresult = a.get_small_signed() * b.get_small_signed();
-//  if LTerm::small_fits(iresult) {
-//    return Ok(LTerm::make_small_signed(iresult));
-//  }
-//  create_bigint(cur_proc, iresult)
-}
-
+// TODO: shorten, use only heap of the process, inline, move to a lib module in arith
 fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<LTerm> {
   // We're out of luck - the result is not a small, but we have BigInt!
   let big = num::BigInt::from(iresult);

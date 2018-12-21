@@ -141,12 +141,6 @@ impl LTerm {
     LTerm::from_raw((v << TERM_TAG_BITS | (t.0 as SWord)) as Word)
   }
 
-  // TODO: Some safety checks maybe? But oh well
-  #[inline]
-  pub fn make_boxed<T>(p: *const T) -> LTerm {
-    LTerm { value: p as Word }
-  }
-
   /// Create a NON_VALUE.
   pub const fn non_value() -> LTerm {
     LTerm { value: 0 }
@@ -166,6 +160,16 @@ impl LTerm {
   #[inline]
   pub const fn get_term_tag(self) -> TermTag {
     TermTag(self.raw() & TERM_TAG_MASK)
+  }
+
+  //
+  // === === BOXED === === ===
+  //
+
+  // TODO: Some safety checks maybe? But oh well
+  #[inline]
+  pub fn make_boxed<T>(p: *const T) -> LTerm {
+    LTerm { value: p as Word }
   }
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
@@ -200,6 +204,19 @@ impl LTerm {
     Ok(self.value as *mut T)
   }
 
+  #[inline]
+  fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
+    if !self.is_boxed() {
+      return false;
+    }
+    let p = self.get_box_ptr::<BoxHeader>();
+    unsafe { (*p).get_tag() == t }
+  }
+
+  //
+  //
+  //
+
   pub fn is_binary(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
@@ -223,15 +240,6 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_EXTERNALPID)
   }
 
-  #[inline]
-  fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
-    if !self.is_boxed() {
-      return false;
-    }
-    let p = self.get_box_ptr::<BoxHeader>();
-    unsafe { (*p).get_tag() == t }
-  }
-
   /// Return true if a value's tag will fit into a single word
   pub fn is_internal_immediate(self) -> bool {
     self.get_term_tag() == TERMTAG_SPECIAL
@@ -247,7 +255,7 @@ impl LTerm {
   }
 
   //
-  // Construction
+  // === === CONSTRUCTION === === ===
   //
 
   /// Any raw word becomes a term, possibly invalid
@@ -311,7 +319,7 @@ impl LTerm {
   }
 
   //
-  // Tuples =========================
+  // === === TUPLES === === ===
   //
 
   pub fn is_tuple(self) -> bool {
@@ -319,7 +327,7 @@ impl LTerm {
   }
 
   //
-  // Lists/Cons cells =========================
+  // === === LISTS/CONS CELLS === === ===
   //
 
   #[inline]
@@ -379,7 +387,7 @@ impl LTerm {
   }
 
   //
-  // Small Integers =========================
+  // === === SMALL INTEGERS === === ===
   //
 
   /// Check whether the value is a small integer
@@ -391,10 +399,19 @@ impl LTerm {
     LTerm::make_from_tag_and_value(TERMTAG_SMALL, val)
   }
 
+  pub const fn small_0() -> LTerm {
+    LTerm::make_from_tag_and_value(TERMTAG_SMALL, 0)
+  }
+
+  pub const fn small_1() -> LTerm {
+    LTerm::make_from_tag_and_value(TERMTAG_SMALL, 1)
+  }
+
   pub const fn make_small_signed(val: SWord) -> LTerm {
     LTerm::make_from_tag_and_signed_value(TERMTAG_SMALL, val)
   }
 
+  /// Check whether a signed isize fits into small integer range
   #[inline]
   pub fn small_fits(val: isize) -> bool {
     val >= SMALLEST_SMALL && val <= LARGEST_SMALL
@@ -429,7 +446,7 @@ impl LTerm {
   }
 
   //
-  // Float ==============================
+  // === === FLOAT ==============================
   //
 
   /// Check whether a lterm is boxed and then whether it points to a word of
@@ -460,7 +477,7 @@ impl LTerm {
   }
 
   //
-  // PORT ===========
+  // === === PORT === === ===
   //
   /// Check whether a value is any kind of port.
   pub fn is_port(self) -> bool {
