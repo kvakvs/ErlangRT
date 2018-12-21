@@ -139,6 +139,24 @@ pub fn to_str(a: LTerm) -> RtResult<String> {
   Ok(unsafe { (*p).name.clone() })
 }
 
+/// Checks atom contents and returns true if it only contains alpanumeric
+/// characters and underscores, and begins with a letter.
+#[inline]
+pub fn is_printable_atom(s: &str) -> bool {
+  if s.len() == 0 {
+    return false;
+  }
+  if !s[0].is_ascii_lowercase() {
+    return false;
+  }
+  for c in s.chars() {
+    if !c.is_alphanumeric() && c != '_' {
+      return false;
+    }
+  }
+  true
+}
+
 pub fn lookup(a: LTerm) -> *const Atom {
   assert!(a.is_atom());
   let atoms_r = ATOMS.atoms_r.lock().unwrap();

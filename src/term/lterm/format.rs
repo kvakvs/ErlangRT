@@ -35,7 +35,13 @@ impl fmt::Display for LTerm {
       TERMTAG_LOCALPID => write!(f, "LocalPid({})", self.get_term_val_without_tag()),
       TERMTAG_LOCALPORT => write!(f, "LocalPort({})", self.get_term_val_without_tag()),
       TERMTAG_ATOM => match atom::to_str(*self) {
-        Ok(s) => write!(f, "'{}'", s),
+        Ok(s) => {
+          if atom::is_printable_atom(s) {
+            write!(f, "{}", s)
+          } else {
+            write!(f, "'{}'", s)
+          }
+        }
         Err(_e) => write!(f, "Atom?"),
       },
       TERMTAG_HEADER => {
