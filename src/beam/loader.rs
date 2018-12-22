@@ -5,7 +5,6 @@
 //!
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
-//!
 use crate::{
   beam::{compact_term, gen_op},
   bif,
@@ -762,7 +761,10 @@ impl Loader {
           // arg[0] is export
           //          self.rewrite_import_index_arg(&cp, 1)
           self.rewrite_lambda_index_arg(cp, 1)
-        }
+        },
+        gen_op::OPCODE_BIF0 => {
+          self.rewrite_import_index_arg(cp, 1)
+        },
         gen_op::OPCODE_BIF1
         | gen_op::OPCODE_BIF2
         | gen_op::OPCODE_CALL_EXT
@@ -770,12 +772,12 @@ impl Loader {
         | gen_op::OPCODE_CALL_EXT_ONLY => {
           // arg[1] is export
           self.rewrite_import_index_arg(cp, 2)
-        }
+        },
         gen_op::OPCODE_GC_BIF1 | gen_op::OPCODE_GC_BIF2 | gen_op::OPCODE_GC_BIF3 => {
           // arg[2] is export
           self.rewrite_import_index_arg(cp, 3)
-        }
-        _ => {}
+        },
+        _ => {},
       }
     }
     Ok(())

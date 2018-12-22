@@ -36,6 +36,7 @@ impl OpcodeBif0 {
     let (target, dst) = Self::fetch_args(ctx, curr_p);
 
     // NOTE: bif0 cannot fail (fail_label=NIL)
+    println!("bif0 t={} dst={}", target, dst);
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
     call_bif::apply(ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)

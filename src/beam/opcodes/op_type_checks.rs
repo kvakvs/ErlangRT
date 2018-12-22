@@ -13,14 +13,19 @@ impl OpcodeIsAtom {
   pub const ARITY: usize = 2;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let fail = ctx.fetch_term();
+    let value = ctx.fetch_and_load(&mut curr_p.heap);
+    (fail, value)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let hp = &curr_p.heap;
-    let fail_label = ctx.fetch_term();
-    let val = ctx.fetch_and_load(hp);
+    let (fail_label, val) = Self::fetch_args(ctx, curr_p);
 
     if !val.is_atom() {
       ctx.jump(fail_label)
@@ -38,14 +43,19 @@ impl OpcodeIsFunction {
   pub const ARITY: usize = 2;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let fail = ctx.fetch_term();
+    let value = ctx.fetch_and_load(&mut curr_p.heap);
+    (fail, value)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let hp = &curr_p.heap;
-    let fail_label = ctx.fetch_term();
-    let val = ctx.fetch_and_load(hp);
+    let (fail_label, val) = Self::fetch_args(ctx, curr_p);
 
     if !val.is_fun() {
       ctx.jump(fail_label)
@@ -56,11 +66,20 @@ impl OpcodeIsFunction {
 }
 
 /// Checks that argument is a function or closure otherwise jumps to label.
-/// Structure: is_function(on_false:label, arg:src)
+/// Structure: is_function2(on_false:label, arg:src, arity:smalluint)
 pub struct OpcodeIsFunction2 {}
 
 impl OpcodeIsFunction2 {
   pub const ARITY: usize = 3;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize) {
+    let hp = &mut curr_p.heap;
+    let fail = ctx.fetch_term();
+    let value = ctx.fetch_and_load(hp);
+    let arity = ctx.fetch_and_load(hp).get_small_unsigned();
+    (fail, value, arity)
+  }
 
   #[inline]
   pub fn run(
@@ -68,10 +87,7 @@ impl OpcodeIsFunction2 {
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let hp = &curr_p.heap;
-    let fail_label = ctx.fetch_term();
-    let val = ctx.fetch_and_load(hp);
-    let arity = ctx.fetch_and_load(hp).get_small_unsigned();
+    let (fail_label, val, arity) = Self::fetch_args(ctx, curr_p);
 
     if !val.is_fun_of_arity(arity) {
       ctx.jump(fail_label)
