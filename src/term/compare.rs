@@ -51,10 +51,10 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
     match eq_result {
       EqResult::Concluded(result) if result == Ordering::Equal => {
         if stack.is_empty() {
-          //println!("comparison {} {} concluded {:?}", a, b, result);
+          // println!("comparison {} {} concluded {:?}", a, b, result);
           return Ok(result);
         } else {
-          //println!("comparison {} {} got intermediate result {:?}", a, b, result);
+          // println!("comparison {} {} got intermediate result {:?}", a, b, result);
           op = stack.pop().unwrap();
           continue;
         } // stack not empty
@@ -80,7 +80,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
 
 /// Given a and b, terms, branch on their type and try do draw some conclusions.
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
-  //println!("cmp any type {} {}", a, b);
+  // println!("cmp any type {} {}", a, b);
 
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
@@ -289,12 +289,12 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
       panic!("TODO: cmp flatmap vs flatmap (+exact)")
     }
 
-  //Hashmap compare strategy:
-  //Phase 1. While keys are identical
+  // Hashmap compare strategy:
+  // Phase 1. While keys are identical
   //    Do synchronous stepping through leafs of both trees in hash
   //    order. Maintain value compare result of minimal key.
   //
-  //Phase 2. If key diff was found in phase 1
+  // Phase 2. If key diff was found in phase 1
   //    Ignore values from now on.
   //    Continue iterate trees by always advancing the one
   //    lagging behind hash-wise. Identical keys are skipped.

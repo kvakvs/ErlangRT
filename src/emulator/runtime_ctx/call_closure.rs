@@ -52,9 +52,7 @@ pub fn apply(
   // OR TODO: subscribe from all exports to the module and get invalidation notifications
   ctx.ip = match dst {
     Some(p) => p.ptr,
-    None => {
-      unsafe { (*closure).update_location(vm.code_server.borrow_mut().as_mut())? }
-    }
+    None => unsafe { (*closure).update_location(vm.code_server.borrow_mut().as_mut())? },
   };
   Ok(DispatchResult::Normal)
 }

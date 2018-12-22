@@ -64,7 +64,7 @@ fn make_err(e: CTError) -> RtResult<fterm::FTerm> {
   Err(Error::CodeLoadingCompactTerm(e))
 }
 
-//fn word_to_u32(w: Word) -> u32 {
+// fn word_to_u32(w: Word) -> u32 {
 //  assert!(w < std::u32::MAX as usize);
 //  w as u32
 //}
@@ -72,7 +72,7 @@ fn make_err(e: CTError) -> RtResult<fterm::FTerm> {
 pub fn read(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
   let b = r.read_u8();
   let tag = b & 0b111;
-  //let err_msg: &'static str = "Failed to parse beam compact term";
+  // let err_msg: &'static str = "Failed to parse beam compact term";
 
   let bword = if tag < CTETag::Extended as u8 {
     read_word(b, r)
@@ -129,7 +129,7 @@ pub fn read(r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
     // Extended tag (lower 3 bits = 0b111)
     _ => parse_ext_tag(b, r),
   }
-  //return make_err(CTError::BadFormat)
+  // return make_err(CTError::BadFormat)
 }
 
 #[cfg(feature = "r19")]
@@ -155,7 +155,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<fterm::FTerm> {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
-      //Ok(fterm::FTerm::AllocList_)
+      // Ok(fterm::FTerm::AllocList_)
     }
     x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(r),
     x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
@@ -258,7 +258,6 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
   } // if larger than 11 bits
 }
 
-//
 // Testing section
 //
 #[cfg(test)]

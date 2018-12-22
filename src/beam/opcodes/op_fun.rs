@@ -1,7 +1,7 @@
 //! Module implements opcodes related to function objects/lambdas.
 
 use crate::{
-  beam::{disp_result::DispatchResult},
+  beam::disp_result::DispatchResult,
   emulator::{
     function::FunEntry,
     process::Process,
@@ -30,7 +30,7 @@ impl OpcodeMakeFun2 {
     let fe_box = ctx.fetch_term();
     let fe = fe_box.get_cp_ptr::<FunEntry>();
 
-    //panic!("boom");
+    // panic!("boom");
     let hp = &mut curr_p.heap;
     let closure = unsafe {
       let nfree = (*fe).nfree as usize;

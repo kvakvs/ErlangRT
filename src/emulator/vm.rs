@@ -1,4 +1,3 @@
-//!
 //! Implements virtual machine, as a collection of processes and their
 //! registrations, schedulers, ETS tables and atom table etc.
 //!
@@ -16,13 +15,11 @@ use crate::{
 };
 use std::cell::RefCell;
 
-//fn module() -> &'static str { "vm: " }
+// fn module() -> &'static str { "vm: " }
 
-///
 /// VM environment, heaps, tables, processes all goes here.
 /// Atoms are a global API in `atom.rs`.
 /// Code server is a global API in `code_srv.rs`.
-///
 pub struct VM {
   /// Pid counter increments every time a new process is spawned
   pid_counter: Word,

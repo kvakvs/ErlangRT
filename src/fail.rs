@@ -1,4 +1,3 @@
-//!
 //! Generic errors used everywhere in the ErlangRT runtime.
 //!
 use crate::{
@@ -20,7 +19,7 @@ pub enum Error {
   //--- Code loading ---
   CodeLoadingFailed(String),
   CodeLoadingCompactTerm(CTError),
-  //PrematureEOF,
+  // PrematureEOF,
 
   //--- Code server, lookups ---
   ModuleNotFound(String),
@@ -30,7 +29,7 @@ pub enum Error {
   //--- Memory allocation events and errors ---
   AtomNotExist(String),
   HeapError(HeapError),
-  //StackIndexRange,
+  // StackIndexRange,
 
   //--- VM Checks --
   Exception(ExceptionType, LTerm), // type, value

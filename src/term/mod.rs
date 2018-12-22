@@ -1,4 +1,3 @@
-//!
 //! Term package implements two types of Erlang values:
 //!
 //! * `FTerm` (or Friendly Term) - a typesafe Rust enum which represents most of

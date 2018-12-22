@@ -10,7 +10,7 @@ use crate::{
   fail::{Error, RtResult},
 };
 
-//fn module() -> &'static str { "vm_loop: " }
+// fn module() -> &'static str { "vm_loop: " }
 
 impl VM {
   /// Take a process from scheduler.

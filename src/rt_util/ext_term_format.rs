@@ -8,7 +8,7 @@ use num::{self, ToPrimitive};
 
 ///// Errors indicating a problem with External Term Format parser.
 //#[derive(Debug)]
-//pub enum ETFError {
+// pub enum ETFError {
 //  ParseError(String),
 //  ReadError(ReadError),
 //}

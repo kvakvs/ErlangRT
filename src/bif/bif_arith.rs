@@ -1,6 +1,5 @@
 use crate::{
-  emulator::arith::multiplication,
-  emulator::process::Process,
+  emulator::{arith::multiplication, process::Process},
   fail::RtResult,
   term::{boxed, lterm::*},
 };

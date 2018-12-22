@@ -1,14 +1,15 @@
 //! `module` module handles Erlang modules as collections of functions,
 //! literals and attributes.
-use crate::emulator::{
-  code::{Code, CodePtr},
-  funarity::FunArity,
-  function::FunEntry,
-  gen_atoms,
-};
 use crate::{
   defs::{Word, WORD_BYTES},
-  emulator::{heap::Heap, mfa::MFArity},
+  emulator::{
+    code::{Code, CodePtr},
+    funarity::FunArity,
+    function::FunEntry,
+    gen_atoms,
+    heap::Heap,
+    mfa::MFArity,
+  },
   fail::{Error, RtResult},
   term::lterm::LTerm,
 };
@@ -25,10 +26,7 @@ pub struct VersionedModuleName {
 
 impl VersionedModuleName {
   pub fn new(module: LTerm, version: usize) -> VersionedModuleName {
-    VersionedModuleName {
-      module,
-      version,
-    }
+    VersionedModuleName { module, version }
   }
 }
 
@@ -72,7 +70,7 @@ impl Module {
     assert_eq!(self.name(), mfa.m);
 
     let fa = mfa.get_funarity();
-    //println!("mod Lookup {}/{}", fa.f, fa.arity);
+    // println!("mod Lookup {}/{}", fa.f, fa.arity);
     self.lookup_fa(&fa)
   }
 
@@ -112,7 +110,7 @@ impl Module {
     let ip_offset = (ip.get() as usize - code_begin as usize) / WORD_BYTES;
 
     for (key, export_offset) in &self.funs {
-      //let &CodeOffset(fn_offset) = fn_offset0;
+      // let &CodeOffset(fn_offset) = fn_offset0;
       if ip_offset >= *export_offset {
         let dist = ip_offset - *export_offset;
         if dist < min_dist {

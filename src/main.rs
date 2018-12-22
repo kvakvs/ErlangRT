@@ -1,10 +1,9 @@
 //! `ErlangRT` is an alternative Erlang BEAM Runtime written in Rust
-//!
 
 #[macro_use]
 extern crate lazy_static;
 
-//extern crate core;
+// extern crate core;
 
 mod beam;
 mod bif;

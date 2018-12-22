@@ -1,4 +1,3 @@
-//!
 //! Helper module defines types used everywhere in the VM runtime
 //!
 pub mod sizes;
@@ -10,7 +9,7 @@ pub type Word = usize;
 pub type SWord = isize;
 pub type Arity = usize;
 
-//pub use term::immediate::SMALL_BITS;
+// pub use term::immediate::SMALL_BITS;
 
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: Word = 32;
@@ -36,6 +35,6 @@ pub enum ExceptionType {
 
 // / For n bytes calculate how many words are required to store this
 //#[inline]
-//pub const fn storage_bytes_to_words(n: Word) -> WordSize {
+// pub const fn storage_bytes_to_words(n: Word) -> WordSize {
 //  WordSize::new((n + WORD_BYTES - 1) / WORD_BYTES)
 //}

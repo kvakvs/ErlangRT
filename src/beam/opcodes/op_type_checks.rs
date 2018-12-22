@@ -1,5 +1,5 @@
 use crate::{
-  beam::{disp_result::DispatchResult},
+  beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
 };

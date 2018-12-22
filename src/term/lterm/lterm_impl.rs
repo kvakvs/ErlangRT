@@ -5,10 +5,9 @@
 //!
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
-use crate::emulator::gen_atoms;
 use crate::{
   defs::*,
-  emulator::heap::Heap,
+  emulator::{gen_atoms, heap::Heap},
   fail::{Error, RtResult},
   term::boxed::{self, BoxHeader, BoxTypeTag},
 };
@@ -52,7 +51,6 @@ pub const TERMTAG_LOCALPID: TermTag = TermTag::new(5);
 pub const TERMTAG_LOCALPORT: TermTag = TermTag::new(6);
 pub const TERMTAG_SPECIAL: TermTag = TermTag::new(7);
 
-//
 // Structure of SPECIAL values,
 // they are plethora of term types requiring fewer bits or useful in other ways
 // [ special value ] [ VAL_SPECIAL_... 3 bits ] [ TAG_SPECIAL 3 bits ]
@@ -162,7 +160,6 @@ impl LTerm {
     TermTag(self.raw() & TERM_TAG_MASK)
   }
 
-  //
   // === === BOXED === === ===
   //
 
@@ -214,7 +211,9 @@ impl LTerm {
   /// for checking multiple boxed tag values. Returns false if not a boxed.
   #[inline]
   fn is_boxed_of_<F>(self, pred: F) -> bool
-  where F: Fn(BoxTypeTag) -> bool {
+  where
+    F: Fn(BoxTypeTag) -> bool,
+  {
     if !self.is_boxed() {
       return false;
     }
@@ -223,8 +222,6 @@ impl LTerm {
     pred(tag)
   }
 
-  //
-  //
   //
 
   pub fn is_binary(self) -> bool {
@@ -264,7 +261,6 @@ impl LTerm {
     self.value >> TERM_TAG_BITS
   }
 
-  //
   // === === CONSTRUCTION === === ===
   //
 
@@ -328,7 +324,6 @@ impl LTerm {
     (self.value & (HIGHEST_BIT_CP - 1)) as *const T
   }
 
-  //
   // === === TUPLES === === ===
   //
 
@@ -336,7 +331,6 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_TUPLE)
   }
 
-  //
   // === === LISTS/CONS CELLS === === ===
   //
 
@@ -396,7 +390,6 @@ impl LTerm {
     }
   }
 
-  //
   // === === SMALL INTEGERS === === ===
   //
 
@@ -436,7 +429,6 @@ impl LTerm {
     self.get_term_val_without_tag()
   }
 
-  //
   // Big Integers ==============================
   //
 
@@ -446,7 +438,6 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BIGINTEGER)
   }
 
-  //
   // Atoms ==============================
   //
 
@@ -455,7 +446,6 @@ impl LTerm {
     self.get_term_val_without_tag()
   }
 
-  //
   // === === FLOAT ==============================
   //
 
@@ -486,7 +476,6 @@ impl LTerm {
     a.raw() == b.raw()
   }
 
-  //
   // === === PORT === === ===
   //
   /// Check whether a value is any kind of port.
@@ -502,7 +491,6 @@ impl LTerm {
     false
   }
 
-  //
   // MAP ===============
   //
   /// Check whether a value is a map.
@@ -528,7 +516,6 @@ impl LTerm {
     0
   }
 
-  //
   // EXPORT ==================
   //
   /// Check whether a value is a boxed export (M:F/Arity triple).
@@ -536,15 +523,12 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_EXPORT)
   }
 
-  //
   // FUN / CLOSURE ==================
   //
 
   /// Check whether a value is a boxed fun (a closure or export).
   pub fn is_fun(self) -> bool {
-    self.is_boxed_of_(
-      |t| t == boxed::BOXTYPETAG_CLOSURE || t == boxed::BOXTYPETAG_EXPORT
-    )
+    self.is_boxed_of_(|t| t == boxed::BOXTYPETAG_CLOSURE || t == boxed::BOXTYPETAG_EXPORT)
   }
 
   /// Check whether a value is a boxed fun (a closure or export).
@@ -558,16 +542,15 @@ impl LTerm {
       boxed::BOXTYPETAG_CLOSURE => {
         let closure_p = p as *const boxed::Closure;
         unsafe { (*closure_p).mfa.arity == a }
-      },
+      }
       boxed::BOXTYPETAG_EXPORT => {
         let expt_p = p as *const boxed::Export;
         unsafe { (*expt_p).exp.mfa.arity == a }
-      },
+      }
       _ => false,
     }
   }
 
-  //
   // REFERENCE
   //
   /// Check whether a value is any kind of reference.
@@ -583,7 +566,6 @@ impl LTerm {
     false
   }
 
-  //
   // BOOLEAN ===============
   //
   #[inline]
@@ -605,12 +587,11 @@ impl LTerm {
   }
 }
 
-//
 // Testing section
 //
 
 //#[cfg(test)]
-//mod tests {
+// mod tests {
 //  use core::ptr;
 //  use std::mem;
 //

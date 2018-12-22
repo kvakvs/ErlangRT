@@ -1,9 +1,12 @@
-use crate::emulator::code::pointer::CodePtr;
-use crate::emulator::code::pointer::VersionedCodePtr;
-use crate::emulator::code_srv::CodeServer;
 use crate::{
   defs::{Arity, ByteSize, Word, WordSize},
-  emulator::{function::FunEntry, heap::Heap, mfa::MFArity},
+  emulator::{
+    code::pointer::{CodePtr, VersionedCodePtr},
+    code_srv::CodeServer,
+    function::FunEntry,
+    heap::Heap,
+    mfa::MFArity,
+  },
   fail::{Error, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_CLOSURE},

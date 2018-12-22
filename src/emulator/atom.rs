@@ -20,7 +20,7 @@ pub struct Atom {
   /// Length of utf8-encoded atom name.
   pub len: u16,
   // /// Length of latin1-encoded atom otherwise -1
-  //latin1_chars: i16,
+  // latin1_chars: i16,
   /// First 4 bytes used for comparisons
   pub ord0: u32,
   // TODO: Allocate these on atom heap or as a sequence of static blocks

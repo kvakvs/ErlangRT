@@ -6,7 +6,6 @@ use crate::{
 
 pub mod gen_bif; // generated
 
-//
 // Bif definitions grouped by topic
 //
 pub mod bif_arith;

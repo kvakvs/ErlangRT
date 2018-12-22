@@ -1,4 +1,3 @@
-//!
 //! Code loader for BEAM files uses 3 stage approach.
 //! Stage 1 reads the BEAM file and fills the loader state structure.
 //! Stage 2 commits changes to the VM (atom table for example)
@@ -7,7 +6,6 @@
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
 //!
-use crate::emulator::module::VersionedModuleName;
 use crate::{
   beam::{compact_term, gen_op},
   bif,
@@ -25,7 +23,7 @@ use crate::{
     function::FunEntry,
     heap::{Heap, DEFAULT_LIT_HEAP},
     mfa::MFArity,
-    module,
+    module::{self, Module, VersionedModuleName},
   },
   fail::{Error, RtResult},
   rt_util::{
@@ -37,12 +35,11 @@ use crate::{
 use bytes::Bytes;
 use compress::zlib;
 use core::mem;
-use std::collections::BTreeMap;
 use std::{
+  collections::BTreeMap,
   io::{Cursor, Read},
   path::PathBuf,
 };
-use crate::emulator::module::Module;
 
 fn module() -> &'static str {
   "beam::loader: "
@@ -120,7 +117,7 @@ struct Loader {
   /// Atoms converted to VM terms. Remember to use from_loadtime_atom_index()
   /// which will deduce 1 from the index automatically
   vm_atoms: Vec<LTerm>,
-  //vm_funs: BTreeMap<FunArity, CodeOffset>,
+  // vm_funs: BTreeMap<FunArity, CodeOffset>,
 
   //--- Code postprocessing and creating a function object ---
   /// Accumulate code for the current function here then move it when done.
@@ -152,9 +149,9 @@ struct Loader {
   imports: Vec<LTerm>,
 
   lambdas: Vec<FunEntry>,
-  //  /// A map of F/Arity -> HOExport which uses literal heap but those created
-  //  /// during runtime will be using process heap.
-  //  exports: BTreeMap<FunArity, LTerm>
+  /*  /// A map of F/Arity -> HOExport which uses literal heap but those created
+   *  /// during runtime will be using process heap.
+   *  exports: BTreeMap<FunArity, LTerm> */
 }
 
 impl Loader {
@@ -176,7 +173,7 @@ impl Loader {
       compiler_info: LTerm::nil(),
       imports: Vec::new(),
       lambdas: Vec::new(),
-      //exports: BTreeMap::new(),
+      // exports: BTreeMap::new(),
     }
   }
 
@@ -225,7 +222,7 @@ impl Loader {
       let chunk_sz = r.read_u32be();
       let pos_begin = r.pos();
 
-      //println!("Chunk {}", chunk_h);
+      // println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
         "Atom" => self.load_atoms_latin1(&mut r),
         "Attr" => self.load_attributes(&mut r)?,
@@ -286,7 +283,7 @@ impl Loader {
     self.stage2_fill_lambdas();
 
     self.postprocess_parse_raw_code()?;
-    //unsafe { disasm::disasm(self.code.as_slice(), None) }
+    // unsafe { disasm::disasm(self.code.as_slice(), None) }
     self.postprocess_fix_labels()?;
     self.postprocess_setup_imports()?;
 
@@ -473,7 +470,7 @@ impl Loader {
 
     // Deduce the 4 bytes uncomp_sz
     let deflated = r.read_bytes(chunk_sz - 4).unwrap();
-    //dump_vec(&deflated);
+    // dump_vec(&deflated);
 
     // Decompress deflated literal table
     let iocursor = Cursor::new(&deflated);
@@ -488,7 +485,7 @@ impl Loader {
     );
 
     // Parse literal table
-    //dump_vec(&inflated);
+    // dump_vec(&inflated);
     self.decode_literals(inflated);
   }
 
@@ -496,7 +493,7 @@ impl Loader {
   /// `count` and for every encoded term skip u32 and parse the external term
   /// format. Boxed values will go into the `self.lit_heap`.
   fn decode_literals(&mut self, inflated: Vec<u8>) {
-    //dump_vec(&inflated);
+    // dump_vec(&inflated);
 
     // Decode literals into literal heap here
     let mut r = BinaryReader::from_bytes(inflated);
@@ -522,7 +519,6 @@ impl Loader {
     let mut raw_code: Vec<u8> = Vec::new();
     mem::swap(&mut self.raw.code, &mut raw_code);
 
-    //
     // Estimate code size and preallocate the code storage
     // TODO: This step is not efficient and does double parse of all args
     //
@@ -543,9 +539,8 @@ impl Loader {
     self.code.reserve(code_size);
 
     let debug_code_start = self.code.as_ptr();
-    //println!("Code_size {} code_start {:p}", code_size, debug_code_start);
+    // println!("Code_size {} code_start {:p}", code_size, debug_code_start);
 
-    //
     // Writing code unpacked to words here. Break at every new function_info.
     //
     r.reset();
@@ -749,7 +744,7 @@ impl Loader {
       let fun_atom = self.atom_from_loadtime_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       let is_bif = bif::is_bif(&mf_arity);
-      //println!("is_bif {} for {}", is_bif, mf_arity);
+      // println!("is_bif {} for {}", is_bif, mf_arity);
       let ho_imp =
         unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)? };
 

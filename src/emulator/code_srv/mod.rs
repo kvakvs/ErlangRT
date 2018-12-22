@@ -1,15 +1,14 @@
-//!
 //! Code server loads modules and stores them in memory, handles code lookups
 //! as well as dynamic reloading and partial unloading.
 //!
 
-use crate::emulator::module::Module;
 use crate::{
   beam::loader,
   emulator::{
     atom,
     code::{pointer::VersionedCodePtr, CodePtr},
     mfa::MFArity,
+    module::{Module, VersionedModuleName},
   },
   fail::{Error, RtResult},
   term::lterm::*,
@@ -18,7 +17,6 @@ use std::{
   collections::BTreeMap,
   path::{Path, PathBuf},
 };
-use crate::emulator::module::VersionedModuleName;
 
 fn module() -> &'static str {
   "code_srv: "
@@ -42,7 +40,7 @@ pub struct CodeServer {
   mod_version: usize,
 }
 
-//lazy_static! {
+// lazy_static! {
 //  static ref CODE_SRV: RwLock<CodeServer> = {
 //    RwLock::new(CodeServer::new())
 //  };
@@ -67,12 +65,12 @@ impl CodeServer {
 
   // Find a module and verify that the given version exists
   // TODO: Verify version instead of doing this below
-//  pub fn lookup_far_pointer(&self, farp: VersionedCodePtr) -> Option<CodePtr> {
-//    match self.mods.get(&farp.versioned_name.module) {
-//      None => None,
-//      Some(_mptr) => panic!("Not impl"),
-//    }
-//  }
+  //  pub fn lookup_far_pointer(&self, farp: VersionedCodePtr) -> Option<CodePtr> {
+  //    match self.mods.get(&farp.versioned_name.module) {
+  //      None => None,
+  //      Some(_mptr) => panic!("Not impl"),
+  //    }
+  //  }
 
   /// Find module:function/arity
   /// Returns: Versioned pointer to code, suitable for storing
@@ -87,7 +85,7 @@ impl CodeServer {
         let v = VersionedModuleName::new(m, mptr.curr_version);
         let code_p = mptr.curr_modp.lookup(mfarity)?;
         Ok(VersionedCodePtr::new(v, code_p))
-      },
+      }
     }
   }
 
@@ -199,32 +197,31 @@ fn first_that_exists(search_path: &[String], filename: &str) -> Option<PathBuf> 
   None
 }
 
-//
 // External API guarded by mutex
 //
 
 //#[allow(dead_code)]
 //#[inline]
-//pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+// pub fn lookup_no_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
 //  let cs = CODE_SRV.read().unwrap();
 //  cs.lookup(mfarity)
 //}
 
 //#[inline]
-//pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
+// pub fn lookup_and_load(mfarity: &MFArity) -> Hopefully<CodePtr> {
 //  // TODO: Optimize by write-locking the load part and read-locking the lookup part
 //  let mut cs = CODE_SRV.write().unwrap();
 //  cs.lookup_and_load(mfarity)
 //}
 
 //#[inline]
-//pub fn code_reverse_lookup(ip: CodePtr) -> Option<MFArity> {
+// pub fn code_reverse_lookup(ip: CodePtr) -> Option<MFArity> {
 //  let cs = CODE_SRV.read().unwrap();
 //  cs.code_reverse_lookup(ip)
 //}
 
 //#[inline]
-//pub fn lookup_far_pointer(farp: FarCodePointer) -> Option<CodePtr> {
+// pub fn lookup_far_pointer(farp: FarCodePointer) -> Option<CodePtr> {
 //  let cs = CODE_SRV.read().unwrap();
 //  cs.lookup_far_pointer(farp)
 //}

@@ -84,7 +84,6 @@ pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   unsafe { RawOpcode(*p as u8) }
 }
 
-//
 // Testing section
 //
 

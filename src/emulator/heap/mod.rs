@@ -17,7 +17,7 @@ pub const DEFAULT_PROC_HEAP: usize = 8192;
 #[derive(Debug)]
 pub enum HeapError {
   // / Very bad, no more memory to grow.
-  //OutOfMemory,
+  // OutOfMemory,
   /// No space left in heap. GC requested.
   HeapIsFull,
   /// Attempt to index outside of the current stack.
@@ -242,7 +242,7 @@ pub fn allocate_cons(hp: &mut Heap) -> Result<*mut boxed::Cons, HeapError> {
 }
 
 // / Expand heap to host `n` words of data
-//fn alloc_words<ResultType>(hp: &mut Heap, n: Word, init_nil: bool)
+// fn alloc_words<ResultType>(hp: &mut Heap, n: Word, init_nil: bool)
 //                           -> Result<*mut ResultType, HeapError> {
 //  let result = hp.heap_alloc(n, init_nil)? as *mut ResultType;
 //  Ok(result)

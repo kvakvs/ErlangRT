@@ -1,5 +1,4 @@
-use crate::emulator::code::pointer::VersionedCodePtr;
-use crate::emulator::mfa::MFArity;
+use crate::emulator::{code::pointer::VersionedCodePtr, mfa::MFArity};
 
 /// A pointer to a code location: used in funs created with a `fun m:f/a`
 /// expression, in module export table and module local functions table.

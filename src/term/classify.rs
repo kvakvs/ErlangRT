@@ -27,7 +27,6 @@ fn module() -> &'static str {
 /// * `nil` is less than
 /// * `list` is less than
 /// * `bit string` (`binary`).
-///
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum TermClass {
@@ -46,7 +45,7 @@ pub enum TermClass {
 }
 
 pub fn classify_term(t: LTerm) -> TermClass {
-  //let _v = t.raw();
+  // let _v = t.raw();
   match t.get_term_tag() {
     TERMTAG_BOXED => {
       if t.is_cp() {
@@ -106,7 +105,7 @@ unsafe fn classify_boxed(val: LTerm) -> TermClass {
 ///// Given term's raw value `v` and the term itself, parse its immediate subtags
 ///// and figure out its classification value.
 //#[inline]
-//fn classify_immed(v: Word, t: LTerm) -> TermClass {
+// fn classify_immed(v: Word, t: LTerm) -> TermClass {
 //  match immediate::get_imm1_tag(v) {
 //    immediate::TAG_IMM1_SMALL => TermClass::Number,
 //    immediate::TAG_IMM1_PID => TermClass::Pid,

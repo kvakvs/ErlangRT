@@ -1,4 +1,3 @@
-//!
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
 use crate::{defs::Arity, term::lterm::*};

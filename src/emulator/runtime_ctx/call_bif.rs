@@ -9,9 +9,8 @@ use crate::{
 };
 use std::slice;
 
-//fn module() -> &'static str { "runtime_ctx.call_bif: " }
+// fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
-//
 // Call Bif generic facilities
 //
 
@@ -104,7 +103,7 @@ pub fn apply(
 }
 
 //#[inline]
-//fn callbif_handle_fail(e: &fail::Error) -> Hopefully<DispatchResult> {
+// fn callbif_handle_fail(e: &fail::Error) -> Hopefully<DispatchResult> {
 //  panic!("{}bif call failed with {:?}", module(), e)
 //}
 

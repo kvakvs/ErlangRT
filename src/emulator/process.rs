@@ -1,4 +1,3 @@
-//!
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 //!
@@ -43,11 +42,9 @@ impl fmt::Display for ProcessError {
 
 pub struct Process {
   pub pid: LTerm,
-  //parent_pid: LTerm,
+  // parent_pid: LTerm,
 
-  //
   // Scheduling and fail state
-  //
   /// Scheduling priority (selects the runqueue when this process is scheduled)
   pub prio: scheduler::Prio,
   /// Current scheduler queue where this process is registered
@@ -60,9 +57,7 @@ pub struct Process {
 
   pub heap: Heap,
 
-  //
   // Error handling
-  //
   /// Record result of last scheduled timeslice for this process
   /// (updated by the vm loop)
   pub timeslice_result: scheduler::SliceResult,
@@ -87,7 +82,7 @@ impl Process {
       Ok(ip) => {
         let p = Process {
           pid,
-          //parent_pid: nil(),
+          // parent_pid: nil(),
           prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
@@ -99,7 +94,7 @@ impl Process {
           error: ProcessError::None,
         };
         Ok(p)
-        //Ok(sync::Arc::new(sync::RwLock::new(p)))
+        // Ok(sync::Arc::new(sync::RwLock::new(p)))
       }
       Err(e) => Err(e),
     }

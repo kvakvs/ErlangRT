@@ -3,7 +3,6 @@ use crate::{
   term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS},
 };
 
-//
 // Structure of a header word:
 // [ Arity ... ] [ Header type: 3 bits ] [ Header tag: 3 bits ]
 //

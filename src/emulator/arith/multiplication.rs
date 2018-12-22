@@ -1,10 +1,10 @@
-use crate::defs::SWord;
-use crate::emulator::heap::Heap;
-use crate::fail::RtResult;
-use crate::term::boxed::bignum::Bignum;
-use crate::term::lterm::*;
-use num::bigint::BigInt;
-use num::cast::ToPrimitive;
+use crate::{
+  defs::SWord,
+  emulator::heap::Heap,
+  fail::RtResult,
+  term::{boxed::bignum::Bignum, lterm::*},
+};
+use num::{bigint::BigInt, cast::ToPrimitive};
 
 fn module() -> &'static str {
   "arith.multiplication: "

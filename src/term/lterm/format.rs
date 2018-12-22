@@ -46,8 +46,8 @@ impl fmt::Display for LTerm {
       },
       TERMTAG_HEADER => {
         return write!(f, "Header({})", boxed::headerword_to_arity(self.raw()));
-        //format_box_contents(*self, ptr::null(), f)?;
-        //write!(f, ")")
+        // format_box_contents(*self, ptr::null(), f)?;
+        // write!(f, ")")
       }
 
       _ => panic!("Primary tag {:?} not recognized", self.get_term_tag()),
@@ -91,7 +91,6 @@ unsafe fn format_box_contents(
   }
 }
 
-//
 // Formatting helpers
 //
 

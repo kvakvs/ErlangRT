@@ -64,7 +64,7 @@ impl Iterator for CodeIterator {
 }
 
 ///// Create an iterator for readonly walking the code.
-//pub unsafe fn create(code: &[Word]) -> CodeIterator {
+// pub unsafe fn create(code: &[Word]) -> CodeIterator {
 //  let begin = &code[0] as *const Word;
 //  let last = begin.offset(code.len() as isize);
 //  CodeIterator::new(CodePtr::Ptr(begin),

@@ -1,4 +1,3 @@
-//!
 //! Friendly term library
 //!
 //! Representing Erlang terms as a complex Rust enum, more developer friendly,
@@ -36,9 +35,7 @@ pub enum FTerm {
   Tuple0,
   Float(f64),
 
-  //
   // Internal values not visible in the user data
-  //
   /// A runtime index of X register
   X_(Word),
   /// A runtime index of a stack cell relative to the stack top (Y register)
@@ -46,16 +43,14 @@ pub enum FTerm {
   /// A runtime index of a floating-point register
   FP_(Word),
 
-  //
   // BEAM loader specials, these never occur at runtime and finding them
   // in runtime must be an error.
-  //
   /// A load-time index of label
   LoadTimeLabel(Word),
   /// A load-time atom index in the loader atom table
   LoadTimeAtom(usize),
   // /// A load-time word value literally specified
-  //LoadTimeInt(SWord),
+  // LoadTimeInt(SWord),
   /// A load-time index in literal heap
   LoadTimeLit(Word),
   /// A list of value/label pairs, a jump table

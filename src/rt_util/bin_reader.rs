@@ -6,7 +6,7 @@ use std::{cmp::min, fs::File, io::Read, path::PathBuf, str};
 
 type Word = usize;
 
-//use fail::{Hopefully, Error};
+// use fail::{Hopefully, Error};
 
 #[derive(Debug)]
 pub enum ReadError {

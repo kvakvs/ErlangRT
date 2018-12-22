@@ -1,4 +1,4 @@
-use crate::emulator::{mfa::MFArity};
+use crate::emulator::mfa::MFArity;
 
 /// Result of Lambda Table loading prepared for use in the runtime.
 #[derive(Debug)]
@@ -16,7 +16,7 @@ impl FunEntry {
   }
 }
 
-//impl fmt::Debug for CallableLocation {
+// impl fmt::Debug for CallableLocation {
 //  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 //    write!(f, "CallableLocation()")
 //  }

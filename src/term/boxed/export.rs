@@ -1,6 +1,5 @@
-use crate::defs::ByteSize;
 use crate::{
-  defs::WordSize,
+  defs::{ByteSize, WordSize},
   emulator::{export, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
   term::{

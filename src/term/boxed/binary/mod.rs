@@ -1,10 +1,14 @@
-use crate::term::boxed::binary::binaryheap_bin::BinaryHeapBinary;
-use crate::term::boxed::binary::refc_bin::ReferenceToBinary;
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{Error, RtResult},
-  term::boxed::{binary::procheap_bin::ProcessHeapBinary, BoxHeader, BOXTYPETAG_BINARY},
+  term::boxed::{
+    binary::{
+      binaryheap_bin::BinaryHeapBinary, procheap_bin::ProcessHeapBinary,
+      refc_bin::ReferenceToBinary,
+    },
+    BoxHeader, BOXTYPETAG_BINARY,
+  },
 };
 use core::{fmt, ptr};
 
