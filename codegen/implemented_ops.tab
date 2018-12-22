@@ -41,7 +41,7 @@ is_ge
 
 #=== === Type Tests === ===
 is_atom
-# is_integer
+is_integer
 # is_number
 # is_float
 # is_pid

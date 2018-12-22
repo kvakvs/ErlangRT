@@ -102,6 +102,11 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
       return OpcodeIsEqExact::run(vm, ctx, curr_p);
     },
 
+    OPCODE_IS_INTEGER => {
+      assert_arity(OPCODE_IS_INTEGER, OpcodeIsInteger::ARITY);
+      return OpcodeIsInteger::run(vm, ctx, curr_p);
+    },
+
     OPCODE_IS_ATOM => {
       assert_arity(OPCODE_IS_ATOM, OpcodeIsAtom::ARITY);
       return OpcodeIsAtom::run(vm, ctx, curr_p);
