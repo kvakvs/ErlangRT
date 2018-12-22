@@ -36,7 +36,7 @@ impl fmt::Display for LTerm {
       TERMTAG_LOCALPORT => write!(f, "LocalPort({})", self.get_term_val_without_tag()),
       TERMTAG_ATOM => match atom::to_str(*self) {
         Ok(s) => {
-          if atom::is_printable_atom(s) {
+          if atom::is_printable_atom(&s) {
             write!(f, "{}", s)
           } else {
             write!(f, "'{}'", s)

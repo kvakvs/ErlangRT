@@ -146,11 +146,13 @@ pub fn is_printable_atom(s: &str) -> bool {
   if s.len() == 0 {
     return false;
   }
-  if !s[0].is_ascii_lowercase() {
+  let mut s_chars = s.char_indices();
+  let first = s_chars.next().unwrap();
+  if !first.1.is_ascii_lowercase() {
     return false;
   }
-  for c in s.chars() {
-    if !c.is_alphanumeric() && c != '_' {
+  while let Some(c) = s_chars.next() {
+    if !c.1.is_alphanumeric() && c.1 != '_' {
       return false;
     }
   }
