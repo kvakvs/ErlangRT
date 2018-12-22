@@ -1,7 +1,7 @@
 //! Module implements opcodes related to calling built-in functions (BIF).
 
 use crate::{
-  beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  beam::{disp_result::DispatchResult},
   emulator::{
     process::Process,
     runtime_ctx::{call_bif, Context},
@@ -14,115 +14,138 @@ use crate::{
 /// Call a bif defined by `m:f/0`, a `HOImport` import object stored on heap
 /// there is no way it can fail for bif0 so there is no fail label for bif0,
 /// Result is stored into `dst`.
-#[inline]
-pub fn opcode_bif0(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: bif0(import:boxed, dst:dst)
-  assert_arity(gen_op::OPCODE_BIF0, 2);
+/// Structure: bif0(import:boxed, dst:dst)
+pub struct OpcodeBif0 {}
 
-  let target = ctx.fetch_and_load(&curr_p.heap);
-  let dst = ctx.fetch_term();
+impl OpcodeBif0 {
+  pub const ARITY: usize = 2;
 
-  // Note: bif0 cannot fail (fail_label=NIL)
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let target = ctx.fetch_and_load(&curr_p.heap);
+    let dst = ctx.fetch_term();
 
-  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
+    // Note: bif0 cannot fail (fail_label=NIL)
+
+    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+    call_bif::apply(ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
+  }
 }
 
-#[inline]
-pub fn opcode_bif1(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: bif1(fail:cp, import:boxed, arg1:lterm, dst:dst)
-  assert_arity(gen_op::OPCODE_BIF1, 4);
+/// Structure: bif1(fail:cp, import:boxed, arg1:lterm, dst:dst)
+pub struct OpcodeBif1 {}
 
-  let fail = ctx.fetch_term();
-  let target = ctx.fetch_and_load(&curr_p.heap);
-  let args = ctx.fetch_slice(1);
-  let dst = ctx.fetch_term();
+impl OpcodeBif1 {
+  pub const ARITY: usize = 4;
 
-  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let fail = ctx.fetch_term();
+    let target = ctx.fetch_and_load(&curr_p.heap);
+    let args = ctx.fetch_slice(1);
+    let dst = ctx.fetch_term();
+
+    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+    call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
+  }
 }
 
-#[inline]
-pub fn opcode_bif2(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: bif1(fail:cp, import:boxed, arg1..2:lterm, dst:dst)
-  assert_arity(gen_op::OPCODE_BIF2, 5);
+/// Structure: bif1(fail:cp, import:boxed, arg1..2:lterm, dst:dst)
+pub struct OpcodeBif2 {}
 
-  let fail = ctx.fetch_term();
-  let target = ctx.fetch_and_load(&curr_p.heap);
-  let args = ctx.fetch_slice(2);
-  let dst = ctx.fetch_term();
+impl OpcodeBif2 {
+  pub const ARITY: usize = 5;
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let fail = ctx.fetch_term();
+    let target = ctx.fetch_and_load(&curr_p.heap);
+    let args = ctx.fetch_slice(2);
+    let dst = ctx.fetch_term();
 
-  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
+    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+    call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, false)
+  }
 }
 
-#[inline]
-pub fn opcode_gc_bif1(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:lterm, dst:dst)
-  assert_arity(gen_op::OPCODE_GC_BIF1, 5);
+/// Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:lterm, dst:dst)
+pub struct OpcodeGcBif1 {}
 
-  let fail = ctx.fetch_term();
-  ctx.live = ctx.fetch_term().get_small_unsigned();
-  let target = ctx.fetch_and_load(&curr_p.heap);
-  let args = ctx.fetch_slice(1);
-  let dst = ctx.fetch_term();
+impl OpcodeGcBif1 {
+  pub const ARITY: usize = 5;
 
-  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let fail = ctx.fetch_term();
+    ctx.live = ctx.fetch_term().get_small_unsigned();
+    let target = ctx.fetch_and_load(&curr_p.heap);
+    let args = ctx.fetch_slice(1);
+    let dst = ctx.fetch_term();
+
+    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+    call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
+  }
 }
 
-#[inline]
-pub fn opcode_gc_bif2(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:lterm,
-  //                    arg2:lterm, dst:dst)
-  assert_arity(gen_op::OPCODE_GC_BIF2, 6);
+// Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:lterm,
+//                    arg2:lterm, dst:dst)
+pub struct OpcodeGcBif2 {}
 
-  let fail = ctx.fetch_term();
-  ctx.live = ctx.fetch_term().get_small_unsigned();
-  let target = ctx.fetch_and_load(&curr_p.heap);
-  let args = ctx.fetch_slice(2);
-  let dst = ctx.fetch_term();
+impl OpcodeGcBif2 {
+  pub const ARITY: usize = 6;
 
-  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let fail = ctx.fetch_term();
+    ctx.live = ctx.fetch_term().get_small_unsigned();
+    let target = ctx.fetch_and_load(&curr_p.heap);
+    let args = ctx.fetch_slice(2);
+    let dst = ctx.fetch_term();
+
+    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+    call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
+  }
 }
 
-#[inline]
-pub fn opcode_gc_bif3(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:lterm,
-  //                    arg2:lterm, arg3:lterm, dst:dst)
-  assert_arity(gen_op::OPCODE_GC_BIF2, 7);
+/// Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:lterm,
+///                    arg2:lterm, arg3:lterm, dst:dst)
+pub struct OpcodeGcBif3 {}
 
-  let fail = ctx.fetch_term();
-  ctx.live = ctx.fetch_term().get_small_unsigned();
-  let target = ctx.fetch_and_load(&curr_p.heap);
-  let args = ctx.fetch_slice(3);
-  let dst = ctx.fetch_term();
+impl OpcodeGcBif3 {
+  pub const ARITY: usize = 7;
 
-  let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-  call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let fail = ctx.fetch_term();
+    ctx.live = ctx.fetch_term().get_small_unsigned();
+    let target = ctx.fetch_and_load(&curr_p.heap);
+    let args = ctx.fetch_slice(3);
+    let dst = ctx.fetch_term();
+
+    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
+    call_bif::apply(ctx, curr_p, fail, cb_target, args, dst, true)
+  }
 }

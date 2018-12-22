@@ -3,54 +3,190 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use crate::emulator::vm::VM;
-use crate::beam::gen_op;
-use crate::beam::opcodes::*;
-use crate::beam::disp_result::{DispatchResult};
-use crate::emulator::code::opcode::RawOpcode;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::Context;
-use crate::fail::{RtResult};
-
+use crate::{
+  beam::{disp_result::DispatchResult, gen_op::*, opcodes::*},
+  emulator::{code::opcode::RawOpcode, process::Process, runtime_ctx::Context, vm::VM},
+  fail::RtResult,
+};
 
 #[inline]
 pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
   match op {
-    gen_op::OPCODE_FUNC_INFO => return opcode_func_info(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL => return opcode_call(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL_LAST => return opcode_call_last(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL_ONLY => return opcode_call_only(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL_EXT => return opcode_call_ext(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL_EXT_LAST => return opcode_call_ext_last(vm, ctx, curr_p),
-    gen_op::OPCODE_BIF0 => return opcode_bif0(vm, ctx, curr_p),
-    gen_op::OPCODE_BIF1 => return opcode_bif1(vm, ctx, curr_p),
-    gen_op::OPCODE_BIF2 => return opcode_bif2(vm, ctx, curr_p),
-    gen_op::OPCODE_ALLOCATE => return opcode_allocate(vm, ctx, curr_p),
-    gen_op::OPCODE_ALLOCATE_ZERO => return opcode_allocate_zero(vm, ctx, curr_p),
-    gen_op::OPCODE_TEST_HEAP => return opcode_test_heap(vm, ctx, curr_p),
-    gen_op::OPCODE_DEALLOCATE => return opcode_deallocate(vm, ctx, curr_p),
-    gen_op::OPCODE_RETURN => return opcode_return(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_LT => return opcode_is_lt(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_GE => return opcode_is_ge(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_EQ => return opcode_is_eq(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_EQ_EXACT => return opcode_is_eq_exact(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_ATOM => return opcode_is_atom(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_NIL => return opcode_is_nil(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_NONEMPTY_LIST => return opcode_is_nonempty_list(vm, ctx, curr_p),
-    gen_op::OPCODE_SELECT_VAL => return opcode_select_val(vm, ctx, curr_p),
-    gen_op::OPCODE_MOVE => return opcode_move(vm, ctx, curr_p),
-    gen_op::OPCODE_GET_LIST => return opcode_get_list(vm, ctx, curr_p),
-    gen_op::OPCODE_PUT_LIST => return opcode_put_list(vm, ctx, curr_p),
-    gen_op::OPCODE_BADMATCH => return opcode_badmatch(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL_FUN => return opcode_call_fun(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_FUNCTION => return opcode_is_function(vm, ctx, curr_p),
-    gen_op::OPCODE_CALL_EXT_ONLY => return opcode_call_ext_only(vm, ctx, curr_p),
-    gen_op::OPCODE_MAKE_FUN2 => return opcode_make_fun2(vm, ctx, curr_p),
-    gen_op::OPCODE_IS_FUNCTION2 => return opcode_is_function2(vm, ctx, curr_p),
-    gen_op::OPCODE_GC_BIF1 => return opcode_gc_bif1(vm, ctx, curr_p),
-    gen_op::OPCODE_GC_BIF2 => return opcode_gc_bif2(vm, ctx, curr_p),
-    gen_op::OPCODE_TRIM => return opcode_trim(vm, ctx, curr_p),
-    gen_op::OPCODE_GC_BIF3 => return opcode_gc_bif3(vm, ctx, curr_p),
+    OPCODE_FUNC_INFO => {
+      assert_arity(OPCODE_FUNC_INFO, OpcodeFuncInfo::ARITY);
+      return OpcodeFuncInfo::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL => {
+      assert_arity(OPCODE_CALL, OpcodeCall::ARITY);
+      return OpcodeCall::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL_LAST => {
+      assert_arity(OPCODE_CALL_LAST, OpcodeCallLast::ARITY);
+      return OpcodeCallLast::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL_ONLY => {
+      assert_arity(OPCODE_CALL_ONLY, OpcodeCallOnly::ARITY);
+      return OpcodeCallOnly::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL_EXT => {
+      assert_arity(OPCODE_CALL_EXT, OpcodeCallExt::ARITY);
+      return OpcodeCallExt::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL_EXT_LAST => {
+      assert_arity(OPCODE_CALL_EXT_LAST, OpcodeCallExtLast::ARITY);
+      return OpcodeCallExtLast::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_BIF0 => {
+      assert_arity(OPCODE_BIF0, OpcodeBif0::ARITY);
+      return OpcodeBif0::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_BIF1 => {
+      assert_arity(OPCODE_BIF1, OpcodeBif1::ARITY);
+      return OpcodeBif1::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_BIF2 => {
+      assert_arity(OPCODE_BIF2, OpcodeBif2::ARITY);
+      return OpcodeBif2::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_ALLOCATE => {
+      assert_arity(OPCODE_ALLOCATE, OpcodeAllocate::ARITY);
+      return OpcodeAllocate::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_ALLOCATE_ZERO => {
+      assert_arity(OPCODE_ALLOCATE_ZERO, OpcodeAllocateZero::ARITY);
+      return OpcodeAllocateZero::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_TEST_HEAP => {
+      assert_arity(OPCODE_TEST_HEAP, OpcodeTestHeap::ARITY);
+      return OpcodeTestHeap::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_DEALLOCATE => {
+      assert_arity(OPCODE_DEALLOCATE, OpcodeDeallocate::ARITY);
+      return OpcodeDeallocate::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_RETURN => {
+      assert_arity(OPCODE_RETURN, OpcodeReturn::ARITY);
+      return OpcodeReturn::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_LT => {
+      assert_arity(OPCODE_IS_LT, OpcodeIsLt::ARITY);
+      return OpcodeIsLt::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_GE => {
+      assert_arity(OPCODE_IS_GE, OpcodeIsGe::ARITY);
+      return OpcodeIsGe::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_EQ => {
+      assert_arity(OPCODE_IS_EQ, OpcodeIsEq::ARITY);
+      return OpcodeIsEq::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_EQ_EXACT => {
+      assert_arity(OPCODE_IS_EQ_EXACT, OpcodeIsEqExact::ARITY);
+      return OpcodeIsEqExact::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_ATOM => {
+      assert_arity(OPCODE_IS_ATOM, OpcodeIsAtom::ARITY);
+      return OpcodeIsAtom::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_NIL => {
+      assert_arity(OPCODE_IS_NIL, OpcodeIsNil::ARITY);
+      return OpcodeIsNil::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_NONEMPTY_LIST => {
+      assert_arity(OPCODE_IS_NONEMPTY_LIST, OpcodeIsNonemptyList::ARITY);
+      return OpcodeIsNonemptyList::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_SELECT_VAL => {
+      assert_arity(OPCODE_SELECT_VAL, OpcodeSelectVal::ARITY);
+      return OpcodeSelectVal::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_MOVE => {
+      assert_arity(OPCODE_MOVE, OpcodeMove::ARITY);
+      return OpcodeMove::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_GET_LIST => {
+      assert_arity(OPCODE_GET_LIST, OpcodeGetList::ARITY);
+      return OpcodeGetList::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_PUT_LIST => {
+      assert_arity(OPCODE_PUT_LIST, OpcodePutList::ARITY);
+      return OpcodePutList::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_BADMATCH => {
+      assert_arity(OPCODE_BADMATCH, OpcodeBadmatch::ARITY);
+      return OpcodeBadmatch::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL_FUN => {
+      assert_arity(OPCODE_CALL_FUN, OpcodeCallFun::ARITY);
+      return OpcodeCallFun::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_FUNCTION => {
+      assert_arity(OPCODE_IS_FUNCTION, OpcodeIsFunction::ARITY);
+      return OpcodeIsFunction::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_CALL_EXT_ONLY => {
+      assert_arity(OPCODE_CALL_EXT_ONLY, OpcodeCallExtOnly::ARITY);
+      return OpcodeCallExtOnly::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_MAKE_FUN2 => {
+      assert_arity(OPCODE_MAKE_FUN2, OpcodeMakeFun2::ARITY);
+      return OpcodeMakeFun2::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_FUNCTION2 => {
+      assert_arity(OPCODE_IS_FUNCTION2, OpcodeIsFunction2::ARITY);
+      return OpcodeIsFunction2::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_GC_BIF1 => {
+      assert_arity(OPCODE_GC_BIF1, OpcodeGcBif1::ARITY);
+      return OpcodeGcBif1::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_GC_BIF2 => {
+      assert_arity(OPCODE_GC_BIF2, OpcodeGcBif2::ARITY);
+      return OpcodeGcBif2::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_TRIM => {
+      assert_arity(OPCODE_TRIM, OpcodeTrim::ARITY);
+      return OpcodeTrim::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_GC_BIF3 => {
+      assert_arity(OPCODE_GC_BIF3, OpcodeGcBif3::ARITY);
+      return OpcodeGcBif3::run(vm, ctx, curr_p);
+    },
+
     other => unknown_opcode(other, ctx),
   }
   Ok(DispatchResult::Yield)

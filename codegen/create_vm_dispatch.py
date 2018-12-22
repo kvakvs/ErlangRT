@@ -2,6 +2,7 @@
 # takes: genop.tab from erlang/otp
 # Prints a Rust source file of VM dispatch, huge match statement with all
 # opcodes
+
 import erlangrt.genop as genop
 
 
@@ -15,15 +16,11 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use crate::emulator::vm::VM;
-use crate::beam::gen_op;
-use crate::beam::opcodes::*;
-use crate::beam::disp_result::{{DispatchResult}};
-use crate::emulator::code::opcode::RawOpcode;
-use crate::emulator::process::Process;
-use crate::emulator::runtime_ctx::Context;
-use crate::fail::{{RtResult}};
-
+use crate::{{
+  beam::{{disp_result::DispatchResult, gen_op::*, opcodes::*}},
+  emulator::{{code::opcode::RawOpcode, process::Process, runtime_ctx::Context, vm::VM}},
+  fail::RtResult,
+}};
 
 #[inline]
 pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, \
@@ -33,9 +30,14 @@ curr_p: &mut Process) -> RtResult<DispatchResult> {{
     for opcode in range(conf.min_opcode, conf.max_opcode + 1):
         op = tables.ops[opcode]
         if op.name in tables.implemented_ops:
-            print("    gen_op::OPCODE_{opcode} => "
-                  "return opcode_{lowercase}(vm, ctx, curr_p),"
-                  "".format(opcode=op.name.upper(), lowercase=op.name))
+            camelcased = "".join(
+                map(lambda s: s.capitalize(), op.name.split("_"))
+            )
+            print("    OPCODE_{opcode} => {{\n"
+                  "      assert_arity(OPCODE_{opcode}, Opcode{camelcased}::ARITY);\n"
+                  "      return Opcode{camelcased}::run(vm, ctx, curr_p);\n"
+                  "    }},\n".format(opcode=op.name.upper(),
+                            camelcased=camelcased))
 
     print("""\
     other => unknown_opcode(other, ctx),

@@ -1,9 +1,8 @@
 //! Module implements opcodes related to execution control: Calls, jumps,
 //! returns etc.
 
-use crate::term::compare;
 use crate::{
-  beam::{disp_result::DispatchResult, gen_op, opcodes::assert_arity},
+  beam::{disp_result::DispatchResult},
   emulator::{
     code::CodePtr,
     process::Process,
@@ -11,7 +10,7 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  term::{boxed, lterm::*},
+  term::{boxed, compare, lterm::*},
 };
 use std::cmp::Ordering;
 
@@ -21,128 +20,151 @@ fn module() -> &'static str {
 
 /// Perform a call to a `location` in code, storing address of the next opcode
 /// in `ctx.cp`.
-#[inline]
-pub fn opcode_call(
-  _vm: &VM,
-  ctx: &mut Context,
-  _curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: call(arity:int, loc:CP)
-  assert_arity(gen_op::OPCODE_CALL, 2);
+/// Structure: call(arity:int, loc:CP)
+pub struct OpcodeCall {}
 
-  let arity = ctx.fetch_term();
-  ctx.live = arity.get_small_unsigned();
+impl OpcodeCall {
+  pub const ARITY: usize = 2;
 
-  let location = ctx.fetch_term();
-  debug_assert!(
-    location.is_boxed(),
-    "Call location must be a box (have {})",
-    location
-  );
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    _curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term();
+    ctx.live = arity.get_small_unsigned();
 
-  ctx.cp = ctx.ip; // Points at the next opcode after this
-  ctx.jump(location);
+    let location = ctx.fetch_term();
+    debug_assert!(
+      location.is_boxed(),
+      "Call location must be a box (have {})",
+      location
+    );
 
-  Ok(DispatchResult::Normal)
+    ctx.cp = ctx.ip; // Points at the next opcode after this
+    ctx.jump(location);
+
+    Ok(DispatchResult::Normal)
+  }
 }
 
 /// Perform a call to a `location` in code, the `ctx.cp` is not updated.
 /// Behaves like a jump?
-#[inline]
-pub fn opcode_call_only(
-  _vm: &VM,
-  ctx: &mut Context,
-  _curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: call_only(arity:int, loc:cp)
-  assert_arity(gen_op::OPCODE_CALL_ONLY, 2);
+/// Structure: call_only(arity:int, loc:cp)
+pub struct OpcodeCallOnly {}
 
-  let arity = ctx.fetch_term();
-  ctx.live = arity.get_small_unsigned();
+impl OpcodeCallOnly {
+  pub const ARITY: usize = 2;
 
-  let dst = ctx.fetch_term();
-  ctx.jump(dst); // jump will assert if the location is cp
-  Ok(DispatchResult::Normal)
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    _curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term();
+    ctx.live = arity.get_small_unsigned();
+
+    let dst = ctx.fetch_term();
+    ctx.jump(dst); // jump will assert if the location is cp
+    Ok(DispatchResult::Normal)
+  }
 }
 
 /// Deallocates stack, and performs a tail-recursive call (jump) to a `location`
 /// in code.
-#[inline]
-pub fn opcode_call_last(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: call_last(arity:smallint, dst:cp, dealloc:smallint)
-  assert_arity(gen_op::OPCODE_CALL_LAST, 3);
+/// Structure: call_last(arity:smallint, dst:cp, dealloc:smallint)
+pub struct OpcodeCallLast {}
 
-  let arity = ctx.fetch_term();
-  ctx.live = arity.get_small_unsigned();
+impl OpcodeCallLast {
+  pub const ARITY: usize = 3;
 
-  let dst = ctx.fetch_term(); // jump will assert if the location is cp
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term();
+    ctx.live = arity.get_small_unsigned();
 
-  let dealloc = ctx.fetch_term();
-  let hp = &mut curr_p.heap;
-  ctx.set_cp(hp.stack_deallocate(dealloc.get_small_unsigned()));
+    let dst = ctx.fetch_term(); // jump will assert if the location is cp
 
-  ctx.jump(dst);
-  Ok(DispatchResult::Normal)
+    let dealloc = ctx.fetch_term();
+    let hp = &mut curr_p.heap;
+    ctx.set_cp(hp.stack_deallocate(dealloc.get_small_unsigned()));
+
+    ctx.jump(dst);
+    Ok(DispatchResult::Normal)
+  }
 }
 
 /// Performs a tail recursive call to a Destination mfarity (a `HOImport`
 /// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
 /// point to an external function or a BIF. Does not update the `ctx.cp`.
-#[inline]
-pub fn opcode_call_ext_only(
-  vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: call_ext_only(arity:int, import:boxed)
-  assert_arity(gen_op::OPCODE_CALL_EXT_ONLY, 2);
+/// Structure: call_ext_only(arity:int, import:boxed)
+pub struct OpcodeCallExtOnly {}
 
-  let arity = ctx.fetch_term().get_small_unsigned();
-  let args = ctx.registers_slice(arity);
-  shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+impl OpcodeCallExtOnly {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let args = ctx.registers_slice(arity);
+    shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+  }
 }
 
 /// Performs a call to a Destination mfarity (a `HOImport` object on the heap
 /// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
 /// function or a BIF. Updates the `ctx.cp` with return IP.
-#[inline]
-pub fn opcode_call_ext(
-  vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: call_ext(arity:int, destination:boxed)
-  assert_arity(gen_op::OPCODE_CALL_EXT, 2);
+/// Structure: call_ext(arity:int, destination:boxed)
+pub struct OpcodeCallExt {}
 
-  let arity = ctx.fetch_term().get_small_unsigned();
-  let args = ctx.registers_slice(arity);
-  shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, true)
+impl OpcodeCallExt {
+  pub const ARITY: usize = 2;
+  #[inline]
+  pub fn run(
+    vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let args = ctx.registers_slice(arity);
+    shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, true)
+  }
 }
 
 
 /// Deallocates stack and performs a tail call to destination.
 /// Structure: call_ext_last(arity:int, destination:boxed, dealloc:smallint)
-#[inline]
-pub fn opcode_call_ext_last(
-  vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  assert_arity(gen_op::OPCODE_CALL_EXT, 2);
+pub struct OpcodeCallExtLast {}
 
-  let arity = ctx.fetch_term().get_small_unsigned();
-  let args = ctx.registers_slice(arity);
+impl OpcodeCallExtLast {
+  pub const ARITY: usize = 2;
 
-  let dealloc = ctx.fetch_term().get_small_unsigned();
-  let hp = &mut curr_p.heap;
-  let new_cp = hp.stack_deallocate(dealloc);
-  ctx.set_cp(new_cp);
+  #[inline]
+  pub fn run(
+    vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let args = ctx.registers_slice(arity);
 
-  shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+    let dealloc = ctx.fetch_term().get_small_unsigned();
+    let hp = &mut curr_p.heap;
+    let new_cp = hp.stack_deallocate(dealloc);
+    ctx.set_cp(new_cp);
+
+    shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+  }
 }
 
 #[inline]
@@ -185,7 +207,7 @@ fn shared_call_ext(
     },
     Err(_err) => {
       // Create a `{badfun, _}` error
-      //panic!("bad call_ext target {}", imp0);
+      // panic!("bad call_ext target {}", imp0);
       DispatchResult::badfun_val(imp0, &mut curr_p.heap)
     }
   }
@@ -193,92 +215,110 @@ fn shared_call_ext(
 
 /// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
 /// the process has no more code to execute and will end with reason `normal`.
-#[inline]
-pub fn opcode_return(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: return()
-  assert_arity(gen_op::OPCODE_RETURN, 0);
+/// Structure: return()
+pub struct OpcodeReturn {}
 
-  if ctx.cp.is_null() {
-    if curr_p.heap.stack_depth() == 0 {
-      // Process end of life: return on empty stack
-      panic!("{}Process exit: normal; x0={}", module(), ctx.x(0))
-    } else {
-      panic!(
-        "{}Return instruction with 0 in ctx.cp. Possible error in CP value management",
-        module()
-      )
+impl OpcodeReturn {
+  pub const ARITY: usize = 0;
+
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    if ctx.cp.is_null() {
+      if curr_p.heap.stack_depth() == 0 {
+        // Process end of life: return on empty stack
+        panic!("{}Process exit: normal; x0={}", module(), ctx.x(0))
+      } else {
+        panic!(
+          "{}Return instruction with 0 in ctx.cp. Possible error in CP value management",
+          module()
+        )
+      }
     }
+
+    ctx.ip = ctx.cp;
+    ctx.cp = CodePtr::null();
+
+    Ok(DispatchResult::Normal)
   }
-
-  ctx.ip = ctx.cp;
-  ctx.cp = CodePtr::null();
-
-  Ok(DispatchResult::Normal)
 }
 
-#[inline]
-pub fn opcode_func_info(
-  _vm: &VM,
-  ctx: &mut Context,
-  _curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  assert_arity(gen_op::OPCODE_FUNC_INFO, 3);
-  let m = ctx.fetch_term();
-  let f = ctx.fetch_term();
-  let arity = ctx.fetch_term();
+pub struct OpcodeFuncInfo {}
 
-  panic!("{}function_clause {}:{}/{}", module(), m, f, arity)
-  //DispatchResult::Error
+impl OpcodeFuncInfo {
+  pub const ARITY: usize = 3;
+
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    _curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let m = ctx.fetch_term();
+    let f = ctx.fetch_term();
+    let arity = ctx.fetch_term();
+
+    panic!("{}function_clause {}:{}/{}", module(), m, f, arity)
+    // DispatchResult::Error
+  }
 }
 
 /// Create an error:badmatch exception
-#[inline]
-pub fn opcode_badmatch(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: badmatch(LTerm)
-  assert_arity(gen_op::OPCODE_BADMATCH, 1);
+/// Structure: badmatch(LTerm)
+pub struct OpcodeBadmatch {}
 
-  let hp = &mut curr_p.heap;
-  let val = ctx.fetch_and_load(hp);
-  DispatchResult::badmatch_val(val, hp)
+impl OpcodeBadmatch {
+  pub const ARITY: usize = 1;
+
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let hp = &mut curr_p.heap;
+    let val = ctx.fetch_and_load(hp);
+    DispatchResult::badmatch_val(val, hp)
+  }
 }
 
 /// Compares Arg with tuple of pairs {Value1, Label1, ...} and jumps to Label
 /// if it is equal. If none compared, will jump to FailLabel
-#[inline]
-pub fn opcode_select_val(
-  _vm: &VM,
-  ctx: &mut Context,
-  curr_p: &mut Process,
-) -> RtResult<DispatchResult> {
-  // Structure: select_val(val:src, on_fail:label, tuple_pairs:src)
-  assert_arity(gen_op::OPCODE_SELECT_VAL, 3);
-  let hp = &curr_p.heap;
-  let val = ctx.fetch_and_load(hp);
-  let fail_label = ctx.fetch_term();
+/// Structure: select_val(val:src, on_fail:label, tuple_pairs:src)
+pub struct OpcodeSelectVal {}
 
-  let pairs_tuple = ctx.fetch_and_load(hp);
-  debug_assert!(pairs_tuple.is_tuple());
-  let tuple_ptr = pairs_tuple.get_box_ptr::<boxed::Tuple>();
-  let pairs_count = unsafe { (*tuple_ptr).get_arity() / 2 };
+impl OpcodeSelectVal {
+  pub const ARITY: usize = 3;
 
-  for i in 0..pairs_count {
-    let sel_val = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2) };
-    if compare::cmp_terms(val, sel_val, true)? == Ordering::Equal {
-      let sel_label = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2 + 1) };
-      ctx.jump(sel_label);
-      return Ok(DispatchResult::Normal);
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let hp = &curr_p.heap;
+    let val = ctx.fetch_and_load(hp);
+    let fail_label = ctx.fetch_term();
+
+    let pairs_tuple = ctx.fetch_and_load(hp);
+    debug_assert!(pairs_tuple.is_tuple());
+    let tuple_ptr = pairs_tuple.get_box_ptr::<boxed::Tuple>();
+    let pairs_count = unsafe { (*tuple_ptr).get_arity() / 2 };
+
+    for i in 0..pairs_count {
+      let sel_val = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2) };
+      if compare::cmp_terms(val, sel_val, true)? == Ordering::Equal {
+        let sel_label = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2 + 1) };
+        ctx.jump(sel_label);
+        return Ok(DispatchResult::Normal);
+      }
     }
-  }
 
-  // None matched, jump to fail label
-  ctx.jump(fail_label);
-  Ok(DispatchResult::Normal)
+    // None matched, jump to fail label
+    ctx.jump(fail_label);
+    Ok(DispatchResult::Normal)
+  }
 }
