@@ -73,7 +73,7 @@ test_hof_fold() ->
     % test fold
     M = 2,
     G = fun(X, A) -> (X + A) * M end,
-    15 = my_foldl(G, 0, [1, 2, 3, 4, 5]). % sum fold
+    114 = my_foldl(G, 0, [1, 2, 3, 4, 5]). % sum fold
 
 my_foldl(F, Accu, [Hd | Tail]) ->
     my_foldl(F, F(Hd, Accu), Tail);

@@ -6,6 +6,7 @@ bif2
 call
 call_ext
 call_ext_only
+call_ext_last
 call_fun
 call_last
 call_only

@@ -123,6 +123,28 @@ pub fn opcode_call_ext(
   shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, true)
 }
 
+
+/// Deallocates stack and performs a tail call to destination.
+/// Structure: call_ext_last(arity:int, destination:boxed, dealloc:smallint)
+#[inline]
+pub fn opcode_call_ext_last(
+  vm: &VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+) -> RtResult<DispatchResult> {
+  assert_arity(gen_op::OPCODE_CALL_EXT, 2);
+
+  let arity = ctx.fetch_term().get_small_unsigned();
+  let args = ctx.registers_slice(arity);
+
+  let dealloc = ctx.fetch_term().get_small_unsigned();
+  let hp = &mut curr_p.heap;
+  let new_cp = hp.stack_deallocate(dealloc);
+  ctx.set_cp(new_cp);
+
+  shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+}
+
 #[inline]
 fn shared_call_ext(
   vm: &VM,
