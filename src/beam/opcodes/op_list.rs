@@ -93,7 +93,7 @@ impl OpcodeGetList {
     }
     assert!(
       src.is_cons(),
-      "{}get_list: expected a cons, got {}",
+      "{}get_list: expected a cons, got: {}",
       module(),
       src
     );

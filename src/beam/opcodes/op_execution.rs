@@ -2,7 +2,7 @@
 //! returns etc.
 
 use crate::{
-  beam::{disp_result::DispatchResult},
+  beam::disp_result::DispatchResult,
   emulator::{
     code::CodePtr,
     process::Process,
@@ -110,14 +110,21 @@ impl OpcodeCallExtOnly {
   pub const ARITY: usize = 2;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (usize, LTerm) {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let dst = ctx.fetch_and_load(&mut curr_p.heap);
+    (arity, dst)
+  }
+
+  #[inline]
   pub fn run(
     vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term().get_small_unsigned();
+    let (arity, dst) = Self::fetch_args(ctx, curr_p);
     let args = ctx.registers_slice(arity);
-    shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+    shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
 
@@ -129,15 +136,23 @@ pub struct OpcodeCallExt {}
 
 impl OpcodeCallExt {
   pub const ARITY: usize = 2;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (usize, LTerm) {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let dst = ctx.fetch_and_load(&mut curr_p.heap);
+    (arity, dst)
+  }
+
   #[inline]
   pub fn run(
     vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term().get_small_unsigned();
+    let (arity, dst) = Self::fetch_args(ctx, curr_p);
     let args = ctx.registers_slice(arity);
-    shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, true)
+    shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
   }
 }
 
@@ -150,38 +165,43 @@ impl OpcodeCallExtLast {
   pub const ARITY: usize = 3;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (usize, LTerm, usize) {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let dst = ctx.fetch_and_load(&mut curr_p.heap);
+    let dealloc = ctx.fetch_term().get_small_unsigned();
+    (arity, dst, dealloc)
+  }
+
+  #[inline]
   pub fn run(
     vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let args = ctx.registers_slice(arity);
+    let (arity, dst, dealloc) = Self::fetch_args(ctx, curr_p);
 
-    let dealloc = ctx.fetch_term().get_small_unsigned();
-    let hp = &mut curr_p.heap;
-    let new_cp = hp.stack_deallocate(dealloc);
+    let new_cp = curr_p.heap.stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
 
-    shared_call_ext(vm, ctx, curr_p, LTerm::nil(), args, false)
+    let args = ctx.registers_slice(arity);
+    shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
 
+/// Arg: dst_import: boxed::Import which will contain MFArity to call.
 #[inline]
 fn shared_call_ext(
   vm: &VM,
   ctx: &mut Context,
   curr_p: &mut Process,
+  dst_import: LTerm,
   fail_label: LTerm,
   args: &[LTerm],
   save_cp: bool,
 ) -> RtResult<DispatchResult> {
   ctx.live = args.len();
 
-  // HOImport object on heap which contains m:f/arity
-  let imp0 = ctx.fetch_term();
-
-  match unsafe { boxed::Import::const_from_term(imp0) } {
+  match unsafe { boxed::Import::const_from_term(dst_import) } {
     Ok(import_ptr) => unsafe {
       if (*import_ptr).is_bif {
         // Perform a BIF application
@@ -208,7 +228,7 @@ fn shared_call_ext(
     Err(_err) => {
       // Create a `{badfun, _}` error
       // panic!("bad call_ext target {}", imp0);
-      DispatchResult::badfun_val(imp0, &mut curr_p.heap)
+      DispatchResult::badfun_val(dst_import, &mut curr_p.heap)
     }
   }
 }
