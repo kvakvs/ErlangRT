@@ -1,7 +1,7 @@
 //! Module implements opcodes related to lists manipulation.
 
 use crate::{
-  beam::{disp_result::DispatchResult},
+  beam::disp_result::DispatchResult,
   emulator::{heap::allocate_cons, process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
   term::lterm::LTerm,
@@ -20,18 +20,22 @@ impl OpcodeIsNonemptyList {
   pub const ARITY: usize = 2;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let fail = ctx.fetch_term();
+    let value = ctx.fetch_and_load(&mut curr_p.heap);
+    (fail, value)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let fail = ctx.fetch_term(); // jump if not a list
-
+    let (fail, value) = Self::fetch_args(ctx, curr_p);
     assert!(fail.is_cp() || fail == LTerm::nil());
 
-    let list = ctx.fetch_and_load(&curr_p.heap);
-
-    if list == LTerm::nil() && !list.is_cons() && fail != LTerm::nil() {
+    if value == LTerm::nil() && !value.is_cons() && fail != LTerm::nil() {
       // jump to fail label
       ctx.jump(fail)
     }
@@ -49,17 +53,22 @@ impl OpcodeIsNil {
   pub const ARITY: usize = 2;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let fail = ctx.fetch_term();
+    let value = ctx.fetch_and_load(&mut curr_p.heap);
+    (fail, value)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let fail = ctx.fetch_term(); // jump if not a list
+    let (fail, value) = Self::fetch_args(ctx, curr_p);
     assert!(fail.is_cp() || fail == LTerm::nil());
 
-    let list = ctx.fetch_and_load(&curr_p.heap);
-
-    if list != LTerm::nil() && fail != LTerm::nil() {
+    if value != LTerm::nil() && fail != LTerm::nil() {
       // jump to fail label
       ctx.jump(fail)
     }
@@ -77,18 +86,23 @@ impl OpcodeGetList {
   pub const ARITY: usize = 3;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
+    let src = ctx.fetch_and_load(&mut curr_p.heap);
+    let dst_hd = ctx.fetch_term();
+    let dst_tl = ctx.fetch_term();
+    (src, dst_hd, dst_tl)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
-    let src = ctx.fetch_and_load(hp); // take src
-
-    let hd = ctx.fetch_term(); // put src's head into hd
-    let tl = ctx.fetch_term(); // put src's tail into tl
+    let (src, dst_hd, dst_tl) = Self::fetch_args(ctx, curr_p);
 
     if src == LTerm::nil() {
+      // TODO: is this badmatch here?
       panic!("Attempt to get_list on a nil[]");
     }
     assert!(
@@ -98,10 +112,12 @@ impl OpcodeGetList {
       src
     );
 
+    let hp = &mut curr_p.heap;
+
     unsafe {
       let cons_p = src.get_cons_ptr();
-      ctx.store((*cons_p).hd(), hd, hp);
-      ctx.store((*cons_p).tl(), tl, hp);
+      ctx.store((*cons_p).hd(), dst_hd, hp);
+      ctx.store((*cons_p).tl(), dst_tl, hp);
     }
 
     Ok(DispatchResult::Normal)
@@ -117,20 +133,27 @@ impl OpcodePutList {
   pub const ARITY: usize = 3;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
+    let src_hd = ctx.fetch_and_load(&mut curr_p.heap);
+    let src_tl = ctx.fetch_and_load(&mut curr_p.heap);
+    let dst = ctx.fetch_term();
+    (src_hd, src_tl, dst)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
+    let (src_hd, src_tl, dst) = Self::fetch_args(ctx, curr_p);
+
     let hp = &mut curr_p.heap;
-    let hd = ctx.fetch_and_load(hp); // take hd
-    let tl = ctx.fetch_and_load(hp); // take tl
-    let dst = ctx.fetch_term(); // put `[hd | tl]` into dst
 
     unsafe {
       let cons_p = allocate_cons(hp).unwrap();
-      (*cons_p).set_hd(hd);
-      (*cons_p).set_tl(tl);
+      (*cons_p).set_hd(src_hd);
+      (*cons_p).set_tl(src_tl);
       ctx.store(LTerm::make_cons(cons_p), dst, hp);
     }
 

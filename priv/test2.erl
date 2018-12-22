@@ -61,7 +61,7 @@ test_mochijson() ->
 test_hof_nested() ->
     C = fun(X, _) -> X end,
     %[{b} | Z] = lists:foldl(C, [], [a,b]),
-    Z = lists:foldl(C, [], [a]),
+    Z = lists:foldl(C, [], [a, [a,b,c]]),
     lists:reverse(Z).
 
 test_hof() ->
