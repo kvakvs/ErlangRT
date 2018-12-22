@@ -41,7 +41,7 @@ impl OpcodeAllocateZero {
 pub struct OpcodeAllocate {}
 
 impl OpcodeAllocate {
-  pub const ARITY: usize = 1;
+  pub const ARITY: usize = 2;
 
   #[inline]
   pub fn run(

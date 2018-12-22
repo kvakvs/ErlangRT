@@ -147,7 +147,7 @@ impl OpcodeCallExt {
 pub struct OpcodeCallExtLast {}
 
 impl OpcodeCallExtLast {
-  pub const ARITY: usize = 2;
+  pub const ARITY: usize = 3;
 
   #[inline]
   pub fn run(
