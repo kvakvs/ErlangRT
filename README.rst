@@ -17,7 +17,7 @@ Progress to the Proof of Concept
 * VM loop and opcodes 20%
 * Some basic BIFs 5%
 
-.. figure:: http://i.imgur.com/rU8Qrjn.png
+.. figure:: https://i.imgur.com/1ryd4K1.png
    :scale: 70 %
    :alt: Test2.erl run output
 
