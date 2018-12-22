@@ -7,22 +7,14 @@ use crate::{
 };
 
 use core::fmt;
+use crate::fail::RtResult;
+use crate::fail::Error;
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: usize = 8192;
 
 /// Default heap size when spawning a process. (default: 300)
 pub const DEFAULT_PROC_HEAP: usize = 8192;
-
-#[derive(Debug)]
-pub enum HeapError {
-  // / Very bad, no more memory to grow.
-  // OutOfMemory,
-  /// No space left in heap. GC requested.
-  HeapIsFull,
-  /// Attempt to index outside of the current stack.
-  StackIndexRange,
-}
 
 /// A heap structure which grows upwards with allocations. Cannot expand
 /// implicitly and will return error when capacity is exceeded. Organize a
@@ -88,12 +80,12 @@ impl Heap {
     p.add(self.htop)
   }
 
-  pub fn alloc<T>(&mut self, n: WordSize, init_nil: bool) -> Result<*mut T, HeapError> {
+  pub fn alloc<T>(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut T> {
     let pos = self.htop;
     let n_words = n.words();
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n_words >= self.stop {
-      return Err(HeapError::HeapIsFull);
+      return Err(Error::HeapIsFull);
     }
 
     // Assume we can grow the data without reallocating
@@ -199,17 +191,17 @@ impl Heap {
     self.send - self.stop >= y + 1
   }
 
-  pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> Result<(), HeapError> {
+  pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
     if !self.stack_have_y(index) {
-      return Err(HeapError::StackIndexRange);
+      return Err(Error::StackIndexRange);
     }
     self.data[index + self.stop + 1] = val.raw();
     Ok(())
   }
 
-  pub fn stack_get_y(&self, index: Word) -> Result<LTerm, HeapError> {
+  pub fn stack_get_y(&self, index: Word) -> RtResult<LTerm> {
     if !self.stack_have_y(index) {
-      return Err(HeapError::StackIndexRange);
+      return Err(Error::StackIndexRange);
     }
     let pos = index + self.stop + 1;
     Ok(LTerm::from_raw(self.data[pos]))
@@ -237,7 +229,7 @@ impl Heap {
 
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
 #[inline]
-pub fn allocate_cons(hp: &mut Heap) -> Result<*mut boxed::Cons, HeapError> {
+pub fn allocate_cons(hp: &mut Heap) -> RtResult<*mut boxed::Cons> {
   hp.alloc::<boxed::Cons>(WordSize::new(2), false)
 }
 

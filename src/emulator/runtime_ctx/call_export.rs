@@ -49,7 +49,7 @@ pub fn apply(
       LTerm::nil(),
       CallBifTarget::MFArity(mfa),
       args,
-      LTerm::make_xreg(0),
+      LTerm::make_regx(0),
       false,
     );
   } else {

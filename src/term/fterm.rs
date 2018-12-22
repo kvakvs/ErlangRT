@@ -81,9 +81,9 @@ impl FTerm {
   pub fn to_lterm(&self, _heap: &mut Heap) -> LTerm {
     match *self {
       FTerm::Atom(i) => LTerm::make_atom(i),
-      FTerm::X_(i) => LTerm::make_xreg(i),
-      FTerm::Y_(i) => LTerm::make_yreg(i),
-      FTerm::FP_(i) => LTerm::make_fpreg(i),
+      FTerm::X_(i) => LTerm::make_regx(i),
+      FTerm::Y_(i) => LTerm::make_regy(i),
+      FTerm::FP_(i) => LTerm::make_regfp(i),
       FTerm::SmallInt(i) => LTerm::make_small_signed(i),
       FTerm::Nil => LTerm::nil(),
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self),

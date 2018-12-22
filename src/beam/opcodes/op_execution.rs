@@ -212,7 +212,7 @@ fn shared_call_ext(
           fail_label,
           cb_target,
           args,
-          LTerm::make_xreg(0),
+          LTerm::make_regx(0),
           true,
         )
       } else {

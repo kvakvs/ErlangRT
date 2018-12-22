@@ -4,6 +4,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
+  term::lterm::*,
 };
 
 /// Load a value from `src` and store it into `dst`. Source can be any literal
@@ -17,14 +18,20 @@ impl OpcodeMove {
   pub const ARITY: usize = 2;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let src = ctx.fetch_and_load(&curr_p.heap);
+    let dst = ctx.fetch_term();
+    (src, dst)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let src = ctx.fetch_term();
-    let dst = ctx.fetch_term();
-    ctx.store(src, dst, &mut curr_p.heap);
+    let (src, dst) = Self::fetch_args(ctx, curr_p);
+    ctx.store_value(src, dst, &mut curr_p.heap)?;
 
     Ok(DispatchResult::Normal)
   }

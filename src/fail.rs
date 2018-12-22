@@ -3,7 +3,6 @@
 use crate::{
   beam::compact_term::CTError,
   defs::ExceptionType,
-  emulator::heap::HeapError,
   rt_util::bin_reader::{self, ReadError},
   term::lterm::LTerm,
 };
@@ -28,7 +27,12 @@ pub enum Error {
 
   //--- Memory allocation events and errors ---
   AtomNotExist(String),
-  HeapError(HeapError),
+  // /// Very bad, no more memory to grow.
+  // OutOfMemory,
+  /// No space left in heap. GC requested.
+  HeapIsFull,
+  /// Attempt to index outside of the current stack.
+  StackIndexRange,
   // StackIndexRange,
 
   //--- VM Checks --
@@ -51,12 +55,6 @@ pub enum Error {
 impl From<bin_reader::ReadError> for Error {
   fn from(e: bin_reader::ReadError) -> Self {
     Error::ReadError(e)
-  }
-}
-
-impl From<HeapError> for Error {
-  fn from(e: HeapError) -> Self {
-    Error::HeapError(e)
   }
 }
 

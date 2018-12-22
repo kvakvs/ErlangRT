@@ -4,6 +4,7 @@
 use crate::{
   defs::{Word, MAX_FPREGS, MAX_XREGS},
   emulator::{code::CodePtr, heap},
+  fail::RtResult,
   term::lterm::{
     LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,
     TERMTAG_SPECIAL,
@@ -149,24 +150,46 @@ impl Context {
   }
 
   /// Copy a value from `src` (possibly a stack cell or a register) to `dst`.
-  pub fn store(&mut self, src: LTerm, dst: LTerm, hp: &mut heap::Heap) {
+  /// Returns void `()` or an error.
+  #[allow(dead_code)]
+  #[inline]
+  pub fn store_src(
+    &mut self,
+    src: LTerm,
+    dst: LTerm,
+    hp: &mut heap::Heap,
+  ) -> RtResult<()> {
     let src_val = self.load(src, hp);
+    self.store_value(src_val, dst, hp)
+  }
+
+  /// Copy a value `val` to `dst`. No attempt is done to load val from a
+  /// stack value or a register, val is assumed to be a ready value, not a source.
+  /// Returns void `()` or an error.
+  pub fn store_value(
+    &mut self,
+    val: LTerm,
+    dst: LTerm,
+    hp: &mut heap::Heap,
+  ) -> RtResult<()> {
+    debug_assert!(!val.is_regx());
+    debug_assert!(!val.is_regy());
+    debug_assert!(!val.is_regfp());
     if dst.get_term_tag() == TERMTAG_SPECIAL {
       match dst.get_special_tag() {
         SPECIALTAG_REGX => {
-          self.set_x(dst.get_special_value(), src_val);
-          return;
+          self.set_x(dst.get_special_value(), val);
+          return Ok(());
         }
         SPECIALTAG_REGY => {
           let y = dst.get_special_value();
-          let y_result = hp.stack_set_y(y, src_val);
-          return y_result.unwrap();
+          return hp.stack_set_y(y, val);
         }
         SPECIALTAG_REGFP => panic!("todo fpreg store"),
         SpecialTag(st) => panic!("store: specialtag {} not supported", st),
       }
     }
-    panic!("{}Don't know how to ctx.store {} to {}", module(), src, dst)
+    panic!("{}Don't know how to ctx.store {} to {}", module(), val, dst)
   }
 
   #[inline]

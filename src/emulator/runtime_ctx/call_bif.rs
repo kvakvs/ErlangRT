@@ -95,7 +95,7 @@ pub fn apply(
       println!("call_bif a={} gc={} call result {}", args.len(), gc, val);
       // if dst is not NIL, store the result in it
       if dst != LTerm::nil() {
-        ctx.store(val, dst, &mut curr_p.heap)
+        ctx.store_value(val, dst, &mut curr_p.heap)?;
       }
       Ok(DispatchResult::Normal)
     }

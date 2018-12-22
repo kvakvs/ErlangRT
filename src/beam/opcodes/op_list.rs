@@ -116,8 +116,8 @@ impl OpcodeGetList {
 
     unsafe {
       let cons_p = src.get_cons_ptr();
-      ctx.store((*cons_p).hd(), dst_hd, hp);
-      ctx.store((*cons_p).tl(), dst_tl, hp);
+      ctx.store_value((*cons_p).hd(), dst_hd, hp)?;
+      ctx.store_value((*cons_p).tl(), dst_tl, hp)?;
     }
 
     Ok(DispatchResult::Normal)
@@ -154,7 +154,7 @@ impl OpcodePutList {
       let cons_p = allocate_cons(hp).unwrap();
       (*cons_p).set_hd(src_hd);
       (*cons_p).set_tl(src_tl);
-      ctx.store(LTerm::make_cons(cons_p), dst, hp);
+      ctx.store_value(LTerm::make_cons(cons_p), dst, hp)?;
     }
 
     Ok(DispatchResult::Normal)

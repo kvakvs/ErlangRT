@@ -299,16 +299,33 @@ impl LTerm {
     )
   }
 
-  pub fn make_xreg(n: Word) -> LTerm {
+  #[inline]
+  pub fn is_special_of_type(self, t: SpecialTag) -> bool {
+    self.get_term_tag() == TERMTAG_SPECIAL && self.get_special_tag() == t
+  }
+
+  pub fn make_regx(n: Word) -> LTerm {
     LTerm::make_special(SPECIALTAG_REGX, n)
   }
 
-  pub fn make_yreg(n: Word) -> LTerm {
+  pub fn is_regx(self) -> bool {
+    self.is_special_of_type(SPECIALTAG_REGX)
+  }
+
+  pub fn make_regy(n: Word) -> LTerm {
     LTerm::make_special(SPECIALTAG_REGY, n)
   }
 
-  pub fn make_fpreg(n: Word) -> LTerm {
+  pub fn is_regy(self) -> bool {
+    self.is_special_of_type(SPECIALTAG_REGY)
+  }
+
+  pub fn make_regfp(n: Word) -> LTerm {
     LTerm::make_special(SPECIALTAG_REGFP, n)
+  }
+
+  pub fn is_regfp(self) -> bool {
+    self.is_special_of_type(SPECIALTAG_REGFP)
   }
 
   #[inline]
