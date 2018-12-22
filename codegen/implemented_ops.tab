@@ -47,3 +47,5 @@ is_atom
 # is_reference
 # is_port
 # is_binary
+is_function
+is_function2

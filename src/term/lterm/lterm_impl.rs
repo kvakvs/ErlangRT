@@ -204,13 +204,23 @@ impl LTerm {
     Ok(self.value as *mut T)
   }
 
+  /// Checks boxed tag to be equal to t, also returns false if not a boxed.
   #[inline]
   fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
+    self.is_boxed_of_(|boxtag| boxtag == t)
+  }
+
+  /// Extracts boxed tag and runs an inline predicate on its boxed tag, allows
+  /// for checking multiple boxed tag values. Returns false if not a boxed.
+  #[inline]
+  fn is_boxed_of_<F>(self, pred: F) -> bool
+  where F: Fn(BoxTypeTag) -> bool {
     if !self.is_boxed() {
       return false;
     }
     let p = self.get_box_ptr::<BoxHeader>();
-    unsafe { (*p).get_tag() == t }
+    let tag = unsafe { (*p).get_tag() };
+    pred(tag)
   }
 
   //
@@ -530,9 +540,31 @@ impl LTerm {
   // FUN / CLOSURE ==================
   //
 
-  /// Check whether a value is a boxed fun (a closure).
+  /// Check whether a value is a boxed fun (a closure or export).
   pub fn is_fun(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_CLOSURE)
+    self.is_boxed_of_(
+      |t| t == boxed::BOXTYPETAG_CLOSURE || t == boxed::BOXTYPETAG_EXPORT
+    )
+  }
+
+  /// Check whether a value is a boxed fun (a closure or export).
+  pub fn is_fun_of_arity(self, a: usize) -> bool {
+    if !self.is_boxed() {
+      return false;
+    }
+    let p = self.get_box_ptr::<BoxHeader>();
+    let tag = unsafe { (*p).get_tag() };
+    match tag {
+      boxed::BOXTYPETAG_CLOSURE => {
+        let closure_p = p as *const boxed::Closure;
+        unsafe { (*closure_p).mfa.arity == a }
+      },
+      boxed::BOXTYPETAG_EXPORT => {
+        let expt_p = p as *const boxed::Export;
+        unsafe { (*expt_p).exp.mfa.arity == a }
+      },
+      _ => false,
+    }
   }
 
   //

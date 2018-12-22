@@ -2,11 +2,11 @@ HERE=$(shell pwd)
 
 .PHONY: run run-rel
 # Compile and run
-run: priv
+run: codegen priv
 	cargo run
 #	target/debug/erlang_rt
 
-run-rel: priv
+run-rel: codegen priv
 	cargo run --release
 
 # Run with backtrace on
@@ -23,11 +23,14 @@ priv:
 gdb: build
 	RUST_BACKTRACE=1 gdb target/debug/erlang_rt
 
+.PHONY: codegen
+	cd codegen && $(MAKE)
+
 .PHONY: build build-rel asm asm-rel
-build:
+build: codegen
 	cargo build
 
-build-rel:
+build-rel: codegen
 	cargo build --release
 
 asm:
