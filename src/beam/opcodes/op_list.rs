@@ -28,7 +28,7 @@ impl OpcodeIsNonemptyList {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -61,7 +61,7 @@ impl OpcodeIsNil {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -95,7 +95,7 @@ impl OpcodeGetList {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -142,7 +142,7 @@ impl OpcodePutList {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {

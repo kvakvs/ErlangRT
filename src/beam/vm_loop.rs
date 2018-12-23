@@ -31,11 +31,12 @@ impl VM {
     };
     ctx.copy_from(&curr_p.context); // swapin
 
+    let cs = self.get_code_server_p();
     loop {
       if cfg!(debug_assertions) {
         print!(" ↳ ");
         unsafe {
-          disasm::disasm_op(ctx.ip.get(), self.code_server.borrow().as_ref());
+          disasm::disasm_op(ctx.ip.get(), &(*cs));
         }
       }
 

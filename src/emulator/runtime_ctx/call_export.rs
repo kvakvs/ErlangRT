@@ -5,9 +5,9 @@ use crate::{
   bif,
   defs::Arity,
   emulator::{
-    code_srv::CodeServer,
     process::Process,
     runtime_ctx::call_bif::{self, CallBifTarget},
+    vm::VM,
   },
   fail::RtResult,
   term::{boxed, lterm::*},
@@ -20,12 +20,12 @@ fn module() -> &'static str {
 /// The `exp` is an export made with `fun module:name/0` which can point to
 /// either an Erlang function or to a BIF (native built-in function).
 pub fn apply(
+  vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
   export: *const boxed::Export,
   args: &[LTerm],
-  save_cp: bool,
-  code_server: &mut CodeServer,
+  save_cp: bool
 ) -> RtResult<DispatchResult> {
   // The `fobj` is a callable closure made with `fun() -> code end`
   let arity = args.len();
@@ -44,6 +44,7 @@ pub fn apply(
 
   if bif::is_bif(&mfa) {
     return call_bif::apply(
+      vm,
       ctx,
       curr_p,
       LTerm::nil(),
@@ -53,7 +54,8 @@ pub fn apply(
       false,
     );
   } else {
-    match code_server.lookup_and_load(&mfa) {
+    let code_server = vm.get_code_server_p();
+    match unsafe { (*code_server).lookup_and_load(&mfa) } {
       Ok(ip) => {
         if save_cp {
           ctx.cp = ctx.ip

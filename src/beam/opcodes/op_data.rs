@@ -26,7 +26,7 @@ impl OpcodeMove {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {

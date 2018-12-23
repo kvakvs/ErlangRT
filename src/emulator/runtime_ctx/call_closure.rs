@@ -15,7 +15,7 @@ fn module() -> &'static str {
 /// The `closure` is a callable closure with some frozen variables made with
 /// `fun() -> code end`.
 pub fn apply(
-  vm: &VM,
+  vm: &mut VM,
   ctx: &mut Context,
   _curr_p: &mut Process,
   closure: *mut boxed::Closure,
@@ -52,7 +52,10 @@ pub fn apply(
   // OR TODO: subscribe from all exports to the module and get invalidation notifications
   ctx.ip = match dst {
     Some(p) => p.ptr,
-    None => unsafe { (*closure).update_location(vm.code_server.borrow_mut().as_mut())? },
+    None => unsafe {
+      let cs = vm.get_code_server_p();
+      (*closure).update_location(&mut (*cs))?
+    },
   };
   Ok(DispatchResult::Normal)
 }

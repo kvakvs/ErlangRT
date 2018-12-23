@@ -23,7 +23,7 @@ use crate::{{
 }};
 
 #[inline]
-pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, \
+pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, \
 curr_p: &mut Process) -> RtResult<DispatchResult> {{
   match op {{""".format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 

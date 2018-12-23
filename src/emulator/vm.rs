@@ -1,19 +1,17 @@
 //! Implements virtual machine, as a collection of processes and their
 //! registrations, schedulers, ETS tables and atom table etc.
-//!
 
 use crate::{
   defs::Word,
   emulator::{
     code_srv::CodeServer,
-    mfa::MFArgs,
+    mfa::MFASomething,
     process::Process,
     scheduler::{Prio, Scheduler},
   },
   fail::RtResult,
   term::lterm::*,
 };
-use std::cell::RefCell;
 
 // fn module() -> &'static str { "vm: " }
 
@@ -25,7 +23,7 @@ pub struct VM {
   pid_counter: Word,
 
   /// Contains all loaded modules and manages versions
-  pub code_server: RefCell<Box<CodeServer>>,
+  code_server: CodeServer,
 
   scheduler: Scheduler,
 }
@@ -35,7 +33,7 @@ impl VM {
   /// will be shared (global).
   pub fn new() -> VM {
     VM {
-      code_server: RefCell::new(Box::new(CodeServer::new())),
+      code_server: CodeServer::new(),
       pid_counter: 0,
       scheduler: Scheduler::new(),
     }
@@ -48,11 +46,18 @@ impl VM {
     p as *mut Scheduler
   }
 
+  /// Dirty trick to not have to dynamically borrow code server via
+  /// `RefCell<Box<>>` because code server lives just as long as the VM itself.
+  pub fn get_code_server_p(&self) -> *mut CodeServer {
+    let p = &self.code_server as *const CodeServer;
+    p as *mut CodeServer
+  }
+
   /// Spawn a new process, create a new pid, register the process and jump to the MFA
   pub fn create_process(
     &mut self,
     parent: LTerm,
-    mfargs: &MFArgs,
+    mfargs: &MFASomething,
     prio: Prio,
   ) -> RtResult<LTerm> {
     let pid_c = self.pid_counter;
@@ -60,13 +65,8 @@ impl VM {
 
     let pid = LTerm::make_local_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
-    match Process::new(
-      pid,
-      parent,
-      &mfarity,
-      prio,
-      self.code_server.borrow_mut().as_mut(),
-    ) {
+    let cs = self.get_code_server_p();
+    match Process::new(pid, parent, &mfarity, prio, unsafe { &mut (*cs) }) {
       Ok(p0) => {
         self.scheduler.add(pid, p0);
         Ok(pid)

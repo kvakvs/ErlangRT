@@ -23,7 +23,7 @@ impl OpcodeMakeFun2 {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -52,7 +52,7 @@ impl OpcodeCallFun {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -69,12 +69,12 @@ impl OpcodeCallFun {
     } else if let Ok(export) = unsafe { boxed::Export::mut_from_term(fobj) } {
       // `fobj` is an export made with `fun module:name/0`
       runtime_ctx::call_export::apply(
+        vm,
         ctx,
         curr_p,
         export,
         args,
-        true,
-        vm.code_server.borrow_mut().as_mut(),
+        true
       )
     } else {
       DispatchResult::badfun()

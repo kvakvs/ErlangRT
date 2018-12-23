@@ -4,24 +4,43 @@
 use crate::{defs::Arity, emulator::funarity::FunArity, term::lterm::*};
 use core::fmt;
 
-/// Reference to an M:F(Args) function, ready to be called with arguments.
-pub struct MFArgs {
-  m: LTerm,
-  f: LTerm,
-  args: Vec<LTerm>,
+#[derive(Debug)]
+pub enum Args {
+  // list of args
+  AsList(LTerm),
+  // pointer to args with size
+  // AsSlice(*const LTerm, usize),
 }
 
-impl MFArgs {
-  pub fn new(m: LTerm, f: LTerm, args: Vec<LTerm>) -> MFArgs {
-    MFArgs { m, f, args }
+/// Reference to an M:F(Args) function, ready to be called with arguments.
+pub struct MFASomething {
+  m: LTerm,
+  f: LTerm,
+  args: Args,
+}
+
+impl MFASomething {
+  pub fn new(m: LTerm, f: LTerm, args: Args) -> MFASomething {
+    MFASomething { m, f, args }
   }
 
   pub fn get_mfarity(&self) -> MFArity {
     MFArity {
       m: self.m,
       f: self.f,
-      arity: self.args.len() as Arity,
+      arity: self.get_arity(),
     }
+  }
+
+  fn get_arity(&self) -> usize {
+    match self.args {
+      Args::AsList(lst) => {
+        if let Ok(len) = cons::list_length(lst) {
+          return len;
+        }
+      }
+    }
+    panic!("Can't find length for {:?}", self.args)
   }
 }
 

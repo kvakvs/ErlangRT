@@ -21,7 +21,7 @@ impl OpcodeIsAtom {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -51,7 +51,7 @@ impl OpcodeIsFunction {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -83,7 +83,7 @@ impl OpcodeIsFunction2 {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -115,7 +115,7 @@ impl OpcodeIsInteger {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {

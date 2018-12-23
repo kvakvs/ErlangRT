@@ -50,7 +50,7 @@ impl OpcodeAllocateZero {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -75,7 +75,7 @@ impl OpcodeAllocate {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -104,7 +104,7 @@ impl OpcodeAllocateHeapZero {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -130,7 +130,7 @@ impl OpcodeAllocateHeap {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -150,7 +150,7 @@ impl OpcodeDeallocate {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -170,7 +170,7 @@ impl OpcodeTestHeap {
   pub const ARITY: usize = 2;
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -196,7 +196,7 @@ impl OpcodeTrim {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {

@@ -8,6 +8,7 @@ use crate::{
   term::{boxed::import, lterm::*},
 };
 use std::slice;
+use crate::emulator::vm::VM;
 
 // fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
@@ -41,6 +42,7 @@ pub enum CallBifTarget {
 //#[inline]
 // Inline to allow const folding optimization
 pub fn apply(
+  vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
   fail_label: LTerm,
@@ -66,7 +68,7 @@ pub fn apply(
 
   let bif_result = match maybe_bif_fn {
     BifResolutionResult::FnPointer(fn_ptr) => {
-      callbif_apply_bif(ctx, curr_p, fn_ptr, args)
+      callbif_apply_bif(vm, ctx, curr_p, fn_ptr, args)
     }
 
     BifResolutionResult::BadfunError(badfun_val) => {
@@ -135,6 +137,7 @@ fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
 /// in them, first resolve these args to values, and then call the function
 #[inline]
 fn callbif_apply_bif(
+  vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
   func_pointer: BifFn,
@@ -157,5 +160,5 @@ fn callbif_apply_bif(
   let loaded_args1 = unsafe { slice::from_raw_parts(&loaded_args[0], n_args) };
 
   // Apply the BIF call and return BifResult
-  (func_pointer)(curr_p, loaded_args1)
+  (func_pointer)(vm, curr_p, loaded_args1)
 }

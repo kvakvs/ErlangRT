@@ -16,7 +16,7 @@ impl OpcodeIsEqExact {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -33,7 +33,7 @@ impl OpcodeIsLt {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -50,7 +50,7 @@ impl OpcodeIsEq {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -67,7 +67,7 @@ impl OpcodeIsGe {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -79,7 +79,7 @@ impl OpcodeIsGe {
 #[inline]
 /// Shared code for equality checks. Assumes arg0 - fail label, arg1,2 - values
 fn shared_equality_opcode(
-  _vm: &VM,
+  _vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
   exact: bool,

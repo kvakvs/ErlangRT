@@ -28,7 +28,7 @@ impl OpcodeCall {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -59,7 +59,7 @@ impl OpcodeCallOnly {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -82,7 +82,7 @@ impl OpcodeCallLast {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -118,7 +118,7 @@ impl OpcodeCallExtOnly {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -146,7 +146,7 @@ impl OpcodeCallExt {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -174,7 +174,7 @@ impl OpcodeCallExtLast {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -191,7 +191,7 @@ impl OpcodeCallExtLast {
 /// Arg: dst_import: boxed::Import which will contain MFArity to call.
 #[inline]
 fn shared_call_ext(
-  vm: &VM,
+  vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
   dst_import: LTerm,
@@ -207,6 +207,7 @@ fn shared_call_ext(
         // Perform a BIF application
         let cb_target = call_bif::CallBifTarget::ImportPointer(import_ptr);
         call_bif::apply(
+          vm,
           ctx,
           curr_p,
           fail_label,
@@ -221,7 +222,8 @@ fn shared_call_ext(
         if save_cp {
           ctx.cp = ctx.ip; // Points at the next opcode after this
         }
-        ctx.ip = (*import_ptr).resolve(vm.code_server.borrow_mut().as_mut())?;
+        let cs = vm.get_code_server_p();
+        ctx.ip = (*import_ptr).resolve(&mut (*cs))?;
         Ok(DispatchResult::Normal)
       }
     },
@@ -243,7 +245,7 @@ impl OpcodeReturn {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -273,7 +275,7 @@ impl OpcodeFuncInfo {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -295,7 +297,7 @@ impl OpcodeBadmatch {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -315,7 +317,7 @@ impl OpcodeSelectVal {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {

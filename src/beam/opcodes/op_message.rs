@@ -15,7 +15,7 @@ impl OpcodeSend {
 
   #[inline]
   pub fn run(
-    vm: &VM,
+    vm: &mut VM,
     ctx: &mut Context,
     _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -53,7 +53,7 @@ impl OpcodeLoopRec {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -83,7 +83,7 @@ impl OpcodeLoopRecEnd {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -103,7 +103,7 @@ impl OpcodeRemoveMessage {
 
   #[inline]
   pub fn run(
-    _vm: &VM,
+    _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {

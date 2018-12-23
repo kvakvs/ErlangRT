@@ -1,6 +1,5 @@
 //! Do not import submodules directly, use `use term::lterm::*;` instead.
-
-
+pub mod cons;
 mod format;
 mod lterm_impl;
 

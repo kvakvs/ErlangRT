@@ -1,5 +1,5 @@
 use crate::{
-  emulator::{mfa::MFArity, process::Process},
+  emulator::{mfa::MFArity, process::Process, vm::VM},
   fail::{self, RtResult},
   term::lterm::LTerm,
 };
@@ -22,7 +22,8 @@ pub use crate::bif::{
 /// its name and hardcoded in its code), and returns an `LTerm`.
 /// In case of error the `NON_VALUE` should be returned and the process is
 /// informed about error situation (error reason and type are set etc).
-pub type BifFn = fn(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>;
+pub type BifFn =
+  fn(vm: &mut VM, cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>;
 
 pub fn is_bif(mfa: &MFArity) -> bool {
   // Naive implementation. TODO: Binary search or a hashmap

@@ -1,8 +1,9 @@
 use crate::{
-  emulator::{atom, mfa::MFArgs, scheduler::Prio, vm::VM},
+  emulator::{atom, mfa::MFASomething, scheduler::Prio, vm::VM},
   term::lterm::*,
 };
 
+use crate::emulator::mfa::Args;
 use std::{thread, time};
 
 /// Entry point for the command-line interface
@@ -16,15 +17,19 @@ pub fn entrypoint() {
     println!("Erlang Runtime (compat OTP 20)");
   }
 
-  let mut beam = VM::new();
+  let mut beam_vm = VM::new();
 
-  let mfa = MFArgs::new(atom::from_str("test2"), atom::from_str("test"), Vec::new());
-  let _rootp = beam
-    .create_process(LTerm::nil(), &mfa, Prio::Normal)
+  let mfargs = MFASomething::new(
+    atom::from_str("test2"),
+    atom::from_str("test"),
+    Args::AsList(LTerm::nil()),
+  );
+  let _rootp = beam_vm
+    .create_process(LTerm::nil(), &mfargs, Prio::Normal)
     .unwrap();
 
   println!("Process created. Entering main loop...");
-  while beam.tick().unwrap() {
+  while beam_vm.tick().unwrap() {
     thread::sleep(time::Duration::from_millis(0));
   }
 }

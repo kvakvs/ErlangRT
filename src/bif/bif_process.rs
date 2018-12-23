@@ -1,16 +1,30 @@
 use crate::{
   defs::ExceptionType,
-  emulator::{gen_atoms, mfa::MFArity, process::Process},
+  emulator::{
+    gen_atoms,
+    mfa::{Args, MFASomething, MFArity},
+    process::Process,
+    scheduler::Prio,
+    vm::VM,
+  },
   fail::{Error, RtResult},
   term::{boxed, lterm::*},
 };
 
-pub fn ubif_erlang_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_erlang_self_0(
+  _vm: &mut VM,
+  cur_proc: &mut Process,
+  _args: &[LTerm],
+) -> RtResult<LTerm> {
   Ok(cur_proc.pid)
 }
 
 /// Create a function pointer from atom(), atom(), smallint()
-pub fn bif_erlang_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+pub fn bif_erlang_make_fun_3(
+  _vm: &mut VM,
+  cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
     return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
   }
@@ -23,8 +37,16 @@ pub fn bif_erlang_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult
   Ok(expt)
 }
 
-/// Spec: erlang:spawn
-pub fn bif_erlang_spawn_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
-  //Ok(proc.pid)
-  Ok(LTerm::nil())
+/// Creates a new process specified by `module:function/arity` with `args`
+/// (args are passed as list), `arity` is length of args list.
+/// Spec: erlang:spawn(mod, fun, args:list)
+pub fn bif_erlang_spawn_3(
+  vm: &mut VM,
+  _cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  let mfargs = MFASomething::new(args[0], args[1], Args::AsList(args[2]));
+  let pid = vm.create_process(LTerm::nil(), &mfargs, Prio::Normal)?;
+
+  Ok(pid)
 }

@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[inline]
-pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
   match op {
     OPCODE_FUNC_INFO => {
       assert_arity(OPCODE_FUNC_INFO, OpcodeFuncInfo::ARITY);

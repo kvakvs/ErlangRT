@@ -1,5 +1,5 @@
 use crate::{
-  emulator::{arith::multiplication, process::Process},
+  emulator::{arith::multiplication, process::Process, vm::VM},
   fail::RtResult,
   term::{boxed, lterm::*},
 };
@@ -11,7 +11,11 @@ fn module() -> &'static str {
 
 /// Subtraction for 2 mixed terms. Algorithm comes from Erlang/OTP file
 /// `erl_arith.c`, function `erts_mixed_minus`
-pub fn ubif_erlang_sminus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_erlang_sminus_2_2(
+  _vm: &mut VM,
+  cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
@@ -28,7 +32,11 @@ pub fn ubif_erlang_sminus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResul
 }
 
 /// Addition for 2 mixed terms.
-pub fn ubif_erlang_splus_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_erlang_splus_2_2(
+  _vm: &mut VM,
+  cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
@@ -72,7 +80,11 @@ fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> 
 }
 
 /// Multiplication for 2 mixed terms.
-pub fn ubif_erlang_stimes_2_2(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_erlang_stimes_2_2(
+  _vm: &mut VM,
+  cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
   assert_eq!(args.len(), 2, "{}ubif_stimes_2_2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
