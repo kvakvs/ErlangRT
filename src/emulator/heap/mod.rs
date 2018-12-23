@@ -145,15 +145,18 @@ impl Heap {
   //  }
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  pub fn stack_alloc_unchecked(&mut self, need: Word) {
+  pub fn stack_alloc_unchecked(&mut self, need: Word, fill_nil: bool) {
     self.stop -= need;
 
     // Clear the new cells
     let raw_nil = LTerm::nil().raw();
     unsafe {
       let p = self.heap_begin_mut().add(self.stop);
-      for y in 0..need {
-        core::ptr::write(p.add(y), raw_nil)
+
+      if fill_nil {
+        for y in 0..need {
+          core::ptr::write(p.add(y), raw_nil)
+        }
       }
     }
   }
