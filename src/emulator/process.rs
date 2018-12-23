@@ -13,7 +13,6 @@ use crate::{
   term::lterm::*,
 };
 use core::fmt;
-use std::collections::LinkedList;
 
 fn module() -> &'static str {
   "process: "
@@ -55,7 +54,8 @@ pub struct Process {
   pub live: Word,
 
   pub heap: Heap,
-  pub mailbox: LinkedList<LTerm>, // TODO: Some structure on proc heap?
+  mailbox: Vec<LTerm>, // TODO: Some structure on proc heap?
+  mailbox_read_index: usize,
 
   // Error handling
   /// Record result of last scheduled timeslice for this process
@@ -87,7 +87,8 @@ impl Process {
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
           heap: Heap::new(DEFAULT_PROC_HEAP),
-          mailbox: LinkedList::new(),
+          mailbox: Vec::with_capacity(32),
+          mailbox_read_index: 0,
 
           context: runtime_ctx::Context::new(ip),
           live: 0,
@@ -142,6 +143,28 @@ impl Process {
   /// Copy a message and put into process mailbox.
   pub fn deliver_message(&mut self, message: LTerm) {
     let m1 = copy_term::copy_to(message, &mut self.heap);
-    self.mailbox.push_back(m1);
+    self.mailbox.push(m1);
+  }
+
+  /// Read message at the current receive pointer.
+  pub fn recv_current_message(&self) -> Option<LTerm> {
+    let mri = self.mailbox_read_index;
+    if mri >= self.mailbox.len() {
+      return None;
+    }
+    let val = self.mailbox[mri];
+    debug_assert!(val.is_value());
+    Some(val)
+  }
+
+  pub fn recv_step_over(&mut self) {
+    let mut mri = self.mailbox_read_index;
+    let max_mri = self.mailbox.len();
+    // Increase mail receive index over nonvalues (received values) until
+    // we hit the end of the mailbox
+    while mri < max_mri && self.mailbox[mri].is_value() {
+      mri += 1;
+    }
+    self.mailbox_read_index = mri;
   }
 }

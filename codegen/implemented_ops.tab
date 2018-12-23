@@ -53,3 +53,5 @@ is_function2
 
 #=== === Mailbox === ===
 send
+loop_rec
+loop_rec_end
