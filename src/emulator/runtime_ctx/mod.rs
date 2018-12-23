@@ -35,7 +35,7 @@ pub struct Context {
   regs: [LTerm; MAX_XREGS],
 
   /// How many X registers are currently used.
-  pub live: Word,
+  pub live: usize,
 
   /// Current state of Y registers.
   pub fpregs: [f64; MAX_FPREGS],
@@ -65,8 +65,10 @@ impl Context {
     }
   }
 
+  /// Read contents of an X register.
   #[inline]
-  pub fn x(&self, index: usize) -> LTerm {
+  pub fn get_x(&self, index: usize) -> LTerm {
+    // debug_assert!(index < self.live);
     self.regs[index]
   }
 
@@ -135,7 +137,7 @@ impl Context {
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
     if src.get_term_tag() == TERMTAG_SPECIAL {
       match src.get_special_tag() {
-        SPECIALTAG_REGX => return self.x(src.get_special_value()),
+        SPECIALTAG_REGX => return self.get_x(src.get_special_value()),
         SPECIALTAG_REGY => {
           let y_index = src.get_special_value();
           let y_result = hp.stack_get_y(y_index);

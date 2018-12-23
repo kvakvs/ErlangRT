@@ -50,3 +50,6 @@ is_integer
 # is_binary
 is_function
 is_function2
+
+#=== === Mailbox === ===
+send

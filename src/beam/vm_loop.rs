@@ -20,10 +20,14 @@ impl VM {
   pub fn dispatch(&mut self) -> RtResult<bool> {
     let mut ctx = Context::new(CodePtr::null());
 
-    let mut scheduler = self.scheduler.borrow_mut();
-    let curr_p = match scheduler.next_process() {
-      None => return Ok(false),
-      Some(p) => scheduler.lookup_pid_mut(p).unwrap(),
+    let scheduler = self.get_scheduler_p();
+    let curr_p = match unsafe { (*scheduler).next_process() } {
+      None => {
+        return Ok(false)
+      },
+      Some(p) => unsafe {
+        (*scheduler).lookup_pid_mut(p).unwrap()
+      },
     };
     ctx.copy_from(&curr_p.context); // swapin
 

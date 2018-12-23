@@ -1,20 +1,19 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
-//!
 
 use crate::{
   defs::{ExceptionType, Word},
   emulator::{
     code_srv::CodeServer,
-    heap::{Heap, DEFAULT_PROC_HEAP},
+    heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
     mfa::MFArity,
     runtime_ctx, scheduler,
   },
   fail::RtResult,
   term::lterm::*,
 };
-
 use core::fmt;
+use std::collections::LinkedList;
 
 fn module() -> &'static str {
   "process: "
@@ -56,6 +55,7 @@ pub struct Process {
   pub live: Word,
 
   pub heap: Heap,
+  pub mailbox: LinkedList<LTerm>, // TODO: Some structure on proc heap?
 
   // Error handling
   /// Record result of last scheduled timeslice for this process
@@ -87,6 +87,7 @@ impl Process {
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
           heap: Heap::new(DEFAULT_PROC_HEAP),
+          mailbox: LinkedList::new(),
 
           context: runtime_ctx::Context::new(ip),
           live: 0,
@@ -137,4 +138,10 @@ impl Process {
   //  pub fn clear_error(&mut self) {
   //    self.error = ProcessError::None;
   //  }
+
+  /// Copy a message and put into process mailbox.
+  pub fn deliver_message(&mut self, message: LTerm) {
+    let m1 = copy_term::copy_to(message, &mut self.heap);
+    self.mailbox.push_back(m1);
+  }
 }

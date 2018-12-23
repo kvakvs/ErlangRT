@@ -82,6 +82,11 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
       return OpcodeReturn::run(vm, ctx, curr_p);
     },
 
+    OPCODE_SEND => {
+      assert_arity(OPCODE_SEND, OpcodeSend::ARITY);
+      return OpcodeSend::run(vm, ctx, curr_p);
+    },
+
     OPCODE_IS_LT => {
       assert_arity(OPCODE_IS_LT, OpcodeIsLt::ARITY);
       return OpcodeIsLt::run(vm, ctx, curr_p);

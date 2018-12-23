@@ -57,10 +57,10 @@ impl OpcodeCallFun {
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let arity = ctx.fetch_term().get_small_unsigned();
-    let args = unsafe { slice::from_raw_parts(&ctx.x(0), arity) };
+    let args = unsafe { slice::from_raw_parts(&ctx.get_x(0), arity) };
 
     // Take function object argument
-    let fobj = ctx.x(arity);
+    let fobj = ctx.get_x(arity);
 
     // need mutable closure to possibly update dst in it later, during `apply`
     if let Ok(closure) = unsafe { boxed::Closure::mut_from_term(fobj) } {

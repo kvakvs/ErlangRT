@@ -27,7 +27,7 @@ pub struct VM {
   /// Contains all loaded modules and manages versions
   pub code_server: RefCell<Box<CodeServer>>,
 
-  pub scheduler: RefCell<Box<Scheduler>>,
+  scheduler: Scheduler,
 }
 
 impl VM {
@@ -37,8 +37,15 @@ impl VM {
     VM {
       code_server: RefCell::new(Box::new(CodeServer::new())),
       pid_counter: 0,
-      scheduler: RefCell::new(Box::new(Scheduler::new())),
+      scheduler: Scheduler::new(),
     }
+  }
+
+  /// Dirty trick to not have to dynamically borrow scheduler via
+  /// `RefCell<Box<>>` because schedulers live just as long as the VM itself.
+  pub fn get_scheduler_p(&self) -> *mut Scheduler {
+    let p = &self.scheduler as *const Scheduler;
+    p as *mut Scheduler
   }
 
   /// Spawn a new process, create a new pid, register the process and jump to the MFA
@@ -61,7 +68,7 @@ impl VM {
       self.code_server.borrow_mut().as_mut(),
     ) {
       Ok(p0) => {
-        self.scheduler.borrow_mut().add(pid, p0);
+        self.scheduler.add(pid, p0);
         Ok(pid)
       }
       Err(e) => Err(e),
