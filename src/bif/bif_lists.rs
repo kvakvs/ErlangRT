@@ -10,7 +10,7 @@ fn module() -> &'static str {
 }
 
 /// Calculate length of a list by traversing it.
-pub fn gcbif_length_1(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+pub fn gcbif_erlang_length_1(_cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   assert_eq!(args.len(), 1, "{}gcbif_length_1 takes 1 arg", module());
 
   let l0: LTerm = args[0];

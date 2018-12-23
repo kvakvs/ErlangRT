@@ -237,6 +237,10 @@ impl LTerm {
     self.get_term_tag() == TERMTAG_ATOM
   }
 
+  pub fn is_pid(self) -> bool {
+    self.is_local_pid() || self.is_external_pid()
+  }
+
   pub fn is_local_pid(self) -> bool {
     self.get_term_tag() == TERMTAG_LOCALPID
   }

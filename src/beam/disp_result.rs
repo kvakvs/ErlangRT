@@ -27,6 +27,10 @@ impl DispatchResult {
     Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARITY))
   }
 
+  pub fn badarg() -> RtResult<DispatchResult> {
+    Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG))
+  }
+
   pub fn undef() -> RtResult<DispatchResult> {
     Err(Error::Exception(ExceptionType::Error, gen_atoms::UNDEF))
   }

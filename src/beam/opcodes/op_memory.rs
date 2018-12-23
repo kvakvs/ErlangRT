@@ -21,7 +21,7 @@ fn shared_allocate(
   if !hp.have(heap_need) {
     panic!("Heap doesn't have {} words", heap_need);
   }
-  
+
   if hp.stack_have(stack_need + 1) {
     // Stack has enough words, we can allocate unchecked
     if stack_need > 0 {

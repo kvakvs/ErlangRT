@@ -5,12 +5,12 @@ use crate::{
   term::{boxed, lterm::*},
 };
 
-pub fn ubif_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {
+pub fn ubif_erlang_self_0(cur_proc: &mut Process, _args: &[LTerm]) -> RtResult<LTerm> {
   Ok(cur_proc.pid)
 }
 
 /// Create a function pointer from atom(), atom(), smallint()
-pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+pub fn bif_erlang_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
     return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
   }
@@ -21,4 +21,10 @@ pub fn bif_make_fun_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>
   // Create an export on heap and return it
   let expt = unsafe { boxed::Export::create_into(hp, &mfa)? };
   Ok(expt)
+}
+
+/// Spec: erlang:spawn
+pub fn bif_erlang_spawn_3(cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm> {
+  //Ok(proc.pid)
+  Ok(LTerm::nil())
 }
