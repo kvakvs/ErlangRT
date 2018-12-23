@@ -62,9 +62,19 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
       return OpcodeAllocate::run(vm, ctx, curr_p);
     },
 
+    OPCODE_ALLOCATE_HEAP => {
+      assert_arity(OPCODE_ALLOCATE_HEAP, OpcodeAllocateHeap::ARITY);
+      return OpcodeAllocateHeap::run(vm, ctx, curr_p);
+    },
+
     OPCODE_ALLOCATE_ZERO => {
       assert_arity(OPCODE_ALLOCATE_ZERO, OpcodeAllocateZero::ARITY);
       return OpcodeAllocateZero::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_ALLOCATE_HEAP_ZERO => {
+      assert_arity(OPCODE_ALLOCATE_HEAP_ZERO, OpcodeAllocateHeapZero::ARITY);
+      return OpcodeAllocateHeapZero::run(vm, ctx, curr_p);
     },
 
     OPCODE_TEST_HEAP => {
@@ -85,6 +95,11 @@ pub fn dispatch_op_inline(vm: &VM, op: RawOpcode, ctx: &mut Context, curr_p: &mu
     OPCODE_SEND => {
       assert_arity(OPCODE_SEND, OpcodeSend::ARITY);
       return OpcodeSend::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_REMOVE_MESSAGE => {
+      assert_arity(OPCODE_REMOVE_MESSAGE, OpcodeRemoveMessage::ARITY);
+      return OpcodeRemoveMessage::run(vm, ctx, curr_p);
     },
 
     OPCODE_LOOP_REC => {

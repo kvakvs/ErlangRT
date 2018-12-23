@@ -20,6 +20,8 @@ select_val
 
 #=== === Memory and Stack === ===
 allocate
+allocate_heap
+allocate_heap_zero
 allocate_zero
 deallocate
 move
@@ -28,30 +30,31 @@ trim
 
 #=== === List Operations === ===
 # is_list
-is_nonempty_list
-is_nil
 get_list
+is_nil
+is_nonempty_list
 put_list
 
 #=== === Comparisons and Predicates === ===
-is_eq_exact
-is_lt
 is_eq
+is_eq_exact
 is_ge
+is_lt
 
 #=== === Type Tests === ===
-is_atom
-is_integer
-# is_number
-# is_float
-# is_pid
-# is_reference
-# is_port
 # is_binary
+# is_float
+# is_number
+# is_pid
+# is_port
+# is_reference
+is_atom
 is_function
 is_function2
+is_integer
 
 #=== === Mailbox === ===
-send
 loop_rec
 loop_rec_end
+remove_message
+send

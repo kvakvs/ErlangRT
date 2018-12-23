@@ -1,18 +1,19 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 
+use core::fmt;
+
 use crate::{
   defs::{ExceptionType, Word},
   emulator::{
     code_srv::CodeServer,
-    heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
+    heap::{copy_term, DEFAULT_PROC_HEAP, Heap},
     mfa::MFArity,
     runtime_ctx, scheduler,
   },
   fail::RtResult,
   term::lterm::*,
 };
-use core::fmt;
 
 fn module() -> &'static str {
   "process: "
@@ -54,7 +55,8 @@ pub struct Process {
   pub live: Word,
 
   pub heap: Heap,
-  mailbox: Vec<LTerm>, // TODO: Some structure on proc heap?
+  mailbox: Vec<LTerm>,
+  // TODO: Some structure on proc heap?
   mailbox_read_index: usize,
 
   // Error handling
@@ -147,10 +149,14 @@ impl Process {
   }
 
   /// Read message at the current receive pointer.
-  pub fn recv_current_message(&self) -> Option<LTerm> {
-    let mri = self.mailbox_read_index;
+  pub fn recv_current_message(&mut self) -> Option<LTerm> {
+    let mut mri = self.mailbox_read_index;
     if mri >= self.mailbox.len() {
-      return None;
+      self.mailbox_read_index = 0;
+      mri = 0;
+//      while mri < max_mri && self.mailbox[mri].is_non_value() {
+//        mri += 1;
+//      }
     }
     let val = self.mailbox[mri];
     debug_assert!(val.is_value());
@@ -162,9 +168,19 @@ impl Process {
     let max_mri = self.mailbox.len();
     // Increase mail receive index over nonvalues (received values) until
     // we hit the end of the mailbox
-    while mri < max_mri && self.mailbox[mri].is_value() {
+    while mri < max_mri && self.mailbox[mri].is_non_value() {
       mri += 1;
     }
     self.mailbox_read_index = mri;
+  }
+
+  // Remove value from current mailbox position and return it, move pointer
+  // forward.
+  pub fn recv_remove_message(&mut self) -> LTerm {
+    let mri = self.mailbox_read_index;
+    let val = self.mailbox[mri];
+    self.mailbox[mri] = LTerm::non_value();
+    self.recv_step_over();
+    val
   }
 }

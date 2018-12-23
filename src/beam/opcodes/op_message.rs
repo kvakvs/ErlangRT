@@ -88,3 +88,22 @@ impl OpcodeLoopRecEnd {
     Ok(DispatchResult::Normal)
   }
 }
+
+/// Removes the current message in the process message list and moves it to `x0`
+/// Structure: remove_message()
+pub struct OpcodeRemoveMessage {}
+
+impl OpcodeRemoveMessage {
+  pub const ARITY: usize = 0;
+
+  #[inline]
+  pub fn run(
+    _vm: &VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let message = curr_p.recv_remove_message();
+    ctx.set_x(0, message);
+    Ok(DispatchResult::Normal)
+  }
+}
