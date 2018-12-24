@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
-  fail::RtResult,
+  fail::{self, RtResult},
   term::lterm::*,
 };
 
@@ -24,9 +24,10 @@ impl OpcodeSend {
     if let Some(p) = unsafe {
       let x0 = ctx.get_x(0);
       if !x0.is_pid() {
-        return DispatchResult::badarg();
+        return fail::create::badarg();
       }
-      (*sched).lookup_pid_mut(x0) } {
+      (*sched).lookup_pid_mut(x0)
+    } {
       p.deliver_message(x1);
     }
 

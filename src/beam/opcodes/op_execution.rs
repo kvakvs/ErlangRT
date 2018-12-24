@@ -9,7 +9,7 @@ use crate::{
     runtime_ctx::{call_bif, Context},
     vm::VM,
   },
-  fail::RtResult,
+  fail::{self, RtResult},
   term::{boxed, compare, lterm::*},
 };
 use std::cmp::Ordering;
@@ -230,7 +230,7 @@ fn shared_call_ext(
     Err(_err) => {
       // Create a `{badfun, _}` error
       // panic!("bad call_ext target {}", imp0);
-      DispatchResult::badfun_val(dst_import, &mut curr_p.heap)
+      fail::create::badfun_val(dst_import, &mut curr_p.heap)
     }
   }
 }
@@ -303,7 +303,7 @@ impl OpcodeBadmatch {
   ) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     let val = ctx.fetch_and_load(hp);
-    DispatchResult::badmatch_val(val, hp)
+    fail::create::badmatch_val(val, hp)
   }
 }
 

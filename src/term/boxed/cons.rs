@@ -8,18 +8,22 @@ pub struct Cons {
 }
 
 impl Cons {
+  #[inline]
   pub unsafe fn hd(&self) -> LTerm {
     self.value[0]
   }
 
+  #[inline]
   pub unsafe fn tl(&self) -> LTerm {
     self.value[1]
   }
 
+  #[inline]
   pub unsafe fn set_hd(&mut self, val: LTerm) {
     self.value[0] = val
   }
 
+  #[inline]
   pub unsafe fn set_tl(&mut self, val: LTerm) {
     self.value[1] = val
   }

@@ -1,5 +1,4 @@
 use super::Context;
-
 use crate::{
   beam::disp_result::DispatchResult,
   bif,
@@ -9,7 +8,7 @@ use crate::{
     runtime_ctx::call_bif::{self, CallBifTarget},
     vm::VM,
   },
-  fail::RtResult,
+  fail::{self, RtResult},
   term::{boxed, lterm::*},
 };
 
@@ -25,7 +24,7 @@ pub fn apply(
   curr_p: &mut Process,
   export: *const boxed::Export,
   args: &[LTerm],
-  save_cp: bool
+  save_cp: bool,
 ) -> RtResult<DispatchResult> {
   // The `fobj` is a callable closure made with `fun() -> code end`
   let arity = args.len();
@@ -39,7 +38,7 @@ pub fn apply(
       mfa.arity,
       arity
     );
-    return DispatchResult::badarity();
+    return fail::create::badarity();
   }
 
   if bif::is_bif(&mfa) {
@@ -62,10 +61,9 @@ pub fn apply(
         }
         ctx.ip = ip
       }
-      Err(_e) => return DispatchResult::undef(),
+      Err(_e) => return fail::create::undef(),
     }
   }
 
-  // panic!("call_export")
   Ok(DispatchResult::Normal)
 }

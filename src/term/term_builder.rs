@@ -30,40 +30,58 @@ impl TupleBuilder {
   }
 }
 
-/// A forward list builder implementation for `LTerm` and ERT VM.
+/// A forward list builder implementation for `LTerm` and RT VM.
+///
+/// 1. Create ListBuilder with the heap where you want to build.
+/// 2. Set first element with `set`
+/// 3. Set tail of the first element to a new cell by calling `next`
+/// 4. Finalize by writing last NIL by calling `end`.
 pub struct ListBuilder {
   // first cell where the building started
-  p0: *mut LTerm,
+  first_cell_p: *const boxed::Cons,
   // current (last) cell
-  p: *mut LTerm,
+  write_p: *mut boxed::Cons,
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,
 }
 
 impl ListBuilder {
   pub unsafe fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
-    let p = (*heap).alloc::<LTerm>(WordSize::new(2), true)?;
+    let p = (*heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
 
-    Ok(ListBuilder { p, p0: p, heap })
+    Ok(ListBuilder {
+      write_p: p,
+      first_cell_p: p,
+      heap,
+    })
+  }
+
+  pub fn get_write_p(&self) -> *mut boxed::Cons {
+    self.write_p
   }
 
   pub unsafe fn set(&mut self, val: LTerm) {
-    core::ptr::write(self.p, val)
+    (*self.write_p).set_hd(val)
   }
 
   pub unsafe fn next(&mut self) -> RtResult<()> {
-    let new_cell = (*self.heap).alloc::<LTerm>(WordSize::new(2), true)?;
-    core::ptr::write(self.p.add(1), LTerm::make_cons(new_cell));
-    self.p = new_cell;
+    let new_cell = (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
+    (*self.write_p).set_tl(LTerm::make_cons(new_cell));
+    self.write_p = new_cell;
     Ok(())
   }
 
-  pub unsafe fn end(&mut self, _tl: LTerm) {
-    core::ptr::write(self.p.add(1), LTerm::nil())
+  pub unsafe fn end(&mut self, tl: LTerm) {
+    (*self.write_p).set_tl(tl)
+  }
+
+  #[allow(dead_code)]
+  pub unsafe fn end_with_nil(&mut self) {
+    (*self.write_p).set_tl(LTerm::nil())
   }
 
   pub fn make_term(&self) -> LTerm {
-    LTerm::make_cons(self.p0)
+    LTerm::make_cons(self.first_cell_p)
   }
 }
 

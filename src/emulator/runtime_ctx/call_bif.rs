@@ -1,14 +1,12 @@
 use super::Context;
-
 use crate::{
   beam::disp_result::DispatchResult,
   bif::{self, BifFn},
-  emulator::{mfa::MFArity, process::Process},
-  fail::{Error, RtResult},
+  emulator::{mfa::MFArity, process::Process, vm::VM},
+  fail::{self, Error, RtResult},
   term::{boxed::import, lterm::*},
 };
-use std::slice;
-use crate::emulator::vm::VM;
+use core::slice;
 
 // fn module() -> &'static str { "runtime_ctx.call_bif: " }
 
@@ -72,7 +70,7 @@ pub fn find_and_call_bif(
     }
 
     BifResolutionResult::BadfunError(badfun_val) => {
-      return DispatchResult::badfun_val(badfun_val, &mut curr_p.heap);
+      return fail::create::badfun_val(badfun_val, &mut curr_p.heap);
     }
   };
 
@@ -118,7 +116,10 @@ enum BifResolutionResult {
 /// Given a term with import, resolve it to a bif function pointer or fail.
 /// Arg: check_arity - performs check of args count vs function arity
 /// Return: A bif function or an error
-fn callbif_resolve_import(imp: LTerm, check_arity: usize) -> RtResult<BifResolutionResult> {
+fn callbif_resolve_import(
+  imp: LTerm,
+  check_arity: usize,
+) -> RtResult<BifResolutionResult> {
   // Possibly a boxed::Import object on heap which contains m:f/arity
   let imp_p = imp.get_box_ptr_safe::<import::Import>()?;
   assert_eq!(unsafe { (*imp_p).mfarity.arity }, check_arity);

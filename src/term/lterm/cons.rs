@@ -1,9 +1,9 @@
 //! Utility functions for handling lists
-use super::lterm_impl::LTerm;
 use crate::{
-  emulator::gen_atoms,
+  defs::ExceptionType,
+  emulator::{gen_atoms, heap::Heap},
   fail::{Error, RtResult},
-  defs::{ExceptionType}
+  term::{boxed, lterm::lterm_impl::LTerm, term_builder::ListBuilder},
 };
 
 pub fn list_length(val: LTerm) -> RtResult<usize> {
@@ -25,5 +25,28 @@ pub fn list_length(val: LTerm) -> RtResult<usize> {
       }
       return Ok(count);
     }
+  }
+}
+
+/// Copies list `src` to heap `hp`.
+/// Arg: `src` list, must not be NIL (check for it before calling this).
+/// Returns: pointer to the list head (first element of the result tuple) and
+/// the pointer to the last cell (second element).
+/// OBSERVE that the tail of the returned copy is uninitialized memory.
+pub unsafe fn copy_list_leave_tail(
+  src: LTerm,
+  hp: &mut Heap,
+) -> RtResult<(LTerm, *mut boxed::Cons)> {
+  debug_assert_ne!(src, LTerm::nil());
+  let mut lb = ListBuilder::new(hp)?;
+  let src_p = src.get_cons_ptr();
+
+  // Copy elements one by one
+  loop {
+    lb.set((*src_p).hd());
+    if !(*src_p).tl().is_list() {
+      return Ok((lb.make_term(), lb.get_write_p()));
+    }
+    lb.next()?;
   }
 }

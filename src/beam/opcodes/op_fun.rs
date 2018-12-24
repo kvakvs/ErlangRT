@@ -11,8 +11,8 @@ use crate::{
   fail::RtResult,
   term::boxed,
 };
-
-use std::slice;
+use crate::fail;
+use core::slice;
 
 /// Structure: make_fun2(lambda_index:uint)
 /// on load the argument is rewritten with a pointer to the funentry
@@ -68,16 +68,9 @@ impl OpcodeCallFun {
       runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
     } else if let Ok(export) = unsafe { boxed::Export::mut_from_term(fobj) } {
       // `fobj` is an export made with `fun module:name/0`
-      runtime_ctx::call_export::apply(
-        vm,
-        ctx,
-        curr_p,
-        export,
-        args,
-        true
-      )
+      runtime_ctx::call_export::apply(vm, ctx, curr_p, export, args, true)
     } else {
-      DispatchResult::badfun()
+      fail::create::badfun()
     }
   }
 }

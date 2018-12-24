@@ -3,7 +3,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   defs::Arity,
   emulator::{process::Process, vm::VM},
-  fail::RtResult,
+  fail::{self, RtResult},
   term::{boxed, lterm::*},
 };
 use core::ptr;
@@ -41,7 +41,7 @@ pub fn apply(
       full_arity,
       in_arity
     );
-    return DispatchResult::badarity();
+    return fail::create::badarity();
   }
 
   ctx.cp = ctx.ip;

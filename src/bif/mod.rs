@@ -44,3 +44,11 @@ pub fn find_bif(mfa: &MFArity) -> RtResult<BifFn> {
   }
   Err(fail::Error::BifNotFound(format!("{}", mfa)))
 }
+
+#[inline]
+pub fn assert_arity(fn_name: &str, have_arity: usize, args: &[LTerm]) {
+  let have_args = args.len();
+  debug_assert_eq!(have_arity, have_args,
+                   "{} arity is {}, called with {} args",
+                   fn_name, have_arity, have_args);
+}

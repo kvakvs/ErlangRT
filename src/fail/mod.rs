@@ -1,5 +1,7 @@
 //! Generic errors used everywhere in the ErlangRT runtime.
 //!
+pub mod create;
+
 use crate::{
   beam::compact_term::CTError,
   defs::ExceptionType,
