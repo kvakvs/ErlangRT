@@ -7,11 +7,12 @@ pub mod op_list;
 pub mod op_memory;
 pub mod op_message;
 pub mod op_predicates;
+pub mod op_tuple;
 pub mod op_type_checks;
 
 pub use crate::beam::opcodes::{
   op_bif::*, op_data::*, op_execution::*, op_fun::*, op_list::*, op_memory::*,
-  op_message::*, op_predicates::*, op_type_checks::*,
+  op_message::*, op_predicates::*, op_tuple::*, op_type_checks::*,
 };
 use crate::{
   beam::gen_op,

@@ -8,10 +8,9 @@ use crate::{
     runtime_ctx::{self, Context},
     vm::VM,
   },
-  fail::RtResult,
+  fail::{self, RtResult},
   term::boxed,
 };
-use crate::fail;
 use core::slice;
 
 /// Structure: make_fun2(lambda_index:uint)

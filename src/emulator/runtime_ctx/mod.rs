@@ -82,11 +82,18 @@ impl Context {
   /// NOTE: The compiler seems to be smart enough to optimize multiple fetches
   /// as multiple reads and a single increment.
   pub fn fetch(&mut self) -> Word {
-    let ip0 = self.ip.get();
+    let ip0: *const Word = self.ip.get();
     unsafe {
       let w = *ip0;
       self.ip = CodePtr::new(ip0.offset(1));
       w
+    }
+  }
+
+  /// Step back one word in the code.
+  pub fn unfetch(&mut self) {
+    unsafe {
+      self.ip = CodePtr::new(self.ip.get().offset(-1));
     }
   }
 
