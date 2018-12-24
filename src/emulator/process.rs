@@ -4,10 +4,11 @@
 use core::fmt;
 
 use crate::{
-  defs::{ExceptionType, Word},
+  defs::ExceptionType,
   emulator::{
     code_srv::CodeServer,
-    heap::{copy_term, DEFAULT_PROC_HEAP, Heap},
+    heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
+    mailbox::ProcessMailbox,
     mfa::MFArity,
     runtime_ctx, scheduler,
   },
@@ -49,15 +50,15 @@ pub struct Process {
   /// Current scheduler queue where this process is registered
   pub current_queue: scheduler::Queue,
 
+  // Execution Context, etc.
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
   /// How many X registers in the context are currently used
-  pub live: Word,
+  // pub live: Word,
 
+  // Memory
   pub heap: Heap,
-  mailbox: Vec<LTerm>,
-  // TODO: Some structure on proc heap?
-  mailbox_read_index: usize,
+  pub mailbox: ProcessMailbox,
 
   // Error handling
   /// Record result of last scheduled timeslice for this process
@@ -84,16 +85,18 @@ impl Process {
       Ok(ip) => {
         let p = Process {
           pid,
-          // parent_pid: nil(),
+
+          // Scheduling
           prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
-          heap: Heap::new(DEFAULT_PROC_HEAP),
-          mailbox: Vec::with_capacity(32),
-          mailbox_read_index: 0,
 
+          // Memory
+          heap: Heap::new(DEFAULT_PROC_HEAP),
+          mailbox: ProcessMailbox::new(),
+
+          // Execution
           context: runtime_ctx::Context::new(ip),
-          live: 0,
 
           error: ProcessError::None,
         };
@@ -145,42 +148,6 @@ impl Process {
   /// Copy a message and put into process mailbox.
   pub fn deliver_message(&mut self, message: LTerm) {
     let m1 = copy_term::copy_to(message, &mut self.heap);
-    self.mailbox.push(m1);
-  }
-
-  /// Read message at the current receive pointer.
-  pub fn recv_current_message(&mut self) -> Option<LTerm> {
-    let mut mri = self.mailbox_read_index;
-    if mri >= self.mailbox.len() {
-      self.mailbox_read_index = 0;
-      mri = 0;
-//      while mri < max_mri && self.mailbox[mri].is_non_value() {
-//        mri += 1;
-//      }
-    }
-    let val = self.mailbox[mri];
-    debug_assert!(val.is_value());
-    Some(val)
-  }
-
-  pub fn recv_step_over(&mut self) {
-    let mut mri = self.mailbox_read_index;
-    let max_mri = self.mailbox.len();
-    // Increase mail receive index over nonvalues (received values) until
-    // we hit the end of the mailbox
-    while mri < max_mri && self.mailbox[mri].is_non_value() {
-      mri += 1;
-    }
-    self.mailbox_read_index = mri;
-  }
-
-  // Remove value from current mailbox position and return it, move pointer
-  // forward.
-  pub fn recv_remove_message(&mut self) -> LTerm {
-    let mri = self.mailbox_read_index;
-    let val = self.mailbox[mri];
-    self.mailbox[mri] = LTerm::non_value();
-    self.recv_step_over();
-    val
+    self.mailbox.put(m1);
   }
 }

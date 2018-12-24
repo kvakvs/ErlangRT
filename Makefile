@@ -10,8 +10,8 @@ run-rel: codegen priv
 	cargo run --release
 
 # Run with backtrace on
-.PHONY: run-bt
-run-bt: priv
+.PHONY: bt
+bt: priv
 	RUST_BACKTRACE=1 cargo run
 
 # Build test modules from priv/

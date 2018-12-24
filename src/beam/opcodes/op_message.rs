@@ -59,7 +59,7 @@ impl OpcodeLoopRec {
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let (fail, _source) = Self::fetch_args(ctx);
-    if let Some(msg) = curr_p.recv_current_message() {
+    if let Some(msg) = curr_p.mailbox.get_current() {
       ctx.set_x(0, msg);
     } else {
       ctx.jump(fail);
@@ -89,7 +89,7 @@ impl OpcodeLoopRecEnd {
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let label = Self::fetch_args(ctx);
-    curr_p.recv_step_over();
+    curr_p.mailbox.step_over();
     ctx.jump(label);
     Ok(DispatchResult::Normal)
   }
@@ -108,7 +108,7 @@ impl OpcodeRemoveMessage {
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let message = curr_p.recv_remove_message();
+    let message = curr_p.mailbox.remove_current();
     ctx.set_x(0, message);
     Ok(DispatchResult::Normal)
   }

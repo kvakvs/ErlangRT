@@ -1,15 +1,14 @@
+pub mod copy_term;
 pub mod dump;
 pub mod iter;
-pub mod copy_term;
 
 use crate::{
   defs::{Word, WordSize},
   term::{boxed, lterm::*},
 };
 
+use crate::fail::{Error, RtResult};
 use core::fmt;
-use crate::fail::RtResult;
-use crate::fail::Error;
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: usize = 8192;

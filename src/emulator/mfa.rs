@@ -8,8 +8,8 @@ use core::fmt;
 pub enum Args {
   // list of args
   AsList(LTerm),
-  // pointer to args with size
-  // AsSlice(*const LTerm, usize),
+  /* pointer to args with size
+   * AsSlice(*const LTerm, usize), */
 }
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.

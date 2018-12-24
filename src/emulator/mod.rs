@@ -8,6 +8,7 @@ pub mod funarity;
 pub mod function;
 pub mod gen_atoms; // generated
 pub mod heap;
+pub mod mailbox;
 pub mod mfa;
 pub mod module;
 pub mod process;
