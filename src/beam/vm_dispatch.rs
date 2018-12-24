@@ -142,9 +142,34 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeIsInteger::run(vm, ctx, curr_p);
     },
 
+    OPCODE_IS_FLOAT => {
+      assert_arity(OPCODE_IS_FLOAT, OpcodeIsFloat::ARITY);
+      return OpcodeIsFloat::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_NUMBER => {
+      assert_arity(OPCODE_IS_NUMBER, OpcodeIsNumber::ARITY);
+      return OpcodeIsNumber::run(vm, ctx, curr_p);
+    },
+
     OPCODE_IS_ATOM => {
       assert_arity(OPCODE_IS_ATOM, OpcodeIsAtom::ARITY);
       return OpcodeIsAtom::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_PID => {
+      assert_arity(OPCODE_IS_PID, OpcodeIsPid::ARITY);
+      return OpcodeIsPid::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_REFERENCE => {
+      assert_arity(OPCODE_IS_REFERENCE, OpcodeIsReference::ARITY);
+      return OpcodeIsReference::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_PORT => {
+      assert_arity(OPCODE_IS_PORT, OpcodeIsPort::ARITY);
+      return OpcodeIsPort::run(vm, ctx, curr_p);
     },
 
     OPCODE_IS_NIL => {
@@ -152,9 +177,19 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeIsNil::run(vm, ctx, curr_p);
     },
 
+    OPCODE_IS_BINARY => {
+      assert_arity(OPCODE_IS_BINARY, OpcodeIsBinary::ARITY);
+      return OpcodeIsBinary::run(vm, ctx, curr_p);
+    },
+
     OPCODE_IS_NONEMPTY_LIST => {
       assert_arity(OPCODE_IS_NONEMPTY_LIST, OpcodeIsNonemptyList::ARITY);
       return OpcodeIsNonemptyList::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_IS_TUPLE => {
+      assert_arity(OPCODE_IS_TUPLE, OpcodeIsTuple::ARITY);
+      return OpcodeIsTuple::run(vm, ctx, curr_p);
     },
 
     OPCODE_SELECT_VAL => {

@@ -224,34 +224,41 @@ impl LTerm {
 
   //
 
+  #[inline]
   pub fn is_binary(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
 
+  #[inline]
   pub fn is_immediate(self) -> bool {
     self.get_term_tag() != TERMTAG_BOXED
   }
 
   /// Check whether the value is tagged as atom
+  #[inline]
   pub fn is_atom(self) -> bool {
     self.get_term_tag() == TERMTAG_ATOM
   }
 
+  #[inline]
   pub fn is_pid(self) -> bool {
     self.is_local_pid() || self.is_external_pid()
   }
 
+  #[inline]
   pub fn is_local_pid(self) -> bool {
     self.get_term_tag() == TERMTAG_LOCALPID
   }
 
   /// Check whether a lterm is boxed and then whether it points to a word of
   /// memory tagged as external pid
+  #[inline]
   pub fn is_external_pid(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_EXTERNALPID)
   }
 
   /// Return true if a value's tag will fit into a single word
+  #[inline]
   pub fn is_internal_immediate(self) -> bool {
     self.get_term_tag() == TERMTAG_SPECIAL
   }
@@ -469,6 +476,14 @@ impl LTerm {
 
   // === === FLOAT ==============================
   //
+
+  /// Check whether a value is a small integer, a big integer or a float.
+  pub fn is_number(self) -> bool {
+    self.is_small()
+      || self.is_boxed_of_(|t| {
+        t == boxed::BOXTYPETAG_BIGINTEGER || t == boxed::BOXTYPETAG_FLOAT
+      })
+  }
 
   /// Check whether a lterm is boxed and then whether it points to a word of
   /// memory tagged as float

@@ -29,6 +29,7 @@ impl VM {
         (*scheduler).lookup_pid_mut(p).unwrap()
       },
     };
+    println!("+ Scheduler: switching to {}", curr_p.pid);
     ctx.copy_from(&curr_p.context); // swapin
 
     let cs = self.get_code_server_p();

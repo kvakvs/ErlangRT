@@ -42,12 +42,13 @@ is_ge
 is_lt
 
 #=== === Type Tests === ===
-# is_binary
-# is_float
-# is_number
-# is_pid
-# is_port
-# is_reference
+is_binary
+is_float
+is_number
+is_pid
+is_port
+is_reference
+is_tuple
 is_atom
 is_function
 is_function2

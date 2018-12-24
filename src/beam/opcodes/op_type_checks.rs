@@ -5,6 +5,14 @@ use crate::{
   term::lterm::LTerm,
 };
 
+/// Same function for all type check opcodes
+#[inline]
+fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+  let fail = ctx.fetch_term();
+  let value = ctx.fetch_and_load(&mut curr_p.heap);
+  (fail, value)
+}
+
 /// Checks that argument is an atom, otherwise jumps to label.
 /// Structure: is_atom(on_false:label, val:src)
 pub struct OpcodeIsAtom {}
@@ -13,24 +21,15 @@ impl OpcodeIsAtom {
   pub const ARITY: usize = 2;
 
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let fail = ctx.fetch_term();
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    (fail, value)
-  }
-
-  #[inline]
   pub fn run(
     _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let (fail_label, val) = Self::fetch_args(ctx, curr_p);
-
+    let (fail_label, val) = fetch_args(ctx, curr_p);
     if !val.is_atom() {
       ctx.jump(fail_label)
     }
-
     Ok(DispatchResult::Normal)
   }
 }
@@ -43,24 +42,15 @@ impl OpcodeIsFunction {
   pub const ARITY: usize = 2;
 
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let fail = ctx.fetch_term();
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    (fail, value)
-  }
-
-  #[inline]
   pub fn run(
     _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let (fail_label, val) = Self::fetch_args(ctx, curr_p);
-
+    let (fail_label, val) = fetch_args(ctx, curr_p);
     if !val.is_fun() {
       ctx.jump(fail_label)
     }
-
     Ok(DispatchResult::Normal)
   }
 }
@@ -88,11 +78,9 @@ impl OpcodeIsFunction2 {
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let (fail_label, val, arity) = Self::fetch_args(ctx, curr_p);
-
     if !val.is_fun_of_arity(arity) {
       ctx.jump(fail_label)
     }
-
     Ok(DispatchResult::Normal)
   }
 }
@@ -107,11 +95,26 @@ impl OpcodeIsInteger {
   pub const ARITY: usize = 2;
 
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let fail = ctx.fetch_term();
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    (fail, value)
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_small() && !val.is_big_int() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
   }
+}
+
+
+/// Checks that argument is a boxed tuple or an empty tuple.
+/// Structure: is_tuple(on_false:label, val:src)
+pub struct OpcodeIsTuple {}
+
+impl OpcodeIsTuple {
+  pub const ARITY: usize = 2;
 
   #[inline]
   pub fn run(
@@ -119,12 +122,142 @@ impl OpcodeIsInteger {
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let (fail_label, val) = Self::fetch_args(ctx, curr_p);
-
-    if !val.is_small() && !val.is_big_int() {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if val != LTerm::empty_tuple() && !val.is_tuple() {
       ctx.jump(fail_label)
     }
+    Ok(DispatchResult::Normal)
+  }
+}
 
+
+/// Checks that argument is a boxed binary or an empty binary.
+/// Structure: is_binary(on_false:label, val:src)
+pub struct OpcodeIsBinary {}
+
+impl OpcodeIsBinary {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if val != LTerm::empty_binary() && !val.is_binary() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// Checks that argument is a boxed containing a floating point number.
+/// Structure: is_float(on_false:label, val:src)
+pub struct OpcodeIsFloat {}
+
+impl OpcodeIsFloat {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_float() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// Checks that argument is either a smallint, a bigint or a float.
+/// Structure: is_number(on_false:label, val:src)
+pub struct OpcodeIsNumber {}
+
+impl OpcodeIsNumber {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_number() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// Checks that argument is local or remote pid.
+/// Structure: is_pid(on_false:label, val:src)
+pub struct OpcodeIsPid {}
+
+impl OpcodeIsPid {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_pid() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// Checks that argument is either a local or remote reference.
+/// Structure: is_reference(on_false:label, val:src)
+pub struct OpcodeIsReference {}
+
+impl OpcodeIsReference {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_ref() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// Checks that argument is either a local or remote port.
+/// Structure: is_port(on_false:label, val:src)
+pub struct OpcodeIsPort {}
+
+impl OpcodeIsPort {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_port() {
+      ctx.jump(fail_label)
+    }
     Ok(DispatchResult::Normal)
   }
 }
