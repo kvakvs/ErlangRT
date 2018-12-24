@@ -43,6 +43,8 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_erlang_sgt_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SGE_2, arity: 2,
         func: bif::ubif_erlang_sge_2_2 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::HD, arity: 1,
+        func: bif::ubif_erlang_hd_1 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::LENGTH, arity: 1,
         func: bif::gcbif_erlang_length_1 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::MAKE_FUN, arity: 3,
@@ -55,5 +57,7 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_erlang_self_0 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SPAWN, arity: 3,
         func: bif::bif_erlang_spawn_3 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::TL, arity: 1,
+        func: bif::ubif_erlang_tl_1 },
 ];
 

@@ -37,8 +37,6 @@ impl OpcodePutTuple {
     let hp = &mut curr_p.heap;
     let tuple_p = boxed::Tuple::create_into(hp, arity)?;
 
-    ctx.store_value(LTerm::make_boxed(tuple_p), dst, hp)?;
-
     // Now continue fetching opcodes if there are more `put` operations
     for i in 0..arity {
       let op = opcode::from_memory_word(ctx.fetch());
@@ -47,9 +45,11 @@ impl OpcodePutTuple {
         break;
       }
       let val = ctx.fetch_term();
+      // println!("- put {}, {}", i, val);
       unsafe { boxed::Tuple::set_element_base0(tuple_p, i, val); }
     }
 
+    ctx.store_value(LTerm::make_boxed(tuple_p), dst, hp)?;
     Ok(DispatchResult::Normal)
   }
 }

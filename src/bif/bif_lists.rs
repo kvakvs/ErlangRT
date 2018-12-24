@@ -50,3 +50,31 @@ pub fn bif_erlang_ebif_plusplus_2_2(
   // Return what we got joined together
   Ok(l1)
 }
+
+/// Takes head of a cons value, otherwise returns badarg.
+pub fn ubif_erlang_hd_1(
+  _vm: &mut VM,
+  _curr_p: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("erlang:hd", 1, args);
+  if !args[0].is_cons() {
+    return fail::create::badarg();
+  }
+  let p = args[0].get_cons_ptr();
+  unsafe { Ok((*p).hd()) }
+}
+
+/// Takes tail of a cons value, otherwise returns badarg.
+pub fn ubif_erlang_tl_1(
+  _vm: &mut VM,
+  _curr_p: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("erlang:hd", 1, args);
+  if !args[0].is_cons() {
+    return fail::create::badarg();
+  }
+  let p = args[0].get_cons_ptr();
+  unsafe { Ok((*p).tl()) }
+}
