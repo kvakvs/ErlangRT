@@ -368,12 +368,12 @@ impl LTerm {
 
   #[inline]
   pub fn get_cons_ptr(self) -> *const boxed::Cons {
-    debug_assert!(self.is_cons());
+    debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
     (self.value & (!TERM_TAG_MASK)) as *const boxed::Cons
   }
 
   pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
-    debug_assert!(self.is_cons());
+    debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
     (self.value & (!TERM_TAG_MASK)) as *mut boxed::Cons
   }
 

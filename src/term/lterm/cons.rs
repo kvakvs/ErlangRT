@@ -39,14 +39,16 @@ pub unsafe fn copy_list_leave_tail(
 ) -> RtResult<(LTerm, *mut boxed::Cons)> {
   debug_assert_ne!(src, LTerm::nil());
   let mut lb = ListBuilder::new(hp)?;
-  let src_p = src.get_cons_ptr();
+  let mut src_p = src.get_cons_ptr();
 
   // Copy elements one by one
   loop {
     lb.set((*src_p).hd());
-    if !(*src_p).tl().is_list() {
+    let src_tl = (*src_p).tl();
+    if !src_tl.is_cons() {
       return Ok((lb.make_term(), lb.get_write_p()));
     }
     lb.next()?;
+    src_p = src_tl.get_cons_ptr();
   }
 }
