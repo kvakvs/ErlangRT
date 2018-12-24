@@ -53,3 +53,41 @@ impl OpcodePutTuple {
     Ok(DispatchResult::Normal)
   }
 }
+
+
+/// Checks that tuple in argument1 has arity `arity` otherwise jumps to fail.
+/// Structure: test_arity(on_false:label, value:tuple, arity:int)
+pub struct OpcodeTestArity {}
+
+impl OpcodeTestArity {
+  pub const ARITY: usize = 3;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize) {
+    let on_false = ctx.fetch_term();
+    let val = ctx.fetch_and_load(&mut curr_p.heap);
+    let arity = ctx.fetch_term().get_small_unsigned();
+    (on_false, val, arity)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val, arity) = Self::fetch_args(ctx, curr_p);
+    // Possibly even not a tuple
+    if !val.is_tuple() {
+      ctx.jump(fail_label)
+    }
+    else {
+      // Get tuple arity and check it
+      let tuple_p = val.get_tuple_ptr();
+      if unsafe { (*tuple_p).get_arity() } != arity {
+        ctx.jump(fail_label)
+      }
+    }
+    Ok(DispatchResult::Normal)
+  }
+}

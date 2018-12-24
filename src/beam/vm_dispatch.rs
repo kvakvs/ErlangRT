@@ -192,6 +192,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeIsTuple::run(vm, ctx, curr_p);
     },
 
+    OPCODE_TEST_ARITY => {
+      assert_arity(OPCODE_TEST_ARITY, OpcodeTestArity::ARITY);
+      return OpcodeTestArity::run(vm, ctx, curr_p);
+    },
+
     OPCODE_SELECT_VAL => {
       assert_arity(OPCODE_SELECT_VAL, OpcodeSelectVal::ARITY);
       return OpcodeSelectVal::run(vm, ctx, curr_p);
