@@ -58,6 +58,7 @@ loop_rec
 loop_rec_end
 remove_message
 send
+wait
 
 #=== === Tuple Operations === ===
 put_tuple

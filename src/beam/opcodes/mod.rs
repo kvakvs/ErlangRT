@@ -23,15 +23,17 @@ use crate::{
 /// Debug-time assertion to guard against incompatible opcode arity on BEAM
 /// version changes.
 #[inline]
-pub fn assert_arity(op: RawOpcode, val: Word) {
+pub fn assert_arity(op: RawOpcode, code_expected_arity: Word) {
   debug_assert!(op < gen_op::OPCODE_MAX, "Opcode is too large");
+  let genop_arity = gen_op::ARITY_MAP[op.get() as usize] as Word;
   debug_assert_eq!(
-    gen_op::ARITY_MAP[op.get() as usize] as Word,
-    val,
-    "Opcode {}={} arity is expected to be {}",
+    genop_arity,
+    code_expected_arity,
+    "Opcode {}={} code expects arity {}, while genop table has {}",
     gen_op::opcode_name(op),
     op.get(),
-    val
+    code_expected_arity,
+    genop_arity
   );
 }
 

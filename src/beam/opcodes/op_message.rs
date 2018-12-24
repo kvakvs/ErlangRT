@@ -77,18 +77,12 @@ impl OpcodeLoopRecEnd {
   pub const ARITY: usize = 1;
 
   #[inline]
-  fn fetch_args(ctx: &mut Context) -> LTerm {
-    let label = ctx.fetch_term();
-    label
-  }
-
-  #[inline]
   pub fn run(
     _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let label = Self::fetch_args(ctx);
+    let label = ctx.fetch_term();
     curr_p.mailbox.step_over();
     ctx.jump(label);
     Ok(DispatchResult::Normal)
@@ -111,5 +105,25 @@ impl OpcodeRemoveMessage {
     let message = curr_p.mailbox.remove_current();
     ctx.set_x(0, message);
     Ok(DispatchResult::Normal)
+  }
+}
+
+/// Suspends the current process and sets the ip to the label (beginning of the
+/// receive loop).
+/// Structure: wait(label:cp)
+pub struct OpcodeWait {}
+
+impl OpcodeWait {
+  pub const ARITY: usize = 1;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let label = ctx.fetch_term();
+    ctx.jump(label);
+    Ok(DispatchResult::Yield)
   }
 }
