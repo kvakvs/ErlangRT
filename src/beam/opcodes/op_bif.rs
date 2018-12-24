@@ -39,7 +39,7 @@ impl OpcodeBif0 {
     println!("bif0 t={} dst={}", target, dst);
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::apply(vm, ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
+    call_bif::find_and_call_bif(vm, ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
   }
 }
 
@@ -70,7 +70,7 @@ impl OpcodeBif1 {
     let (fail, target, args, dst) = Self::fetch_args(ctx, curr_p);
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::apply(vm, ctx, curr_p, fail, cb_target, args, dst, false)
+    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, false)
   }
 }
 
@@ -101,7 +101,7 @@ impl OpcodeBif2 {
     let (fail, target, args, dst) = Self::fetch_args(ctx, curr_p);
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::apply(vm, ctx, curr_p, fail, cb_target, args, dst, false)
+    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, false)
   }
 }
 
@@ -134,7 +134,7 @@ impl OpcodeGcBif1 {
     ctx.live = live;
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::apply(vm, ctx, curr_p, fail, cb_target, args, dst, true)
+    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, true)
   }
 }
 
@@ -168,7 +168,7 @@ impl OpcodeGcBif2 {
     ctx.live = live;
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::apply(vm, ctx, curr_p, fail, cb_target, args, dst, true)
+    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, true)
   }
 }
 
@@ -202,6 +202,6 @@ impl OpcodeGcBif3 {
     ctx.live = live;
 
     let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::apply(vm, ctx, curr_p, fail, cb_target, args, dst, true)
+    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, true)
   }
 }

@@ -206,7 +206,7 @@ fn shared_call_ext(
       if (*import_ptr).is_bif {
         // Perform a BIF application
         let cb_target = call_bif::CallBifTarget::ImportPointer(import_ptr);
-        call_bif::apply(
+        call_bif::find_and_call_bif(
           vm,
           ctx,
           curr_p,

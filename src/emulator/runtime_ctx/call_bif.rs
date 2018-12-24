@@ -39,9 +39,8 @@ pub enum CallBifTarget {
 ///   `args` - the arguments;
 ///   `dst` - register where the result will go;
 ///   `gc` if gc is allowed then `ctx.live` will be used as live.
-//#[inline]
-// Inline to allow const folding optimization
-pub fn apply(
+#[inline]
+pub fn find_and_call_bif(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
@@ -51,8 +50,10 @@ pub fn apply(
   dst: LTerm,
   gc: bool,
 ) -> RtResult<DispatchResult> {
+  // Try resolve BIF destination, which can be defined by an import, mfarity
+  // a pointer to import, or a pointer to bif function.
   let maybe_bif_fn = match target {
-    CallBifTarget::ImportTerm(ho_imp) => callbif_resolve_import(ho_imp)?,
+    CallBifTarget::ImportTerm(ho_imp) => callbif_resolve_import(ho_imp, args.len())?,
 
     CallBifTarget::MFArity(mfa) => callbif_resolve_mfa(&mfa)?,
 
@@ -65,10 +66,9 @@ pub fn apply(
   };
 
   // Now having resolved the bif function, let's call it
-
   let bif_result = match maybe_bif_fn {
     BifResolutionResult::FnPointer(fn_ptr) => {
-      callbif_apply_bif(vm, ctx, curr_p, fn_ptr, args)
+      actual_bif_call(vm, ctx, curr_p, fn_ptr, args)
     }
 
     BifResolutionResult::BadfunError(badfun_val) => {
@@ -116,10 +116,12 @@ enum BifResolutionResult {
 }
 
 /// Given a term with import, resolve it to a bif function pointer or fail.
+/// Arg: check_arity - performs check of args count vs function arity
 /// Return: A bif function or an error
-fn callbif_resolve_import(imp: LTerm) -> RtResult<BifResolutionResult> {
+fn callbif_resolve_import(imp: LTerm, check_arity: usize) -> RtResult<BifResolutionResult> {
   // Possibly a boxed::Import object on heap which contains m:f/arity
   let imp_p = imp.get_box_ptr_safe::<import::Import>()?;
+  assert_eq!(unsafe { (*imp_p).mfarity.arity }, check_arity);
 
   // Here HOImport pointer is found, try and resolve it to a Rust function ptr
   let fn_ptr = unsafe { (*imp_p).resolve_bif()? };
@@ -136,7 +138,7 @@ fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
 /// Given a bif function pointer and args with possibly register/slot values
 /// in them, first resolve these args to values, and then call the function
 #[inline]
-fn callbif_apply_bif(
+fn actual_bif_call(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,

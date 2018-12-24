@@ -19,3 +19,12 @@ pub fn gcbif_erlang_length_1(
   let result = cons::list_length(args[0])?;
   Ok(LTerm::make_small_unsigned(result))
 }
+
+/// Calculate a new list made of two lists joined together
+pub fn bif_erlang_ebif_plusplus_2_2(
+  _vm: &mut VM,
+  _cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  
+}

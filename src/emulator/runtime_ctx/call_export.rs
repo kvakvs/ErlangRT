@@ -43,7 +43,7 @@ pub fn apply(
   }
 
   if bif::is_bif(&mfa) {
-    return call_bif::apply(
+    return call_bif::find_and_call_bif(
       vm,
       ctx,
       curr_p,

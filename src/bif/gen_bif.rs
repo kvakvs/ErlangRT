@@ -23,6 +23,8 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_erlang_stimes_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SYM_PLUS, arity: 2,
         func: bif::ubif_erlang_splus_2_2 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::EBIF_PLUSPLUS_2, arity: 2,
+        func: bif::bif_erlang_ebif_plusplus_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SYM_MINUS, arity: 2,
         func: bif::ubif_erlang_sminus_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SNEQEQ_2, arity: 2,
