@@ -80,7 +80,8 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
 
 /// Given a and b, terms, branch on their type and try do draw some conclusions.
 fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
-  // println!("cmp any type {} {}", a, b);
+  debug_assert!(a.is_value(), "compare_any_type, a NON_VALUE and a {}", b);
+  debug_assert!(b.is_value(), "compare_any_type, a {} and a NON_VALUE", a);
 
   // Compare type tags first
   if a.is_atom() && b.is_atom() {

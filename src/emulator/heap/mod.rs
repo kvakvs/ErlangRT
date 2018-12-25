@@ -194,10 +194,12 @@ impl Heap {
     self.send - self.stop >= y + 1
   }
 
-  pub fn stack_set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
+  /// Set stack value (`index`th from stack top) to `val`.
+  pub fn set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
     if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange);
     }
+    println!("set y{} = {}", index, val);
     self.data[index + self.stop + 1] = val.raw();
     Ok(())
   }

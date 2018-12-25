@@ -104,7 +104,6 @@ impl OpcodeGetTupleElement {
     let src = ctx.fetch_and_load(&mut curr_p.heap);
     let index = ctx.fetch_term().get_small_unsigned();
     let dst = ctx.fetch_term();
-    println!("gtupleel src={} index={} dst={}", src, index, dst);
     (src, index, dst)
   }
 

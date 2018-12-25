@@ -192,7 +192,7 @@ impl Context {
         }
         SPECIALTAG_REGY => {
           let y = dst.get_special_value();
-          return hp.stack_set_y(y, val);
+          return hp.set_y(y, val);
         }
         SPECIALTAG_REGFP => panic!("todo fpreg store"),
         SpecialTag(st) => panic!("store: specialtag {} not supported", st),

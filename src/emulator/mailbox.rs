@@ -25,14 +25,10 @@ impl ProcessMailbox {
     if self.inbox.is_empty() {
       return None;
     }
-    let mut mri = self.read_index;
-    if mri >= self.inbox.len() {
-      self.read_index = 0;
-      mri = 0;
-      //      while mri < max_mri && self.inbox[mri].is_non_value() {
-      //        mri += 1;
-      //      }
-    }
+
+    let mri = self.read_index;
+    debug_assert!(mri < self.inbox.len());
+
     let val = self.inbox[mri];
     debug_assert!(val.is_value());
     Some(val)
