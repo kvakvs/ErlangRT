@@ -52,3 +52,22 @@ pub unsafe fn copy_list_leave_tail(
     src_p = src_tl.get_cons_ptr();
   }
 }
+
+/// For each list element run the function. Tail element (usually NIL) is ignored.
+pub fn for_each<T>(lst: LTerm, mut func: T) where T: FnMut(LTerm) {
+  if lst == LTerm::nil() { return; }
+  let mut p = lst.get_cons_ptr();
+  loop {
+    let hd_el = unsafe { (*p).hd() };
+    func(hd_el);
+
+    let tl_el = unsafe { (*p).tl() };
+    if tl_el.is_cons() {
+      // for a list tail element step forward
+      p = tl_el.get_cons_ptr();
+    } else {
+      // for a non list end here
+      break;
+    }
+  }
+}

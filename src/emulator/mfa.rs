@@ -42,6 +42,14 @@ impl MFASomething {
     }
     panic!("Can't find length for {:?}", self.args)
   }
+
+  pub fn for_each_arg<T>(&self, func: T) where T: FnMut(LTerm) {
+    match self.args {
+      Args::AsList(lst) => {
+        cons::for_each(lst, func)
+      }
+    }
+  }
 }
 
 #[derive(Debug, Copy, Clone)]

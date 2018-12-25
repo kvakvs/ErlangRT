@@ -110,8 +110,12 @@ impl Process {
 
   /// Copy args from mfargs-MFA-something into new process heap and set the
   /// registers to the arguments passed to spawn.
-  pub fn set_spawn_args(&mut self, _mfargs: &MFASomething) {
-    panic!("notimpl set_spawn_args for process")
+  pub fn set_spawn_args(&mut self, mfargs: &MFASomething) {
+    let mut xindex = 0;
+    mfargs.for_each_arg(|arg| {
+      self.context.set_x(xindex, arg);
+      xindex += 1;
+    })
   }
 
   /// Returns true if there was an error or exception during the last timeslice.
