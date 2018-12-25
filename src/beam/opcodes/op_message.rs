@@ -120,7 +120,7 @@ impl OpcodeWait {
   pub fn run(
     _vm: &mut VM,
     ctx: &mut Context,
-    curr_p: &mut Process,
+    _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let label = ctx.fetch_term();
     ctx.jump(label);

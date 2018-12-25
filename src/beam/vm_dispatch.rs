@@ -212,6 +212,16 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeGetList::run(vm, ctx, curr_p);
     },
 
+    OPCODE_GET_TUPLE_ELEMENT => {
+      assert_arity(OPCODE_GET_TUPLE_ELEMENT, OpcodeGetTupleElement::ARITY);
+      return OpcodeGetTupleElement::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_SET_TUPLE_ELEMENT => {
+      assert_arity(OPCODE_SET_TUPLE_ELEMENT, OpcodeSetTupleElement::ARITY);
+      return OpcodeSetTupleElement::run(vm, ctx, curr_p);
+    },
+
     OPCODE_PUT_LIST => {
       assert_arity(OPCODE_PUT_LIST, OpcodePutList::ARITY);
       return OpcodePutList::run(vm, ctx, curr_p);

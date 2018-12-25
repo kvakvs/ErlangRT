@@ -311,8 +311,13 @@ impl LTerm {
   }
 
   #[inline]
+  pub fn is_special(self) -> bool {
+    self.get_term_tag() == TERMTAG_SPECIAL
+  }
+
+  #[inline]
   pub fn is_special_of_type(self, t: SpecialTag) -> bool {
-    self.get_term_tag() == TERMTAG_SPECIAL && self.get_special_tag() == t
+    self.is_special() && self.get_special_tag() == t
   }
 
   pub fn make_regx(n: Word) -> LTerm {

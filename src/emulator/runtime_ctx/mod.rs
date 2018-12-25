@@ -142,7 +142,7 @@ impl Context {
   /// Read a register otherwise term is returned unchanged.
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
-    if src.get_term_tag() == TERMTAG_SPECIAL {
+    if src.is_special() {
       match src.get_special_tag() {
         SPECIALTAG_REGX => return self.get_x(src.get_special_value()),
         SPECIALTAG_REGY => {
@@ -181,9 +181,9 @@ impl Context {
     dst: LTerm,
     hp: &mut heap::Heap,
   ) -> RtResult<()> {
-    debug_assert!(!val.is_regx());
-    debug_assert!(!val.is_regy());
-    debug_assert!(!val.is_regfp());
+    debug_assert!(!val.is_regx(), "When storing a value, element must not be regx, have {}", val);
+    debug_assert!(!val.is_regy(), "When storing a value, element must not be regy, have {}", val);
+    debug_assert!(!val.is_regfp(), "When storing a value, element must not be regfp, have {}", val);
     if dst.get_term_tag() == TERMTAG_SPECIAL {
       match dst.get_special_tag() {
         SPECIALTAG_REGX => {

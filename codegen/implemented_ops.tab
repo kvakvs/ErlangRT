@@ -64,3 +64,5 @@ wait
 #=== === Tuple Operations === ===
 put_tuple
 test_arity
+get_tuple_element
+set_tuple_element

@@ -1,14 +1,12 @@
 //! Module implements opcodes related to tuple creation and manipulation.
 use crate::{
   beam::{disp_result::DispatchResult, gen_op::OPCODE_PUT},
-  emulator::{
-    code::opcode, process::Process, runtime_ctx::Context, vm::VM,
-  },
-  fail::RtResult,
+  emulator::{code::opcode, process::Process, runtime_ctx::Context, vm::VM},
+  fail::{self, RtResult},
   term::{boxed, lterm::LTerm},
 };
 
-//fn module() -> &'static str {
+// fn module() -> &'static str {
 //  "opcodes::op_tuple: "
 //}
 
@@ -44,9 +42,11 @@ impl OpcodePutTuple {
         ctx.unfetch();
         break;
       }
-      let val = ctx.fetch_term();
+      let val = ctx.fetch_and_load(hp);
       // println!("- put {}, {}", i, val);
-      unsafe { boxed::Tuple::set_element_base0(tuple_p, i, val); }
+      unsafe {
+        boxed::Tuple::set_element_base0(tuple_p, i, val);
+      }
     }
 
     ctx.store_value(LTerm::make_boxed(tuple_p), dst, hp)?;
@@ -80,14 +80,81 @@ impl OpcodeTestArity {
     // Possibly even not a tuple
     if !val.is_tuple() {
       ctx.jump(fail_label)
-    }
-    else {
+    } else {
       // Get tuple arity and check it
       let tuple_p = val.get_tuple_ptr();
       if unsafe { (*tuple_p).get_arity() } != arity {
         ctx.jump(fail_label)
       }
     }
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// From `src` get `index`th element and store it in `dst`.
+/// Structure: get_tuple_element(src:src, index:smallint, dst:dst)
+pub struct OpcodeGetTupleElement {}
+
+impl OpcodeGetTupleElement {
+  pub const ARITY: usize = 3;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, usize, LTerm) {
+    let src = ctx.fetch_and_load(&mut curr_p.heap);
+    let index = ctx.fetch_term().get_small_unsigned();
+    let dst = ctx.fetch_term();
+    println!("gtupleel src={} index={} dst={}", src, index, dst);
+    (src, index, dst)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (src, index, dst) = Self::fetch_args(ctx, curr_p);
+    if !src.is_tuple() {
+      return fail::create::badarg();
+    }
+
+    let tuple_p = src.get_tuple_ptr();
+    let element = unsafe { boxed::Tuple::get_element_base0(tuple_p, index) };
+    ctx.store_value(element, dst, &mut curr_p.heap)?;
+    Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// From `src` get `index`th element and store it in `dst`.
+/// Structure: set_tuple_element(val:src, dst:dst, index:smallint)
+pub struct OpcodeSetTupleElement {}
+
+impl OpcodeSetTupleElement {
+  pub const ARITY: usize = 3;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize) {
+    let value = ctx.fetch_and_load(&mut curr_p.heap);
+    let dst = ctx.fetch_and_load(&mut curr_p.heap);
+    let index = ctx.fetch_term().get_small_unsigned();
+    (value, dst, index)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (value, dst, index) = Self::fetch_args(ctx, curr_p);
+    if !dst.is_tuple() {
+      return fail::create::badarg();
+    }
+
+    let tuple_p = dst.get_tuple_ptr_mut();
+    unsafe { boxed::Tuple::set_element_base0(tuple_p, index, value) };
     Ok(DispatchResult::Normal)
   }
 }
