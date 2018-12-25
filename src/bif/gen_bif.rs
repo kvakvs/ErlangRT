@@ -45,6 +45,8 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_erlang_sge_2_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::HD, arity: 1,
         func: bif::ubif_erlang_hd_1 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::IS_PROCESS_ALIVE, arity: 1,
+        func: bif::bif_erlang_is_process_alive_1 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::LENGTH, arity: 1,
         func: bif::gcbif_erlang_length_1 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::MAKE_FUN, arity: 3,

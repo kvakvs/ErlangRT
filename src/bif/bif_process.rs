@@ -10,12 +10,14 @@ use crate::{
   fail::{Error, RtResult},
   term::{boxed, lterm::*},
 };
+use crate::bif::assert_arity;
 
 pub fn ubif_erlang_self_0(
   _vm: &mut VM,
   cur_proc: &mut Process,
-  _args: &[LTerm],
+  args: &[LTerm],
 ) -> RtResult<LTerm> {
+  assert_arity("erlang:self", 0, args);
   Ok(cur_proc.pid)
 }
 
@@ -25,6 +27,7 @@ pub fn bif_erlang_make_fun_3(
   cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
+  assert_arity("erlang:make_fun", 3, args);
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
     return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
   }
@@ -45,8 +48,19 @@ pub fn bif_erlang_spawn_3(
   _cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
+  assert_arity("erlang:spawn", 3, args);
   let mfargs = MFASomething::new(args[0], args[1], Args::AsList(args[2]));
   let pid = vm.create_process(LTerm::nil(), &mfargs, Prio::Normal)?;
 
   Ok(pid)
+}
+
+pub fn bif_erlang_is_process_alive_1(
+  vm: &mut VM,
+  _cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("erlang:is_process_alive", 1, args);
+  let result = vm.scheduler.lookup_pid(args[0]).is_some();
+  Ok(LTerm::make_bool(result))
 }

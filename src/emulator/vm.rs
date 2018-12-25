@@ -23,9 +23,9 @@ pub struct VM {
   pid_counter: Word,
 
   /// Contains all loaded modules and manages versions
-  code_server: CodeServer,
+  pub code_server: CodeServer,
 
-  scheduler: Scheduler,
+  pub scheduler: Scheduler,
 }
 
 impl VM {
