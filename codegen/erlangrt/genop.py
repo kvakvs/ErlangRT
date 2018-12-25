@@ -42,7 +42,7 @@ class OTP20(OTPConfig):
     def __init__(self):
         super().__init__(min_opcode=1, max_opcode=159,
                          atoms_tab="atoms.tab",
-                         bif_tab="otp20/bif.tab",
+                         bif_tab="implemented_bifs.tab",
                          genop_tab="otp20/genop.tab")
 
     def parse_bif_line(self, line):
