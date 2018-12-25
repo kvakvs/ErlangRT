@@ -5,6 +5,7 @@
 pub enum DispatchResult {
   Normal,
   Yield,
+  Finished,
 }
 
 // impl DispatchResult {

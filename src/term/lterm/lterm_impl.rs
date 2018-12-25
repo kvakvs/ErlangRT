@@ -467,12 +467,15 @@ impl LTerm {
     val >= SMALLEST_SMALL && val <= LARGEST_SMALL
   }
 
-  pub const fn get_small_signed(self) -> SWord {
+  #[inline]
+  pub fn get_small_signed(self) -> SWord {
+    debug_assert!(self.is_small());
     (self.value as SWord) >> TERM_TAG_BITS
   }
 
   #[inline]
   pub fn get_small_unsigned(self) -> Word {
+    debug_assert!(self.is_small());
     self.get_term_val_without_tag()
   }
 

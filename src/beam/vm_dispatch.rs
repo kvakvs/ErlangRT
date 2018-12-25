@@ -82,6 +82,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeTestHeap::run(vm, ctx, curr_p);
     },
 
+    OPCODE_INIT => {
+      assert_arity(OPCODE_INIT, OpcodeInit::ARITY);
+      return OpcodeInit::run(vm, ctx, curr_p);
+    },
+
     OPCODE_DEALLOCATE => {
       assert_arity(OPCODE_DEALLOCATE, OpcodeDeallocate::ARITY);
       return OpcodeDeallocate::run(vm, ctx, curr_p);

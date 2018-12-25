@@ -24,6 +24,7 @@ allocate_heap
 allocate_heap_zero
 allocate_zero
 deallocate
+init
 move
 test_heap
 trim

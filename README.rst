@@ -49,3 +49,17 @@ Reference Material
 * `BEAM Wisdoms <http://beam-wisdoms.clau.se/>`_ (I run this one)
 * `The BEAM book <https://github.com/happi/theBeamBook>`_
   (I am also one of the editors there)
+
+Contributing
+------------
+
+Implementing new BIFs and Opcodes
+`````````````````````````````````
+
+1. Visit ``codegen/implemented_bifs.tab`` file or ``codegen/implemented_ops.tab``
+   file, and insert what you intend to add. For opcodes it must also be present
+   in ``codegen/otpXX/genop.tab`` because the VM will verify arities at least.
+2. Run ``make`` in root directory once, which will invoke the codegen and show
+   you errors about missing struct (for opcodes) or missing function (for bifs).
+3. Copy from another opcode or a bif, and satisfy the compiler.
+4. Profit.

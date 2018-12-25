@@ -2,7 +2,7 @@
 //!
 use crate::{defs::Arity, term::lterm::*};
 use core::fmt;
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 /// Reference to an internal function in some module.
 #[derive(Debug, Eq, Clone)]

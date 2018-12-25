@@ -3,7 +3,7 @@ use crate::{
   fail::RtResult,
   term::{compare::cmp_terms, lterm::LTerm},
 };
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 fn module() -> &'static str {
   "bif_compare: "

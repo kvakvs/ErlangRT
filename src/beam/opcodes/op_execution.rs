@@ -12,7 +12,7 @@ use crate::{
   fail::{self, RtResult},
   term::{boxed, compare, lterm::*},
 };
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 fn module() -> &'static str {
   "opcodes::op_execution: "
@@ -252,7 +252,7 @@ impl OpcodeReturn {
     if ctx.cp.is_null() {
       if curr_p.heap.stack_depth() == 0 {
         // Process end of life: return on empty stack
-        panic!("{}Process exit: normal; x0={}", module(), ctx.get_x(0))
+        return Ok(DispatchResult::Finished);
       } else {
         panic!(
           "{}Return instruction with 0 in ctx.cp. Possible error in CP value management",

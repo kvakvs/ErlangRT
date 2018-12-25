@@ -54,8 +54,13 @@ pub unsafe fn copy_list_leave_tail(
 }
 
 /// For each list element run the function. Tail element (usually NIL) is ignored.
-pub fn for_each<T>(lst: LTerm, mut func: T) where T: FnMut(LTerm) {
-  if lst == LTerm::nil() { return; }
+pub fn for_each<T>(lst: LTerm, mut func: T)
+where
+  T: FnMut(LTerm),
+{
+  if lst == LTerm::nil() {
+    return;
+  }
   let mut p = lst.get_cons_ptr();
   loop {
     let hd_el = unsafe { (*p).hd() };
@@ -68,6 +73,35 @@ pub fn for_each<T>(lst: LTerm, mut func: T) where T: FnMut(LTerm) {
     } else {
       // for a non list end here
       break;
+    }
+  }
+}
+
+/// Finds if any element of lst satisfies `predicate` function.
+/// For each list element run the predicate until it returns true, then the
+/// result becomes true. If predicate did not return true for any element,
+/// the result becomes false.
+pub fn any<T>(lst: LTerm, mut predicate: T) -> bool
+where
+  T: FnMut(LTerm) -> bool,
+{
+  if lst == LTerm::nil() {
+    return false;
+  }
+  let mut p = lst.get_cons_ptr();
+  loop {
+    let hd_el = unsafe { (*p).hd() };
+    if predicate(hd_el) {
+      return true;
+    }
+
+    let tl_el = unsafe { (*p).tl() };
+    if tl_el.is_cons() {
+      // for a list tail element step forward
+      p = tl_el.get_cons_ptr();
+    } else {
+      // for a non list end here
+      return false;
     }
   }
 }

@@ -3,7 +3,7 @@ use crate::{
   fail::RtResult,
   term::{classify, lterm::*},
 };
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
 /// is stored in `stack` in `eq_terms()` function and tells where to resume

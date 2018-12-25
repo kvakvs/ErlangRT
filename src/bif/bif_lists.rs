@@ -1,12 +1,12 @@
 use crate::{
+  bif::assert_arity,
   emulator::{process::Process, vm::VM},
-  fail::RtResult,
-  term::lterm::*,
+  fail::{self, RtResult},
+  term::{compare, lterm::*},
 };
-use crate::bif::assert_arity;
-use crate::fail;
+use core::cmp::Ordering;
 
-//fn module() -> &'static str {
+// fn module() -> &'static str {
 //  "bif_compare: "
 //}
 
@@ -45,7 +45,9 @@ pub fn bif_erlang_ebif_plusplus_2_2(
   let (l1, tail) = unsafe { cons::copy_list_leave_tail(args[0], hp) }?;
 
   // then append the tail
-  unsafe { (*tail).set_tl(args[1]); }
+  unsafe {
+    (*tail).set_tl(args[1]);
+  }
 
   // Return what we got joined together
   Ok(l1)
@@ -77,4 +79,26 @@ pub fn ubif_erlang_tl_1(
   }
   let p = args[0].get_cons_ptr();
   unsafe { Ok((*p).tl()) }
+}
+
+pub fn bif_lists_member_2(
+  _vm: &mut VM,
+  _curr_p: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("lists:member", 2, args);
+  let list = args[1];
+  if list == LTerm::nil() {
+    return Ok(LTerm::make_bool(false));
+  }
+  if !list.is_cons() {
+    return fail::create::badarg();
+  }
+  let sample = args[0];
+  let result = cons::any(list, |elem| {
+    let cmp_result = compare::cmp_terms(sample, elem, true);
+    if cmp_result.is_err() { return false; }
+    cmp_result.unwrap() == Ordering::Equal
+  });
+  return Ok(LTerm::make_bool(result));
 }

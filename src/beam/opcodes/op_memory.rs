@@ -2,6 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
+  term::lterm::LTerm,
 };
 
 /// Shared code for stack checks and allocations with an optional heap check.
@@ -208,6 +209,26 @@ impl OpcodeTrim {
     // assume that after trimming the cp will fit back on stack just fine
     hp.stack_push_lterm_unchecked(tmp_cp);
 
+    Ok(DispatchResult::Normal)
+  }
+}
+
+/// Set n-th word on stack to NIL.
+/// Structure: init(yreg:special_yregister)
+pub struct OpcodeInit {}
+
+impl OpcodeInit {
+  pub const ARITY: usize = 1;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let yreg = ctx.fetch_term();
+    debug_assert!(yreg.is_regy());
+    curr_p.heap.set_y(yreg.get_special_value(), LTerm::nil())?;
     Ok(DispatchResult::Normal)
   }
 }

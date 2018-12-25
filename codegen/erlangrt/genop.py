@@ -229,13 +229,10 @@ class OTPTables:
             bif = self.conf.parse_bif_line(bline)
             bif_tab0.append(bif)
 
-            # stderr.write("+bif %s %s\n" % (bif.atom_str, bif.cname))
+            # Add atom of function name
             self.atom_add(Atom(atom=bif.atom_str, cname=bif.cname))
-
-            # if self.is_printable(bline[0]):
-            #     self.atom_add(Atom(atom=bline[0], cname=bline[0].upper()))
-            # else:
-            #     self.atom_add(Atom(atom=bline[0], cname=bif.cname))
+            # Add atom of module name
+            self.atom_add(Atom(atom=bif.mod, cname=bif.mod.upper()))
 
         # sort by (atom_text, arity) if atom ids equal
         self.bif_tab = sorted(

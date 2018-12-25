@@ -1,3 +1,9 @@
+#
+#
+# BIFs in the Erlang module
+#
+#
+
 bif     erlang:'++'/2		ebif_plusplus_2
 bif     erlang:make_fun/3
 bif     erlang:nif_error/1
@@ -19,3 +25,14 @@ ubif    erlang:hd/1
 ubif    erlang:self/0
 ubif    erlang:tl/1
 bif     erlang:is_process_alive/1
+
+#
+#
+# BIFs in the Lists module
+#
+#
+bif lists:member/2
+# bif lists:reverse/2
+# bif lists:keymember/3
+# bif lists:keysearch/3
+# bif lists:keyfind/3

@@ -34,7 +34,14 @@ impl ProcessMailbox {
     Some(val)
   }
 
+  // TODO: This is ugly, do proper mailbox algorithm impl here
   pub fn step_over(&mut self) {
+    // Guard
+    if self.inbox.is_empty() {
+      self.read_index = 0;
+      return;
+    }
+
     let mut mri = self.read_index;
     // remember starting pos to know if we traversed all messages and all of
     // them were nonvalues
