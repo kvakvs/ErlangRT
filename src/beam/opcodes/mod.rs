@@ -24,7 +24,12 @@ use crate::{
 /// version changes.
 #[inline]
 pub fn assert_arity(op: RawOpcode, code_expected_arity: Word) {
-  debug_assert!(op < gen_op::OPCODE_MAX, "Opcode is too large");
+  debug_assert!(
+    op <= gen_op::OPCODE_MAX,
+    "Opcode {:?} is too large, max {:?}",
+    op,
+    gen_op::OPCODE_MAX
+  );
   let genop_arity = gen_op::ARITY_MAP[op.get() as usize] as Word;
   debug_assert_eq!(
     genop_arity,

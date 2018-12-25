@@ -62,7 +62,8 @@ send
 wait
 
 #=== === Tuple Operations === ===
-put_tuple
-test_arity
 get_tuple_element
+is_tagged_tuple
+put_tuple
 set_tuple_element
+test_arity

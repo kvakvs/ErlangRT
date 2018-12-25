@@ -157,3 +157,49 @@ impl OpcodeSetTupleElement {
     Ok(DispatchResult::Normal)
   }
 }
+
+
+/// Test the type of Value, and jump to label if it is not a tuple.
+/// Test the arity of tuple and jump to label if it is not Arity.
+/// Test the first element of the tuple and jump to label if it is not atom.
+/// Structure: is_tagged_tuple(label:cp, value, arity:smallint, atom:atom)
+pub struct OpcodeIsTaggedTuple {}
+
+impl OpcodeIsTaggedTuple {
+  pub const ARITY: usize = 4;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize, LTerm) {
+    let label = ctx.fetch_term();
+    let value = ctx.fetch_and_load(&mut curr_p.heap);
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let atom = ctx.fetch_term();
+    (label, value, arity, atom)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (label, value, arity, atom) = Self::fetch_args(ctx, curr_p);
+    if !value.is_tuple() {
+      ctx.jump(label);
+    } else {
+      let tuple_p = value.get_tuple_ptr();
+      if unsafe { (*tuple_p).get_arity() } != arity {
+        ctx.jump(label);
+      } else {
+        debug_assert!(atom.is_atom());
+        let first = unsafe { boxed::Tuple::get_element_base0(tuple_p, 0) };
+        // assuming atom parameter is an atom, we can use direct comparison
+        // instead of calling compare::cmp_terms/3
+        if first != atom {
+          ctx.jump(label);
+        }
+      }
+    }
+    Ok(DispatchResult::Normal)
+  }
+}

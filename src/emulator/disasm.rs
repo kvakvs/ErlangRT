@@ -26,7 +26,12 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
   let mut ip = ip0;
 
   let op = opcode::from_memory_ptr(ip);
-  assert!(op < gen_op::OPCODE_MAX);
+  assert!(
+    op <= gen_op::OPCODE_MAX,
+    "Opcode {:?} is too big, more than max {:?}",
+    op,
+    gen_op::OPCODE_MAX
+  );
 
   if let Some(mfa) = code_server.code_reverse_lookup(CodePtr::new(ip)) {
     print!("{} ", format!("{}", mfa).cyan());

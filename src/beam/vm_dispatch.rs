@@ -282,6 +282,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeGcBif3::run(vm, ctx, curr_p);
     },
 
+    OPCODE_IS_TAGGED_TUPLE => {
+      assert_arity(OPCODE_IS_TAGGED_TUPLE, OpcodeIsTaggedTuple::ARITY);
+      return OpcodeIsTaggedTuple::run(vm, ctx, curr_p);
+    },
+
     other => unknown_opcode(other, ctx),
   }
   Ok(DispatchResult::Yield)

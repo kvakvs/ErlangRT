@@ -232,7 +232,8 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
 
   if a.is_local_pid() {
     if b.is_local_pid() {
-      panic!("TODO: cmp local vs local pid")
+      // Concluded by comparing raw values
+      return Ok(a.raw().cmp(&b.raw()));
     } else if b.is_external_pid() {
       panic!("TODO: cmp local vs ext pid")
     } else {
