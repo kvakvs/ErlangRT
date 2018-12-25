@@ -42,19 +42,6 @@ pub struct Context {
 }
 
 impl Context {
-  /// For swapping in/out with a process, copy pointers and `live` amount of X
-  /// registers.
-  pub fn copy_from(&mut self, other: &Context) {
-    self.ip = other.ip;
-    self.cp = other.cp;
-
-    let live = other.live;
-    self.live = live;
-    self.regs[0..live].clone_from_slice(&other.regs[0..live]);
-
-    self.fpregs = other.fpregs;
-  }
-
   pub fn new(ip: CodePtr) -> Context {
     Context {
       cp: CodePtr::null(),
@@ -69,12 +56,15 @@ impl Context {
   #[inline]
   pub fn get_x(&self, index: usize) -> LTerm {
     // debug_assert!(index < self.live);
-    self.regs[index]
+    let result = self.regs[index];
+    debug_assert!(result.is_value(), "Should never get a NON_VALUE from x[]");
+    result
   }
 
   #[inline]
   pub fn set_x(&mut self, index: usize, val: LTerm) {
     println!("set x{} = {}", index, val);
+    debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
     self.regs[index] = val;
   }
 

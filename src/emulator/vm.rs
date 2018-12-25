@@ -53,7 +53,9 @@ impl VM {
     p as *mut CodeServer
   }
 
-  /// Spawn a new process, create a new pid, register the process and jump to the MFA
+  /// Spawn a new process, create a new pid, register the process and jump to
+  /// the MFA specified. Arguments are copies into the new process heap and
+  /// stored into the registers.
   pub fn create_process(
     &mut self,
     parent: LTerm,
@@ -66,13 +68,10 @@ impl VM {
     let pid = LTerm::make_local_pid(pid_c);
     let mfarity = mfargs.get_mfarity();
     let cs = self.get_code_server_p();
-    match Process::new(pid, parent, &mfarity, prio, unsafe { &mut (*cs) }) {
-      Ok(p0) => {
-        self.scheduler.add(pid, p0);
-        Ok(pid)
-      }
-      Err(e) => Err(e),
-    }
+    let mut p0 = Process::new(pid, parent, &mfarity, prio, unsafe { &mut (*cs) })?;
+    p0.set_spawn_args(&mfargs);
+    self.scheduler.add(pid, p0);
+    Ok(pid)
   }
 
   /// Run the VM loop (one time slice), call this repeatedly to run forever.

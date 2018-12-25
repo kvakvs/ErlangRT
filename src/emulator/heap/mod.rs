@@ -196,6 +196,7 @@ impl Heap {
 
   /// Set stack value (`index`th from stack top) to `val`.
   pub fn set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
+    debug_assert!(val.is_value(), "Should never set y[] to a NON_VALUE");
     if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange);
     }
@@ -209,7 +210,9 @@ impl Heap {
       return Err(Error::StackIndexRange);
     }
     let pos = index + self.stop + 1;
-    Ok(LTerm::from_raw(self.data[pos]))
+    let result = LTerm::from_raw(self.data[pos]);
+    debug_assert!(result.is_value(), "Should never get a NON_VALUE from y[]");
+    Ok(result)
   }
 
   pub fn stack_depth(&self) -> Word {

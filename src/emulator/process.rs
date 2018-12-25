@@ -15,6 +15,7 @@ use crate::{
   fail::RtResult,
   term::lterm::*,
 };
+use crate::emulator::mfa::MFASomething;
 
 fn module() -> &'static str {
   "process: "
@@ -107,6 +108,12 @@ impl Process {
     }
   }
 
+  /// Copy args from mfargs-MFA-something into new process heap and set the
+  /// registers to the arguments passed to spawn.
+  pub fn set_spawn_args(&mut self, _mfargs: &MFASomething) {
+    panic!("notimpl set_spawn_args for process")
+  }
+
   /// Returns true if there was an error or exception during the last timeslice.
   #[inline]
   pub fn is_failed(&self) -> bool {
@@ -149,5 +156,14 @@ impl Process {
   pub fn deliver_message(&mut self, message: LTerm) {
     let m1 = copy_term::copy_to(message, &mut self.heap);
     self.mailbox.put(m1);
+  }
+
+  /// Ugly hack to mut-borrow the context without making borrow checker sad.
+  /// We guarantee that this borrow will not outlive the process, or we will pay
+  /// the price debugging the SIGSEGV.
+  #[inline]
+  pub fn get_context_p(&self) -> *mut runtime_ctx::Context {
+    let p = &self.context as *const runtime_ctx::Context;
+    p as *mut runtime_ctx::Context
   }
 }

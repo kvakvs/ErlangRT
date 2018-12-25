@@ -1,12 +1,6 @@
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, vm_dispatch::dispatch_op_inline},
-  emulator::{
-    code::{opcode, CodePtr},
-    disasm,
-    runtime_ctx::Context,
-    scheduler::SliceResult,
-    vm::VM,
-  },
+  emulator::{code::opcode, disasm, scheduler::SliceResult, vm::VM},
   fail::{Error, RtResult},
 };
 
@@ -18,19 +12,18 @@ impl VM {
   /// Reduce the reduction (instruction) count and once it reaches zero, return.
   /// Call dispatch again to schedule another process.
   pub fn dispatch(&mut self) -> RtResult<bool> {
-    let mut ctx = Context::new(CodePtr::null());
-
     let scheduler = self.get_scheduler_p();
     let curr_p = match unsafe { (*scheduler).next_process() } {
-      None => {
-        return Ok(false)
-      },
-      Some(p) => unsafe {
-        (*scheduler).lookup_pid_mut(p).unwrap()
-      },
+      None => return Ok(false),
+      Some(p) => unsafe { (*scheduler).lookup_pid_mut(p).unwrap() },
     };
     println!("+ Scheduler: switching to {}", curr_p.pid);
-    ctx.copy_from(&curr_p.context); // swapin
+
+    // Ugly borrowing the context from the process, but we guarantee that the
+    // borrow will not outlive the owning process or we pay the harsh price
+    // debugging SIGSEGVs.
+    let ctx_p = curr_p.get_context_p();
+    let mut ctx = unsafe { &mut (*ctx_p) };
 
     let cs = self.get_code_server_p();
     loop {
@@ -54,14 +47,12 @@ impl VM {
       if let Err(Error::Exception(exc_type, exc_reason)) = disp_result {
         println!("vm: Exception type={:?} reason={}", exc_type, exc_reason);
         curr_p.exception(exc_type, exc_reason);
-        curr_p.context.copy_from(&ctx); // swapout
         curr_p.timeslice_result = SliceResult::Exception;
         return Ok(true);
       }
 
       match disp_result? {
         DispatchResult::Yield => {
-          curr_p.context.copy_from(&ctx); // swapout
           curr_p.timeslice_result = SliceResult::Yield;
           return Ok(true);
         }
