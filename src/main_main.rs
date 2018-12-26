@@ -1,10 +1,16 @@
 use crate::{
-  emulator::{atom, mfa::MFASomething, scheduler::Prio, vm::VM},
+  emulator::{
+    atom,
+    mfa::{Args, MFASomething},
+    scheduler::Prio,
+    vm::VM,
+  },
   term::lterm::*,
 };
-
-use crate::emulator::mfa::Args;
-use std::{thread, time};
+use std::{
+  io::{stdout, Write},
+  thread, time,
+};
 
 /// Entry point for the command-line interface
 #[inline]
@@ -32,4 +38,5 @@ pub fn entrypoint() {
   while beam_vm.tick().unwrap() {
     thread::sleep(time::Duration::from_millis(0));
   }
+  stdout().flush().unwrap();
 }

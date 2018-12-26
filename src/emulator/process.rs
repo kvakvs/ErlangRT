@@ -58,8 +58,6 @@ pub struct Process {
 
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
-  /// How many X registers in the context are currently used
-  // pub live: Word,
 
   //
   // Memory
@@ -75,6 +73,8 @@ pub struct Process {
   /// Record result of last scheduled timeslice for this process
   /// (updated by the vm loop)
   pub timeslice_result: scheduler::SliceResult,
+  /// Error field is set on exception when the execution loop is interrupted
+  /// with `DispatchResult::Exception`
   pub error: ProcessError,
   /// How many catch frames are there on stack
   pub num_catches: isize,
@@ -153,16 +153,9 @@ impl Process {
     }
   }
 
-  pub fn exception(&mut self, exc: ExceptionType, rsn: LTerm) -> LTerm {
-    self.set_error(ProcessError::Exception(exc, rsn))
-  }
-
-  /// Sets error state from an opcode or a BIF. VM will hopefully check this
-  /// immediately and finish the process or catch the error.
-  fn set_error(&mut self, e: ProcessError) -> LTerm {
-    panic!("{}{} set_error {}", module(), self.pid, e);
-    //    self.error = e;
-    //    LTerm::non_value()
+  pub fn set_exception(&mut self, exc_type: ExceptionType, reason: LTerm) {
+    // panic!("{}{} set_error {}", module(), self.pid, e);
+    self.error = ProcessError::Exception(exc_type, reason);
   }
 
   //  pub fn clear_error(&mut self) {

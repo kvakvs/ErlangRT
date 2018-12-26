@@ -77,7 +77,7 @@ impl VM {
   /// Run the VM loop (one time slice), call this repeatedly to run forever.
   /// Time slice ends when a current process yields or when reduction count
   /// reaches zero.
-  /// Returns: false if VM has quit, true if can continue.
+  #[inline]
   pub fn tick(&mut self) -> RtResult<bool> {
     self.dispatch()
   }

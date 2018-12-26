@@ -12,6 +12,9 @@ impl VM {
   /// Fetch an opcode and execute it.
   /// Reduce the reduction (instruction) count and once it reaches zero, return.
   /// Call dispatch again to schedule another process.
+  ///
+  /// Returns: `false` if VM found no process to run, `true` if the process has
+  /// used its time slice and wants to run another.
   pub fn dispatch(&mut self) -> RtResult<bool> {
     let scheduler = self.get_scheduler_p();
     let curr_p = match unsafe { (*scheduler).next_process() } {
@@ -20,7 +23,7 @@ impl VM {
     };
     println!(
       "+ {} {}",
-      "Scheduler: switching to".bright_yellow(),
+      "Scheduler: switching to".yellow().on_blue(),
       curr_p.pid
     );
 
@@ -51,7 +54,7 @@ impl VM {
       let disp_result = dispatch_op_inline(self, op, &mut ctx, curr_p);
       if let Err(Error::Exception(exc_type, exc_reason)) = disp_result {
         println!("vm: Exception type={:?} reason={}", exc_type, exc_reason);
-        curr_p.exception(exc_type, exc_reason);
+        curr_p.set_exception(exc_type, exc_reason);
         curr_p.timeslice_result = SliceResult::Exception;
         return Ok(true);
       }

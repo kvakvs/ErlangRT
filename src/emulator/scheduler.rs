@@ -47,7 +47,8 @@ pub enum SliceResult {
   Wait,
   /// Process normally finished during the last timeslice
   Finished,
-  /// Error, exit or throw occured during the last timeslice
+  /// Error, exit or throw occured during the last timeslice, error is stored
+  /// in the process, field `error`
   Exception,
 }
 
@@ -121,78 +122,84 @@ impl Scheduler {
   }
 
   /// Get another process from the run queue for this scheduler.
+  /// Returns: `Some(pid)` or `None`
   pub fn next_process(&mut self) -> Option<LTerm> {
-    let current_pid = self.current;
-    if let Some(curr_pid) = current_pid {
-      let timeslice_result = {
-        let curr = self.lookup_pid(curr_pid).unwrap();
-        assert_eq!(curr.current_queue, Queue::None);
-        curr.timeslice_result
-      };
-
-      match timeslice_result {
-        SliceResult::Yield | SliceResult::None => {
-          self.queue(curr_pid);
-          self.current = None
-        }
-
-        SliceResult::Finished => {
-          let err = ProcessError::Exception(ExceptionType::Exit, gen_atoms::NORMAL);
-          self.exit_process(curr_pid, err)
-        }
-
-        SliceResult::Exception => {
-          let p_error = {
-            let curr = self.lookup_pid(curr_pid).unwrap();
-            assert!(curr.is_failed());
-            curr.error
-          };
-          self.exit_process(curr_pid, p_error);
-          self.current = None
-        }
-
-        SliceResult::Wait => {}
-      }
-    } // if self.current
+    self.next_process_finalize_previous();
+    self.next_process_duties();
 
     // Now try and find another process to run
     while self.current.is_none() {
-      // TODO: monotonic clock
-      // TODO: wait lists
-      // TODO: network checks
-
       // See if any are waiting in realtime (high) priority queue
-      let mut next_pid: Option<LTerm> = None;
-      if !self.queue_high.is_empty() {
-        next_pid = self.queue_high.pop_front()
-      } else if self.advantage_count < NORMAL_ADVANTAGE {
-        if !self.queue_normal.is_empty() {
-          next_pid = self.queue_normal.pop_front()
-        } else if !self.queue_low.is_empty() {
-          next_pid = self.queue_low.pop_front()
-        }
-        self.advantage_count += 1;
-      } else {
-        if !self.queue_low.is_empty() {
-          next_pid = self.queue_low.pop_front()
-        } else if !self.queue_normal.is_empty() {
-          next_pid = self.queue_normal.pop_front()
-        }
-        self.advantage_count = 0;
-      };
-
-      if next_pid.is_some() {
-        let next_pid1 = next_pid.unwrap();
-        //        {
-        //          let next_p = self.lookup_pid(&next_pid1).unwrap();
-        //          println!("{} next() queue {}", module(), next_p.pid);
-        //        }
-
-        self.current = Some(next_pid1)
+      if let Some(next_pid) = self.next_process_pick_from_the_queues() {
+        self.current = Some(next_pid)
       }
     }
 
     self.current
+  }
+
+  /// Look through the queues and find some queue with highest priority where
+  /// a process is waiting to be selected.
+  /// Advantage counter allows running lower queues even if a higher is running.
+  fn next_process_pick_from_the_queues(&mut self) -> Option<LTerm> {
+    if !self.queue_high.is_empty() {
+      return self.queue_high.pop_front()
+    } else if self.advantage_count < NORMAL_ADVANTAGE {
+      if !self.queue_normal.is_empty() {
+        return self.queue_normal.pop_front()
+      } else if !self.queue_low.is_empty() {
+        return self.queue_low.pop_front()
+      }
+      self.advantage_count += 1;
+    } else {
+      if !self.queue_low.is_empty() {
+        return self.queue_low.pop_front()
+      } else if !self.queue_normal.is_empty() {
+        return self.queue_normal.pop_front()
+      }
+      self.advantage_count = 0;
+    };
+    return None;
+  }
+
+  /// When time has come to select next running process, first we take a look
+  /// at the previous process, what happened to it.
+  #[inline]
+  fn next_process_finalize_previous(&mut self) {
+    if let Some(curr_pid) = self.current {
+      // Extract the last running process from the process registry
+      let curr = self.lookup_pid(curr_pid).unwrap();
+      debug_assert_eq!(curr.current_queue, Queue::None);
+
+      match curr.timeslice_result {
+        SliceResult::Yield | SliceResult::None => {
+          self.queue(curr_pid);
+          self.current = None
+        },
+
+        SliceResult::Finished => {
+          let err = ProcessError::Exception(ExceptionType::Exit, gen_atoms::NORMAL);
+          self.terminate_process(curr_pid, err)
+        },
+
+        SliceResult::Exception => {
+          let curr = self.lookup_pid(curr_pid).unwrap();
+          assert!(curr.is_failed());
+          let p_error = curr.error;
+          self.terminate_process(curr_pid, p_error);
+          self.current = None
+        },
+
+        SliceResult::Wait => {},
+      }
+    } // if self.current
+  }
+
+  #[inline]
+  fn next_process_duties(&self) {
+    // TODO: monotonic clock
+    // TODO: wait lists
+    // TODO: network checks
   }
 
   /// Get a read-only process, if it exists. Return `None` if we are sorry.
@@ -207,7 +214,8 @@ impl Scheduler {
     self.processes.get_mut(&pid)
   }
 
-  pub fn exit_process(&mut self, pid: LTerm, e: ProcessError) {
+  /// Assuming that the error was not caught, begin process termination routine.
+  pub fn terminate_process(&mut self, pid: LTerm, e: ProcessError) {
     // assert that process is not in any queue
     {
       let p = self.lookup_pid_mut(pid).unwrap();
