@@ -54,13 +54,14 @@ pub fn classify_term(t: LTerm) -> TermClass {
         unsafe { classify_boxed(t) }
       }
     }
+    TERMTAG_CONS => TermClass::List,
     TERMTAG_SMALL => TermClass::Number,
     TERMTAG_HEADER => TermClass::Special_, // won't look into the header
     TERMTAG_ATOM => TermClass::Atom,
     TERMTAG_LOCALPID => TermClass::Pid,
     TERMTAG_LOCALPORT => TermClass::Port,
     TERMTAG_SPECIAL => classify_special(t),
-    _ => panic!("{}Invalid primary tag", module()),
+    _ => panic!("{}Invalid primary tag {:?}", module(), t.get_term_tag()),
   }
 }
 

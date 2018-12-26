@@ -234,6 +234,7 @@ impl Heap {
     Ok(result)
   }
 
+  #[allow(dead_code)]
   #[inline]
   pub fn get_y_unchecked(&self, index: Word) -> LTerm {
     let pos = index + self.stack_top + 1;
@@ -281,6 +282,7 @@ impl Heap {
     }
   }
 
+  #[allow(dead_code)]
   pub fn print_stack(&self) {
     let mut i = 0;
     let max_i = self.stack_depth() - 1;

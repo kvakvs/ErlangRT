@@ -3,7 +3,7 @@ use crate::{
   defs::{ExceptionType, Word},
   emulator::{
     gen_atoms,
-    process::{Process, ProcessError},
+    process::{Process},
   },
   term::lterm::*,
 };
@@ -254,7 +254,7 @@ impl Scheduler {
       }
 
       SliceResult::Finished => {
-        let err = ProcessError::Exception(ExceptionType::Exit, gen_atoms::NORMAL);
+        let err = (ExceptionType::Exit, gen_atoms::NORMAL);
         self.terminate_process(curr_pid, err)
       }
 
@@ -280,7 +280,7 @@ impl Scheduler {
     let proc = unsafe { &mut (*proc_p) };
 
     assert!(proc.is_failed());
-    let p_error = proc.error;
+    let p_error = proc.error.unwrap();
 
     if proc.num_catches <= 0 {
       // time to terminate, no catches
@@ -289,12 +289,13 @@ impl Scheduler {
       return ScheduleHint::TakeAnotherProcess;
     }
 
-    println!("Catching {}", p_error);
+    println!("Catching {}:{}", p_error.0, p_error.1);
     match unsafe { proc.heap.next_catch() } {
       Some(catch_loc) => {
         println!("Catch found: {:p}", catch_loc);
         proc.context.jump_ptr(catch_loc);
-        // TODO: Return to the front of execution queue
+        proc.context.clear_cp();
+        // TODO: Clear save mark on recv in process.mailbox
         return ScheduleHint::ContinueSameProcess;
       }
       None => {
@@ -350,7 +351,7 @@ impl Scheduler {
   }
 
   /// Assuming that the error was not caught, begin process termination routine.
-  pub fn terminate_process(&mut self, pid: LTerm, e: ProcessError) {
+  pub fn terminate_process(&mut self, pid: LTerm, e: (ExceptionType, LTerm)) {
     // assert that process is not in any queue
     {
       let p = self.lookup_pid_mut(pid).unwrap();
@@ -367,10 +368,10 @@ impl Scheduler {
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
     println!(
-      "{}Terminating pid {} error={}",
+      "{}Terminating pid {} error={}:{}",
       module(),
       pid,
-      e //, p.runtime_ctx.regs[0]
+      e.0, e.1 //, p.runtime_ctx.regs[0]
     );
 
     self.timed_wait.remove(&pid);

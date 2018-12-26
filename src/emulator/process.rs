@@ -1,8 +1,6 @@
 //! Implements Erlang process, an independent computing unit of Erlang with
 //! heap, stack, registers, and message queue.
 
-use core::fmt;
-
 use crate::{
   defs::ExceptionType,
   emulator::{
@@ -17,26 +15,26 @@ use crate::{
   term::lterm::*,
 };
 
-#[allow(dead_code)]
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-pub enum ProcessError {
-  None,
-  Exception(ExceptionType, LTerm),
-}
+//#[allow(dead_code)]
+//#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+// pub enum ProcessError {
+//  None,
+//  Exception(ExceptionType, LTerm),
+//}
 
-impl fmt::Display for ProcessError {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    match *self {
-      ProcessError::None => write!(f, "NoError"),
-      ProcessError::Exception(exc_type, exc_reason) => match exc_type {
-        ExceptionType::Exit => write!(f, "exit({})", exc_reason),
-        ExceptionType::Throw => write!(f, "throw({})", exc_reason),
-        ExceptionType::Error => write!(f, "error({})", exc_reason),
-        ExceptionType::Panic => write!(f, "panic({})", exc_reason),
-      },
-    }
-  }
-}
+// impl fmt::Display for ProcessError {
+//  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//    match *self {
+//      None => write!(f, "NoError"),
+//      Some((exc_type, exc_reason)) => match exc_type {
+//        ExceptionType::Exit => write!(f, "exit({})", exc_reason),
+//        ExceptionType::Throw => write!(f, "throw({})", exc_reason),
+//        ExceptionType::Error => write!(f, "error({})", exc_reason),
+//        ExceptionType::Panic => write!(f, "panic({})", exc_reason),
+//      },
+//    }
+//  }
+//}
 
 pub struct Process {
   pub pid: LTerm,
@@ -63,7 +61,7 @@ pub struct Process {
   pub timeslice_result: scheduler::SliceResult,
   /// Error field is set on exception when the execution loop is interrupted
   /// with `DispatchResult::Exception`
-  pub error: ProcessError,
+  pub error: Option<(ExceptionType, LTerm)>,
   /// How many catch frames are there on stack
   pub num_catches: isize,
 }
@@ -100,7 +98,7 @@ impl Process {
           // Execution
           context: runtime_ctx::Context::new(ip),
 
-          error: ProcessError::None,
+          error: None,
           num_catches: 0,
         };
         Ok(p)
@@ -123,7 +121,12 @@ impl Process {
   /// Returns true if there was an error or exception during the last timeslice.
   #[inline]
   pub fn is_failed(&self) -> bool {
-    self.error != ProcessError::None
+    self.error.is_some()
+  }
+
+  #[inline]
+  pub fn clear_exception(&mut self) {
+    self.error = None;
   }
 
   #[allow(dead_code)]
@@ -144,7 +147,7 @@ impl Process {
 
   pub fn set_exception(&mut self, exc_type: ExceptionType, reason: LTerm) {
     // panic!("{}{} set_error {}", module(), self.pid, e);
-    self.error = ProcessError::Exception(exc_type, reason);
+    self.error = Some((exc_type, reason));
   }
 
   //  pub fn clear_error(&mut self) {
@@ -158,7 +161,9 @@ impl Process {
 
     // Notify our current scheduler that a new message has come to possibly wake
     // up from infinite or timed wait.
-    unsafe { (*self.owned_by_scheduler).notify_new_incoming_message(self); }
+    unsafe {
+      (*self.owned_by_scheduler).notify_new_incoming_message(self);
+    }
   }
 
   /// Ugly hack to mut-borrow the context without making borrow checker sad.

@@ -4,7 +4,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{
-    code::CodePtr,
     process::Process,
     runtime_ctx::{call_bif, Context},
     vm::VM,
@@ -262,7 +261,7 @@ impl OpcodeReturn {
     }
 
     ctx.ip = ctx.cp;
-    ctx.cp = CodePtr::null();
+    ctx.clear_cp();
 
     Ok(DispatchResult::Normal)
   }

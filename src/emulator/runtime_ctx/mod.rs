@@ -13,8 +13,9 @@ use crate::{
     TERMTAG_SPECIAL,
   },
 };
+use colored::Colorize;
 use core::fmt;
-use std::slice;
+use core::slice;
 
 pub mod call_bif;
 pub mod call_closure;
@@ -71,7 +72,7 @@ impl Context {
   #[inline]
   pub fn set_x(&mut self, index: usize, val: LTerm) {
     if cfg!(feature = "trace_register_changes") {
-      println!("set x{} = {}", index, val);
+      println!("{}{} = {}", "set x".blue(), index, val);
     }
     debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
     self.regs[index] = val;
@@ -230,6 +231,11 @@ impl Context {
   pub fn set_cp(&mut self, cp: LTerm) {
     debug_assert!(cp.is_cp());
     self.cp = CodePtr::from_cp(cp);
+  }
+
+  #[inline]
+  pub fn clear_cp(&mut self) {
+    self.cp = CodePtr::null();
   }
 
   #[inline]
