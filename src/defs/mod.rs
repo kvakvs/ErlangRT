@@ -25,9 +25,19 @@ pub const WORD_BYTES: Word = WORD_BITS / 8;
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 8;
 
-/// How many function-calls/heavier opcodes we process before the process will
-/// be scheduled out and give the way to other processes in the queue.
-pub const DEFAULT_REDUCTIONS: isize = 200;
+pub struct Reductions {}
+impl Reductions {
+  /// How many function-calls/heavier opcodes we process before the process will
+  /// be scheduled out and give the way to other processes in the queue.
+  pub const DEFAULT: isize = 200;
+
+  //
+  // Costs are taken for different operations
+  //
+
+  /// Fetch is base "tax" for fetching an opcode and dispatching to its handler
+  pub const FETCH_OPCODE_COST: isize = 1;
+}
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]

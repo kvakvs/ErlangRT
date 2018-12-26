@@ -64,6 +64,8 @@ pub struct Scheduler {
   queue_low: VecDeque<LTerm>,
   queue_normal: VecDeque<LTerm>,
   queue_high: VecDeque<LTerm>,
+  timed_wait: HashMap<LTerm, ()>,
+  infinite_wait: HashMap<LTerm, ()>,
 
   /// A counter used to skip some schedulings for low processes
   advantage_count: Word,
@@ -80,37 +82,43 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-  pub fn new() -> Scheduler {
-    Scheduler {
+  pub fn new() -> Self {
+    Self {
       queue_low: VecDeque::new(),
       queue_normal: VecDeque::new(),
       queue_high: VecDeque::new(),
+      timed_wait: HashMap::new(),
+      infinite_wait: HashMap::new(),
 
       advantage_count: 0,
       current: None,
 
-      //      wait_inf: HashSet::new(),
-      //      wait_timed: HashSet::new(),
       processes: HashMap::new(),
     }
   }
 
   /// Register a process `proc_` in the process table and also queue it for
   /// execution. This is invoked by vm when a new process is spawned.
-  pub fn add(&mut self, pid: LTerm, proc_: Process) {
-    self.processes.insert(pid, proc_);
-    self.queue(pid);
+  pub fn register_new_process(&mut self, pid: LTerm, mut proc: Process) {
+    proc.owned_by_scheduler = self as *mut Scheduler;
+    self.processes.insert(pid, proc);
+    self.enqueue(pid);
   }
 
   /// Queue a process by its pid. Will `panic!` if the process doesn't exist
   /// or is already queued.
-  pub fn queue(&mut self, pid: LTerm) {
+  pub fn enqueue(&mut self, pid: LTerm) {
     assert!(pid.is_local_pid());
 
     let prio = {
       // Lookup the pid
       let p = self.lookup_pid(pid).unwrap();
-      assert_eq!(p.current_queue, Queue::None);
+      assert_eq!(
+        p.current_queue,
+        Queue::None,
+        "Process must not be in any queue when queuing, now in {:?}",
+        p.current_queue
+      );
       p.prio
     };
 
@@ -121,10 +129,24 @@ impl Scheduler {
     }
   }
 
+  /// Queue a process by its pid into either timed_wait or infinite_wait queue.
+  #[inline]
+  pub fn enqueue_wait(&mut self, infinite: bool, pid: LTerm) {
+    assert!(pid.is_local_pid());
+
+    if infinite {
+      self.infinite_wait.insert(pid, ());
+    } else {
+      self.timed_wait.insert(pid, ());
+    }
+  }
+
   /// Get another process from the run queue for this scheduler.
   /// Returns: `Option(pid)`
   pub fn next_process(&mut self) -> Option<LTerm> {
-    self.next_process_finalize_previous();
+    if let Some(prev_pid) = self.current {
+      self.next_process_finalize_previous(prev_pid);
+    }
     self.next_process_duties();
 
     // Now try and find another process to run
@@ -144,19 +166,19 @@ impl Scheduler {
   /// Advantage counter allows running lower queues even if a higher is running.
   fn next_process_pick_from_the_queues(&mut self) -> Option<LTerm> {
     if !self.queue_high.is_empty() {
-      return self.queue_high.pop_front()
+      return self.queue_high.pop_front();
     } else if self.advantage_count < NORMAL_ADVANTAGE {
       if !self.queue_normal.is_empty() {
-        return self.queue_normal.pop_front()
+        return self.queue_normal.pop_front();
       } else if !self.queue_low.is_empty() {
-        return self.queue_low.pop_front()
+        return self.queue_low.pop_front();
       }
       self.advantage_count += 1;
     } else {
       if !self.queue_low.is_empty() {
-        return self.queue_low.pop_front()
+        return self.queue_low.pop_front();
       } else if !self.queue_normal.is_empty() {
-        return self.queue_normal.pop_front()
+        return self.queue_normal.pop_front();
       }
       self.advantage_count = 0;
     };
@@ -166,34 +188,39 @@ impl Scheduler {
   /// When time has come to select next running process, first we take a look
   /// at the previous process, what happened to it.
   #[inline]
-  fn next_process_finalize_previous(&mut self) {
-    if let Some(curr_pid) = self.current {
-      // Extract the last running process from the process registry
-      let curr = self.lookup_pid(curr_pid).unwrap();
-      debug_assert_eq!(curr.current_queue, Queue::None);
+  fn next_process_finalize_previous(&mut self, curr_pid: LTerm) {
+    // Extract the last running process from the process registry
+    let curr = self.lookup_pid(curr_pid).unwrap();
+    debug_assert_eq!(
+      curr.current_queue,
+      Queue::None,
+      "Finalizing previous process which is not dequeued, now in {:?}",
+      curr.current_queue
+    );
 
-      match curr.timeslice_result {
-        SliceResult::Yield | SliceResult::None => {
-          self.queue(curr_pid);
-          self.current = None
-        },
-
-        SliceResult::Finished => {
-          let err = ProcessError::Exception(ExceptionType::Exit, gen_atoms::NORMAL);
-          self.terminate_process(curr_pid, err)
-        },
-
-        SliceResult::Exception => {
-          let curr = self.lookup_pid(curr_pid).unwrap();
-          assert!(curr.is_failed());
-          let p_error = curr.error;
-          self.terminate_process(curr_pid, p_error);
-          self.current = None
-        },
-
-        SliceResult::Wait => {},
+    match curr.timeslice_result {
+      SliceResult::Yield | SliceResult::None => {
+        self.enqueue(curr_pid);
+        self.current = None
       }
-    } // if self.current
+
+      SliceResult::Finished => {
+        let err = ProcessError::Exception(ExceptionType::Exit, gen_atoms::NORMAL);
+        self.terminate_process(curr_pid, err)
+      }
+
+      SliceResult::Exception => {
+        let curr = self.lookup_pid(curr_pid).unwrap();
+        assert!(curr.is_failed());
+        let p_error = curr.error;
+        self.terminate_process(curr_pid, p_error);
+        self.current = None
+      }
+
+      SliceResult::Wait => {
+        self.enqueue_wait(true, curr_pid);
+      }
+    }
   }
 
   #[inline]
@@ -245,5 +272,22 @@ impl Scheduler {
     assert!(!self.queue_low.contains(&pid));
     assert!(!self.queue_high.contains(&pid));
     self.processes.remove(&pid);
+  }
+
+  /// Called by `Process` when a new message is received. Checks whether the
+  /// process was placed in one of waiting queues and wakes it up.
+  #[inline]
+  pub fn notify_new_incoming_message(&mut self, proc: &mut Process) {
+    match proc.current_queue {
+      Queue::InfiniteWait => {
+        self.infinite_wait.remove(&proc.pid);
+        self.enqueue(proc.pid);
+      },
+      Queue::TimedWait => {
+        self.timed_wait.remove(&proc.pid);
+        self.enqueue(proc.pid);
+      },
+      _other => {},
+    }
   }
 }

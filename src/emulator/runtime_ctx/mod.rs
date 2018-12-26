@@ -2,8 +2,11 @@
 //! a running process, such as registers, code pointer, etc.
 
 use crate::{
-  defs::{Word, DEFAULT_REDUCTIONS, MAX_FPREGS, MAX_XREGS},
-  emulator::{code::CodePtr, heap},
+  defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
+  emulator::{
+    code::{opcode, CodePtr},
+    heap,
+  },
   fail::RtResult,
   term::lterm::{
     LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,
@@ -74,13 +77,23 @@ impl Context {
     self.regs[index] = val;
   }
 
+  #[inline]
   pub fn swap_in(&mut self) {
-    self.reductions = DEFAULT_REDUCTIONS;
+    // This amount is RESET every time process is about to be scheduled in, i.e.
+    // there can be no "debt" of reductions, but the idea is nice.
+    self.reductions = Reductions::DEFAULT;
+  }
+
+  #[inline]
+  pub fn fetch_opcode(&mut self) -> opcode::RawOpcode {
+    self.reductions -= Reductions::FETCH_OPCODE_COST;
+    opcode::from_memory_word(self.fetch())
   }
 
   /// Read a word from `self.ip` and advance `ip` by 1 word.
   /// NOTE: The compiler seems to be smart enough to optimize multiple fetches
   /// as multiple reads and a single increment.
+  #[inline]
   pub fn fetch(&mut self) -> Word {
     let ip0: *const Word = self.ip.get();
     unsafe {

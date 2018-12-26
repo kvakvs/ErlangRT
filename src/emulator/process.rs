@@ -10,7 +10,8 @@ use crate::{
     heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
     mailbox::ProcessMailbox,
     mfa::{MFASomething, MFArity},
-    runtime_ctx, scheduler,
+    runtime_ctx,
+    scheduler::{self, Scheduler},
   },
   fail::RtResult,
   term::lterm::*,
@@ -39,33 +40,23 @@ impl fmt::Display for ProcessError {
 pub struct Process {
   pub pid: LTerm,
 
-  //
   // Scheduling and fail state
-  //
-
   /// Scheduling priority (selects the runqueue when this process is scheduled)
   pub prio: scheduler::Prio,
+
   /// Current scheduler queue where this process is registered
   pub current_queue: scheduler::Queue,
+  pub owned_by_scheduler: *mut Scheduler,
 
-  //
   // Execution Context, etc.
-  //
-
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
 
-  //
   // Memory
-  //
-
   pub heap: Heap,
   pub mailbox: ProcessMailbox,
 
-  //
   // Error handling
-  //
-
   /// Record result of last scheduled timeslice for this process
   /// (updated by the vm loop)
   pub timeslice_result: scheduler::SliceResult,
@@ -99,6 +90,7 @@ impl Process {
           prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
+          owned_by_scheduler: core::ptr::null_mut(),
 
           // Memory
           heap: Heap::new(DEFAULT_PROC_HEAP),
@@ -162,6 +154,10 @@ impl Process {
   pub fn deliver_message(&mut self, message: LTerm) {
     let m1 = copy_term::copy_to(message, &mut self.heap);
     self.mailbox.put(m1);
+
+    // Notify our current scheduler that a new message has come to possibly wake
+    // up from infinite or timed wait.
+    unsafe { (*self.owned_by_scheduler).notify_new_incoming_message(self); }
   }
 
   /// Ugly hack to mut-borrow the context without making borrow checker sad.

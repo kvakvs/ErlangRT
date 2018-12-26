@@ -1,6 +1,6 @@
 use crate::{
   beam::{disp_result::DispatchResult, gen_op, vm_dispatch::dispatch_op_inline},
-  emulator::{code::opcode, disasm, scheduler::SliceResult, vm::VM},
+  emulator::{disasm, scheduler::SliceResult, vm::VM},
   fail::{Error, RtResult},
 };
 use colored::Colorize;
@@ -36,7 +36,6 @@ impl VM {
 
     let cs = self.get_code_server_p();
 
-    //
     // Fetch some opcodes, Execute some opcodes
     //
     loop {
@@ -48,8 +47,8 @@ impl VM {
       }
 
       // Take next opcode
-      let op = opcode::from_memory_word(ctx.fetch());
-      assert!(
+      let op = ctx.fetch_opcode();
+      debug_assert!(
         op <= gen_op::OPCODE_MAX,
         "Opcode too big (wrong memory address?) got 0x{:x}",
         op.get()
@@ -62,10 +61,8 @@ impl VM {
           curr_p.set_exception(exc_type, exc_reason);
           curr_p.timeslice_result = SliceResult::Exception;
           return Ok(true);
-        },
-        other => {
-          other?
         }
+        other => other?,
       };
 
       match disp_result {
@@ -79,6 +76,12 @@ impl VM {
         DispatchResult::Finished => {
           curr_p.timeslice_result = SliceResult::Finished;
         }
+      }
+
+      if ctx.reductions <= 0 {
+        // Out of reductions, just give up and let another one run
+        curr_p.timeslice_result = SliceResult::None;
+        return Ok(true);
       }
     } // end loop
   }
