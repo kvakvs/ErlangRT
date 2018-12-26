@@ -34,8 +34,7 @@ pub enum Error {
   /// No space left in heap. GC requested.
   HeapIsFull,
   /// Attempt to index outside of the current stack.
-  StackIndexRange,
-  // StackIndexRange,
+  StackIndexRange(usize),
 
   //--- VM Checks --
   Exception(ExceptionType, LTerm), // type, value

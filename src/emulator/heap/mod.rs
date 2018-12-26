@@ -198,9 +198,9 @@ impl Heap {
   pub fn set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
     debug_assert!(val.is_value(), "Should never set y[] to a NON_VALUE");
     if !self.stack_have_y(index) {
-      return Err(Error::StackIndexRange);
+      return Err(Error::StackIndexRange(index));
     }
-    if cfg!(feature = "trace_opcode_execution") {
+    if cfg!(feature = "trace_register_changes") {
       println!("set y{} = {}", index, val);
     }
     self.data[index + self.stop + 1] = val.raw();
@@ -209,7 +209,7 @@ impl Heap {
 
   pub fn stack_get_y(&self, index: Word) -> RtResult<LTerm> {
     if !self.stack_have_y(index) {
-      return Err(Error::StackIndexRange);
+      return Err(Error::StackIndexRange(index));
     }
     let pos = index + self.stop + 1;
     let result = LTerm::from_raw(self.data[pos]);

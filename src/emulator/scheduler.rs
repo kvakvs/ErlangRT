@@ -105,20 +105,29 @@ impl Scheduler {
     self.enqueue(pid);
   }
 
-  /// Queue a process by its pid. Will `panic!` if the process doesn't exist
-  /// or is already queued.
+  /// Queue a process by its pid.
   pub fn enqueue(&mut self, pid: LTerm) {
+    self.enqueue_opt(pid, false);
+  }
+
+  /// Queue a process by its pid.
+  /// Will `panic!` if the process doesn't exist or is already queued.
+  /// Arg: `skip_queue_check` allows skipping the current queue assertion for
+  ///   when you can guarantee that the process is not queued anywhere.
+  pub fn enqueue_opt(&mut self, pid: LTerm, skip_queue_check: bool) {
     assert!(pid.is_local_pid());
 
     let prio = {
       // Lookup the pid
       let p = self.lookup_pid(pid).unwrap();
-      assert_eq!(
-        p.current_queue,
-        Queue::None,
-        "Process must not be in any queue when queuing, now in {:?}",
-        p.current_queue
-      );
+      if !skip_queue_check {
+        assert_eq!(
+          p.current_queue,
+          Queue::None,
+          "Process must not be in any queue when queuing, now in {:?}",
+          p.current_queue
+        );
+      }
       p.prio
     };
 
@@ -260,14 +269,14 @@ impl Scheduler {
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
     println!(
-      "{}exit_process {} e={}, result x0=?",
+      "{}Terminating pid {} error={}",
       module(),
       pid,
       e //, p.runtime_ctx.regs[0]
     );
 
-    //  m_inf_wait.erase(p);
-    //  m_timed_wait.erase(p);
+    self.timed_wait.remove(&pid);
+    self.infinite_wait.remove(&pid);
     assert!(!self.queue_normal.contains(&pid));
     assert!(!self.queue_low.contains(&pid));
     assert!(!self.queue_high.contains(&pid));
@@ -275,17 +284,18 @@ impl Scheduler {
   }
 
   /// Called by `Process` when a new message is received. Checks whether the
-  /// process was placed in one of waiting queues and wakes it up.
+  /// process was placed in one of waiting sets and wakes it up.
   #[inline]
   pub fn notify_new_incoming_message(&mut self, proc: &mut Process) {
+    // Remove from whatever wait set
     match proc.current_queue {
       Queue::InfiniteWait => {
         self.infinite_wait.remove(&proc.pid);
-        self.enqueue(proc.pid);
+        self.enqueue_opt(proc.pid, true);
       },
       Queue::TimedWait => {
         self.timed_wait.remove(&proc.pid);
-        self.enqueue(proc.pid);
+        self.enqueue_opt(proc.pid, true);
       },
       _other => {},
     }

@@ -4,11 +4,13 @@ version = "0.1.0"
 authors = ["Dmytro Lytovchenko"]
 edition = "2018"
 
-# Add "trace_opcode_execution" to print every opcode and register change as we go
+# Add "trace_opcode_execution" to print every opcode
+# Add "trace_register_changes" to print every register change as we go
 [features]
-default = ["r20", "trace_opcode_execution"]
+default = ["r20", "trace_opcode_execution", "trace_register_changes"]
 r20 = []
 trace_opcode_execution = []
+trace_register_changes = []
 
 
 [dependencies]

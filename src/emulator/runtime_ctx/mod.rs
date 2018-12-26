@@ -70,7 +70,7 @@ impl Context {
 
   #[inline]
   pub fn set_x(&mut self, index: usize, val: LTerm) {
-    if cfg!(feature = "trace_opcode_execution") {
+    if cfg!(feature = "trace_register_changes") {
       println!("set x{} = {}", index, val);
     }
     debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
