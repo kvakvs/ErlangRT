@@ -24,7 +24,7 @@ pub fn gcbif_erlang_length_1(
 
 /// Calculate a new list made of two lists joined together.
 /// Arg1 must be list or NIL.
-pub fn bif_erlang_ebif_plusplus_2_2(
+pub fn bif_erlang_plusplus_2(
   _vm: &mut VM,
   curr_p: &mut Process,
   args: &[LTerm],

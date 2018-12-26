@@ -32,7 +32,7 @@ impl OpcodeTry {
 
     curr_p.num_catches += 1;
     let hp = &mut curr_p.heap;
-    hp.set_y(reg.get_special_value(), catch_label);
+    hp.set_y(reg.get_special_value(), catch_label)?;
 
     Ok(DispatchResult::Normal)
   }

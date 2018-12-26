@@ -11,7 +11,7 @@ fn module() -> &'static str {
 
 /// Subtraction for 2 mixed terms. Algorithm comes from Erlang/OTP file
 /// `erl_arith.c`, function `erts_mixed_minus`
-pub fn ubif_erlang_sminus_2_2(
+pub fn ubif_erlang_minus_2(
   _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],
@@ -32,7 +32,7 @@ pub fn ubif_erlang_sminus_2_2(
 }
 
 /// Addition for 2 mixed terms.
-pub fn ubif_erlang_splus_2_2(
+pub fn ubif_erlang_plus_2(
   _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],
@@ -80,7 +80,7 @@ fn add_two_small(cur_proc: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> 
 }
 
 /// Multiplication for 2 mixed terms.
-pub fn ubif_erlang_stimes_2_2(
+pub fn ubif_erlang_multiply_2(
   _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],

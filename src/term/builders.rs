@@ -13,7 +13,7 @@ pub fn make_badfun(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
 /// Create a `{badfun, ...}` tuple where `badfun` is followed by multiple args.
 pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
   let mut tb = TermBuilder::new(hp);
-  let mut val = tb.create_tuple_builder(1 + args.len())?;
+  let val = tb.create_tuple_builder(1 + args.len())?;
   unsafe {
     val.set_element_base0(0, gen_atoms::BADFUN);
     let mut i = 1usize;
@@ -28,7 +28,7 @@ pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
 /// Create a `{badmatch, Arg}`.
 pub fn make_badmatch(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   let mut tb = TermBuilder::new(hp);
-  let mut val = tb.create_tuple_builder(2)?;
+  let val = tb.create_tuple_builder(2)?;
   unsafe {
     val.set_element_base0(0, gen_atoms::BADMATCH);
     val.set_element_base0(1, arg);

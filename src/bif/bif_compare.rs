@@ -9,8 +9,8 @@ fn module() -> &'static str {
   "bif_compare: "
 }
 
-/// Compare 2 terms with '==' (s eq eq)
-pub fn ubif_erlang_seqeq_2_2(
+/// Compare 2 terms with '=='
+pub fn ubif_erlang_equalequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -19,9 +19,9 @@ pub fn ubif_erlang_seqeq_2_2(
   shared_eq(args, Ordering::Equal, false, false)
 }
 
-/// Compare 2 terms with '/=' (s not eq eq)
+/// Compare 2 terms with '/='
 /// Expressed as NOT EQUAL
-pub fn ubif_erlang_sneqeq_2_2(
+pub fn ubif_erlang_notequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -30,8 +30,8 @@ pub fn ubif_erlang_sneqeq_2_2(
   shared_eq(args, Ordering::Equal, true, false)
 }
 
-/// Compare 2 terms with '=:=' (s eq)
-pub fn ubif_erlang_seq_2_2(
+/// Compare 2 terms with '=:='
+pub fn ubif_erlang_equal_exact_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -43,7 +43,7 @@ pub fn ubif_erlang_seq_2_2(
 /// Compare 2 terms with '=/=' (s not eq)
 /// Expressed as NOT EQUAL (EXACT)
 /// Sssssnek...
-pub fn ubif_erlang_sneq_2_2(
+pub fn ubif_erlang_notequal_exact_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -53,7 +53,7 @@ pub fn ubif_erlang_sneq_2_2(
 }
 
 /// Compare 2 terms with '<' (s less-than)
-pub fn ubif_erlang_slt_2_2(
+pub fn ubif_erlang_lessthan_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -63,7 +63,7 @@ pub fn ubif_erlang_slt_2_2(
 }
 
 /// Compare 2 terms with '=<' (s greater-than)
-pub fn ubif_erlang_sgt_2_2(
+pub fn ubif_erlang_greaterthan_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -74,7 +74,7 @@ pub fn ubif_erlang_sgt_2_2(
 
 /// Compare 2 terms with '=<' (s less-equal)
 /// Expressed as NOT GREATER
-pub fn ubif_erlang_sle_2_2(
+pub fn ubif_erlang_lessequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -85,7 +85,7 @@ pub fn ubif_erlang_sle_2_2(
 
 /// Compare 2 terms with '>=' (s greater-equal)
 /// Expressed as NOT LESS
-pub fn ubif_erlang_sge_2_2(
+pub fn ubif_erlang_greaterequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],

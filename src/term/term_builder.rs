@@ -16,11 +16,19 @@ pub struct TupleBuilder {
 }
 
 impl TupleBuilder {
-  pub fn new(p: *mut boxed::Tuple) -> TupleBuilder {
-    TupleBuilder { p }
+  #[inline]
+  pub fn with_arity(hp: &mut Heap, arity: usize) -> RtResult<Self> {
+    let p = boxed::Tuple::create_into(hp, arity)?;
+    Ok(Self::new(p))
   }
 
-  pub unsafe fn set_element_base0(&mut self, i: usize, val: LTerm) {
+  #[inline]
+  pub fn new(p: *mut boxed::Tuple) -> Self {
+    Self { p }
+  }
+
+  #[inline]
+  pub unsafe fn set_element_base0(&self, i: usize, val: LTerm) {
     boxed::Tuple::set_element_base0(self.p, i, val)
   }
 

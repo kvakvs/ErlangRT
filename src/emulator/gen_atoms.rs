@@ -6,18 +6,18 @@
 use crate::term::lterm::*;
 
 
-pub const STIMES_2: LTerm = LTerm::make_atom(0);
+pub const MULTIPLY: LTerm = LTerm::make_atom(0);
 pub const SYM_PLUS: LTerm = LTerm::make_atom(1);
-pub const EBIF_PLUSPLUS_2: LTerm = LTerm::make_atom(2);
+pub const PLUSPLUS: LTerm = LTerm::make_atom(2);
 pub const SYM_MINUS: LTerm = LTerm::make_atom(3);
-pub const SNEQEQ_2: LTerm = LTerm::make_atom(4);
-pub const SLT_2: LTerm = LTerm::make_atom(5);
-pub const SNEQ_2: LTerm = LTerm::make_atom(6);
-pub const SEQ_2: LTerm = LTerm::make_atom(7);
-pub const SLE_2: LTerm = LTerm::make_atom(8);
+pub const NOTEQUAL: LTerm = LTerm::make_atom(4);
+pub const LESSTHAN: LTerm = LTerm::make_atom(5);
+pub const NOTEQUAL_EXACT: LTerm = LTerm::make_atom(6);
+pub const EQUAL_EXACT: LTerm = LTerm::make_atom(7);
+pub const LESSEQUAL: LTerm = LTerm::make_atom(8);
 pub const SYM_EQ_EQ: LTerm = LTerm::make_atom(9);
-pub const SGT_2: LTerm = LTerm::make_atom(10);
-pub const SGE_2: LTerm = LTerm::make_atom(11);
+pub const GREATERTHAN: LTerm = LTerm::make_atom(10);
+pub const GREATEREQUAL: LTerm = LTerm::make_atom(11);
 pub const APPLY: LTerm = LTerm::make_atom(12);
 pub const BADARG: LTerm = LTerm::make_atom(13);
 pub const BADARITH: LTerm = LTerm::make_atom(14);

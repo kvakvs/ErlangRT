@@ -151,7 +151,7 @@ fn decode_tuple(
   size: Word,
   tb: &mut TermBuilder,
 ) -> RtResult<LTerm> {
-  let mut tuple_builder = tb.create_tuple_builder(size)?;
+  let tuple_builder = tb.create_tuple_builder(size)?;
   for i in 0..size {
     let elem = decode_naked(r, tb)?;
     unsafe { tuple_builder.set_element_base0(i, elem) }
