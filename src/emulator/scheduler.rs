@@ -7,6 +7,7 @@ use crate::{
   },
   term::lterm::*,
 };
+use colored::Colorize;
 use std::collections::{HashMap, VecDeque};
 
 fn module() -> &'static str {
@@ -81,6 +82,15 @@ pub struct Scheduler {
   processes: HashMap<LTerm, Process>,
 }
 
+/// Hint from the logic finalizing timeslice result from a running process.
+/// The logic may continue running same process if the reductions allow, after
+/// having been interrupted by an exception.
+#[derive(PartialOrd, PartialEq)]
+enum ScheduleHint {
+  ContinueSameProcess,
+  TakeAnotherProcess,
+}
+
 impl Scheduler {
   pub fn new() -> Self {
     Self {
@@ -150,12 +160,36 @@ impl Scheduler {
     }
   }
 
+  #[inline]
+  fn log_next_process(maybe_pid: Option<LTerm>) {
+    if cfg!(feature = "trace_opcode_execution") {
+      if let Some(pid) = maybe_pid {
+        println!(
+          "+ {} {}",
+          "Scheduler: switching to".yellow().on_blue(),
+          pid
+        );
+      } else {
+        println!(
+          "+ {}",
+          "Scheduler: no process to run".yellow().on_bright_black()
+        );
+      }
+    }
+  }
+
   /// Get another process from the run queue for this scheduler.
   /// Returns: `Option(pid)`
   pub fn next_process(&mut self) -> Option<LTerm> {
     if let Some(prev_pid) = self.current {
-      self.next_process_finalize_previous(prev_pid);
+      let hint = self.next_process_finalize_previous(prev_pid);
+      if hint == ScheduleHint::ContinueSameProcess {
+        // do not change self.current and just do the same process again
+        return self.current;
+      }
     }
+
+    // Do necessities before taking another process
     self.next_process_duties();
 
     // Now try and find another process to run
@@ -167,6 +201,7 @@ impl Scheduler {
       }
     }
 
+    Self::log_next_process(self.current);
     self.current
   }
 
@@ -197,7 +232,7 @@ impl Scheduler {
   /// When time has come to select next running process, first we take a look
   /// at the previous process, what happened to it.
   #[inline]
-  fn next_process_finalize_previous(&mut self, curr_pid: LTerm) {
+  fn next_process_finalize_previous(&mut self, curr_pid: LTerm) -> ScheduleHint {
     // Extract the last running process from the process registry
     let curr_p = self.unsafe_lookup_pid_mut(curr_pid);
     assert!(!curr_p.is_null());
@@ -223,17 +258,24 @@ impl Scheduler {
         self.terminate_process(curr_pid, err)
       }
 
-      SliceResult::Exception => self.on_exception_check_trycatch(curr_p, curr_pid),
+      SliceResult::Exception => {
+        return self.on_exception_check_trycatch(curr_p, curr_pid);
+      }
 
       SliceResult::Wait => {
         self.enqueue_wait(true, curr_pid);
       }
     }
+    ScheduleHint::TakeAnotherProcess
   }
 
   /// If exception happened, check whether a process is catching anything at
   /// this moment, otherwise proceed to terminate.
-  fn on_exception_check_trycatch(&mut self, proc_p: *mut Process, proc_pid: LTerm) {
+  fn on_exception_check_trycatch(
+    &mut self,
+    proc_p: *mut Process,
+    proc_pid: LTerm,
+  ) -> ScheduleHint {
     // Bypassing the borrow checker again
     let proc = unsafe { &mut (*proc_p) };
 
@@ -244,20 +286,24 @@ impl Scheduler {
       // time to terminate, no catches
       self.terminate_process(proc_pid, p_error);
       self.current = None;
-      return;
+      return ScheduleHint::TakeAnotherProcess;
     }
 
     println!("Catching {}", p_error);
     match unsafe { proc.heap.next_catch() } {
-      Some(catch_index) => {
-        println!("Catch found: {:p}", catch_index)
-      },
+      Some(catch_loc) => {
+        println!("Catch found: {:p}", catch_loc);
+        proc.context.jump_ptr(catch_loc);
+        // TODO: Return to the front of execution queue
+        return ScheduleHint::ContinueSameProcess;
+      }
       None => {
         println!("Catch not found, terminating...");
         self.terminate_process(proc_pid, p_error);
         self.current = None;
       }
     }
+    return ScheduleHint::TakeAnotherProcess;
   }
 
   /// Things to do before scheduling another process for execution.
@@ -288,7 +334,7 @@ impl Scheduler {
   pub fn unsafe_lookup_pid(&self, pid: LTerm) -> *const Process {
     assert!(pid.is_local_pid());
     match self.processes.get(&pid) {
-      Some(p) => { p as *const Process },
+      Some(p) => p as *const Process,
       None => core::ptr::null(),
     }
   }
@@ -298,7 +344,7 @@ impl Scheduler {
   pub fn unsafe_lookup_pid_mut(&mut self, pid: LTerm) -> *mut Process {
     assert!(pid.is_local_pid());
     match self.processes.get_mut(&pid) {
-      Some(p) => { p as *mut Process },
+      Some(p) => p as *mut Process,
       None => core::ptr::null_mut(),
     }
   }
@@ -344,12 +390,12 @@ impl Scheduler {
       Queue::InfiniteWait => {
         self.infinite_wait.remove(&proc.pid);
         self.enqueue_opt(proc.pid, true);
-      },
+      }
       Queue::TimedWait => {
         self.timed_wait.remove(&proc.pid);
         self.enqueue_opt(proc.pid, true);
-      },
-      _other => {},
+      }
+      _other => {}
     }
   }
 }

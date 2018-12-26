@@ -3,7 +3,6 @@ use crate::{
   emulator::{disasm, scheduler::SliceResult, vm::VM},
   fail::{Error, RtResult},
 };
-use colored::Colorize;
 
 // fn module() -> &'static str { "vm_loop: " }
 
@@ -21,11 +20,6 @@ impl VM {
       None => return Ok(false),
       Some(p) => unsafe { (*scheduler).lookup_pid_mut(p).unwrap() },
     };
-    println!(
-      "+ {} {}",
-      "Scheduler: switching to".yellow().on_blue(),
-      curr_p.pid
-    );
 
     // Ugly borrowing the context from the process, but we guarantee that the
     // borrow will not outlive the owning process or we pay the harsh price

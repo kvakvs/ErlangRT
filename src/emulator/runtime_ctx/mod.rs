@@ -237,6 +237,11 @@ impl Context {
     debug_assert!(cp.is_cp());
     self.ip = CodePtr::from_cp(cp);
   }
+
+  #[inline]
+  pub fn jump_ptr(&mut self, code_ptr: *const Word) {
+    self.ip = CodePtr::new(code_ptr);
+  }
 }
 
 impl fmt::Display for Context {

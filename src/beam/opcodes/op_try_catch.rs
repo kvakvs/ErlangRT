@@ -36,7 +36,7 @@ impl OpcodeTry {
     // Write catch value into the given stack register
     let catch_val = LTerm::make_catch(catch_label.get_cp_ptr());
     hp.set_y(reg.get_special_value(), catch_val)?;
-    curr_p.heap.print_stack();
+    // curr_p.heap.print_stack();
 
     Ok(DispatchResult::Normal)
   }
