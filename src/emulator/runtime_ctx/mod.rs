@@ -2,7 +2,7 @@
 //! a running process, such as registers, code pointer, etc.
 
 use crate::{
-  defs::{Word, MAX_FPREGS, MAX_XREGS},
+  defs::{Word, DEFAULT_REDUCTIONS, MAX_FPREGS, MAX_XREGS},
   emulator::{code::CodePtr, heap},
   fail::RtResult,
   term::lterm::{
@@ -31,6 +31,9 @@ pub struct Context {
   /// Return location, for one return without using the stack.
   pub cp: CodePtr,
 
+  /// A metric of CPU time spent on running the code, roughly equal to 1 function call
+  pub reductions: isize,
+
   /// Current state of X registers.
   regs: [LTerm; MAX_XREGS],
 
@@ -49,6 +52,7 @@ impl Context {
       ip,
       regs: [LTerm::non_value(); MAX_XREGS],
       live: 0,
+      reductions: 0,
     }
   }
 
@@ -63,9 +67,15 @@ impl Context {
 
   #[inline]
   pub fn set_x(&mut self, index: usize, val: LTerm) {
-    println!("set x{} = {}", index, val);
+    if cfg!(feature = "trace_opcode_execution") {
+      println!("set x{} = {}", index, val);
+    }
     debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
     self.regs[index] = val;
+  }
+
+  pub fn swap_in(&mut self) {
+    self.reductions = DEFAULT_REDUCTIONS;
   }
 
   /// Read a word from `self.ip` and advance `ip` by 1 word.

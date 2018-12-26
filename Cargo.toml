@@ -4,11 +4,11 @@ version = "0.1.0"
 authors = ["Dmytro Lytovchenko"]
 edition = "2018"
 
+# Add "trace_opcode_execution" to print every opcode and register change as we go
 [features]
-default = ["r20", "dev_build"]
+default = ["r20", "trace_opcode_execution"]
 r20 = []
-# Enabling dev build adds functions to print internal structures
-dev_build = []
+trace_opcode_execution = []
 
 
 [dependencies]
@@ -20,8 +20,8 @@ lazy_static = "0.2"
 num = "0.1.40"
 colored = "1.6" # console colors (TTY systems)
 
-# [profile.debug]
-# panic = "unwind"
+[profile.dev]
+panic = "unwind"
 
 [profile.release]
 lto = true

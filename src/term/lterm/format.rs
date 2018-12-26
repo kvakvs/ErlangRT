@@ -70,7 +70,10 @@ unsafe fn format_box_contents(
     }
     boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
     boxed::BOXTYPETAG_TUPLE => format_tuple(val_ptr, f),
-    boxed::BOXTYPETAG_CLOSURE => write!(f, "Fun<>"),
+    boxed::BOXTYPETAG_CLOSURE => {
+      let fun_p = val_ptr as *const boxed::Closure;
+      write!(f, "Fun<{}>", (*fun_p).mfa)
+    },
     boxed::BOXTYPETAG_FLOAT => {
       let fptr = val_ptr as *const boxed::Float;
       write!(f, "{}", (*fptr).value)

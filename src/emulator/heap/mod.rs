@@ -200,7 +200,9 @@ impl Heap {
     if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange);
     }
-    println!("set y{} = {}", index, val);
+    if cfg!(feature = "trace_opcode_execution") {
+      println!("set y{} = {}", index, val);
+    }
     self.data[index + self.stop + 1] = val.raw();
     Ok(())
   }

@@ -25,6 +25,10 @@ pub const WORD_BYTES: Word = WORD_BITS / 8;
 pub const MAX_XREGS: Word = 256;
 pub const MAX_FPREGS: Word = 8;
 
+/// How many function-calls/heavier opcodes we process before the process will
+/// be scheduled out and give the way to other processes in the queue.
+pub const DEFAULT_REDUCTIONS: isize = 200;
+
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum ExceptionType {

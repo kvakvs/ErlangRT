@@ -16,10 +16,6 @@ use crate::{
   term::lterm::*,
 };
 
-fn module() -> &'static str {
-  "process: "
-}
-
 #[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ProcessError {

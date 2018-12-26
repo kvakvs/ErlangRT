@@ -32,10 +32,15 @@ impl VM {
     // debugging SIGSEGVs.
     let ctx_p = curr_p.get_context_p();
     let mut ctx = unsafe { &mut (*ctx_p) };
+    ctx.swap_in(); // tell the context, that it is active now
 
     let cs = self.get_code_server_p();
+
+    //
+    // Fetch some opcodes, Execute some opcodes
+    //
     loop {
-      if cfg!(debug_assertions) {
+      if cfg!(feature = "trace_opcode_execution") {
         print!(" ↳ ");
         unsafe {
           disasm::disasm_op(ctx.ip.get(), &(*cs));
@@ -51,15 +56,19 @@ impl VM {
       );
 
       // Handle next opcode
-      let disp_result = dispatch_op_inline(self, op, &mut ctx, curr_p);
-      if let Err(Error::Exception(exc_type, exc_reason)) = disp_result {
-        println!("vm: Exception type={:?} reason={}", exc_type, exc_reason);
-        curr_p.set_exception(exc_type, exc_reason);
-        curr_p.timeslice_result = SliceResult::Exception;
-        return Ok(true);
-      }
+      let disp_result = match dispatch_op_inline(self, op, &mut ctx, curr_p) {
+        Err(Error::Exception(exc_type, exc_reason)) => {
+          println!("vm: Exception type={:?} reason={}", exc_type, exc_reason);
+          curr_p.set_exception(exc_type, exc_reason);
+          curr_p.timeslice_result = SliceResult::Exception;
+          return Ok(true);
+        },
+        other => {
+          other?
+        }
+      };
 
-      match disp_result? {
+      match disp_result {
         DispatchResult::Yield => {
           curr_p.timeslice_result = SliceResult::Yield;
           return Ok(true);

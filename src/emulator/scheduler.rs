@@ -122,16 +122,17 @@ impl Scheduler {
   }
 
   /// Get another process from the run queue for this scheduler.
-  /// Returns: `Some(pid)` or `None`
+  /// Returns: `Option(pid)`
   pub fn next_process(&mut self) -> Option<LTerm> {
     self.next_process_finalize_previous();
     self.next_process_duties();
 
     // Now try and find another process to run
-    while self.current.is_none() {
+    loop {
       // See if any are waiting in realtime (high) priority queue
       if let Some(next_pid) = self.next_process_pick_from_the_queues() {
-        self.current = Some(next_pid)
+        self.current = Some(next_pid);
+        break;
       }
     }
 
