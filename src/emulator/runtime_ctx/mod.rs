@@ -171,9 +171,21 @@ impl Context {
     dst: LTerm,
     hp: &mut heap::Heap,
   ) -> RtResult<()> {
-    debug_assert!(!val.is_regx(), "When storing a value, element must not be regx, have {}", val);
-    debug_assert!(!val.is_regy(), "When storing a value, element must not be regy, have {}", val);
-    debug_assert!(!val.is_regfp(), "When storing a value, element must not be regfp, have {}", val);
+    debug_assert!(
+      !val.is_regx(),
+      "When storing a value, element must not be regx, have {}",
+      val
+    );
+    debug_assert!(
+      !val.is_regy(),
+      "When storing a value, element must not be regy, have {}",
+      val
+    );
+    debug_assert!(
+      !val.is_regfp(),
+      "When storing a value, element must not be regfp, have {}",
+      val
+    );
     if dst.get_term_tag() == TERMTAG_SPECIAL {
       match dst.get_special_tag() {
         SPECIALTAG_REGX => {

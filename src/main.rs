@@ -14,7 +14,6 @@ mod main_main;
 mod rt_util;
 mod term;
 
-
 use crate::main_main::entrypoint;
 
 fn main() {

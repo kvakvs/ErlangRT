@@ -20,6 +20,8 @@ lazy_static = "0.2"
 num = "0.1.40"
 colored = "1.6" # console colors (TTY systems)
 
+# [profile.debug]
+# panic = "unwind"
 
 [profile.release]
 lto = true

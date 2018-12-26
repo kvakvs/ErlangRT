@@ -68,3 +68,6 @@ is_tagged_tuple
 put_tuple
 set_tuple_element
 test_arity
+
+#=== === Try/Catch/Raise === ===
+try

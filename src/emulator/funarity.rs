@@ -1,8 +1,7 @@
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
 use crate::{defs::Arity, term::lterm::*};
-use core::fmt;
-use core::cmp::Ordering;
+use core::{cmp::Ordering, fmt};
 
 /// Reference to an internal function in some module.
 #[derive(Debug, Eq, Clone)]

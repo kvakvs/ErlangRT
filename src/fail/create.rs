@@ -2,8 +2,10 @@ use crate::{
   defs::ExceptionType,
   emulator::{gen_atoms, heap::Heap},
   fail::{Error, RtResult},
-  term::builders::{make_badfun, make_badmatch},
-  term::lterm::LTerm
+  term::{
+    builders::{make_badfun, make_badmatch},
+    lterm::LTerm,
+  },
 };
 
 pub fn badmatch_val<T>(val: LTerm, hp: &mut Heap) -> RtResult<T> {

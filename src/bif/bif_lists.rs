@@ -97,7 +97,9 @@ pub fn bif_lists_member_2(
   let sample = args[0];
   let result = cons::any(list, |elem| {
     let cmp_result = compare::cmp_terms(sample, elem, true);
-    if cmp_result.is_err() { return false; }
+    if cmp_result.is_err() {
+      return false;
+    }
     cmp_result.unwrap() == Ordering::Equal
   });
   return Ok(LTerm::make_bool(result));

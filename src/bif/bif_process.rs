@@ -1,4 +1,5 @@
 use crate::{
+  bif::assert_arity,
   defs::ExceptionType,
   emulator::{
     gen_atoms,
@@ -10,7 +11,6 @@ use crate::{
   fail::{Error, RtResult},
   term::{boxed, lterm::*},
 };
-use crate::bif::assert_arity;
 
 pub fn ubif_erlang_self_0(
   _vm: &mut VM,

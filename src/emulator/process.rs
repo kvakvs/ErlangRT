@@ -9,13 +9,12 @@ use crate::{
     code_srv::CodeServer,
     heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
     mailbox::ProcessMailbox,
-    mfa::MFArity,
+    mfa::{MFASomething, MFArity},
     runtime_ctx, scheduler,
   },
   fail::RtResult,
   term::lterm::*,
 };
-use crate::emulator::mfa::MFASomething;
 
 fn module() -> &'static str {
   "process: "
@@ -43,29 +42,42 @@ impl fmt::Display for ProcessError {
 
 pub struct Process {
   pub pid: LTerm,
-  // parent_pid: LTerm,
 
+  //
   // Scheduling and fail state
+  //
+
   /// Scheduling priority (selects the runqueue when this process is scheduled)
   pub prio: scheduler::Prio,
   /// Current scheduler queue where this process is registered
   pub current_queue: scheduler::Queue,
 
+  //
   // Execution Context, etc.
+  //
+
   /// Runtime context with registers, instruction pointer etc
   pub context: runtime_ctx::Context,
   /// How many X registers in the context are currently used
   // pub live: Word,
 
+  //
   // Memory
+  //
+
   pub heap: Heap,
   pub mailbox: ProcessMailbox,
 
+  //
   // Error handling
+  //
+
   /// Record result of last scheduled timeslice for this process
   /// (updated by the vm loop)
   pub timeslice_result: scheduler::SliceResult,
   pub error: ProcessError,
+  /// How many catch frames are there on stack
+  pub num_catches: isize,
 }
 
 impl Process {
@@ -100,6 +112,7 @@ impl Process {
           context: runtime_ctx::Context::new(ip),
 
           error: ProcessError::None,
+          num_catches: 0,
         };
         Ok(p)
         // Ok(sync::Arc::new(sync::RwLock::new(p)))
