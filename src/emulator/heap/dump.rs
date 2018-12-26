@@ -36,7 +36,7 @@ impl Heap {
       // Display a warning if boxed points outside the current heap
       if let TERMTAG_BOXED = val_at_addr.get_term_tag() {
         let p = val_at_addr.get_box_ptr() as *const Word;
-        if p < self.heap_begin() || p >= self.heap_end() {
+        if p < self.get_heap_start_ptr() || p >= self.get_heap_top_ptr() {
           output += " <- heap bounds!";
         }
       }

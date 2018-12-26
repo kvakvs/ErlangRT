@@ -5,6 +5,8 @@ pub use self::sizes::*;
 
 use std::{isize, usize};
 
+/// Word is an unsigned machine-register sized word. Do not use for sizes and
+/// counters, use usize instead.
 pub type Word = usize;
 pub type SWord = isize;
 pub type Arity = usize;
@@ -12,10 +14,14 @@ pub type Arity = usize;
 // pub use term::immediate::SMALL_BITS;
 
 #[cfg(target_pointer_width = "32")]
-pub const WORD_BITS: Word = 32;
+pub const WORD_BITS: usize = 32;
+#[cfg(target_pointer_width = "32")]
+pub const WORD_ALIGN_SHIFT: usize = 2;
 
 #[cfg(target_pointer_width = "64")]
-pub const WORD_BITS: Word = 64;
+pub const WORD_BITS: usize = 64;
+#[cfg(target_pointer_width = "64")]
+pub const WORD_ALIGN_SHIFT: usize = 3;
 
 /// This bit is set on boxed values which are CP pointers
 pub const HIGHEST_BIT_CP: Word = 1 << (WORD_BITS - 1);
@@ -42,6 +48,7 @@ impl Reductions {
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 pub enum ExceptionType {
+  Panic, // ignore catches
   Throw,
   Error,
   Exit,

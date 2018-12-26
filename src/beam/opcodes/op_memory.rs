@@ -19,7 +19,7 @@ fn shared_allocate(
 
   let hp = &mut curr_p.heap;
 
-  if !hp.have(heap_need) {
+  if !hp.heap_has_available(heap_need) {
     panic!("Heap doesn't have {} words", heap_need);
   }
 
@@ -178,7 +178,7 @@ impl OpcodeTestHeap {
     let heap_need = ctx.fetch_term().get_small_unsigned();
     let _live = ctx.fetch_term().get_small_unsigned();
 
-    if !curr_p.heap.have(heap_need) {
+    if !curr_p.heap.heap_has_available(heap_need) {
       // Heap has not enough, invoke GC and possibly fail
       panic!("TODO GC here or fail");
     }

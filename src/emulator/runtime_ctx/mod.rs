@@ -160,7 +160,7 @@ impl Context {
         SPECIALTAG_REGX => return self.get_x(src.get_special_value()),
         SPECIALTAG_REGY => {
           let y_index = src.get_special_value();
-          let y_result = hp.stack_get_y(y_index);
+          let y_result = hp.get_y(y_index);
           return y_result.unwrap();
         }
         SPECIALTAG_REGFP => panic!("todo fpreg load"),

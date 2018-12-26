@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
-  term::lterm::LTerm
+  term::lterm::LTerm,
 };
 
 /// Set up a try-catch stack frame for possible stack unwinding. Label points
@@ -32,7 +32,11 @@ impl OpcodeTry {
 
     curr_p.num_catches += 1;
     let hp = &mut curr_p.heap;
-    hp.set_y(reg.get_special_value(), catch_label)?;
+
+    // Write catch value into the given stack register
+    let catch_val = LTerm::make_catch(catch_label.get_cp_ptr());
+    hp.set_y(reg.get_special_value(), catch_val)?;
+    curr_p.heap.print_stack();
 
     Ok(DispatchResult::Normal)
   }

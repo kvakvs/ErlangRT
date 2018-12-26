@@ -199,7 +199,12 @@ impl Scheduler {
   #[inline]
   fn next_process_finalize_previous(&mut self, curr_pid: LTerm) {
     // Extract the last running process from the process registry
-    let curr = self.lookup_pid(curr_pid).unwrap();
+    let curr_p = self.unsafe_lookup_pid_mut(curr_pid);
+    assert!(!curr_p.is_null());
+
+    // Unspeakable horrors are happening as we speak: (bypassing borrow checker)
+    let curr = unsafe { &mut (*curr_p) };
+
     debug_assert_eq!(
       curr.current_queue,
       Queue::None,
@@ -218,13 +223,7 @@ impl Scheduler {
         self.terminate_process(curr_pid, err)
       }
 
-      SliceResult::Exception => {
-        let curr = self.lookup_pid(curr_pid).unwrap();
-        assert!(curr.is_failed());
-        let p_error = curr.error;
-        self.terminate_process(curr_pid, p_error);
-        self.current = None
-      }
+      SliceResult::Exception => self.on_exception_check_trycatch(curr_p, curr_pid),
 
       SliceResult::Wait => {
         self.enqueue_wait(true, curr_pid);
@@ -232,6 +231,36 @@ impl Scheduler {
     }
   }
 
+  /// If exception happened, check whether a process is catching anything at
+  /// this moment, otherwise proceed to terminate.
+  fn on_exception_check_trycatch(&mut self, proc_p: *mut Process, proc_pid: LTerm) {
+    // Bypassing the borrow checker again
+    let proc = unsafe { &mut (*proc_p) };
+
+    assert!(proc.is_failed());
+    let p_error = proc.error;
+
+    if proc.num_catches <= 0 {
+      // time to terminate, no catches
+      self.terminate_process(proc_pid, p_error);
+      self.current = None;
+      return;
+    }
+
+    println!("Catching {}", p_error);
+    match unsafe { proc.heap.next_catch() } {
+      Some(catch_index) => {
+        println!("Catch found: {:p}", catch_index)
+      },
+      None => {
+        println!("Catch not found, terminating...");
+        self.terminate_process(proc_pid, p_error);
+        self.current = None;
+      }
+    }
+  }
+
+  /// Things to do before scheduling another process for execution.
   #[inline]
   fn next_process_duties(&self) {
     // TODO: monotonic clock
@@ -239,16 +268,39 @@ impl Scheduler {
     // TODO: network checks
   }
 
-  /// Get a read-only process, if it exists. Return `None` if we are sorry.
+  /// Borrow a read-only process, if it exists. Return `None` if we are sorry.
+  #[inline]
   pub fn lookup_pid(&self, pid: LTerm) -> Option<&Process> {
     assert!(pid.is_local_pid());
     self.processes.get(&pid)
   }
 
-  /// Get a reference to process, if it exists. Return `None` if we are sorry.
+  /// Borrow a mutable process, if it exists. Return `None` if we are sorry.
+  #[inline]
   pub fn lookup_pid_mut(&mut self, pid: LTerm) -> Option<&mut Process> {
     assert!(pid.is_local_pid());
     self.processes.get_mut(&pid)
+  }
+
+  /// Find a process and instead of borrowing return a pointer to it.
+  #[inline]
+  #[allow(dead_code)]
+  pub fn unsafe_lookup_pid(&self, pid: LTerm) -> *const Process {
+    assert!(pid.is_local_pid());
+    match self.processes.get(&pid) {
+      Some(p) => { p as *const Process },
+      None => core::ptr::null(),
+    }
+  }
+
+  /// Find a process and instead of borrowing return a mutable pointer to it.
+  #[inline]
+  pub fn unsafe_lookup_pid_mut(&mut self, pid: LTerm) -> *mut Process {
+    assert!(pid.is_local_pid());
+    match self.processes.get_mut(&pid) {
+      Some(p) => { p as *mut Process },
+      None => core::ptr::null_mut(),
+    }
   }
 
   /// Assuming that the error was not caught, begin process termination routine.

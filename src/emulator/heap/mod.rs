@@ -21,12 +21,12 @@ pub const DEFAULT_PROC_HEAP: usize = 16384;
 /// garbage collect call to get more memory TODO: gc on heap
 pub struct Heap {
   data: Vec<Word>,
-  /// Heap top, begins at 0 and grows up towards the stack top `stop`.
-  htop: Word,
+  /// Heap top, begins at 0 and grows up towards the `stack_top`.
+  heap_top: usize,
   /// Stack top, begins at the end of capacity and grows down.
-  stop: Word,
-  /// Stack end, marks end of heap also.
-  send: Word,
+  stack_top: usize,
+  /// Marks end of the stack and also end of the heap.
+  capacity: usize,
 }
 
 impl Heap {}
@@ -37,19 +37,19 @@ impl fmt::Debug for Heap {
       f,
       "Heap{{ cap: {}, used: {} }}",
       self.heap_capacity(),
-      self.htop()
+      self.get_heap_used_words()
     )
   }
 }
 
 impl Heap {
-  pub fn new(capacity: Word) -> Heap {
+  pub fn new(capacity: Word) -> Self {
     assert!(capacity > 0);
-    let mut h = Heap {
+    let mut h = Self {
       data: Vec::with_capacity(capacity),
-      htop: 0,
-      stop: capacity,
-      send: capacity,
+      heap_top: 0,
+      stack_top: capacity,
+      capacity: capacity,
     };
     unsafe { h.data.set_len(capacity) };
     h
@@ -60,37 +60,56 @@ impl Heap {
     self.data.capacity()
   }
 
-  /// How many words are used.
-  fn htop(&self) -> usize {
-    self.htop
+  /// Heap usage stat.
+  fn get_heap_used_words(&self) -> usize {
+    self.heap_top
   }
 
-  /// This is used by heap walkers such as "dump.rs"
-  fn heap_begin(&self) -> *const Word {
-    &self.data[0] as *const Word
+  #[inline]
+  fn get_heap_start_ptr(&self) -> *const Word {
+    self.data.as_ptr()
   }
 
-  fn heap_begin_mut(&mut self) -> *mut Word {
-    &mut self.data[0] as *mut Word
+  #[inline]
+  fn get_heap_begin_ptr_mut(&mut self) -> *mut Word {
+    self.data.as_mut_ptr()
   }
 
-  /// This is used by heap walkers such as "dump.rs"
-  unsafe fn heap_end(&self) -> *const Word {
-    let p = self.heap_begin();
-    p.add(self.htop)
+  /// Get pointer to end of the allocated heap (below the stack top).
+  #[inline]
+  unsafe fn get_heap_top_ptr(&self) -> *const Word {
+    self.get_heap_start_ptr().add(self.heap_top)
+  }
+
+  /// Stack start is same as end of everything, pointer to the first word after
+  /// the allocated memory, used as limit when iterating the stack.
+  #[inline]
+  unsafe fn get_stack_start_ptr(&self) -> *const Word {
+    self.get_end_ptr()
+  }
+
+  #[inline]
+  unsafe fn get_end_ptr(&self) -> *const Word {
+    self.get_heap_start_ptr().add(self.capacity)
+  }
+
+  #[inline]
+  unsafe fn get_stack_top_ptr(&self) -> *const Word {
+    self.get_heap_start_ptr().add(self.stack_top)
   }
 
   pub fn alloc<T>(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut T> {
-    let pos = self.htop;
+    let pos = self.heap_top;
     let n_words = n.words();
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
-    if pos + n_words >= self.stop {
+    if pos + n_words >= self.stack_top {
       return Err(Error::HeapIsFull);
     }
 
     // Assume we can grow the data without reallocating
     let raw_nil = LTerm::nil().raw();
-    let new_chunk = unsafe { self.heap_begin_mut().add(self.htop) as *mut Word };
+    let new_chunk =
+      unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) as *mut Word };
 
     if init_nil {
       unsafe {
@@ -100,7 +119,7 @@ impl Heap {
       }
     }
 
-    self.htop += n_words;
+    self.heap_top += n_words;
 
     Ok(new_chunk as *mut T)
   }
@@ -115,23 +134,13 @@ impl Heap {
   //  }
 
   #[inline]
-  pub fn have(&self, need: Word) -> bool {
-    self.htop + need <= self.stop
+  pub fn heap_has_available(&self, need: usize) -> bool {
+    self.heap_top + need <= self.stack_top
   }
-}
 
-/// Create a constant iterator for walking the heap.
-/// This is used by heap walkers such as "dump.rs"
-pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
-  let last = hp.htop as isize;
-  let begin = hp.heap_begin() as *const LTerm;
-  iter::HeapIterator::new(begin, begin.offset(last))
-}
-
-impl Heap {
   #[inline]
-  pub fn stack_have(&self, need: Word) -> bool {
-    self.htop + need <= self.stop
+  pub fn stack_have(&self, need: usize) -> bool {
+    self.heap_top + need <= self.stack_top
   }
 
   //  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
@@ -145,12 +154,12 @@ impl Heap {
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
   pub fn stack_alloc_unchecked(&mut self, need: Word, fill_nil: bool) {
-    self.stop -= need;
+    self.stack_top -= need;
 
     // Clear the new cells
     let raw_nil = LTerm::nil().raw();
     unsafe {
-      let p = self.heap_begin_mut().add(self.stop);
+      let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
 
       if fill_nil {
         for y in 0..need {
@@ -161,6 +170,7 @@ impl Heap {
   }
 
   // TODO: Add unsafe push without range checks (batch check+multiple push)
+
   //  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
   //    if !self.stack_have(1) {
   //      return Err(Error::HeapIsFull)
@@ -171,27 +181,33 @@ impl Heap {
 
   #[allow(dead_code)]
   pub fn stack_info(&self) {
-    println!("Stack (s_top {}, s_end {})", self.stop, self.send)
+    println!("Stack (s_top {}, s_end {})", self.stack_top, self.capacity)
   }
 
   /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
   #[inline]
   pub fn stack_push_unchecked(&mut self, val: Word) {
-    self.stop -= 1;
-    self.data[self.stop] = val;
+    if cfg!(feature = "trace_register_changes") {
+      println!("push (unchecked) word {}", val);
+    }
+    self.stack_top -= 1;
+    self.data[self.stack_top] = val;
   }
 
   /// Push a LTerm to stack without checking. Call `stack_have(1)` beforehand.
   #[inline]
   pub fn stack_push_lterm_unchecked(&mut self, val: LTerm) {
-    self.stop -= 1;
-    self.data[self.stop] = val.raw();
+    if cfg!(feature = "trace_register_changes") {
+      println!("push (unchecked) {}", val);
+    }
+    self.stack_top -= 1;
+    self.data[self.stack_top] = val.raw();
   }
 
   /// Check whether `y+1`-th element can be found in stack
   #[inline]
   pub fn stack_have_y(&self, y: Word) -> bool {
-    self.send - self.stop >= y + 1
+    self.capacity - self.stack_top >= y + 1
   }
 
   /// Set stack value (`index`th from stack top) to `val`.
@@ -203,37 +219,77 @@ impl Heap {
     if cfg!(feature = "trace_register_changes") {
       println!("set y{} = {}", index, val);
     }
-    self.data[index + self.stop + 1] = val.raw();
+    self.data[index + self.stack_top + 1] = val.raw();
     Ok(())
   }
 
-  pub fn stack_get_y(&self, index: Word) -> RtResult<LTerm> {
+  pub fn get_y(&self, index: Word) -> RtResult<LTerm> {
     if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange(index));
     }
-    let pos = index + self.stop + 1;
+    let pos = index + self.stack_top + 1;
     let result = LTerm::from_raw(self.data[pos]);
     debug_assert!(result.is_value(), "Should never get a NON_VALUE from y[]");
     Ok(result)
   }
 
+  #[inline]
+  pub fn get_y_unchecked(&self, index: Word) -> LTerm {
+    let pos = index + self.stack_top + 1;
+    LTerm::from_raw(self.data[pos])
+  }
+
   pub fn stack_depth(&self) -> Word {
-    self.send - self.stop
+    self.capacity - self.stack_top
   }
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   pub fn stack_deallocate(&mut self, n: Word) -> LTerm {
     assert!(
-      self.stop + n < self.send,
+      self.stack_top + n < self.capacity,
       "Failed to dealloc {}+1 words (s_top {}, s_end {})",
       n,
-      self.stop,
-      self.send
+      self.stack_top,
+      self.capacity
     );
-    let cp = LTerm::from_raw(self.data[self.stop]);
+    let cp = LTerm::from_raw(self.data[self.stack_top]);
     assert!(cp.is_cp());
-    self.stop += n + 1;
+    self.stack_top += n + 1;
     cp
+  }
+
+  /// Go through stack values searching for a stored CP, skip if it does not
+  /// point to a catch instruction.
+  /// Returns: Catch jump pointer or NON_VALUE (not found).
+  pub unsafe fn next_catch(&self) -> Option<*const Word> {
+    let mut ptr: *const Word = self.get_stack_top_ptr();
+    let stack_start: *const Word = self.get_stack_start_ptr();
+    loop {
+      if ptr >= stack_start {
+        return None;
+      }
+      // Hope we found a CP on stack (good!)
+      let term_at_ptr = LTerm::from_raw(core::ptr::read(ptr));
+
+      if term_at_ptr.is_catch() {
+        // read opcode where CP is pointing, to check if it is a catch and not a
+        // return address
+        return Some(term_at_ptr.get_catch_ptr());
+      }
+      ptr = ptr.add(1);
+    }
+  }
+
+  pub fn print_stack(&self) {
+    let mut i = 0;
+    let max_i = self.stack_depth() - 1;
+    loop {
+      if i >= max_i || i >= 10 {
+        break;
+      }
+      println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
+      i += 1;
+    }
   }
 }
 
@@ -243,9 +299,10 @@ pub fn allocate_cons(hp: &mut Heap) -> RtResult<*mut boxed::Cons> {
   hp.alloc::<boxed::Cons>(WordSize::new(2), false)
 }
 
-// / Expand heap to host `n` words of data
-// fn alloc_words<ResultType>(hp: &mut Heap, n: Word, init_nil: bool)
-//                           -> Result<*mut ResultType, HeapError> {
-//  let result = hp.heap_alloc(n, init_nil)? as *mut ResultType;
-//  Ok(result)
-//}
+/// Create a constant iterator for walking the heap.
+/// This is used by heap walkers such as "dump.rs"
+pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
+  let last = hp.heap_top as isize;
+  let begin = hp.get_heap_start_ptr() as *const LTerm;
+  iter::HeapIterator::new(begin, begin.offset(last))
+}

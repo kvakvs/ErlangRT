@@ -18,7 +18,7 @@ impl fmt::Display for LTerm {
           write!(f, "CP({:p})", self.get_cp_ptr::<Word>())
         } else {
           let p = self.get_box_ptr::<LTerm>();
-          // debug_assert!(p.is_null() == false);
+          // `p` can't be null because non_value=0 is checked above
           format_box_contents(*p, p as *const Word, f)
         }
       },
@@ -30,10 +30,15 @@ impl fmt::Display for LTerm {
           format_cons(*self, f)
         }
       },
+
       TERMTAG_SMALL => write!(f, "{}", self.get_small_signed()),
+
       TERMTAG_SPECIAL => format_special(*self, f),
-      TERMTAG_LOCALPID => write!(f, "LocalPid({})", self.get_term_val_without_tag()),
-      TERMTAG_LOCALPORT => write!(f, "LocalPort({})", self.get_term_val_without_tag()),
+
+      TERMTAG_LOCALPID => write!(f, "Pid<{}>", self.get_term_val_without_tag()),
+
+      TERMTAG_LOCALPORT => write!(f, "Port<{}>", self.get_term_val_without_tag()),
+
       TERMTAG_ATOM => match atom::to_str(*self) {
         Ok(s) => {
           if atom::is_printable_atom(&s) {
@@ -42,8 +47,9 @@ impl fmt::Display for LTerm {
             write!(f, "'{}'", s)
           }
         }
-        Err(_e) => write!(f, "Atom?"),
+        Err(e) => write!(f, "Atom<printing failed {:?}>", e),
       },
+
       TERMTAG_HEADER => {
         return write!(f, "Header({})", boxed::headerword_to_arity(self.raw()));
         // format_box_contents(*self, ptr::null(), f)?;
@@ -114,6 +120,7 @@ fn format_special(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
     SPECIALTAG_REGY => return write!(f, "Y{}", term.get_special_value()),
     SPECIALTAG_REGFP => return write!(f, "F{}", term.get_special_value()),
     SPECIALTAG_OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
+    SPECIALTAG_CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
     _ => {}
   }
   write!(

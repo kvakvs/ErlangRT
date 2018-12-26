@@ -32,6 +32,7 @@ impl fmt::Display for ProcessError {
         ExceptionType::Exit => write!(f, "exit({})", exc_reason),
         ExceptionType::Throw => write!(f, "throw({})", exc_reason),
         ExceptionType::Error => write!(f, "error({})", exc_reason),
+        ExceptionType::Panic => write!(f, "panic({})", exc_reason),
       },
     }
   }

@@ -66,8 +66,10 @@ pub const SPECIALTAG_CONST: SpecialTag = SpecialTag(0);
 pub const SPECIALTAG_REGX: SpecialTag = SpecialTag(1);
 pub const SPECIALTAG_REGY: SpecialTag = SpecialTag(2);
 pub const SPECIALTAG_REGFP: SpecialTag = SpecialTag(3);
+/// Contains index in the catch table of the current module
+pub const SPECIALTAG_CATCH: SpecialTag = SpecialTag(4);
 // decorates opcodes for easier code walking
-pub const SPECIALTAG_OPCODE: SpecialTag = SpecialTag(4);
+pub const SPECIALTAG_OPCODE: SpecialTag = SpecialTag(5);
 
 pub struct SpecialConst(pub Word);
 
@@ -107,13 +109,6 @@ impl LTerm {
   #[inline]
   pub const fn make_atom(id: Word) -> LTerm {
     LTerm::make_from_tag_and_value(TERMTAG_ATOM, id)
-  }
-
-  #[inline]
-  pub fn make_cp<T>(p: *const T) -> LTerm {
-    assert_eq!(p as Word & TERM_TAG_MASK, 0); // must be aligned to 8
-    let tagged_p = (p as Word) | HIGHEST_BIT_CP;
-    LTerm::from_raw(tagged_p)
   }
 
   #[inline]
@@ -303,6 +298,12 @@ impl LTerm {
     self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
   }
 
+  #[inline]
+  pub fn special_value_fits(n: Word) -> bool {
+    let max = 1 << (WORD_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS);
+    max > n
+  }
+
   pub const fn make_special(special_t: SpecialTag, val: Word) -> LTerm {
     LTerm::make_from_tag_and_value(
       TERMTAG_SPECIAL,
@@ -344,6 +345,17 @@ impl LTerm {
     self.is_special_of_type(SPECIALTAG_REGFP)
   }
 
+  // === === Code Pointer (Continuation Pointer) === ===
+  //
+
+  // XXX: Can shift value right by 3 bits (WORD_ALIGN_SHIFT)
+  #[inline]
+  pub fn make_cp<T>(p: *const T) -> LTerm {
+    assert_eq!(p as Word & TERM_TAG_MASK, 0); // must be aligned to 8
+    let tagged_p = (p as Word) | HIGHEST_BIT_CP;
+    LTerm::from_raw(tagged_p)
+  }
+
   #[inline]
   pub fn is_cp(self) -> bool {
     if !self.is_boxed() {
@@ -375,7 +387,6 @@ impl LTerm {
     debug_assert!(self.is_tuple(), "Value is not a tuple: {}", self);
     (self.value & (!TERM_TAG_MASK)) as *mut boxed::Tuple
   }
-
 
   // === === LISTS/CONS CELLS === === ===
   //
@@ -479,7 +490,7 @@ impl LTerm {
     self.get_term_val_without_tag()
   }
 
-  // Big Integers ==============================
+  // === === BIG INTEGERS === ===
   //
 
   /// Check whether a lterm is boxed and then whether it points to a word of
@@ -488,7 +499,7 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BIGINTEGER)
   }
 
-  // Atoms ==============================
+  // === === Atoms === ===
   //
 
   pub fn atom_index(self) -> Word {
@@ -496,7 +507,7 @@ impl LTerm {
     self.get_term_val_without_tag()
   }
 
-  // === === FLOAT ==============================
+  // === === FLOAT === ===
   //
 
   /// Check whether a value is a small integer, a big integer or a float.
@@ -536,6 +547,7 @@ impl LTerm {
 
   // === === PORT === === ===
   //
+
   /// Check whether a value is any kind of port.
   pub fn is_port(self) -> bool {
     self.is_local_port() || self.is_external_port()
@@ -549,8 +561,9 @@ impl LTerm {
     false
   }
 
-  // MAP ===============
+  // === === MAP === ===
   //
+
   /// Check whether a value is a map.
   pub fn is_map(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_MAP)
@@ -574,14 +587,15 @@ impl LTerm {
     0
   }
 
-  // EXPORT ==================
+  // === === EXPORT === ===
   //
+
   /// Check whether a value is a boxed export (M:F/Arity triple).
   pub fn is_export(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_EXPORT)
   }
 
-  // FUN / CLOSURE ==================
+  // === === FUN / CLOSURE === ===
   //
 
   /// Check whether a value is a boxed fun (a closure or export).
@@ -609,8 +623,9 @@ impl LTerm {
     }
   }
 
-  // REFERENCE
+  // === === REFERENCES === ===
   //
+
   /// Check whether a value is any kind of reference.
   pub fn is_ref(self) -> bool {
     self.is_local_ref() || self.is_external_ref()
@@ -624,8 +639,9 @@ impl LTerm {
     false
   }
 
-  // BOOLEAN ===============
+  // === ===  BOOLEAN === ===
   //
+
   #[inline]
   pub fn make_bool(v: bool) -> LTerm {
     if v {
@@ -642,6 +658,31 @@ impl LTerm {
   #[inline]
   pub const fn is_false(self) -> bool {
     self.value == gen_atoms::FALSE.raw()
+  }
+
+  //
+  //=== === CATCH VALUES === ===
+  //
+
+  /// Create a catch marker on stack
+  #[inline]
+  pub fn make_catch(p: *const Word) -> LTerm {
+    let catch_index = (p as Word) >> WORD_ALIGN_SHIFT;
+    assert!(Self::special_value_fits(catch_index));
+    // TODO: Use some smart solution for handling code reloading
+    LTerm::make_special(SPECIALTAG_CATCH, catch_index)
+  }
+
+  #[inline]
+  pub fn is_catch(self) -> bool {
+    self.is_special_of_type(SPECIALTAG_CATCH)
+  }
+
+  #[inline]
+  pub fn get_catch_ptr(self) -> *const Word {
+    assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
+    let val = self.get_special_value() << WORD_ALIGN_SHIFT;
+    val as *const Word
   }
 }
 
