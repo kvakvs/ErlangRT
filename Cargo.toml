@@ -7,10 +7,16 @@ edition = "2018"
 # Add "trace_opcode_execution" to print every opcode
 # Add "trace_register_changes" to print every register change as we go
 [features]
-default = ["r20", "trace_opcode_execution", "trace_register_changes"]
+default = [
+    "r20",
+    "trace_opcode_execution",
+    "trace_register_changes",
+    "trace_stack_changes"
+    ]
 r20 = []
 trace_opcode_execution = []
 trace_register_changes = []
+trace_stack_changes = []
 
 
 [dependencies]

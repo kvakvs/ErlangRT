@@ -28,7 +28,7 @@ fn shared_allocate(
     if stack_need > 0 {
       hp.stack_alloc_unchecked(stack_need, zero);
     }
-    hp.stack_push_unchecked(ctx.cp.to_cp());
+    hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
   } else {
     // Stack has not enough, invoke GC and possibly fail
     panic!("TODO GC here or fail");

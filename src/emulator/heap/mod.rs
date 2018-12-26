@@ -9,6 +9,7 @@ use crate::{
 
 use crate::fail::{Error, RtResult};
 use core::fmt;
+use colored::Colorize;
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: usize = 8192;
@@ -184,21 +185,21 @@ impl Heap {
     println!("Stack (s_top {}, s_end {})", self.stack_top, self.capacity)
   }
 
-  /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
-  #[inline]
-  pub fn stack_push_unchecked(&mut self, val: Word) {
-    if cfg!(feature = "trace_register_changes") {
-      println!("push (unchecked) word {}", val);
-    }
-    self.stack_top -= 1;
-    self.data[self.stack_top] = val;
-  }
+//  /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
+//  #[inline]
+//  pub fn stack_push_unchecked(&mut self, val: Word) {
+//    if cfg!(feature = "trace_stack_changes") {
+//      println!("push (unchecked) word {}", val);
+//    }
+//    self.stack_top -= 1;
+//    self.data[self.stack_top] = val;
+//  }
 
   /// Push a LTerm to stack without checking. Call `stack_have(1)` beforehand.
   #[inline]
   pub fn stack_push_lterm_unchecked(&mut self, val: LTerm) {
-    if cfg!(feature = "trace_register_changes") {
-      println!("push (unchecked) {}", val);
+    if cfg!(feature = "trace_stack_changes") {
+      println!("{} {}", "push (unchecked)".green(), val);
     }
     self.stack_top -= 1;
     self.data[self.stack_top] = val.raw();
@@ -216,8 +217,8 @@ impl Heap {
     if !self.stack_have_y(index) {
       return Err(Error::StackIndexRange(index));
     }
-    if cfg!(feature = "trace_register_changes") {
-      println!("set y{} = {}", index, val);
+    if cfg!(feature = "trace_stack_changes") {
+      println!("{}{} = {}", "set y".green(), index, val);
     }
     self.data[index + self.stack_top + 1] = val.raw();
     Ok(())
