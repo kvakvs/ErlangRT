@@ -1,7 +1,7 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
-use crate::{defs::Arity, emulator::funarity::FunArity, term::lterm::*};
+use crate::{defs::Arity, emulator::funarity::FunArity, fail::RtResult, term::lterm::*};
 use core::fmt;
 
 #[derive(Debug)]
@@ -43,13 +43,17 @@ impl MFASomething {
     panic!("Can't find length for {:?}", self.args)
   }
 
-  pub fn for_each_arg<T>(&self, func: T)
+  pub fn for_each_arg<T>(&self, func: T) -> RtResult<()>
   where
-    T: FnMut(LTerm),
+    T: FnMut(LTerm) -> RtResult<()>,
   {
     match self.args {
-      Args::AsList(lst) => cons::for_each(lst, func),
+      Args::AsList(lst) => {
+        // ignore return value of for_each but do not ignore a possible error
+        cons::for_each(lst, func)?;
+      }
     }
+    Ok(())
   }
 }
 

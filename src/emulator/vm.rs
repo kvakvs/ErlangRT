@@ -69,7 +69,10 @@ impl VM {
     let mfarity = mfargs.get_mfarity();
     let cs = self.get_code_server_p();
     let mut p0 = Process::new(pid, parent, &mfarity, prio, unsafe { &mut (*cs) })?;
-    p0.set_spawn_args(&mfargs);
+
+    // Error may happen here due to arg term copy error
+    p0.set_spawn_args(&mfargs)?;
+
     self.scheduler.register_new_process(pid, p0);
     Ok(pid)
   }

@@ -110,11 +110,12 @@ impl Process {
 
   /// Copy args from mfargs-MFA-something into new process heap and set the
   /// registers to the arguments passed to spawn.
-  pub fn set_spawn_args(&mut self, mfargs: &MFASomething) {
+  pub fn set_spawn_args(&mut self, mfargs: &MFASomething) -> RtResult<()> {
     let mut xindex = 0;
-    mfargs.for_each_arg(|arg| {
+    mfargs.for_each_arg(|arg| -> RtResult<()> {
       self.context.set_x(xindex, arg);
       xindex += 1;
+      Ok(())
     })
   }
 
@@ -155,8 +156,8 @@ impl Process {
   //  }
 
   /// Copy a message and put into process mailbox.
-  pub fn deliver_message(&mut self, message: LTerm) {
-    let m1 = copy_term::copy_to(message, &mut self.heap);
+  pub fn deliver_message(&mut self, message: LTerm) -> RtResult<()> {
+    let m1 = copy_term::copy_to(message, &mut self.heap)?;
     self.mailbox.put(m1);
 
     // Notify our current scheduler that a new message has come to possibly wake
@@ -164,6 +165,7 @@ impl Process {
     unsafe {
       (*self.owned_by_scheduler).notify_new_incoming_message(self);
     }
+    Ok(())
   }
 
   /// Ugly hack to mut-borrow the context without making borrow checker sad.

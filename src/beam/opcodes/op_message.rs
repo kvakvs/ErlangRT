@@ -28,7 +28,7 @@ impl OpcodeSend {
       }
       (*sched).lookup_pid_mut(x0)
     } {
-      p.deliver_message(x1);
+      p.deliver_message(x1)?;
     }
 
     ctx.set_x(0, x1);

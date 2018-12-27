@@ -6,6 +6,7 @@ use crate::{
   term::{boxed, lterm::lterm_impl::LTerm, term_builder::ListBuilder},
 };
 
+// TODO: Rewrite this with for_each when i can think clear again
 pub fn list_length(val: LTerm) -> RtResult<usize> {
   if val == LTerm::nil() {
     return Ok(0);
@@ -54,17 +55,18 @@ pub unsafe fn copy_list_leave_tail(
 }
 
 /// For each list element run the function. Tail element (usually NIL) is ignored.
-pub fn for_each<T>(lst: LTerm, mut func: T)
+/// Returns: Tail element (NIL for proper list) or `None` for empty list
+pub fn for_each<T>(lst: LTerm, mut func: T) -> RtResult<Option<LTerm>>
 where
-  T: FnMut(LTerm),
+  T: FnMut(LTerm) -> RtResult<()>,
 {
   if lst == LTerm::nil() {
-    return;
+    return Ok(None);
   }
   let mut p = lst.get_cons_ptr();
   loop {
     let hd_el = unsafe { (*p).hd() };
-    func(hd_el);
+    func(hd_el)?;
 
     let tl_el = unsafe { (*p).tl() };
     if tl_el.is_cons() {
@@ -72,7 +74,7 @@ where
       p = tl_el.get_cons_ptr();
     } else {
       // for a non list end here
-      break;
+      return Ok(Some(tl_el));
     }
   }
 }

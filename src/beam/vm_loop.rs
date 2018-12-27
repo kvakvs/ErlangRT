@@ -27,7 +27,7 @@ impl VM {
     let ctx_p = curr_p.get_context_p();
     let mut ctx = unsafe { &mut (*ctx_p) };
     ctx.swap_in(); // tell the context, that it is active now
-    // curr_p.heap.print_stack();
+                   // curr_p.heap.print_stack();
 
     let cs = self.get_code_server_p();
 
