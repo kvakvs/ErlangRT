@@ -28,8 +28,11 @@ test_apply(X, Y) ->
     Y:is_boolean(derp).
 
 test_try_catch() ->
-    hello_found = try erlang:error(hello_exception_value)
-                  catch error:E -> E = hello_found
+    % another badmatch might be created here if try/catch doesn't re-raise
+    value3 = try erlang:error(value1)
+                  catch error:E ->
+                    % badmatch is created here and re-raised
+                    E = value2
                   end.
 
 test_try_of_catch() ->
@@ -154,5 +157,5 @@ rev([H | T], R) -> rev(T, [H | R]).
 %% P06 Find out whether a list is a palindrome.
 is_palindrome([])                    -> false;
 is_palindrome(L) when length(L) == 1 -> false;
-is_palindrome(L)                     -> case L == rev(L) of true ->
+is_palindrome(L) -> case L == rev(L) of true ->
     true; false -> false end.

@@ -16,6 +16,14 @@ pub const DEFAULT_LIT_HEAP: usize = 8192;
 /// Default heap size when spawning a process. (default: 300)
 pub const DEFAULT_PROC_HEAP: usize = 16384;
 
+pub struct NextCatchResult {
+  /// Catch jump pointer, where exception handling code (Erlang `catch` /
+  /// Asm `try_case`) is located
+  pub loc: *const Word,
+  /// How many stack cells have to be dropped
+  pub stack_drop: usize,
+}
+
 /// A heap structure which grows upwards with allocations. Cannot expand
 /// implicitly and will return error when capacity is exceeded. Organize a
 /// garbage collect call to get more memory TODO: gc on heap
@@ -270,10 +278,13 @@ impl Heap {
 
   /// Go through stack values searching for a stored CP, skip if it does not
   /// point to a catch instruction.
-  /// Returns: Catch jump pointer or NON_VALUE (not found).
-  pub unsafe fn next_catch(&self) -> Option<(*const Word, usize)> {
+  /// Returns the location stored on stack and
+  pub unsafe fn unroll_stack_until_catch(&self) -> Option<NextCatchResult> {
     let mut ptr: *const Word = self.get_stack_top_ptr();
     let stack_start: *const Word = self.get_stack_start_ptr();
+    // Counter how many stack cells to drop
+    let mut stack_drop = 0usize;
+
     loop {
       if ptr >= stack_start {
         return None;
@@ -282,17 +293,23 @@ impl Heap {
       let term_at_ptr = LTerm::from_raw(core::ptr::read(ptr));
 
       if term_at_ptr.is_catch() {
-        // read opcode where CP is pointing, to check if it is a catch and not a
-        // return address
-        let new_stack_top = pointer_diff(self.get_end_ptr(), ptr);
-        return Some((term_at_ptr.get_catch_ptr(), new_stack_top));
+        return Some(NextCatchResult {
+          loc: term_at_ptr.get_catch_ptr(),
+          stack_drop
+        });
       }
       ptr = ptr.add(1);
+      stack_drop += 1;
     }
   }
 
   #[allow(dead_code)]
   pub fn print_stack(&self) {
+    if self.stack_depth() == 0 {
+      println!("stack: empty");
+      return;
+    }
+
     let mut i = 0;
     let max_i = self.stack_depth() - 1;
     loop {
@@ -304,9 +321,12 @@ impl Heap {
     }
   }
 
-  pub fn set_stack_top(&mut self, new_stack_top: usize) {
-    println!("set stack_top to={} old={}", new_stack_top, self.stack_top);
-    self.stack_top = self.get_heap_max_capacity() - new_stack_top;
+  /// Sets the stack top.
+  /// Arg: new_stack_top - offset from the heap end
+  pub fn drop_stack_words(&mut self, n_drop: usize) {
+    println!("drop_stack_words {}", n_drop);
+    assert!(self.stack_top + n_drop < self.capacity);
+    self.stack_top += n_drop;
   }
 }
 

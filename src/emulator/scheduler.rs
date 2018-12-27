@@ -161,7 +161,11 @@ impl Scheduler {
   fn log_next_process(maybe_pid: Option<LTerm>) {
     if cfg!(feature = "trace_opcode_execution") {
       if let Some(pid) = maybe_pid {
-        println!("+ {} {}", "Scheduler: switching to".yellow().on_blue(), pid);
+        println!(
+          "+ {} {} --- --- --- --- --- --- ---",
+          "Scheduler: switching to".yellow().on_blue(),
+          pid
+        );
       } else {
         println!(
           "+ {}",
@@ -285,16 +289,16 @@ impl Scheduler {
     println!("Catching {}:{}", p_error.0, p_error.1);
     println!("{}", proc.context);
 
-    match unsafe { proc.heap.next_catch() } {
-      Some((catch_loc, new_stack_top)) => {
-        println!("Catch found: {:p}", catch_loc);
+    match unsafe { proc.heap.unroll_stack_until_catch() } {
+      Some(next_catch) => {
+        println!("Catch found: {:p}", next_catch.loc);
         proc.context.set_x(0, LTerm::non_value());
         proc.context.set_x(1, p_error.0.to_atom());
         proc.context.set_x(2, p_error.1);
         proc.context.set_x(3, LTerm::nil()); // stacktrace object goes here
-        proc.context.jump_ptr(catch_loc);
+        proc.context.jump_ptr(next_catch.loc);
         proc.context.clear_cp();
-        proc.heap.set_stack_top(new_stack_top);
+        proc.heap.drop_stack_words(next_catch.stack_drop);
 
         // TODO: Clear save mark on recv in process.mailbox
         return ScheduleHint::ContinueSameProcess;

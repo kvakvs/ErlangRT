@@ -3,35 +3,10 @@
 /// on error (to return error use Hopefully's Error::Exception/2)
 #[allow(dead_code)]
 pub enum DispatchResult {
+  // Continue running
   Normal,
+  // Process falls asleep (loses its running status and waits for its turn)
   Yield,
+  // Process is done
   Finished,
 }
-
-// impl DispatchResult {
-//  pub fn badmatch_val(val: LTerm, hp: &mut Heap) -> RtResult<DispatchResult> {
-//    let badmatch_tuple = make_badmatch(val, hp)?;
-//    Err(Error::Exception(ExceptionType::Error, badmatch_tuple))
-//  }
-//
-//  pub fn badarity() -> RtResult<DispatchResult> {
-//    Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARITY))
-//  }
-//
-//  pub fn badarg() -> RtResult<DispatchResult> {
-//    Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG))
-//  }
-//
-//  pub fn undef() -> RtResult<DispatchResult> {
-//    Err(Error::Exception(ExceptionType::Error, gen_atoms::UNDEF))
-//  }
-//
-//  pub fn badfun() -> RtResult<DispatchResult> {
-//    Err(Error::Exception(ExceptionType::Error, gen_atoms::BADFUN))
-//  }
-//
-//  pub fn badfun_val(val: LTerm, hp: &mut Heap) -> RtResult<DispatchResult> {
-//    let badfun_tuple = make_badfun(val, hp)?;
-//    Err(Error::Exception(ExceptionType::Error, badfun_tuple))
-//  }
-//}

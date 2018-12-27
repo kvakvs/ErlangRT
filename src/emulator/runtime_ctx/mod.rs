@@ -241,11 +241,15 @@ impl Context {
   #[inline]
   pub fn jump(&mut self, cp: LTerm) {
     debug_assert!(cp.is_cp());
+    println!("jump to {:p}", cp.get_cp_ptr::<Word>());
     self.ip = CodePtr::from_cp(cp);
   }
 
   #[inline]
   pub fn jump_ptr(&mut self, code_ptr: *const Word) {
+    if cfg!(feature = "trace_opcode_execution") {
+      println!("jump to {:p}", code_ptr);
+    }
     self.ip = CodePtr::new(code_ptr);
   }
 }
