@@ -67,10 +67,12 @@ impl VM {
           return Ok(true);
         }
         DispatchResult::Normal => {
-          curr_p.timeslice_result = SliceResult::None;
+          // curr_p.timeslice_result = SliceResult::None;
         } // keep looping
         DispatchResult::Finished => {
+          // Scheduler will terminate the process with EXIT:NORMAL
           curr_p.timeslice_result = SliceResult::Finished;
+          return Ok(true);
         }
       }
 

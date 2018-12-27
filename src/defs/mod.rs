@@ -50,6 +50,7 @@ impl Reductions {
 //  WordSize::new((n + WORD_BYTES - 1) / WORD_BYTES)
 //}
 
+#[allow(dead_code)]
 #[inline]
 pub fn pointer_diff<T>(a: *const T, b: *const T) -> usize {
   assert!(a >= b);

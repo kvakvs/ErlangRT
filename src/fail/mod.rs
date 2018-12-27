@@ -10,7 +10,7 @@ use crate::{
 };
 use std::convert::From;
 
-// TODO: Rename to RTError-something
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum Error {
   FileNotFound(String),

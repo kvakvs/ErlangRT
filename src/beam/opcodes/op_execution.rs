@@ -3,14 +3,12 @@
 
 use crate::{
   beam::disp_result::DispatchResult,
-  defs::exc_type::ExceptionType,
   emulator::{
-    gen_atoms,
     process::Process,
     runtime_ctx::{call_bif, Context},
     vm::VM,
   },
-  fail::{self, Error, RtResult},
+  fail::{self, RtResult},
   term::{boxed, compare, lterm::*},
 };
 use core::cmp::Ordering;
@@ -254,7 +252,8 @@ impl OpcodeReturn {
       if curr_p.heap.stack_depth() == 0 {
         // Process end of life: return on empty stack
         println!("Process end of life (return on empty stack)");
-        return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
+        //return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
+        return Ok(DispatchResult::Finished);
       } else {
         panic!(
           "{}Return instruction with 0 in ctx.cp. Possible error in CP value management",

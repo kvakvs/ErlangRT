@@ -3,7 +3,7 @@ pub mod dump;
 pub mod iter;
 
 use crate::{
-  defs::{pointer_diff, Word, WordSize},
+  defs::{Word, WordSize},
   fail::{Error, RtResult},
   term::{boxed, lterm::*},
 };

@@ -251,6 +251,7 @@ impl Scheduler {
       }
 
       SliceResult::Finished => {
+        // Scheduler will terminate the process with EXIT:NORMAL
         let err = (ExceptionType::Exit, gen_atoms::NORMAL);
         self.terminate_process(curr_pid, err)
       }
