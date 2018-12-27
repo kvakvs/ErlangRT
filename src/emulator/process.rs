@@ -2,7 +2,7 @@
 //! heap, stack, registers, and message queue.
 
 use crate::{
-  defs::ExceptionType,
+  defs::exc_type::ExceptionType,
   emulator::{
     code_srv::CodeServer,
     heap::{copy_term, Heap, DEFAULT_PROC_HEAP},

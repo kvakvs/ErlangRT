@@ -74,7 +74,7 @@ impl Context {
     if cfg!(feature = "trace_register_changes") {
       println!("{}{} = {}", "set x".blue(), index, val);
     }
-    debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
+    // debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
     self.regs[index] = val;
   }
 

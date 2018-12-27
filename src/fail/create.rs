@@ -1,5 +1,5 @@
 use crate::{
-  defs::ExceptionType,
+  defs::exc_type::ExceptionType,
   emulator::{gen_atoms, heap::Heap},
   fail::{Error, RtResult},
   term::{

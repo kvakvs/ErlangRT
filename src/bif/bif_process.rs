@@ -1,6 +1,6 @@
 use crate::{
   bif::assert_arity,
-  defs::ExceptionType,
+  defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
     mfa::{Args, MFASomething, MFArity},

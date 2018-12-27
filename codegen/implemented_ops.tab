@@ -72,3 +72,5 @@ test_arity
 #=== === Try/Catch/Raise === ===
 try
 try_case
+raise
+# raw_raise # otp21

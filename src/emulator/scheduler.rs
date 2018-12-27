@@ -1,10 +1,7 @@
 //! Code related to task scheduling and priorities.
 use crate::{
-  defs::{ExceptionType, Word},
-  emulator::{
-    gen_atoms,
-    process::{Process},
-  },
+  defs::{exc_type::ExceptionType, Word},
+  emulator::{gen_atoms, process::Process},
   term::lterm::*,
 };
 use colored::Colorize;
@@ -164,11 +161,7 @@ impl Scheduler {
   fn log_next_process(maybe_pid: Option<LTerm>) {
     if cfg!(feature = "trace_opcode_execution") {
       if let Some(pid) = maybe_pid {
-        println!(
-          "+ {} {}",
-          "Scheduler: switching to".yellow().on_blue(),
-          pid
-        );
+        println!("+ {} {}", "Scheduler: switching to".yellow().on_blue(), pid);
       } else {
         println!(
           "+ {}",
@@ -259,7 +252,7 @@ impl Scheduler {
       }
 
       SliceResult::Exception => {
-        return self.on_exception_check_trycatch(curr_p, curr_pid);
+        return self.handle_process_exception(curr_p, curr_pid);
       }
 
       SliceResult::Wait => {
@@ -271,7 +264,7 @@ impl Scheduler {
 
   /// If exception happened, check whether a process is catching anything at
   /// this moment, otherwise proceed to terminate.
-  fn on_exception_check_trycatch(
+  fn handle_process_exception(
     &mut self,
     proc_p: *mut Process,
     proc_pid: LTerm,
@@ -290,14 +283,23 @@ impl Scheduler {
     }
 
     println!("Catching {}:{}", p_error.0, p_error.1);
+    println!("{}", proc.context);
+
     match unsafe { proc.heap.next_catch() } {
-      Some(catch_loc) => {
+      Some((catch_loc, new_stack_top)) => {
         println!("Catch found: {:p}", catch_loc);
+        proc.context.set_x(0, LTerm::non_value());
+        proc.context.set_x(1, p_error.0.to_atom());
+        proc.context.set_x(2, p_error.1);
+        proc.context.set_x(3, LTerm::nil()); // stacktrace object goes here
         proc.context.jump_ptr(catch_loc);
         proc.context.clear_cp();
+        proc.heap.set_stack_top(new_stack_top);
+
         // TODO: Clear save mark on recv in process.mailbox
         return ScheduleHint::ContinueSameProcess;
       }
+
       None => {
         println!("Catch not found, terminating...");
         self.terminate_process(proc_pid, p_error);
@@ -371,7 +373,8 @@ impl Scheduler {
       "{}Terminating pid {} error={}:{}",
       module(),
       pid,
-      e.0, e.1 //, p.runtime_ctx.regs[0]
+      e.0,
+      e.1 //, p.runtime_ctx.regs[0]
     );
 
     self.timed_wait.remove(&pid);

@@ -1,8 +1,8 @@
 //! Helper module defines types used everywhere in the VM runtime
 pub mod sizes;
 pub use self::sizes::*;
+pub mod exc_type;
 
-use core::fmt;
 use std::{isize, usize};
 
 /// Word is an unsigned machine-register sized word. Do not use for sizes and
@@ -44,28 +44,16 @@ impl Reductions {
   pub const FETCH_OPCODE_COST: isize = 1;
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-#[allow(dead_code)]
-pub enum ExceptionType {
-  Panic, // ignore catches
-  Throw,
-  Error,
-  Exit,
-}
-
-impl fmt::Display for ExceptionType {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    match *self {
-      ExceptionType::Exit => write!(f, "<exit>"),
-      ExceptionType::Throw => write!(f, "<throw>"),
-      ExceptionType::Error => write!(f, "<error>"),
-      ExceptionType::Panic => write!(f, "<panic>"),
-    }
-  }
-}
-
 // / For n bytes calculate how many words are required to store this
 //#[inline]
 // pub const fn storage_bytes_to_words(n: Word) -> WordSize {
 //  WordSize::new((n + WORD_BYTES - 1) / WORD_BYTES)
 //}
+
+#[inline]
+pub fn pointer_diff<T>(a: *const T, b: *const T) -> usize {
+  assert!(a >= b);
+  let an = a as usize;
+  let bn = b as usize;
+  (an - bn) / core::mem::size_of::<T>()
+}

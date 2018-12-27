@@ -51,7 +51,7 @@ impl VM {
       // Handle next opcode
       let disp_result = match dispatch_op_inline(self, op, &mut ctx, curr_p) {
         Err(Error::Exception(exc_type, exc_reason)) => {
-          println!("vm: Exception type={:?} reason={}", exc_type, exc_reason);
+          println!("vm: Exception type={} reason={}", exc_type, exc_reason);
           curr_p.set_exception(exc_type, exc_reason);
           curr_p.timeslice_result = SliceResult::Exception;
           return Ok(true);

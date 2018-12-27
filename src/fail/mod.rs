@@ -4,7 +4,7 @@ pub mod create;
 
 use crate::{
   beam::compact_term::CTError,
-  defs::ExceptionType,
+  defs::exc_type::ExceptionType,
   rt_util::bin_reader::{self, ReadError},
   term::lterm::LTerm,
 };

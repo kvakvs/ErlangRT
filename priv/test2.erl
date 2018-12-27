@@ -28,9 +28,9 @@ test_apply(X, Y) ->
     Y:is_boolean(derp).
 
 test_try_catch() ->
-    try erlang:error(hello)
-    catch error:E -> E = hello
-    end.
+    hello_found = try erlang:error(hello_exception_value)
+                  catch error:E -> E = hello_found
+                  end.
 
 test_try_of_catch() ->
     try self() of
@@ -61,7 +61,7 @@ test_mochijson() ->
 test_hof_nested() ->
     C = fun(X, _) -> X end,
     %[{b} | Z] = lists:foldl(C, [], [a,b]),
-    Z = lists:foldl(C, [], [a, [a,b,c]]),
+    Z = lists:foldl(C, [], [a, [a, b, c]]),
     lists:reverse(Z).
 
 test_hof() ->
@@ -112,11 +112,11 @@ test_list_ops() ->
 %    F(2).
 
 recurse(X) when X > 0 -> recurse(X - 1);
-recurse(X) -> X.
+recurse(X)            -> X.
 
 %% From 99 problems: P01 Find the last box of a list.
 %% Variant without using list reverse
-my_last2([]) -> false;
+my_last2([])       -> false;
 my_last2([H | []]) -> H;
 my_last2([_H | T]) when length(T) == 1 ->
     [H1 | []] = T,
@@ -126,32 +126,33 @@ my_last2([_H | T]) ->
 
 %% From 99 problems: P02 Find the last but one box of a list.
 %% Variant without using list reverse 
-my_but_last2([]) -> false;
-my_but_last2([_H | []]) -> false;
+my_but_last2([])                          -> false;
+my_but_last2([_H | []])                   -> false;
 my_but_last2([H | T]) when length(T) == 1 -> H;
-my_but_last2([_H | T]) -> my_but_last2(T).
+my_but_last2([_H | T])                    -> my_but_last2(T).
 
 %% From 99 problems: P03 Find the K'th element of a list.
 %% Find the K'th element of a list (1-based)
 element_at(K, L) when length(L) < K -> false;
-element_at(K, L) -> element_at(K, L, 1).
+element_at(K, L)                    -> element_at(K, L, 1).
 element_at(K, [H | _T], C) when C == K -> H;
-element_at(K, [_H | T], C) -> element_at(K, T, C + 1).
+element_at(K, [_H | T], C)             -> element_at(K, T, C + 1).
 
 %% From 99 problems: P04 Find the number of elements of a list.
 len([]) -> 0;
-len(L) -> len(L, 0).
+len(L)  -> len(L, 0).
 
-len([], Count) -> Count;
+len([], Count)       -> Count;
 len([_H | T], Count) -> len(T, Count + 1).
 
 %% From 99 problems: P05 Reverse a list.
 rev([]) -> [];
-rev(L) -> rev(L, []).
-rev([], R) -> R;
+rev(L)  -> rev(L, []).
+rev([], R)      -> R;
 rev([H | T], R) -> rev(T, [H | R]).
 
 %% P06 Find out whether a list is a palindrome.
-is_palindrome([]) -> false;
+is_palindrome([])                    -> false;
 is_palindrome(L) when length(L) == 1 -> false;
-is_palindrome(L) -> case L == rev(L) of true -> true; false -> false end.
+is_palindrome(L)                     -> case L == rev(L) of true ->
+    true; false -> false end.

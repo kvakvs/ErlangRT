@@ -1,6 +1,6 @@
 use crate::{
   bif::assert_arity,
-  defs::ExceptionType,
+  defs::exc_type::ExceptionType,
   emulator::{process::Process, vm::VM},
   fail::{Error, RtResult},
   term::{builders::make_badfun_n, lterm::LTerm, term_builder::TupleBuilder},

@@ -3,13 +3,12 @@ pub mod dump;
 pub mod iter;
 
 use crate::{
-  defs::{Word, WordSize},
+  defs::{pointer_diff, Word, WordSize},
+  fail::{Error, RtResult},
   term::{boxed, lterm::*},
 };
-
-use crate::fail::{Error, RtResult};
-use core::fmt;
 use colored::Colorize;
+use core::fmt;
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: usize = 8192;
@@ -37,7 +36,7 @@ impl fmt::Debug for Heap {
     write!(
       f,
       "Heap{{ cap: {}, used: {} }}",
-      self.heap_capacity(),
+      self.get_heap_max_capacity(),
       self.get_heap_used_words()
     )
   }
@@ -50,20 +49,27 @@ impl Heap {
       data: Vec::with_capacity(capacity),
       heap_top: 0,
       stack_top: capacity,
-      capacity: capacity,
+      capacity,
     };
     unsafe { h.data.set_len(capacity) };
     h
   }
 
   /// How many words do we have before it will require GC/growth.
-  fn heap_capacity(&self) -> usize {
+  #[inline]
+  fn get_heap_max_capacity(&self) -> usize {
     self.data.capacity()
   }
 
   /// Heap usage stat.
+  #[inline]
   fn get_heap_used_words(&self) -> usize {
     self.heap_top
+  }
+
+  #[inline]
+  fn get_heap_available(&self) -> usize {
+    self.stack_top - self.heap_top
   }
 
   #[inline]
@@ -104,7 +110,8 @@ impl Heap {
     let n_words = n.words();
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n_words >= self.stack_top {
-      return Err(Error::HeapIsFull);
+      //return Err(Error::HeapIsFull);
+      panic!("Heap is full requested={} have={}", n, self.get_heap_available());
     }
 
     // Assume we can grow the data without reallocating
@@ -185,15 +192,15 @@ impl Heap {
     println!("Stack (s_top {}, s_end {})", self.stack_top, self.capacity)
   }
 
-//  /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
-//  #[inline]
-//  pub fn stack_push_unchecked(&mut self, val: Word) {
-//    if cfg!(feature = "trace_stack_changes") {
-//      println!("push (unchecked) word {}", val);
-//    }
-//    self.stack_top -= 1;
-//    self.data[self.stack_top] = val;
-//  }
+  //  /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
+  //  #[inline]
+  //  pub fn stack_push_unchecked(&mut self, val: Word) {
+  //    if cfg!(feature = "trace_stack_changes") {
+  //      println!("push (unchecked) word {}", val);
+  //    }
+  //    self.stack_top -= 1;
+  //    self.data[self.stack_top] = val;
+  //  }
 
   /// Push a LTerm to stack without checking. Call `stack_have(1)` beforehand.
   #[inline]
@@ -226,6 +233,7 @@ impl Heap {
 
   pub fn get_y(&self, index: Word) -> RtResult<LTerm> {
     if !self.stack_have_y(index) {
+      println!("Stack value requested y{}, depth={}", index, self.stack_depth());
       return Err(Error::StackIndexRange(index));
     }
     let pos = index + self.stack_top + 1;
@@ -263,7 +271,7 @@ impl Heap {
   /// Go through stack values searching for a stored CP, skip if it does not
   /// point to a catch instruction.
   /// Returns: Catch jump pointer or NON_VALUE (not found).
-  pub unsafe fn next_catch(&self) -> Option<*const Word> {
+  pub unsafe fn next_catch(&self) -> Option<(*const Word, usize)> {
     let mut ptr: *const Word = self.get_stack_top_ptr();
     let stack_start: *const Word = self.get_stack_start_ptr();
     loop {
@@ -276,7 +284,8 @@ impl Heap {
       if term_at_ptr.is_catch() {
         // read opcode where CP is pointing, to check if it is a catch and not a
         // return address
-        return Some(term_at_ptr.get_catch_ptr());
+        let new_stack_top = pointer_diff(self.get_end_ptr(), ptr);
+        return Some((term_at_ptr.get_catch_ptr(), new_stack_top));
       }
       ptr = ptr.add(1);
     }
@@ -293,6 +302,11 @@ impl Heap {
       println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
       i += 1;
     }
+  }
+
+  pub fn set_stack_top(&mut self, new_stack_top: usize) {
+    println!("set stack_top to={} old={}", new_stack_top, self.stack_top);
+    self.stack_top = self.get_heap_max_capacity() - new_stack_top;
   }
 }
 
