@@ -28,12 +28,8 @@ test_apply(X, Y) ->
     Y:is_boolean(derp).
 
 test_try_catch() ->
-    % another badmatch might be created here if try/catch doesn't re-raise
-    value3 = try erlang:error(value1)
-                  catch error:E ->
-                    % badmatch is created here and re-raised
-                    E = value2
-                  end.
+    value1 = try erlang:error(value1)
+             catch error:E -> E end.
 
 test_try_of_catch() ->
     try self() of
