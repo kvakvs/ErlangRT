@@ -43,6 +43,8 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_erlang_greaterthan_2 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::GREATEREQUAL, arity: 2,
         func: bif::ubif_erlang_greaterequal_2 },
+    BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::ATOM_TO_LIST, arity: 1,
+        func: bif::bif_erlang_atom_to_list_1 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::ERROR, arity: 1,
         func: bif::bif_erlang_error_1 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::ERROR, arity: 2,

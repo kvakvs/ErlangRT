@@ -32,6 +32,7 @@ bif     erlang:error/2
 #bif     erlang:exit/2
 #bif     erlang:throw/1
 #bif     erlang:raise/3
+bif erlang:atom_to_list/1
 
 #
 #

@@ -107,3 +107,19 @@ where
     }
   }
 }
+
+/// Given Rust `String`, create list of characters on heap
+// TODO: Optimize by adding new string type which is not a list?
+pub unsafe fn rust_str_to_list(s: &String, hp: &mut Heap) -> RtResult<LTerm> {
+  let mut lb = ListBuilder::new(hp)?;
+  for pos_char in s.char_indices() {
+    // Create another cell if this is not the first cell
+    if pos_char.0 > 0 {
+      lb.next()?;
+    }
+    let ch = pos_char.1 as usize;
+    lb.set(LTerm::make_small_unsigned(ch));
+  }
+  lb.end_with_nil();
+  Ok(lb.make_term())
+}

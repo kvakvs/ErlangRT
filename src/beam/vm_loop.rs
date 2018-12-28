@@ -76,6 +76,12 @@ impl VM {
         }
       }
 
+      // TODO: this seems to not work?
+      if self.scheduler.get_process_count() == 0 {
+        println!("All processes finished, this is the end.");
+        return Ok(false);
+      }
+
       if ctx.reductions <= 0 {
         // curr_p.heap.print_stack();
         // Out of reductions, just give up and let another one run

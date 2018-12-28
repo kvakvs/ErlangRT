@@ -104,6 +104,10 @@ impl Scheduler {
     }
   }
 
+  pub fn get_process_count(&self) -> usize {
+    self.processes.len()
+  }
+
   /// Register a process `proc_` in the process table and also queue it for
   /// execution. This is invoked by vm when a new process is spawned.
   pub fn register_new_process(&mut self, pid: LTerm, mut proc: Process) {
