@@ -18,7 +18,6 @@ test() ->
     test_send_receive(),
     test_ring(),
     test_try_catch(),
-    test_try_of_catch(),
     test_mochijson(),
     test_apply(lists, erlang).
 
@@ -30,13 +29,6 @@ test_apply(X, Y) ->
 test_try_catch() ->
     value1 = try erlang:error(value1)
              catch error:E -> E end.
-
-test_try_of_catch() ->
-    try self() of
-        X when is_pid(X) -> erlang:error(hello);
-        Y -> not_ok
-    catch error:E -> E = hello
-    end.
 
 test_send_receive() ->
     self() ! test,

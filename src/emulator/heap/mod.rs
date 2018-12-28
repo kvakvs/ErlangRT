@@ -293,9 +293,12 @@ impl Heap {
       let term_at_ptr = LTerm::from_raw(core::ptr::read(ptr));
 
       if term_at_ptr.is_catch() {
+        // Typical stack frame looks like:
+        // >>-top-> CP Catch ...
+        // Drop 1 less word than where the catch was found to preserve that CP
         return Some(NextCatchResult {
           loc: term_at_ptr.get_catch_ptr(),
-          stack_drop
+          stack_drop: stack_drop - 1
         });
       }
       ptr = ptr.add(1);

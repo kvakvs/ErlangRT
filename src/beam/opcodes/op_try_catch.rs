@@ -45,6 +45,31 @@ impl OpcodeTry {
   }
 }
 
+/// End try-catch by clearing the catch value on stack
+/// Structure: try_end(reg:regy)
+pub struct OpcodeTryEnd {}
+
+impl OpcodeTryEnd {
+  pub const ARITY: usize = 1;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let reg = ctx.fetch_term();
+    debug_assert!(reg.is_regy());
+
+    curr_p.num_catches -= 1;
+
+    let hp = &mut curr_p.heap;
+    hp.set_y(reg.get_special_value(), LTerm::nil())?;
+
+    Ok(DispatchResult::Normal)
+  }
+}
+
 /// Concludes the catch, removes catch value from stack and shifts registers
 /// contents to prepare for exception checking.
 /// Structure: try_case(reg:regy)
