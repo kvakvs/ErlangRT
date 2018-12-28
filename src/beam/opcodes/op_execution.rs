@@ -317,17 +317,24 @@ impl OpcodeSelectVal {
   pub const ARITY: usize = 3;
 
   #[inline]
+  fn fetch_args(ctx: &mut Context,
+                curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
+    let hp = &curr_p.heap;
+    let val = ctx.fetch_and_load(hp);
+    let fail_label = ctx.fetch_term();
+    let pairs_tuple = ctx.fetch_and_load(hp);
+    debug_assert!(pairs_tuple.is_tuple());
+    (val, fail_label, pairs_tuple)
+  }
+
+  #[inline]
   pub fn run(
     _vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let hp = &curr_p.heap;
-    let val = ctx.fetch_and_load(hp);
-    let fail_label = ctx.fetch_term();
+    let (val, fail_label, pairs_tuple) = Self::fetch_args(ctx, curr_p);
 
-    let pairs_tuple = ctx.fetch_and_load(hp);
-    debug_assert!(pairs_tuple.is_tuple());
     let tuple_ptr = pairs_tuple.get_box_ptr::<boxed::Tuple>();
     let pairs_count = unsafe { (*tuple_ptr).get_arity() / 2 };
 
@@ -342,6 +349,25 @@ impl OpcodeSelectVal {
 
     // None matched, jump to fail label
     ctx.jump(fail_label);
+    Ok(DispatchResult::Normal)
+  }
+}
+
+/// Jumps to label.
+/// Structure: jump(dst:label)
+pub struct OpcodeJump {}
+
+impl OpcodeJump {
+  pub const ARITY: usize = 1;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let dst = ctx.fetch_term();
+    ctx.jump(dst);
     Ok(DispatchResult::Normal)
   }
 }

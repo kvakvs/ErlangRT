@@ -207,6 +207,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeSelectVal::run(vm, ctx, curr_p);
     },
 
+    OPCODE_JUMP => {
+      assert_arity(OPCODE_JUMP, OpcodeJump::ARITY);
+      return OpcodeJump::run(vm, ctx, curr_p);
+    },
+
     OPCODE_MOVE => {
       assert_arity(OPCODE_MOVE, OpcodeMove::ARITY);
       return OpcodeMove::run(vm, ctx, curr_p);

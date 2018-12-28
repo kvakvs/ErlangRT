@@ -5,8 +5,8 @@ bif1
 bif2
 call
 call_ext
-call_ext_only
 call_ext_last
+call_ext_only
 call_fun
 call_last
 call_only
@@ -14,6 +14,7 @@ func_info
 gc_bif1
 gc_bif2
 gc_bif3
+jump
 make_fun2
 return
 select_val
