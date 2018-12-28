@@ -393,7 +393,7 @@ impl LTerm {
 
   #[inline]
   pub fn is_list(self) -> bool {
-    self.is_cons() || self == LTerm::nil()
+    self == LTerm::nil() || self.is_cons()
   }
 
   /// Check whether the value is a CONS pointer

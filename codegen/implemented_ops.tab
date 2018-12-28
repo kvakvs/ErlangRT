@@ -44,17 +44,18 @@ is_ge
 is_lt
 
 #=== === Type Tests === ===
+is_atom
 is_binary
 is_float
+is_function
+is_function2
+is_integer
+is_list
 is_number
 is_pid
 is_port
 is_reference
 is_tuple
-is_atom
-is_function
-is_function2
-is_integer
 
 #=== === Mailbox === ===
 loop_rec
@@ -71,8 +72,8 @@ set_tuple_element
 test_arity
 
 #=== === Try/Catch/Raise === ===
-try
-try_case
 raise
 # raw_raise # otp21
+try
+try_case
 try_end

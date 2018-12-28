@@ -6,13 +6,13 @@ pub struct FunEntry {
   pub mfa: MFArity,
   //  code_pos: usize,
   //  index: usize,
-  pub nfree: usize,
+  pub nfrozen: usize,
   //  ouniq: usize,
 }
 
 impl FunEntry {
-  pub fn new(mfa: MFArity, nfree: usize) -> FunEntry {
-    FunEntry { mfa, nfree }
+  pub fn new(mfa: MFArity, nfrozen: usize) -> FunEntry {
+    FunEntry { mfa, nfrozen }
   }
 }
 

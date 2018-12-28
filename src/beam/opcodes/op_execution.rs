@@ -122,7 +122,7 @@ impl OpcodeCallExtOnly {
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let (arity, dst) = Self::fetch_args(ctx, curr_p);
-    let args = ctx.registers_slice(arity);
+    let args = ctx.registers_slice(0, arity);
     shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
@@ -150,7 +150,7 @@ impl OpcodeCallExt {
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let (arity, dst) = Self::fetch_args(ctx, curr_p);
-    let args = ctx.registers_slice(arity);
+    let args = ctx.registers_slice(0, arity);
     shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
   }
 }
@@ -182,7 +182,7 @@ impl OpcodeCallExtLast {
     let new_cp = curr_p.heap.stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
 
-    let args = ctx.registers_slice(arity);
+    let args = ctx.registers_slice(0, arity);
     shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
@@ -364,7 +364,7 @@ impl OpcodeJump {
   pub fn run(
     _vm: &mut VM,
     ctx: &mut Context,
-    curr_p: &mut Process,
+    _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let dst = ctx.fetch_term();
     ctx.jump(dst);

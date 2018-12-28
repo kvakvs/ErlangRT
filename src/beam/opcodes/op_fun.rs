@@ -29,11 +29,10 @@ impl OpcodeMakeFun2 {
     let fe_box = ctx.fetch_term();
     let fe = fe_box.get_cp_ptr::<FunEntry>();
 
-    // panic!("boom");
     let hp = &mut curr_p.heap;
     let closure = unsafe {
-      let nfree = (*fe).nfree as usize;
-      let frozen = ctx.registers_slice(nfree);
+      let nfrozen = (*fe).nfrozen as usize;
+      let frozen = ctx.registers_slice(0, nfrozen);
       boxed::Closure::create_into(hp, fe.as_ref().unwrap(), frozen)?
     };
     ctx.set_x(0, closure);
@@ -59,14 +58,14 @@ impl OpcodeCallFun {
     let args = unsafe { slice::from_raw_parts(&ctx.get_x(0), arity) };
 
     // Take function object argument
-    let fobj = ctx.get_x(arity);
+    let fun_object = ctx.get_x(arity);
 
     // need mutable closure to possibly update dst in it later, during `apply`
-    if let Ok(closure) = unsafe { boxed::Closure::mut_from_term(fobj) } {
-      // `fobj` is a callable closure made with `fun() -> code end`
+    if let Ok(closure) = unsafe { boxed::Closure::mut_from_term(fun_object) } {
+      // `fun_object` is a callable closure made with `fun() -> code end`
       runtime_ctx::call_closure::apply(vm, ctx, curr_p, closure, args)
-    } else if let Ok(export) = unsafe { boxed::Export::mut_from_term(fobj) } {
-      // `fobj` is an export made with `fun module:name/0`
+    } else if let Ok(export) = unsafe { boxed::Export::mut_from_term(fun_object) } {
+      // `fun_object` is an export made with `fun module:name/0`
       runtime_ctx::call_export::apply(vm, ctx, curr_p, export, args, true)
     } else {
       fail::create::badfun()

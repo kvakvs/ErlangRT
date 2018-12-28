@@ -70,7 +70,7 @@ struct LFun {
   fun_atom_i: usize,
   code_pos: usize,
   index: usize,
-  nfree: usize,
+  nfrozen: usize,
   ouniq: usize,
 }
 
@@ -270,7 +270,7 @@ impl Loader {
       let fun_name = self.atom_from_loadtime_index(rf.fun_atom_i);
       let mfa = MFArity::new(self.module_name(), fun_name, rf.arity);
       println!("{}stage2_fill_lambdas mfa={}", module(), mfa);
-      self.lambdas.push(FunEntry::new(mfa, rf.nfree))
+      self.lambdas.push(FunEntry::new(mfa, rf.nfrozen))
     }
   }
 
@@ -418,14 +418,14 @@ impl Loader {
       let arity = r.read_u32be() as usize;
       let code_pos = r.read_u32be() as usize;
       let index = r.read_u32be() as usize;
-      let nfree = r.read_u32be() as usize;
+      let nfrozen = r.read_u32be() as usize;
       let ouniq = r.read_u32be() as usize;
       self.raw.lambdas.push(LFun {
         fun_atom_i: fun_atom,
         arity: arity as Arity,
         code_pos,
         index,
-        nfree,
+        nfrozen,
         ouniq,
       })
     }

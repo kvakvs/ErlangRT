@@ -14,8 +14,7 @@ use crate::{
   },
 };
 use colored::Colorize;
-use core::fmt;
-use core::slice;
+use core::{fmt, slice};
 
 pub mod call_bif;
 pub mod call_closure;
@@ -129,14 +128,18 @@ impl Context {
     }
   }
 
-  pub fn registers_slice(&mut self, sz: usize) -> &'static [LTerm] {
-    //    debug_assert!(
-    //      self.live >= sz,
-    //      "Trying to slice {} (more registers than live {})",
-    //      sz,
-    //      self.live
-    //    );
-    unsafe { slice::from_raw_parts(self.regs.as_ptr(), sz) }
+  /// Returns slice of registers `offset` to `sz`, bypassing the borrow checker
+  pub fn registers_slice(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
+    unsafe { slice::from_raw_parts(self.regs.as_ptr().add(offset), sz) }
+  }
+
+  /// Returns mutable slice of registers `offset` to `sz`, bypassing the borrow checker
+  pub fn registers_slice_mut(
+    &mut self,
+    offset: usize,
+    sz: usize,
+  ) -> &'static mut [LTerm] {
+    unsafe { slice::from_raw_parts_mut(self.regs.as_mut_ptr().add(offset), sz) }
   }
 
   /// Fetch a word from code, assume it is either an `LTerm` or a source X, Y or

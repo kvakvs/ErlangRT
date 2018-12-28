@@ -6,7 +6,6 @@ use crate::{
   fail::{self, RtResult},
   term::{boxed, lterm::*},
 };
-use core::ptr;
 
 fn module() -> &'static str {
   "runtime_ctx.call_closure: "
@@ -21,25 +20,32 @@ pub fn apply(
   closure: *mut boxed::Closure,
   args: &[LTerm],
 ) -> RtResult<DispatchResult> {
-  let in_arity = args.len();
+  let args_len = args.len();
 
-  // Actual call is performed for passed args + frozen args, so add them
-  let full_arity = unsafe { (*closure).mfa.arity as usize + (*closure).nfree };
-  ctx.live = full_arity;
+  let (closure_arity, closure_nfrozen) =
+    unsafe { ((*closure).mfa.arity as usize, (*closure).nfrozen) };
+  // The call is performed for passed args + frozen args, so the actual arity
+  // will be incoming args length + frozen length
+  let actual_call_arity = closure_nfrozen + args_len;
 
-  // Copy extra args from after nfree field
   unsafe {
-    let frozen_ptr = &(*closure).frozen as *const LTerm;
-    let dst_ptr = ctx.regs.as_mut_ptr().add(in_arity);
-    ptr::copy(frozen_ptr, dst_ptr, (*closure).nfree);
+    let frozen = boxed::Closure::get_frozen(closure);
+    // copy frozen values into registers after the arity
+    ctx
+      .registers_slice_mut(args_len, closure_nfrozen)
+      .copy_from_slice(frozen);
   }
 
-  if full_arity != in_arity as Arity {
+  ctx.live = actual_call_arity;
+  println!("{}", ctx);
+
+  if actual_call_arity != closure_arity as Arity {
     println!(
-      "{}badarity full_arity={} call_arity={}",
+      "{}badarity call_arity={} nfrozen={} args_len={}",
       module(),
-      full_arity,
-      in_arity
+      closure_arity,
+      closure_nfrozen,
+      args_len
     );
     return fail::create::badarity();
   }

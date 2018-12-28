@@ -26,28 +26,26 @@ pub struct Closure {
 
   pub mfa: MFArity,
   pub dst: Option<VersionedCodePtr>,
-  pub nfree: usize, // must be word size to avoid alignment of the following data
-  // frozen values follow here in memory after the main fields,
-  // first is a field, rest will be allocated as extra bytes after
-  pub frozen: LTerm,
+  // Frozen value count, values follow in memory after the Closure struct
+  // must be word size to avoid alignment of the following data
+  pub nfrozen: usize,
 }
 
 impl Closure {
   #[inline]
-  const fn storage_size(nfree: Word) -> WordSize {
+  const fn storage_size(nfrozen: Word) -> WordSize {
     ByteSize::new(size_of::<Closure>())
       .words_rounded_up()
-      .add(nfree)
+      .add(nfrozen)
   }
 
-  fn new(mfa: MFArity, nfree: usize) -> Closure {
-    let arity = Closure::storage_size(nfree).words() - 1;
+  fn new(mfa: MFArity, nfrozen: usize) -> Closure {
+    let arity = Closure::storage_size(nfrozen).words() - 1;
     Closure {
       header: BoxHeader::new(BOXTYPETAG_CLOSURE, arity),
       mfa,
       dst: None,
-      nfree: nfree as Arity,
-      frozen: LTerm::non_value(),
+      nfrozen: nfrozen as Arity,
     }
   }
 
@@ -56,28 +54,24 @@ impl Closure {
     fe: &FunEntry,
     frozen: &[LTerm],
   ) -> RtResult<LTerm> {
-    let n_words = Closure::storage_size(fe.nfree);
+    let n_words = Closure::storage_size(fe.nfrozen);
     let this = hp.alloc::<Closure>(n_words, false)?;
 
-    assert_eq!(frozen.len(), fe.nfree as usize);
+    assert_eq!(frozen.len(), fe.nfrozen as usize);
     println!(
-      "{}new closure: {} frozen={} nfree={}",
+      "{}new closure: {} frozen={} nfrozen={}",
       module(),
       fe.mfa,
       frozen.len(),
-      fe.nfree
+      fe.nfrozen
     );
 
-    core::ptr::write(this, Closure::new(fe.mfa, fe.nfree));
+    core::ptr::write(this, Closure::new(fe.mfa, fe.nfrozen));
 
-    assert_eq!(frozen.len(), fe.nfree as usize);
+    assert_eq!(frozen.len(), fe.nfrozen as usize);
     // step 1 closure forward, which will point exactly at the frozen location
-    let dst = this.offset(1);
-    core::ptr::copy(
-      frozen.as_ptr() as *const Word,
-      dst as *mut Word,
-      fe.nfree as usize,
-    );
+    let dst = Self::get_frozen_mut(this);
+    dst.copy_from_slice(frozen);
 
     Ok(LTerm::make_boxed(this))
   }
@@ -107,5 +101,25 @@ impl Closure {
     let ptr = new_dst.ptr;
     self.dst = Some(new_dst);
     Ok(ptr)
+  }
+
+  /// Return a const pointer to the memory word after the closure, where you
+  /// can access frozen values (read only).
+  /// It is responsibility of the caller to forget the slice as soon as possible.
+  #[inline]
+  pub unsafe fn get_frozen(this: *const Closure) -> &'static [LTerm] {
+    let nfrozen = (*this).nfrozen;
+    let frozen_ptr = this.add(1) as *const LTerm;
+    core::slice::from_raw_parts(frozen_ptr, nfrozen)
+  }
+
+  /// Return a mutable pointer to the memory word after the closure, where you
+  /// can access frozen values (read/write).
+  /// It is responsibility of the caller to forget the slice as soon as possible.
+  #[inline]
+  pub unsafe fn get_frozen_mut(this: *mut Closure) -> &'static mut [LTerm] {
+    let nfrozen = (*this).nfrozen;
+    let frozen_ptr = this.add(1) as *mut LTerm;
+    core::slice::from_raw_parts_mut(frozen_ptr, nfrozen)
   }
 }

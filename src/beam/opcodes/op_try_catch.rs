@@ -2,10 +2,9 @@ use crate::{
   beam::disp_result::DispatchResult,
   defs::exc_type::ExceptionType,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
-  fail::RtResult,
+  fail::{Error, RtResult},
   term::lterm::LTerm,
 };
-use crate::fail::Error;
 
 /// Set up a try-catch stack frame for possible stack unwinding. Label points
 /// at a `try_case` opcode where the error will be investigated.
@@ -65,6 +64,15 @@ impl OpcodeTryEnd {
 
     let hp = &mut curr_p.heap;
     hp.set_y(reg.get_special_value(), LTerm::nil())?;
+
+    // Not sure why this is happening here, copied from Erlang/OTP
+    if ctx.get_x(0).is_non_value() {
+      // Clear error and shift regs x1-x2-x3 to x0-x1-x2
+      curr_p.clear_exception();
+      ctx.set_x(0, ctx.get_x(1));
+      ctx.set_x(1, ctx.get_x(2));
+      ctx.set_x(2, ctx.get_x(3));
+    }
 
     Ok(DispatchResult::Normal)
   }

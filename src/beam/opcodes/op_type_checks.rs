@@ -261,3 +261,24 @@ impl OpcodeIsPort {
     Ok(DispatchResult::Normal)
   }
 }
+
+/// Checks that argument is a NIL or a cons pointer, otherwise jumps to label.
+/// Structure: is_list(on_false:label, val:src)
+pub struct OpcodeIsList {}
+
+impl OpcodeIsList {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (fail_label, val) = fetch_args(ctx, curr_p);
+    if !val.is_list() {
+      ctx.jump(fail_label)
+    }
+    Ok(DispatchResult::Normal)
+  }
+}

@@ -45,7 +45,11 @@ test_ring() ->
     ring:create(5).
 
 test_mochijson() ->
-    mochijson:encode({struct, [{test_neg, -10000}, {test, 10000}]}).
+    mochijson:encode({struct, [
+        {test_neg, -10000},
+        {test, 10000},
+        {list, "123123"}
+    ]}).
 % we need to go deeper to debuf
 %mochijson:json_encode_proplist([{hello, "world"}], {encoder, unicode, null}).
 

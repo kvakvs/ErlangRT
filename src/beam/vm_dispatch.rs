@@ -187,6 +187,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeIsBinary::run(vm, ctx, curr_p);
     },
 
+    OPCODE_IS_LIST => {
+      assert_arity(OPCODE_IS_LIST, OpcodeIsList::ARITY);
+      return OpcodeIsList::run(vm, ctx, curr_p);
+    },
+
     OPCODE_IS_NONEMPTY_LIST => {
       assert_arity(OPCODE_IS_NONEMPTY_LIST, OpcodeIsNonemptyList::ARITY);
       return OpcodeIsNonemptyList::run(vm, ctx, curr_p);
