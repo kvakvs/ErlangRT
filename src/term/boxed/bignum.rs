@@ -1,8 +1,11 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
-  fail::RtResult,
-  term::boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER},
+  fail::{Error, RtResult},
+  term::{
+    boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER},
+    lterm::*,
+  },
 };
 use core::{mem::size_of, ptr};
 use num::bigint::BigInt;
@@ -38,5 +41,23 @@ impl Bignum {
     ptr::write(this, Bignum::new(n_words, value));
 
     Ok(this)
+  }
+
+  #[allow(dead_code)]
+  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Self> {
+    helper_get_const_from_boxed_term::<Self>(
+      t,
+      BOXTYPETAG_BIGINTEGER,
+      Error::BoxedIsNotABigint,
+    )
+  }
+
+  #[allow(dead_code)]
+  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Self> {
+    helper_get_mut_from_boxed_term::<Self>(
+      t,
+      BOXTYPETAG_BIGINTEGER,
+      Error::BoxedIsNotABigint,
+    )
   }
 }

@@ -19,7 +19,7 @@ impl BoxTypeTag {
 }
 
 pub const BOXTYPETAG_TUPLE: BoxTypeTag = BoxTypeTag(0);
-pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(1);
+pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(1); // todo: separate tag for negative?
 pub const BOXTYPETAG_EXTERNALPID: BoxTypeTag = BoxTypeTag(2);
 pub const BOXTYPETAG_EXTERNALREF: BoxTypeTag = BoxTypeTag(3);
 pub const BOXTYPETAG_EXTERNALPORT: BoxTypeTag = BoxTypeTag(4);

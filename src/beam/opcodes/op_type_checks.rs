@@ -1,9 +1,10 @@
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
-  fail::RtResult,
-  term::lterm::LTerm,
+  fail::{self, RtResult},
+  term::{boxed, lterm::LTerm},
 };
+use num::Signed;
 
 /// Same function for all type check opcodes
 #[inline]
@@ -63,12 +64,30 @@ impl OpcodeIsFunction2 {
   pub const ARITY: usize = 3;
 
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize) {
+  fn fetch_args(
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<(LTerm, LTerm, usize)> {
     let hp = &mut curr_p.heap;
     let fail = ctx.fetch_term();
     let value = ctx.fetch_and_load(hp);
-    let arity = ctx.fetch_and_load(hp).get_small_unsigned();
-    (fail, value, arity)
+
+    let arity_t = ctx.fetch_and_load(hp);
+    let arity = if arity_t.is_small() {
+      arity_t.get_small_unsigned()
+    } else {
+      unsafe {
+        let big_p = boxed::Bignum::const_from_term(arity_t)?;
+        // negative arity bignum is not ok
+        if (*big_p).value.is_negative() {
+          return fail::create::badarg();
+        }
+        // positive arity bignum is ok but can't possibly match
+        !0usize
+      }
+    };
+
+    Ok((fail, value, arity))
   }
 
   #[inline]
@@ -77,7 +96,8 @@ impl OpcodeIsFunction2 {
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let (fail_label, val, arity) = Self::fetch_args(ctx, curr_p);
+    let (fail_label, val, arity) = Self::fetch_args(ctx, curr_p)?;
+    println!("is_function2? {}", val);
     if !val.is_fun_of_arity(arity) {
       ctx.jump(fail_label)
     }

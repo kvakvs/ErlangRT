@@ -42,9 +42,10 @@ pub enum Error {
   // used by `helper_get_mut_from_boxed_term` when boxed tag is different from
   // what is expected
   BoxedTagCheckFailed,
+  BoxedIsNotABigint,
   BoxedIsNotAClosure,
-  BoxedIsNotAnImport,
   BoxedIsNotAnExport,
+  BoxedIsNotAnImport,
   BoxedIsNotATuple,
 
   //--- Binary ---

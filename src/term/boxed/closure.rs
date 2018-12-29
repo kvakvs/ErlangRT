@@ -77,8 +77,8 @@ impl Closure {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Closure> {
-    helper_get_const_from_boxed_term::<Closure>(
+  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Self> {
+    helper_get_const_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_CLOSURE,
       Error::BoxedIsNotAClosure,
@@ -86,8 +86,8 @@ impl Closure {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Closure> {
-    helper_get_mut_from_boxed_term::<Closure>(
+  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Self> {
+    helper_get_mut_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_CLOSURE,
       Error::BoxedIsNotAClosure,

@@ -625,7 +625,7 @@ impl LTerm {
     match tag {
       boxed::BOXTYPETAG_CLOSURE => {
         let closure_p = p as *const boxed::Closure;
-        unsafe { (*closure_p).mfa.arity == a }
+        unsafe { (*closure_p).mfa.arity - (*closure_p).nfrozen == a }
       }
       boxed::BOXTYPETAG_EXPORT => {
         let expt_p = p as *const boxed::Export;
