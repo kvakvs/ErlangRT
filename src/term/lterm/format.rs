@@ -3,7 +3,10 @@
 use crate::{
   defs::Word,
   emulator::atom,
-  term::{boxed, lterm::lterm_impl::*},
+  term::{
+    boxed,
+    lterm::{cons, lterm_impl::*},
+  },
 };
 use core::fmt;
 
@@ -79,7 +82,7 @@ unsafe fn format_box_contents(
     boxed::BOXTYPETAG_CLOSURE => {
       let fun_p = val_ptr as *const boxed::Closure;
       write!(f, "Fun<{}>", (*fun_p).mfa)
-    },
+    }
     boxed::BOXTYPETAG_FLOAT => {
       let fptr = val_ptr as *const boxed::Float;
       write!(f, "{}", (*fptr).value)
@@ -152,45 +155,62 @@ unsafe fn format_tuple(p: *const Word, f: &mut fmt::Formatter) -> fmt::Result {
 
 pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
   write!(f, "[")?;
+  let mut first = true;
 
-  let mut raw_cons = term.get_cons_ptr();
-  loop {
-    write!(f, "{}", (*raw_cons).hd())?;
-    let tl = (*raw_cons).tl();
-    if tl == LTerm::nil() {
-      // Proper list ends here, do not show the tail
-      break;
-    } else if tl.is_cons() {
-      // List continues, print a comma and follow the tail
-      write!(f, ", ")?;
-      raw_cons = tl.get_cons_ptr();
+  if let Ok(Some(tail)) = cons::for_each(term, |elem| {
+    if !first {
+      write!(f, ", ").unwrap();
     } else {
+      first = false;
+    }
+    write!(f, "{}", elem).unwrap();
+    Ok(())
+  }) {
+    if tail != LTerm::nil() {
       // Improper list, show tail
-      write!(f, "| {}", tl)?;
-      break;
+      write!(f, "| {}", tail)?;
     }
   }
+
   write!(f, "]")
 }
 
-pub unsafe fn format_cons_ascii(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
-  write!(f, "\"")?;
+/// Depending on cargo.toml setting, print a fancy unicode or a simple quote
+#[inline]
+fn print_opening_quote(f: &mut fmt::Formatter) -> fmt::Result {
+  if cfg!(feature = "fancy_string_quotes") {
+    write!(f, "“")
+  } else {
+    write!(f, "\"")
+  }
+}
 
-  let mut raw_cons = term.get_cons_ptr();
-  loop {
-    write!(f, "{}", (*raw_cons).hd().get_small_unsigned() as u8 as char)?;
-    let tl = (*raw_cons).tl();
-    if tl == LTerm::nil() {
-      // Proper list ends here, do not show the tail
-      break;
-    } else if tl.is_cons() {
-      // List continues, follow the tail
-      raw_cons = tl.get_cons_ptr();
+/// Depending on cargo.toml setting, print a fancy unicode or a simple quote
+#[inline]
+fn print_closing_quote(f: &mut fmt::Formatter) -> fmt::Result {
+  if cfg!(feature = "fancy_string_quotes") {
+    write!(f, "”")
+  } else {
+    write!(f, "\"")
+  }
+}
+
+pub unsafe fn format_cons_ascii(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
+  print_opening_quote(f)?;
+
+  if let Ok(Some(tail)) = cons::for_each(term, |elem| {
+    let ch = elem.get_small_unsigned();
+    if !(cfg!(feature = "fancy_string_quotes")) && ch == 34 {
+      write!(f, "\\\"").unwrap();
     } else {
-      // Improper list, must not happen because we checked for proper NIL
-      // tail in cons_is_ascii_string. Let's do some panic!
-      panic!("Printing an improper list as ASCII string")
+      write!(f, "{}", ch as u8 as char).unwrap();
+    }
+    Ok(())
+  }) {
+    if tail != LTerm::nil() {
+      panic!("Can't print improper list as ASCII, tail={}", tail)
     }
   }
-  write!(f, "\"")
+
+  print_closing_quote(f)
 }

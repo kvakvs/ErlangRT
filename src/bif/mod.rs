@@ -13,9 +13,11 @@ pub mod bif_compare;
 pub mod bif_lists;
 pub mod bif_process;
 pub mod bif_sys;
+pub mod bif_type_conv;
 
 pub use crate::bif::{
   bif_arith::*, bif_compare::*, bif_lists::*, bif_process::*, bif_sys::*,
+  bif_type_conv::*,
 };
 
 /// A BIF function which runs under some process, takes some args (encoded in

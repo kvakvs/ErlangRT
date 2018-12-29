@@ -123,3 +123,45 @@ pub unsafe fn rust_str_to_list(s: &String, hp: &mut Heap) -> RtResult<LTerm> {
   lb.end_with_nil();
   Ok(lb.make_term())
 }
+
+/// Given an integer LTerm, convert it to a string with `base`.
+pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
+  if val.is_big_int() {
+    panic!("TODO: impl integer_to_list for bigint");
+  }
+
+  let base = 10isize;
+  let mut i_val = val.get_small_signed();
+  let mut lb = ListBuilder::new(hp)?;
+
+  let sign = if i_val < 0 {
+    i_val = -i_val;
+    true
+  } else {
+    false
+  };
+
+  if i_val == 0 {
+    lb.set(LTerm::make_char('0'));
+  } else {
+    loop {
+      let digit = i_val % base;
+      lb.set(LTerm::make_small_unsigned('0' as usize + digit as usize));
+
+      if i_val == 0 {
+        break;
+      }
+
+      i_val /= base;
+      lb.next_reverse()?;
+    } // loop
+
+    if sign {
+      lb.next_reverse()?;
+      lb.set(LTerm::make_char('-'));
+    }
+  } // if not 0
+
+  lb.end_with_nil();
+  return Ok(lb.make_term());
+}

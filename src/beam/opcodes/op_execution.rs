@@ -284,7 +284,7 @@ impl OpcodeFuncInfo {
     let f = ctx.fetch_term();
     let arity = ctx.fetch_term();
 
-    panic!("{}function_clause {}:{}/{}", module(), m, f, arity)
+    panic!("{}function_clause {}:{}/{}", module(), m, f, arity);
     // DispatchResult::Error
   }
 }

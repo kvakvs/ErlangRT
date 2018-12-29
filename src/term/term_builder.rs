@@ -72,9 +72,22 @@ impl ListBuilder {
     (*self.write_p).set_hd(val)
   }
 
+  /// Build list forward: Set current tail to a newly allocated cons (next cell).
+  /// New cell becomes the current.
+  /// Remember to terminate with NIL.
   pub unsafe fn next(&mut self) -> RtResult<()> {
     let new_cell = (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
     (*self.write_p).set_tl(LTerm::make_cons(new_cell));
+    self.write_p = new_cell;
+    Ok(())
+  }
+
+  /// Build list back: Create a new cons, where tail points to current.
+  /// New previous cell becomes the current.
+  /// Remember to terminate the first cell of the list with NIL.
+  pub unsafe fn next_reverse(&mut self) -> RtResult<()> {
+    let new_cell = (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
+    (*new_cell).set_tl(self.make_term());
     self.write_p = new_cell;
     Ok(())
   }

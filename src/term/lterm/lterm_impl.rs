@@ -107,36 +107,36 @@ impl LTerm {
   }
 
   #[inline]
-  pub const fn make_atom(id: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TERMTAG_ATOM, id)
+  pub const fn make_atom(id: Word) -> Self {
+    Self::make_from_tag_and_value(TERMTAG_ATOM, id)
   }
 
   #[inline]
-  pub const fn empty_tuple() -> LTerm {
-    LTerm::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYTUPLE.0)
+  pub const fn empty_tuple() -> Self {
+    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYTUPLE.0)
   }
 
   #[inline]
-  pub const fn empty_binary() -> LTerm {
-    LTerm::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYBINARY.0)
+  pub const fn empty_binary() -> Self {
+    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYBINARY.0)
   }
 
   #[inline]
-  pub const fn nil() -> LTerm {
-    LTerm::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYLIST.0)
+  pub const fn nil() -> Self {
+    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYLIST.0)
   }
 
-  pub const fn make_from_tag_and_value(t: TermTag, v: Word) -> LTerm {
-    LTerm::from_raw(v << TERM_TAG_BITS | t.0)
+  pub const fn make_from_tag_and_value(t: TermTag, v: Word) -> Self {
+    Self::from_raw(v << TERM_TAG_BITS | t.0)
   }
 
-  pub const fn make_from_tag_and_signed_value(t: TermTag, v: SWord) -> LTerm {
-    LTerm::from_raw((v << TERM_TAG_BITS | (t.0 as SWord)) as Word)
+  pub const fn make_from_tag_and_signed_value(t: TermTag, v: SWord) -> Self {
+    Self::from_raw((v << TERM_TAG_BITS | (t.0 as SWord)) as Word)
   }
 
   /// Create a NON_VALUE.
-  pub const fn non_value() -> LTerm {
-    LTerm { value: 0 }
+  pub const fn non_value() -> Self {
+    Self { value: 0 }
   }
 
   /// Check whether a value is a NON_VALUE.
@@ -160,8 +160,8 @@ impl LTerm {
 
   // TODO: Some safety checks maybe? But oh well
   #[inline]
-  pub fn make_boxed<T>(p: *const T) -> LTerm {
-    LTerm { value: p as Word }
+  pub fn make_boxed<T>(p: *const T) -> Self {
+    Self { value: p as Word }
   }
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
@@ -271,17 +271,17 @@ impl LTerm {
   //
 
   /// Any raw word becomes a term, possibly invalid
-  pub const fn from_raw(w: Word) -> LTerm {
-    LTerm { value: w }
+  pub const fn from_raw(w: Word) -> Self {
+    Self { value: w }
   }
 
-  pub fn make_local_pid(pindex: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TERMTAG_LOCALPID, pindex)
+  pub fn make_local_pid(pindex: Word) -> Self {
+    Self::make_from_tag_and_value(TERMTAG_LOCALPID, pindex)
   }
 
-  pub fn make_remote_pid(hp: &mut Heap, node: LTerm, pindex: Word) -> RtResult<LTerm> {
+  pub fn make_remote_pid(hp: &mut Heap, node: Self, pindex: Word) -> RtResult<Self> {
     let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
-    Ok(LTerm::make_boxed(rpid_ptr))
+    Ok(Self::make_boxed(rpid_ptr))
   }
 
   /// For a special-tagged term extract its special tag
@@ -304,8 +304,8 @@ impl LTerm {
     max > n
   }
 
-  pub const fn make_special(special_t: SpecialTag, val: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(
+  pub const fn make_special(special_t: SpecialTag, val: Word) -> Self {
+    Self::make_from_tag_and_value(
       TERMTAG_SPECIAL,
       val << TERM_SPECIAL_TAG_BITS | special_t.0,
     )
@@ -321,24 +321,24 @@ impl LTerm {
     self.is_special() && self.get_special_tag() == t
   }
 
-  pub fn make_regx(n: Word) -> LTerm {
-    LTerm::make_special(SPECIALTAG_REGX, n)
+  pub fn make_regx(n: Word) -> Self {
+    Self::make_special(SPECIALTAG_REGX, n)
   }
 
   pub fn is_regx(self) -> bool {
     self.is_special_of_type(SPECIALTAG_REGX)
   }
 
-  pub fn make_regy(n: Word) -> LTerm {
-    LTerm::make_special(SPECIALTAG_REGY, n)
+  pub fn make_regy(n: Word) -> Self {
+    Self::make_special(SPECIALTAG_REGY, n)
   }
 
   pub fn is_regy(self) -> bool {
     self.is_special_of_type(SPECIALTAG_REGY)
   }
 
-  pub fn make_regfp(n: Word) -> LTerm {
-    LTerm::make_special(SPECIALTAG_REGFP, n)
+  pub fn make_regfp(n: Word) -> Self {
+    Self::make_special(SPECIALTAG_REGFP, n)
   }
 
   pub fn is_regfp(self) -> bool {
@@ -350,10 +350,10 @@ impl LTerm {
 
   // XXX: Can shift value right by 3 bits (WORD_ALIGN_SHIFT)
   #[inline]
-  pub fn make_cp<T>(p: *const T) -> LTerm {
+  pub fn make_cp<T>(p: *const T) -> Self {
     assert_eq!(p as Word & TERM_TAG_MASK, 0); // must be aligned to 8
     let tagged_p = (p as Word) | HIGHEST_BIT_CP;
-    LTerm::from_raw(tagged_p)
+    Self::from_raw(tagged_p)
   }
 
   #[inline]
@@ -393,7 +393,7 @@ impl LTerm {
 
   #[inline]
   pub fn is_list(self) -> bool {
-    self == LTerm::nil() || self.is_cons()
+    self == Self::nil() || self.is_cons()
   }
 
   /// Check whether the value is a CONS pointer
@@ -417,8 +417,8 @@ impl LTerm {
   /// Create a LTerm from pointer to Cons cell. Pass a pointer to `LTerm` or
   /// a pointer to `boxed::Cons`.
   #[inline]
-  pub fn make_cons<T>(p: *const T) -> LTerm {
-    LTerm {
+  pub fn make_cons<T>(p: *const T) -> Self {
+    Self {
       value: (p as Word) | TERMTAG_CONS.0,
     }
   }
@@ -442,7 +442,7 @@ impl LTerm {
       let tl = (*cons_p).tl();
       if !tl.is_cons() {
         // NIL [] tail is required for a true string
-        return tl == LTerm::nil();
+        return tl == Self::nil();
       }
       cons_p = tl.get_cons_ptr();
     }
@@ -451,25 +451,37 @@ impl LTerm {
   // === === SMALL INTEGERS === === ===
   //
 
+  #[inline]
+  pub fn is_integer(self) -> bool {
+    self.is_small() || self.is_big_int()
+  }
+
   /// Check whether the value is a small integer
+  #[inline]
   pub fn is_small(self) -> bool {
     self.get_term_tag() == TERMTAG_SMALL
   }
 
-  pub const fn make_small_unsigned(val: Word) -> LTerm {
-    LTerm::make_from_tag_and_value(TERMTAG_SMALL, val)
+  #[inline]
+  pub const fn make_char(c: char) -> Self {
+    Self::make_small_unsigned(c as usize)
   }
 
-  pub const fn small_0() -> LTerm {
-    LTerm::make_from_tag_and_value(TERMTAG_SMALL, 0)
+  #[inline]
+  pub const fn make_small_unsigned(val: Word) -> Self {
+    Self::make_from_tag_and_value(TERMTAG_SMALL, val)
   }
 
-  pub const fn small_1() -> LTerm {
-    LTerm::make_from_tag_and_value(TERMTAG_SMALL, 1)
+  pub const fn small_0() -> Self {
+    Self::make_from_tag_and_value(TERMTAG_SMALL, 0)
   }
 
-  pub const fn make_small_signed(val: SWord) -> LTerm {
-    LTerm::make_from_tag_and_signed_value(TERMTAG_SMALL, val)
+  pub const fn small_1() -> Self {
+    Self::make_from_tag_and_value(TERMTAG_SMALL, 1)
+  }
+
+  pub const fn make_small_signed(val: SWord) -> Self {
+    Self::make_from_tag_and_signed_value(TERMTAG_SMALL, val)
   }
 
   /// Check whether a signed isize fits into small integer range
@@ -541,7 +553,7 @@ impl LTerm {
   }
 
   /// Raw compare two term values.
-  pub fn is_same(a: LTerm, b: LTerm) -> bool {
+  pub fn is_same(a: Self, b: Self) -> bool {
     a.raw() == b.raw()
   }
 
@@ -643,7 +655,7 @@ impl LTerm {
   //
 
   #[inline]
-  pub fn make_bool(v: bool) -> LTerm {
+  pub fn make_bool(v: bool) -> Self {
     if v {
       return gen_atoms::TRUE;
     }
@@ -666,11 +678,11 @@ impl LTerm {
 
   /// Create a catch marker on stack
   #[inline]
-  pub fn make_catch(p: *const Word) -> LTerm {
+  pub fn make_catch(p: *const Word) -> Self {
     let catch_index = (p as Word) >> WORD_ALIGN_SHIFT;
     assert!(Self::special_value_fits(catch_index));
     // TODO: Use some smart solution for handling code reloading
-    LTerm::make_special(SPECIALTAG_CATCH, catch_index)
+    Self::make_special(SPECIALTAG_CATCH, catch_index)
   }
 
   #[inline]
