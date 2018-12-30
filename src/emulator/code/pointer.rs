@@ -30,8 +30,9 @@ impl VersionedCodePtr {
 /// (instruction begin), and never to the data. During VM execution iterates
 /// over args too, and no extra checks are made.
 ///
-/// In debug build additional mark bits `Imm3::OPCODE` are added to this word
-/// and additional check is done here in `CodePtr`.
+/// In debug build additional mark bits `TERMTAG_SPECIAL`, and then
+/// `SPECIALTAG_OPCODE` are added to this word and additional check is done
+/// here in `CodePtr`.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq, Eq)]
 pub struct CodePtr {
   p: *const Word,
@@ -44,18 +45,23 @@ impl fmt::Display for CodePtr {
 }
 
 impl CodePtr {
+  #[allow(dead_code)]
+  pub fn unsafe_new(p: *const Word) -> Self {
+    Self { p }
+  }
+
   #[inline]
-  pub fn get_pointer<T>(self) -> *const T {
-    self.p as *const T
+  pub fn get_pointer(self) -> *const Word {
+    self.p as *const Word
   }
 
   #[inline]
   pub fn from_cp(cp: LTerm) -> CodePtr {
-    CodePtr::from_ptr::<Word>(cp.get_cp_ptr())
+    CodePtr::from_ptr(cp.get_cp_ptr())
   }
 
   #[inline]
-  fn assert_location_is_opcode<T>(p0: *const T) {
+  fn assert_location_is_opcode(p0: *const Word) {
     let p = p0 as *const LTerm;
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
@@ -68,7 +74,7 @@ impl CodePtr {
   }
 
   #[inline]
-  pub fn from_ptr<T>(p0: *const T) -> CodePtr {
+  pub fn from_ptr(p0: *const Word) -> CodePtr {
     Self::assert_location_is_opcode(p0);
     CodePtr {
       p: p0 as *const Word,

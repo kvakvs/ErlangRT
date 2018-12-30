@@ -78,8 +78,8 @@ impl Module {
   pub fn lookup_fa(&self, fa: &FunArity) -> RtResult<CodePtr> {
     match self.funs.get(fa) {
       Some(offset) => {
-        let p = &self.code[*offset] as *const Word;
-        Ok(CodePtr::from_ptr::<Word>(p))
+        let p = unsafe { self.code.as_ptr().add(*offset) };
+        Ok(CodePtr::from_ptr(p))
       }
       None => {
         let msg = format!(
@@ -106,7 +106,7 @@ impl Module {
     let mut fa = FunArity::new(gen_atoms::UNDEFINED, 0);
 
     let code_begin = &self.code[0] as *const Word;
-    let ip_ptr = ip.get_pointer::<Word>();
+    let ip_ptr = ip.get_pointer();
     assert!(ip_ptr > code_begin);
     let ip_offset = (ip_ptr as usize - code_begin as usize) / WORD_BYTES;
 

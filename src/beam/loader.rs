@@ -847,6 +847,8 @@ pub fn load_module(
   code_srv: &mut CodeServer,
   mod_file_path: &PathBuf,
 ) -> RtResult<Box<Module>> {
+  println!("BEAM loader: from {}", mod_file_path.to_str().unwrap());
+
   // Delegate the loading task to BEAM or another loader
   let mut loader = Loader::new();
 

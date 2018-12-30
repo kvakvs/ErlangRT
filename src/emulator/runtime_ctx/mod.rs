@@ -98,7 +98,7 @@ impl Context {
   #[inline]
   pub fn fetch(&mut self) -> Word {
     unsafe {
-      let w = *(self.ip.get_pointer::<Word>());
+      let w = *(self.ip.get_pointer());
       self.ip.offset(1);
       w
     }
@@ -120,7 +120,7 @@ impl Context {
   /// `&[LTerm]` slice of given length and advance the read pointer. This is
   /// used for fetching arrays of args from code without moving them.
   pub fn fetch_slice(&mut self, sz: usize) -> &'static [LTerm] {
-    let ip0: *const LTerm = self.ip.get_pointer();
+    let ip0 = self.ip.get_pointer() as *const LTerm;
     unsafe {
       self.ip.offset(sz as isize);
       slice::from_raw_parts(ip0, sz)
@@ -272,7 +272,7 @@ impl Context {
         if save_cp {
           self.cp = self.ip;
         }
-        self.ip = CodePtr::from_ptr(code_p);
+        self.ip = code_p.clone();
       }
       MFALookupResult::FoundBif(bif_fn) => {
         let x0 = call_bif::call_bif_fn(vm, self, curr_p, *bif_fn, args)?;
