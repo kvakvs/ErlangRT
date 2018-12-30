@@ -50,6 +50,7 @@ pub fn find_and_call_bif(
 ) -> RtResult<DispatchResult> {
   // Try resolve BIF destination, which can be defined by an import, mfarity
   // a pointer to import, or a pointer to bif function.
+  // TODO: Maybe make this use codeserver generic lookup_mfa or extend it to support this
   let maybe_bif_fn = match target {
     CallBifTarget::ImportTerm(ho_imp) => callbif_resolve_import(ho_imp, args.len())?,
 
@@ -65,9 +66,7 @@ pub fn find_and_call_bif(
 
   // Now having resolved the bif function, let's call it
   let bif_result = match maybe_bif_fn {
-    BifResolutionResult::FnPointer(fn_ptr) => {
-      actual_bif_call(vm, ctx, curr_p, fn_ptr, args)
-    }
+    BifResolutionResult::FnPointer(fn_ptr) => call_bif_fn(vm, ctx, curr_p, fn_ptr, args),
 
     BifResolutionResult::BadfunError(badfun_val) => {
       return fail::create::badfun_val(badfun_val, &mut curr_p.heap);
@@ -138,8 +137,8 @@ fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
 
 /// Given a bif function pointer and args with possibly register/slot values
 /// in them, first resolve these args to values, and then call the function
-#[inline]
-fn actual_bif_call(
+// #[inline]
+pub fn call_bif_fn(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,

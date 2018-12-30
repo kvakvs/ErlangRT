@@ -61,7 +61,7 @@ impl Import {
   /// Lookup a function, referred by this object and possibly attempt code
   /// loading if the module was missing. Return a code pointer.
   pub fn resolve(&self, code_server: &mut CodeServer) -> RtResult<CodePtr> {
-    code_server.lookup_and_load(&self.mfarity)
+    code_server.lookup_beam_code_and_load(&self.mfarity)
   }
 
   /// Assuming that this object refers to a BIF function, perform a BIF lookup.

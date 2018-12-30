@@ -1,6 +1,5 @@
 //! Code server loads modules and stores them in memory, handles code lookups
 //! as well as dynamic reloading and partial unloading.
-//!
 
 use crate::{
   beam::loader,
@@ -17,6 +16,8 @@ use std::{
   collections::BTreeMap,
   path::{Path, PathBuf},
 };
+use crate::bif::BifFn;
+use crate::bif;
 
 fn module() -> &'static str {
   "code_srv: "
@@ -32,6 +33,13 @@ struct ModuleGenerations {
   old_version: usize,
 }
 
+pub enum MFALookupResult {
+  FoundBeamCode(CodePtr),
+  FoundBif(BifFn),
+  // TODO: also NIF?
+  // FoundNif(?),
+}
+
 pub struct CodeServer {
   // Mapping {atom(): ModuleGenerations} where generations contains current
   // and previous mod versions
@@ -39,17 +47,6 @@ pub struct CodeServer {
   search_path: Vec<String>,
   mod_version: usize,
 }
-
-// lazy_static! {
-//  static ref CODE_SRV: RwLock<CodeServer> = {
-//    RwLock::new(CodeServer::new())
-//  };
-//
-//  // TODO: Maybe use map<modulename, counter> here
-//  static ref MOD_VERSION: AtomicUsize = {
-//    AtomicUsize::new(0)
-//  };
-//}
 
 impl CodeServer {
   pub fn new() -> CodeServer {
@@ -63,18 +60,36 @@ impl CodeServer {
     }
   }
 
-  // Find a module and verify that the given version exists
-  // TODO: Verify version instead of doing this below
-  //  pub fn lookup_far_pointer(&self, farp: VersionedCodePtr) -> Option<CodePtr> {
-  //    match self.mods.get(&farp.versioned_name.module) {
-  //      None => None,
-  //      Some(_mptr) => panic!("Not impl"),
-  //    }
-  //  }
+  /// Performs classification whether an MFA is a bif, a code location or
+  /// something else.
+  /// Arg: `allow_load` allows loading another BEAM file as needed
+  pub fn lookup_mfa(
+    &mut self,
+    mfa: &MFArity,
+    allow_load: bool
+  ) -> RtResult<MFALookupResult> {
+    // It could be a BIF
+    if let Ok(bif_fn) = bif::find_bif(mfa) {
+      return Ok(MFALookupResult::FoundBif(bif_fn))
+    }
+    // Try look for a BEAM export somewhere
+    if let Ok(code_p) = if allow_load {
+      self.lookup_beam_code_and_load(mfa)
+    } else {
+      self.lookup_beam_code(mfa)
+    } {
+      return Ok(MFALookupResult::FoundBeamCode(code_p));
+    }
+    // TODO: Look up a NIF extension function when those are supported
+    Err(Error::NotFound)
+  }
 
-  /// Find module:function/arity
+  /// Find module:function/arity in BEAM code (i.e. exported by some module)
   /// Returns: Versioned pointer to code, suitable for storing
-  pub fn lookup_versioned(&self, mfarity: &MFArity) -> RtResult<VersionedCodePtr> {
+  pub fn lookup_beam_code_versioned(
+    &self,
+    mfarity: &MFArity,
+  ) -> RtResult<VersionedCodePtr> {
     let m = mfarity.m;
     match self.mods.get(&m) {
       None => {
@@ -89,9 +104,9 @@ impl CodeServer {
     }
   }
 
-  /// Find module:function/arity
+  /// Find module:function/arity in BEAM code (i.e. exported by some module)
   /// Returns: Memory pointer to code, not versioned (do not store)
-  pub fn lookup(&self, mfarity: &MFArity) -> RtResult<CodePtr> {
+  pub fn lookup_beam_code(&self, mfarity: &MFArity) -> RtResult<CodePtr> {
     let m = mfarity.m;
     match self.mods.get(&m) {
       None => {
@@ -126,9 +141,9 @@ impl CodeServer {
 
   /// Lookup, which will attempt to load a missing module if lookup fails
   /// on the first attempt.
-  pub fn lookup_and_load(&mut self, mfarity: &MFArity) -> RtResult<CodePtr> {
+  pub fn lookup_beam_code_and_load(&mut self, mfarity: &MFArity) -> RtResult<CodePtr> {
     // Try lookup once, then load if not found
-    match self.lookup(mfarity) {
+    match self.lookup_beam_code(mfarity) {
       Ok(ip) => return Ok(ip),
       Err(_e) => {
         let mod_name = atom::to_str(mfarity.m)?;
@@ -138,7 +153,7 @@ impl CodeServer {
       }
     };
     // Try lookup again
-    match self.lookup(mfarity) {
+    match self.lookup_beam_code(mfarity) {
       Ok(ip) => Ok(ip),
       Err(_e) => {
         let mod_str = atom::to_str(mfarity.m)?;

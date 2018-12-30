@@ -261,7 +261,7 @@ impl OpcodeReturn {
       }
     }
 
-    ctx.jump_ptr(ctx.cp.get());
+    ctx.jump_ptr(ctx.cp.get_pointer());
     ctx.clear_cp();
 
     Ok(DispatchResult::Normal)

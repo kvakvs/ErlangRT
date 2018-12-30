@@ -23,6 +23,7 @@ pub enum Error {
   // PrematureEOF,
 
   //--- Code server, lookups ---
+  NotFound, // generic notfound-anything
   ModuleNotFound(String),
   FunctionNotFound(String),
   BifNotFound(String),

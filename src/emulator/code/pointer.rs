@@ -33,81 +33,77 @@ impl VersionedCodePtr {
 /// In debug build additional mark bits `Imm3::OPCODE` are added to this word
 /// and additional check is done here in `CodePtr`.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq, Eq)]
-pub struct CodePtr(*const Word);
+pub struct CodePtr {
+  p: *const Word,
+}
 
 impl fmt::Display for CodePtr {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "CodePtr(0x{:x})", self.get() as Word)
+    write!(f, "CodePtr(0x{:x})", self.p as Word)
   }
 }
 
 impl CodePtr {
-  pub fn new<T>(p: *const T) -> CodePtr {
-    // assert_ne!(p as Word, 0xcea);
-    CodePtr(p as *const Word)
-  }
-
   #[inline]
-  pub fn get(self) -> *const Word {
-    let CodePtr(p) = self;
-    p
+  pub fn get_pointer<T>(self) -> *const T {
+    self.p as *const T
   }
 
   #[inline]
   pub fn from_cp(cp: LTerm) -> CodePtr {
-    CodePtr::from_ptr(cp.get_cp_ptr())
+    CodePtr::from_ptr::<Word>(cp.get_cp_ptr())
   }
 
-  #[cfg(debug_assertions)]
   #[inline]
-  pub fn from_ptr(p: *const LTerm) -> CodePtr {
+  fn assert_location_is_opcode<T>(p0: *const T) {
+    let p = p0 as *const LTerm;
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
-      assert!(
-        p.is_null() || (*p).get_term_tag() == TERMTAG_SPECIAL,
-        "A CodePtr must be null or point to an imm3 tagged opcode"
+      debug_assert!(
+        p.is_null() || (*p).is_special(),
+        "A CodePtr must be null or point to a Special-tagged term (opcode)"
       );
     }
-    CodePtr::new(p)
   }
 
-  #[cfg(not(debug_assertions))]
-  pub fn from_ptr(p: *const Word) -> CodePtr {
-    CodePtr(p)
+  #[inline]
+  pub fn from_ptr<T>(p0: *const T) -> CodePtr {
+    Self::assert_location_is_opcode(p0);
+    CodePtr {
+      p: p0 as *const Word,
+    }
   }
 
   #[inline]
   pub fn null() -> CodePtr {
-    CodePtr::new::<Word>(::core::ptr::null())
+    CodePtr {
+      p: core::ptr::null(),
+    }
   }
 
   /// Convert to tagged CP integer
   #[inline]
   pub fn to_cp_term(self) -> LTerm {
-    LTerm::make_cp(self.get())
+    LTerm::make_cp(self.p)
   }
-
-  //  #[inline]
-  //  pub fn offset(&self, n: isize) -> CodePtr {
-  //    let CodePtr(p) = *self;
-  //    let new_p = unsafe { p.offset(n) };
-  //    CodePtr(new_p)
-  //  }
 
   #[inline]
   pub fn is_null(self) -> bool {
-    self.get().is_null()
+    self.p.is_null()
   }
-
-  //  #[inline]
-  //  pub fn is_not_null(&self) -> bool { ! self.is_null() }
 
   pub fn belongs_to(self, slice: &[Word]) -> bool {
     let cbegin = &slice[0] as *const Word;
     let cend = unsafe { cbegin.add(slice.len()) };
-    let p = self.get();
+    let p = self.get_pointer();
     p >= cbegin && p < cend
+  }
+
+  /// Shift the pointer forward or back (no checking of contents)
+  #[inline]
+  pub fn offset(&mut self, n: isize) {
+    self.p = unsafe { self.p.offset(n) };
   }
 }
 

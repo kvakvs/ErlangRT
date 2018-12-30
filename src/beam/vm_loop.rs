@@ -37,7 +37,7 @@ impl VM {
       if cfg!(feature = "trace_opcode_execution") {
         print!("   ↳ ");
         unsafe {
-          disasm::disasm_op(ctx.ip.get(), &(*cs));
+          disasm::disasm_op(ctx.ip.get_pointer(), &(*cs));
         }
       }
 

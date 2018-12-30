@@ -4,7 +4,10 @@ use crate::{
   defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
   emulator::{
     code::{opcode, CodePtr},
+    code_srv::MFALookupResult,
     heap,
+    process::Process,
+    vm::VM,
   },
   fail::RtResult,
   term::lterm::{
@@ -94,19 +97,16 @@ impl Context {
   /// as multiple reads and a single increment.
   #[inline]
   pub fn fetch(&mut self) -> Word {
-    let ip0: *const Word = self.ip.get();
     unsafe {
-      let w = *ip0;
-      self.ip = CodePtr::new(ip0.offset(1));
+      let w = *(self.ip.get_pointer::<Word>());
+      self.ip.offset(1);
       w
     }
   }
 
   /// Step back one word in the code.
   pub fn unfetch(&mut self) {
-    unsafe {
-      self.ip = CodePtr::new(self.ip.get().offset(-1));
-    }
+    self.ip.offset(-1);
   }
 
   /// Fetch a word from code, assume it is an `LTerm`. The code position is
@@ -120,10 +120,10 @@ impl Context {
   /// `&[LTerm]` slice of given length and advance the read pointer. This is
   /// used for fetching arrays of args from code without moving them.
   pub fn fetch_slice(&mut self, sz: usize) -> &'static [LTerm] {
-    let ip0 = self.ip.get();
+    let ip0: *const LTerm = self.ip.get_pointer();
     unsafe {
-      self.ip = CodePtr::new(ip0.add(sz));
-      slice::from_raw_parts(ip0 as *const LTerm, sz)
+      self.ip.offset(sz as isize);
+      slice::from_raw_parts(ip0, sz)
     }
   }
 
@@ -254,9 +254,37 @@ impl Context {
     if cfg!(feature = "trace_opcode_execution") {
       println!("{} {:p}", "jump to".purple(), code_ptr);
     }
-    self.ip = CodePtr::new(code_ptr);
+    self.ip = CodePtr::from_ptr(code_ptr);
+  }
+
+  /// Perform a call to lookup result (done by CodeServer).
+  /// Optional `save_cp` defines whether CP will be saved
+  pub fn call_mfa(
+    &mut self,
+    vm: &mut VM,
+    curr_p: &mut Process,
+    lr: &MFALookupResult,
+    args: &[LTerm],
+    save_cp: bool,
+  ) -> RtResult<()> {
+    match lr {
+      MFALookupResult::FoundBeamCode(code_p) => {
+        if save_cp {
+          self.cp = self.ip;
+        }
+        self.ip = CodePtr::from_ptr(code_p);
+      }
+      MFALookupResult::FoundBif(bif_fn) => {
+        let x0 = call_bif::call_bif_fn(vm, self, curr_p, *bif_fn, args)?;
+        self.set_x(0, x0);
+      }
+    }
+    Ok(())
   }
 }
+
+// === === === ===
+//
 
 impl fmt::Display for Context {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

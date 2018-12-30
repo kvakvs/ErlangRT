@@ -79,7 +79,7 @@ impl Module {
     match self.funs.get(fa) {
       Some(offset) => {
         let p = &self.code[*offset] as *const Word;
-        Ok(CodePtr::new(p))
+        Ok(CodePtr::from_ptr::<Word>(p))
       }
       None => {
         let msg = format!(
@@ -106,8 +106,9 @@ impl Module {
     let mut fa = FunArity::new(gen_atoms::UNDEFINED, 0);
 
     let code_begin = &self.code[0] as *const Word;
-    assert!(ip.get() > code_begin);
-    let ip_offset = (ip.get() as usize - code_begin as usize) / WORD_BYTES;
+    let ip_ptr = ip.get_pointer::<Word>();
+    assert!(ip_ptr > code_begin);
+    let ip_offset = (ip_ptr as usize - code_begin as usize) / WORD_BYTES;
 
     for (key, export_offset) in &self.funs {
       // let &CodeOffset(fn_offset) = fn_offset0;

@@ -80,7 +80,7 @@ impl Process {
     assert!(_parent_pid.is_local_pid() || _parent_pid == LTerm::nil());
 
     // Process must start with some code location
-    match code_server.lookup_and_load(mfarity) {
+    match code_server.lookup_beam_code_and_load(mfarity) {
       Ok(ip) => {
         let p = Process {
           pid,
@@ -137,7 +137,7 @@ impl Process {
     code_server: &mut CodeServer,
   ) -> RtResult<()> {
     // TODO: Find mfa in code server and set IP to it
-    match code_server.lookup_and_load(mfarity) {
+    match code_server.lookup_beam_code_and_load(mfarity) {
       Ok(ip) => {
         self.context.ip = ip;
         Ok(())

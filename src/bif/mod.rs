@@ -44,6 +44,7 @@ pub fn find_bif(mfa: &MFArity) -> RtResult<BifFn> {
       return Ok(bt.func);
     }
   }
+  // TODO: This string formatting is not efficient at all
   Err(fail::Error::BifNotFound(format!("{}", mfa)))
 }
 

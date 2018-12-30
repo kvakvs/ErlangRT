@@ -3,6 +3,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{
     function::FunEntry,
+    gen_atoms,
     mfa::MFArity,
     process::Process,
     runtime_ctx::{self, Context},
@@ -73,8 +74,10 @@ impl OpcodeCallFun {
   }
 }
 
+/// Applies args in `x[0..arity]` to module specified by an atom or a tuple in
+/// `x[arity]` and function specified by an atom in `x[arity+1]`.
 /// Structure: apply(arity:uint)
-/// Expects: x[0..arity-1] = args. x[arity] = callable object
+/// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
 pub struct OpcodeApply {}
 
 impl OpcodeApply {
@@ -82,19 +85,26 @@ impl OpcodeApply {
 
   #[inline]
   pub fn run(
-    _vm: &mut VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let arity = ctx.fetch_term().get_small_unsigned();
     let mfa = MFArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
-    fixed_apply(ctx, curr_p, &mfa, 0)?;
+
+    ctx.live = arity + 2;
+
+    fixed_apply(vm, ctx, curr_p, &mfa, 0)?;
     Ok(DispatchResult::Normal)
   }
 }
 
-/// Structure: apply(arity:uint)
-/// Expects: x[0..arity-1] = args. x[arity] = callable object
+/// Applies args in `x[0..arity]` to module specified by an atom or a tuple in
+/// `x[arity]` and function specified by an atom in `x[arity+1]`. The call is
+/// tail recursive, and `dealloc` words are removed from stack preserving the
+/// CP on stack top.
+/// Structure: apply_last(arity:smallint, dealloc:smallint)
+/// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
 pub struct OpcodeApplyLast {}
 
 impl OpcodeApplyLast {
@@ -109,13 +119,22 @@ impl OpcodeApplyLast {
 
   #[inline]
   pub fn run(
-    _vm: &mut VM,
+    vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     let (arity, dealloc) = Self::fetch_args(ctx);
-    let mfa = MFArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
-    fixed_apply(ctx, curr_p, &mfa, dealloc)?;
+
+    let module = ctx.get_x(arity);
+    let function = ctx.get_x(arity + 1);
+    if !function.is_atom() {
+      return fail::create::badarg();
+    }
+
+    ctx.live = arity + 2;
+
+    let mfa = MFArity::new(module, function, arity);
+    fixed_apply(vm, ctx, curr_p, &mfa, dealloc)?;
     Ok(DispatchResult::Normal)
   }
 }
@@ -123,10 +142,23 @@ impl OpcodeApplyLast {
 /// Perform application of module:function/arity to args stored in registers,
 /// with optional deallocation.
 fn fixed_apply(
-  _ctx: &mut Context,
-  _curr_p: &mut Process,
-  _mfa: &MFArity,
-  _dealloc: usize,
+  vm: &mut VM,
+  ctx: &mut Context,
+  curr_p: &mut Process,
+  mfa: &MFArity,
+  dealloc: usize,
 ) -> RtResult<()> {
+  if mfa.m == gen_atoms::ERLANG && mfa.f == gen_atoms::APPLY && mfa.arity == 3 {
+    panic!("TODO special handling for apply on apply/3");
+  }
+
+  println!("call_mfa {}", mfa);
+  let l_result = vm.code_server.lookup_mfa(mfa, true);
+  if l_result.is_err() {
+    return fail::create::undef();
+  }
+
+  let args = ctx.registers_slice(0, mfa.arity);
+  ctx.call_mfa(vm, curr_p, &l_result.unwrap(), args, dealloc == 0)?;
   Ok(())
 }

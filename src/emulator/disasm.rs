@@ -33,7 +33,7 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
     gen_op::OPCODE_MAX
   );
 
-  if let Some(mfa) = code_server.code_reverse_lookup(CodePtr::new(ip)) {
+  if let Some(mfa) = code_server.code_reverse_lookup(CodePtr::from_ptr(ip)) {
     print!("{} ", format!("{}", mfa).cyan());
   }
 

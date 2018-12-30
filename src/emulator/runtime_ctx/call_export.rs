@@ -54,7 +54,7 @@ pub fn apply(
     );
   } else {
     let code_server = vm.get_code_server_p();
-    match unsafe { (*code_server).lookup_and_load(&mfa) } {
+    match unsafe { (*code_server).lookup_beam_code_and_load(&mfa) } {
       Ok(ip) => {
         if save_cp {
           ctx.cp = ctx.ip

@@ -1,7 +1,6 @@
 //! Opcode enum wraps the opcode from opcode table. Special conversion rules
 //! may be used when running in debug mode for extra safety checks, in release
 //! no checks are done and simple opcode is stored.
-//!
 use crate::{
   beam::gen_op,
   defs::Word,
@@ -64,10 +63,15 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   let m = unsafe { *p };
   let as_term = LTerm::from_raw(m);
+  debug_assert!(
+    as_term.is_special(),
+    "Disasm: Opcode from memory {:p} must be tagged as Special",
+    p
+  );
   debug_assert_eq!(
     as_term.get_special_tag(),
     SPECIALTAG_OPCODE,
-    "Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
+    "Disasm: Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
     m,
     p
   );

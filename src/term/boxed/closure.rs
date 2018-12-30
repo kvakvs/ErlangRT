@@ -97,7 +97,7 @@ impl Closure {
   /// Given a closure, find new value for the code pointer and update the
   /// closure. Return: the pointer.
   pub unsafe fn update_location(&mut self, c_srv: &mut CodeServer) -> RtResult<CodePtr> {
-    let new_dst = c_srv.lookup_versioned(&self.mfa)?;
+    let new_dst = c_srv.lookup_beam_code_versioned(&self.mfa)?;
     let ptr = new_dst.ptr;
     self.dst = Some(new_dst);
     Ok(ptr)
