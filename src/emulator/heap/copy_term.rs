@@ -35,15 +35,12 @@ unsafe fn copy_cons_to(lst: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
 
   let tail_el_result = cons::for_each(lst, |el| {
     // Recurse into copy, for each list element
-    lb.set(copy_to(el, hp)?);
-    lb.next()?;
+    lb.append(copy_to(el, hp)?)?;
     Ok(())
   })?;
 
   if let Some(tail_el) = tail_el_result {
-    lb.end(tail_el);
-  } else {
-    lb.end(LTerm::nil());
+    return Ok(lb.make_term_with_tail(tail_el));
   }
 
   Ok(lb.make_term())

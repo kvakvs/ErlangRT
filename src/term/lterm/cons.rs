@@ -38,20 +38,26 @@ pub unsafe fn copy_list_leave_tail(
   src: LTerm,
   hp: &mut Heap,
 ) -> RtResult<(LTerm, *mut boxed::Cons)> {
-  debug_assert_ne!(src, LTerm::nil());
   let mut lb = ListBuilder::new(hp)?;
-  let mut src_p = src.get_cons_ptr();
 
   // Copy elements one by one
-  loop {
-    lb.set((*src_p).hd());
-    let src_tl = (*src_p).tl();
-    if !src_tl.is_cons() {
-      return Ok((lb.make_term(), lb.get_write_p()));
-    }
-    lb.next()?;
-    src_p = src_tl.get_cons_ptr();
+  if let Ok(Some(tail)) = for_each(src, |elem| {
+    lb.append(elem)?;
+    Ok(())
+  }) {
+    return Ok((lb.make_term_with_tail(tail), lb.tail_p));
   }
+  Ok((lb.make_term(), lb.tail_p))
+
+  //  loop {
+  //    lb.append((*src_p).hd());
+  //    let src_tl = (*src_p).tl();
+  //    if !src_tl.is_cons() {
+  //      return Ok((lb.make_term(), lb.get_write_p()));
+  //    }
+  //    lb.next()?;
+  //    src_p = src_tl.get_cons_ptr();
+  //  }
 }
 
 /// For each list element run the function. Tail element (usually NIL) is ignored.
@@ -113,14 +119,9 @@ where
 pub unsafe fn rust_str_to_list(s: &String, hp: &mut Heap) -> RtResult<LTerm> {
   let mut lb = ListBuilder::new(hp)?;
   for pos_char in s.char_indices() {
-    // Create another cell if this is not the first cell
-    if pos_char.0 > 0 {
-      lb.next()?;
-    }
     let ch = pos_char.1 as usize;
-    lb.set(LTerm::make_small_unsigned(ch));
+    lb.append(LTerm::make_small_unsigned(ch))?;
   }
-  lb.end_with_nil();
   Ok(lb.make_term())
 }
 
@@ -142,26 +143,22 @@ pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   };
 
   if i_val == 0 {
-    lb.set(LTerm::make_char('0'));
+    lb.append(LTerm::make_char('0'))?;
   } else {
     loop {
-      let digit = i_val % base;
-      lb.set(LTerm::make_small_unsigned('0' as usize + digit as usize));
-
+      let digit = '0' as usize + (i_val % base) as usize;
+      let digit_term = LTerm::make_small_unsigned(digit);
+      lb.prepend(digit_term)?;
       if i_val == 0 {
         break;
       }
-
       i_val /= base;
-      lb.next_reverse()?;
     } // loop
 
     if sign {
-      lb.next_reverse()?;
-      lb.set(LTerm::make_char('-'));
+      lb.prepend(LTerm::make_char('-'))?;
     }
   } // if not 0
 
-  lb.end_with_nil();
   return Ok(lb.make_term());
 }

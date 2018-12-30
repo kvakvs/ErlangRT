@@ -45,64 +45,77 @@ impl TupleBuilder {
 /// 3. Set tail of the first element to a new cell by calling `next`
 /// 4. Finalize by writing last NIL by calling `end`.
 pub struct ListBuilder {
-  // first cell where the building started
-  first_cell_p: *const boxed::Cons,
-  // current (last) cell
-  write_p: *mut boxed::Cons,
+  // first cell where the building started (used to make the list term, also
+  // used to prepend to list)
+  pub head_p: *mut boxed::Cons,
+  // last cell (used to append to list)
+  pub tail_p: *mut boxed::Cons,
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,
 }
 
 impl ListBuilder {
   pub unsafe fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
-    let p = (*heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
-
     Ok(ListBuilder {
-      write_p: p,
-      first_cell_p: p,
+      head_p: core::ptr::null_mut(),
+      tail_p: core::ptr::null_mut(),
       heap,
     })
   }
 
-  pub fn get_write_p(&self) -> *mut boxed::Cons {
-    self.write_p
-  }
-
-  pub unsafe fn set(&mut self, val: LTerm) {
-    (*self.write_p).set_hd(val)
+  /// Creates a new cons cell to grow the list either back or forward
+  #[inline]
+  unsafe fn make_cell(&self) -> RtResult<*mut boxed::Cons> {
+    (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)
   }
 
   /// Build list forward: Set current tail to a newly allocated cons (next cell).
   /// New cell becomes the current.
   /// Remember to terminate with NIL.
-  pub unsafe fn next(&mut self) -> RtResult<()> {
-    let new_cell = (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
-    (*self.write_p).set_tl(LTerm::make_cons(new_cell));
-    self.write_p = new_cell;
+  pub unsafe fn append(&mut self, val: LTerm) -> RtResult<()> {
+    if self.head_p.is_null() {
+      // First cell in the list, make it the only cell in list
+      self.tail_p = self.make_cell()?;
+      self.head_p = self.tail_p;
+    } else {
+      // Link old tail to new cell
+      let new_cell = self.make_cell()?;
+      (*self.tail_p).set_tl(LTerm::make_cons(new_cell));
+      self.tail_p = new_cell;
+    }
+    (*self.tail_p).set_hd(val);
     Ok(())
   }
 
   /// Build list back: Create a new cons, where tail points to current.
   /// New previous cell becomes the current.
   /// Remember to terminate the first cell of the list with NIL.
-  pub unsafe fn next_reverse(&mut self) -> RtResult<()> {
-    let new_cell = (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)?;
-    (*new_cell).set_tl(self.make_term());
-    self.write_p = new_cell;
+  pub unsafe fn prepend(&mut self, val: LTerm) -> RtResult<()> {
+    if self.head_p.is_null() {
+      self.head_p = self.make_cell()?;
+      self.tail_p = self.head_p;
+    } else {
+      let new_cell = self.make_cell()?;
+      (*new_cell).set_tl(LTerm::make_cons(self.head_p));
+      self.head_p = new_cell;
+    }
+    (*self.head_p).set_hd(val);
     Ok(())
   }
 
-  pub unsafe fn end(&mut self, tl: LTerm) {
-    (*self.write_p).set_tl(tl)
-  }
-
-  #[allow(dead_code)]
-  pub unsafe fn end_with_nil(&mut self) {
-    (*self.write_p).set_tl(LTerm::nil())
+  pub unsafe fn set_tail(&mut self, tl: LTerm) {
+    (*self.tail_p).set_tl(tl)
   }
 
   pub fn make_term(&self) -> LTerm {
-    LTerm::make_cons(self.first_cell_p)
+    LTerm::make_cons(self.head_p)
+  }
+
+  pub unsafe fn make_term_with_tail(&mut self, tail: LTerm) -> LTerm {
+    // Cannot set tail if no cells were allocated
+    assert!(!self.head_p.is_null());
+    self.set_tail(tail);
+    LTerm::make_cons(self.head_p)
   }
 }
 
@@ -139,19 +152,9 @@ impl TermBuilder {
   }
 
   #[inline]
-  pub fn create_nil(&self) -> LTerm {
-    LTerm::nil()
-  }
-
-  #[inline]
   pub fn create_small_s(&self, n: isize) -> LTerm {
     LTerm::make_small_signed(n)
   }
-
-  //  #[inline]
-  //  pub fn create_empty_binary(&self) -> LTerm {
-  //    LTerm::make_empty_binary()
-  //  }
 
   pub fn create_tuple_builder(&mut self, sz: usize) -> RtResult<TupleBuilder> {
     let ref_heap = unsafe { self.heap.as_mut() }.unwrap();

@@ -1,9 +1,9 @@
 //! Module implements opcodes related to function objects/lambdas.
-
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{
     function::FunEntry,
+    mfa::MFArity,
     process::Process,
     runtime_ctx::{self, Context},
     vm::VM,
@@ -71,4 +71,62 @@ impl OpcodeCallFun {
       fail::create::badfun()
     }
   }
+}
+
+/// Structure: apply(arity:uint)
+/// Expects: x[0..arity-1] = args. x[arity] = callable object
+pub struct OpcodeApply {}
+
+impl OpcodeApply {
+  pub const ARITY: usize = 1;
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let mfa = MFArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
+    fixed_apply(ctx, curr_p, &mfa, 0)?;
+    Ok(DispatchResult::Normal)
+  }
+}
+
+/// Structure: apply(arity:uint)
+/// Expects: x[0..arity-1] = args. x[arity] = callable object
+pub struct OpcodeApplyLast {}
+
+impl OpcodeApplyLast {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context) -> (usize, usize) {
+    let arity = ctx.fetch_term().get_small_unsigned();
+    let dealloc = ctx.fetch_term().get_small_unsigned();
+    (arity, dealloc)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (arity, dealloc) = Self::fetch_args(ctx);
+    let mfa = MFArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
+    fixed_apply(ctx, curr_p, &mfa, dealloc)?;
+    Ok(DispatchResult::Normal)
+  }
+}
+
+/// Perform application of module:function/arity to args stored in registers,
+/// with optional deallocation.
+fn fixed_apply(
+  _ctx: &mut Context,
+  _curr_p: &mut Process,
+  _mfa: &MFArity,
+  _dealloc: usize,
+) -> RtResult<()> {
+  Ok(())
 }

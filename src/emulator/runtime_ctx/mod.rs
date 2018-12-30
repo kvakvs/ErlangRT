@@ -1,6 +1,5 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
-
 use crate::{
   defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
   emulator::{
@@ -129,11 +128,13 @@ impl Context {
   }
 
   /// Returns slice of registers `offset` to `sz`, bypassing the borrow checker
+  /// It is the caller responsibility to forget the registers slice ASAP.
   pub fn registers_slice(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
     unsafe { slice::from_raw_parts(self.regs.as_ptr().add(offset), sz) }
   }
 
   /// Returns mutable slice of registers `offset` to `sz`, bypassing the borrow checker
+  /// It is the caller responsibility to forget the registers slice ASAP.
   pub fn registers_slice_mut(
     &mut self,
     offset: usize,
@@ -244,14 +245,14 @@ impl Context {
   #[inline]
   pub fn jump(&mut self, cp: LTerm) {
     debug_assert!(cp.is_cp());
-    println!("jump to {:p}", cp.get_cp_ptr::<Word>());
+    println!("{} {:p}", "jump to".purple(), cp.get_cp_ptr::<Word>());
     self.ip = CodePtr::from_cp(cp);
   }
 
   #[inline]
   pub fn jump_ptr(&mut self, code_ptr: *const Word) {
     if cfg!(feature = "trace_opcode_execution") {
-      println!("jump to {:p}", code_ptr);
+      println!("{} {:p}", "jump to".purple(), code_ptr);
     }
     self.ip = CodePtr::new(code_ptr);
   }

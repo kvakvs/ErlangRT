@@ -181,52 +181,36 @@ fn decode_list(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
     return Ok(LTerm::nil());
   }
 
-  let mut list_builder = tb.create_list_builder()?;
-  let n_elem_minus_one = n_elem - 1;
-
-  for i in 0..n_elem {
+  let mut lb = tb.create_list_builder()?;
+  for _i in 0..n_elem {
     let another = decode_naked(r, tb)?;
-    unsafe { list_builder.set(another) }
-
-    if i < n_elem_minus_one {
-      unsafe {
-        list_builder.next()?;
-      }
+    unsafe {
+      lb.append(another)?;
     }
   }
 
   // Decode tail, possibly a nil
   let tl = decode_naked(r, tb)?;
-  unsafe { list_builder.end(tl) }
-  Ok(list_builder.make_term())
+  unsafe { Ok(lb.make_term_with_tail(tl)) }
 }
 
 /// A string of bytes encoded as tag 107 (String) with 16-bit length.
 fn decode_string(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {
   let n_elem = r.read_u16be();
   if n_elem == 0 {
-    return Ok(tb.create_nil());
+    return Ok(LTerm::nil());
   }
 
   // Using mutability build list forward creating many cells and linking them
   let mut list_builder = tb.create_list_builder()?;
-  let n_elem_minus_one = n_elem - 1;
 
-  for i in 0..n_elem {
+  for _i in 0..n_elem {
     let elem = r.read_u8();
     unsafe {
       let another = tb.create_small_s(elem as SWord);
-      list_builder.set(another)
-    }
-
-    // Keep building forward
-    if i < n_elem_minus_one {
-      unsafe {
-        list_builder.next()?;
-      }
+      list_builder.append(another)?;
     }
   }
 
-  unsafe { list_builder.end(tb.create_nil()) }
   Ok(list_builder.make_term())
 }

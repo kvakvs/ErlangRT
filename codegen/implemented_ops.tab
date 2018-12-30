@@ -1,4 +1,6 @@
 #=== === Calls and Execution Control === ===
+apply
+apply_last
 badmatch
 bif0
 bif1

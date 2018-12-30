@@ -1,6 +1,5 @@
 //! Module implements opcodes related to execution control: Calls, jumps,
 //! returns etc.
-
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{
@@ -252,7 +251,7 @@ impl OpcodeReturn {
       if curr_p.heap.stack_depth() == 0 {
         // Process end of life: return on empty stack
         println!("Process end of life (return on empty stack)");
-        //return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
+        // return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
         return Ok(DispatchResult::Finished);
       } else {
         panic!(
@@ -317,8 +316,7 @@ impl OpcodeSelectVal {
   pub const ARITY: usize = 3;
 
   #[inline]
-  fn fetch_args(ctx: &mut Context,
-                curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
     let hp = &curr_p.heap;
     let val = ctx.fetch_and_load(hp);
     let fail_label = ctx.fetch_term();

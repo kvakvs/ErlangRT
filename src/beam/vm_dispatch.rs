@@ -292,6 +292,16 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeRaise::run(vm, ctx, curr_p);
     },
 
+    OPCODE_APPLY => {
+      assert_arity(OPCODE_APPLY, OpcodeApply::ARITY);
+      return OpcodeApply::run(vm, ctx, curr_p);
+    },
+
+    OPCODE_APPLY_LAST => {
+      assert_arity(OPCODE_APPLY_LAST, OpcodeApplyLast::ARITY);
+      return OpcodeApplyLast::run(vm, ctx, curr_p);
+    },
+
     OPCODE_IS_FUNCTION2 => {
       assert_arity(OPCODE_IS_FUNCTION2, OpcodeIsFunction2::ARITY);
       return OpcodeIsFunction2::run(vm, ctx, curr_p);

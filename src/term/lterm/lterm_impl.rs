@@ -415,11 +415,16 @@ impl LTerm {
   }
 
   /// Create a LTerm from pointer to Cons cell. Pass a pointer to `LTerm` or
-  /// a pointer to `boxed::Cons`.
+  /// a pointer to `boxed::Cons`. Attempting to create cons cell to Null pointer
+  /// will create NIL (`[]`)
   #[inline]
   pub fn make_cons<T>(p: *const T) -> Self {
     Self {
-      value: (p as Word) | TERMTAG_CONS.0,
+      value: if p.is_null() {
+        return Self::nil();
+      } else {
+        (p as Word) | TERMTAG_CONS.0
+      },
     }
   }
 
