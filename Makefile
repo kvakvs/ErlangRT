@@ -1,3 +1,6 @@
-.PHONY: build
-build:
-	cd emulator && $(MAKE) codegen build
+.PHONY: build emu_codegen
+build: emu_codegen
+	cargo build
+
+emu_codegen:
+	cd emulator && $(MAKE) codegen
