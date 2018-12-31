@@ -6,10 +6,7 @@ use crate::{
   fail::RtResult,
   term::lterm::LTerm,
 };
-
-fn module() -> &'static str {
-  "opcodes::op_list: "
-}
+use crate::fail;
 
 /// Read the source `value` and check whether it is a list and not NIL. On
 /// false jump to the label `fail`.
@@ -105,14 +102,11 @@ impl OpcodeGetList {
       // TODO: is this badmatch here?
       panic!("Attempt to get_list on a nil[]");
     }
-    assert!(
-      src.is_cons(),
-      "{}get_list: expected a cons, got: {}",
-      module(),
-      src
-    );
 
     let hp = &mut curr_p.heap;
+    if !src.is_cons() {
+      return fail::create::badarg_val(src, hp);
+    }
 
     unsafe {
       let cons_p = src.get_cons_ptr();

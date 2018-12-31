@@ -17,7 +17,7 @@ pub struct TupleBuilder {
 
 impl TupleBuilder {
   #[inline]
-  pub fn with_arity(hp: &mut Heap, arity: usize) -> RtResult<Self> {
+  pub fn with_arity(arity: usize, hp: &mut Heap) -> RtResult<Self> {
     let p = boxed::Tuple::create_into(hp, arity)?;
     Ok(Self::new(p))
   }

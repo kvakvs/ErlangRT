@@ -52,7 +52,7 @@ unsafe fn copy_boxed_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
     boxed::BOXTYPETAG_TUPLE => {
       let tuple_p = box_p as *const boxed::Tuple;
       let arity = (*tuple_p).get_arity();
-      let tb = TupleBuilder::with_arity(hp, arity)?;
+      let tb = TupleBuilder::with_arity(arity, hp)?;
       for i in 0..arity {
         let element = boxed::Tuple::get_element_base0(tuple_p, i);
         let copied = copy_to(element, hp)?;

@@ -24,14 +24,3 @@ pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
   }
   Ok(val.make_term())
 }
-
-/// Create a `{badmatch, Arg}`.
-pub fn make_badmatch(arg: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
-  let mut tb = TermBuilder::new(hp);
-  let val = tb.create_tuple_builder(2)?;
-  unsafe {
-    val.set_element_base0(0, gen_atoms::BADMATCH);
-    val.set_element_base0(1, arg);
-  }
-  Ok(val.make_term())
-}

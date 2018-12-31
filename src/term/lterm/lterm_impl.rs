@@ -660,6 +660,11 @@ impl LTerm {
   //
 
   #[inline]
+  pub fn is_bool(self) -> bool {
+    self.is_true() || self.is_false()
+  }
+
+  #[inline]
   pub fn make_bool(v: bool) -> Self {
     if v {
       return gen_atoms::TRUE;

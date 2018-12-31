@@ -22,9 +22,9 @@ test() ->
     test_apply(lists, erlang).
 
 %%-----------------------------------------------
-test_apply(X, Y) ->
-    apply(X, any, [test1, test2]),
-    Y:is_boolean(derp).
+test_apply(Lists, Erlang) ->
+    true = apply(Lists, any, [fun(X) -> X =:= test1 end, [test2, test1]]),
+    false = Erlang:is_boolean(derp).
 
 test_try_catch() ->
     value1 = try erlang:error(value1)

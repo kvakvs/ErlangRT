@@ -23,6 +23,7 @@ ubif    erlang:hd/1
 ubif    erlang:self/0
 ubif    erlang:tl/1
 bif     erlang:is_process_alive/1
+ubif    erlang:is_boolean/1
 
 bif     erlang:nif_error/1
 bif     erlang:nif_error/2
