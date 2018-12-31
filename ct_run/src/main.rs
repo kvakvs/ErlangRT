@@ -114,11 +114,15 @@ fn main() {
   }
 
   println!("{:?}", cmd);
-  cmd.output().unwrap();
+  let mut child = cmd.spawn().unwrap();
+  let exit_status = child.wait().unwrap();
+  println!("erl exit status: {}", exit_status);
 }
 
 /// Trim program name from `args[0]` and append `erl`
 fn get_default_emulator(prog: &str) -> PathBuf {
+  return PathBuf::from("/home/kv/.asdf/shims/erl");
+
   let p = PathBuf::from(prog);
   match p.parent() {
     None => {

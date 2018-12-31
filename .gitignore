@@ -3,3 +3,12 @@
 
 /.idea
 /*.iml
+
+# Common Test artifacts
+*.html
+ct_default.css
+ct_log_cache
+ct_run.ct*
+jquery*
+suite.log*
+variables-ct*
