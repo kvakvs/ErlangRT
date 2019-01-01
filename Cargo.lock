@@ -62,9 +62,12 @@ dependencies = [
 [[package]]
 name = "ct_run"
 version = "0.1.0"
+dependencies = [
+ "erlangrt 0.1.0",
+]
 
 [[package]]
-name = "emulator"
+name = "erlangrt"
 version = "0.1.0"
 dependencies = [
  "bit_field 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -79,6 +82,9 @@ dependencies = [
 [[package]]
 name = "erlexec"
 version = "0.1.0"
+dependencies = [
+ "erlangrt 0.1.0",
+]
 
 [[package]]
 name = "fuchsia-zircon"

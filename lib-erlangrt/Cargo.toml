@@ -1,5 +1,5 @@
 [package]
-name = "emulator"
+name = "erlangrt"
 version = "0.1.0"
 authors = ["Dmytro Lytovchenko"]
 edition = "2018"

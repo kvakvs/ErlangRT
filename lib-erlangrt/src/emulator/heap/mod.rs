@@ -118,8 +118,12 @@ impl Heap {
     let n_words = n.words();
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n_words >= self.stack_top {
-      //return Err(Error::HeapIsFull);
-      panic!("Heap is full requested={} have={}", n, self.get_heap_available());
+      // return Err(Error::HeapIsFull);
+      panic!(
+        "Heap is full requested={} have={}",
+        n,
+        self.get_heap_available()
+      );
     }
 
     // Assume we can grow the data without reallocating
@@ -241,7 +245,11 @@ impl Heap {
 
   pub fn get_y(&self, index: Word) -> RtResult<LTerm> {
     if !self.stack_have_y(index) {
-      println!("Stack value requested y{}, depth={}", index, self.stack_depth());
+      println!(
+        "Stack value requested y{}, depth={}",
+        index,
+        self.stack_depth()
+      );
       return Err(Error::StackIndexRange(index));
     }
     let pos = index + self.stack_top + 1;
@@ -298,7 +306,7 @@ impl Heap {
         // Drop 1 less word than where the catch was found to preserve that CP
         return Some(NextCatchResult {
           loc: term_at_ptr.get_catch_ptr(),
-          stack_drop: stack_drop - 1
+          stack_drop: stack_drop - 1,
         });
       }
       ptr = ptr.add(1);

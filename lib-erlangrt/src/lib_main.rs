@@ -1,4 +1,5 @@
 use crate::{
+  command_line_args::ErlStartArgs,
   emulator::{
     atom,
     mfa::{Args, MFASomething},
@@ -12,13 +13,9 @@ use std::{
   thread, time,
 };
 
-/// Entry point for the command-line interface
-#[inline]
-pub fn entrypoint() {
-  if cfg!(feature = "r19") {
-    println!("Erlang Runtime (compat OTP 19)");
-    panic!("Support for R19 is unfinished and probably never will be finished.")
-  }
+/// Entry point for the command-line interface. Pre-parse command line args
+/// by calling StartArgs methods, or just use default constructed StartArgs.
+pub fn start_emulator(_args: &ErlStartArgs) {
   if cfg!(feature = "r20") {
     println!("Erlang Runtime (compat OTP 20)");
   }

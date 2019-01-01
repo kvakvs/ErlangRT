@@ -1,5 +1,4 @@
-use crate::term::lterm::LTerm;
-use crate::emulator::gen_atoms;
+use crate::{emulator::gen_atoms, term::lterm::LTerm};
 use core::fmt;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]

@@ -5,3 +5,4 @@ authors = ["Dmytro Lytovchenko <dmytro.lytovchenko@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+erlangrt = {path = "../lib-erlangrt"}

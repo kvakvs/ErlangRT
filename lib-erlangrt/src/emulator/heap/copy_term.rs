@@ -4,16 +4,17 @@
 use crate::{
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::*, term_builder::ListBuilder},
+  term::{
+    boxed,
+    lterm::*,
+    term_builder::{ListBuilder, TupleBuilder},
+  },
 };
-use crate::term::term_builder::TupleBuilder;
 
 /// Copies term to another heap.
 pub fn copy_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   match term.get_term_tag() {
-    TERMTAG_BOXED => unsafe {
-      copy_boxed_to(term, hp)
-    },
+    TERMTAG_BOXED => unsafe { copy_boxed_to(term, hp) },
     TERMTAG_HEADER => {
       panic!("Attempt to copy header value");
     }
@@ -59,18 +60,18 @@ unsafe fn copy_boxed_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
         tb.set_element_base0(i, copied);
       }
       return Ok(tb.make_term());
-    },
-    boxed::BOXTYPETAG_BIGINTEGER => {},
-    boxed::BOXTYPETAG_EXTERNALPID => {},
-    boxed::BOXTYPETAG_EXTERNALREF => {},
-    boxed::BOXTYPETAG_EXTERNALPORT => {},
-    boxed::BOXTYPETAG_CLOSURE => {},
-    boxed::BOXTYPETAG_FLOAT => {},
-    boxed::BOXTYPETAG_IMPORT => {},
-    boxed::BOXTYPETAG_EXPORT => {},
-    boxed::BOXTYPETAG_MAP => {},
-    boxed::BOXTYPETAG_BINARY => {},
-    _other => {},
+    }
+    boxed::BOXTYPETAG_BIGINTEGER => {}
+    boxed::BOXTYPETAG_EXTERNALPID => {}
+    boxed::BOXTYPETAG_EXTERNALREF => {}
+    boxed::BOXTYPETAG_EXTERNALPORT => {}
+    boxed::BOXTYPETAG_CLOSURE => {}
+    boxed::BOXTYPETAG_FLOAT => {}
+    boxed::BOXTYPETAG_IMPORT => {}
+    boxed::BOXTYPETAG_EXPORT => {}
+    boxed::BOXTYPETAG_MAP => {}
+    boxed::BOXTYPETAG_BINARY => {}
+    _other => {}
   }
 
   panic!("Don't know how to copy {}", term);

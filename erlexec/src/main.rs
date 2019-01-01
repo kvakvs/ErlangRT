@@ -1,11 +1,9 @@
+use erlangrt::command_line_args::ErlStartArgs;
 use std::env;
-use crate::erlargs::ErlArgs;
-
-mod erlargs;
 
 fn main() {
   // let in_args: Vec<String> = env::args().collect();
-  let mut args = ErlArgs::new();
+  let mut args = ErlStartArgs::new();
   args.populate_with(env::args());
   println!("{:?}", args);
 

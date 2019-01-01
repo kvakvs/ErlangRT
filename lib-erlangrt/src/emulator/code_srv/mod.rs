@@ -3,6 +3,7 @@
 
 use crate::{
   beam::loader,
+  bif::{self, BifFn},
   emulator::{
     atom,
     code::{pointer::VersionedCodePtr, CodePtr},
@@ -16,8 +17,6 @@ use std::{
   collections::BTreeMap,
   path::{Path, PathBuf},
 };
-use crate::bif::BifFn;
-use crate::bif;
 
 fn module() -> &'static str {
   "code_srv: "
@@ -36,8 +35,8 @@ struct ModuleGenerations {
 pub enum MFALookupResult {
   FoundBeamCode(CodePtr),
   FoundBif(BifFn),
-  // TODO: also NIF?
-  // FoundNif(?),
+  /* TODO: also NIF?
+   * FoundNif(?), */
 }
 
 pub struct CodeServer {
@@ -66,11 +65,11 @@ impl CodeServer {
   pub fn lookup_mfa(
     &mut self,
     mfa: &MFArity,
-    allow_load: bool
+    allow_load: bool,
   ) -> RtResult<MFALookupResult> {
     // It could be a BIF
     if let Ok(bif_fn) = bif::find_bif(mfa) {
-      return Ok(MFALookupResult::FoundBif(bif_fn))
+      return Ok(MFALookupResult::FoundBif(bif_fn));
     }
     // Try look for a BEAM export somewhere
     if let Ok(code_p) = if allow_load {
