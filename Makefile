@@ -4,3 +4,6 @@ build: emu_codegen
 
 emu_codegen:
 	cd emulator && $(MAKE) codegen
+
+ct:
+	mkdir tmp; cd tmp && ../target/debug/ct_run
