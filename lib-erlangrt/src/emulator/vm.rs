@@ -2,6 +2,7 @@
 //! registrations, schedulers, ETS tables and atom table etc.
 
 use crate::{
+  command_line_args::ErlStartArgs,
   defs::Word,
   emulator::{
     code_srv::CodeServer,
@@ -31,9 +32,9 @@ pub struct VM {
 impl VM {
   /// Create a VM, multiple VMs can be created but atom table and code server
   /// will be shared (global).
-  pub fn new() -> VM {
+  pub fn new(args: &mut ErlStartArgs) -> VM {
     VM {
-      code_server: CodeServer::new(),
+      code_server: CodeServer::new(args),
       pid_counter: 0,
       scheduler: Scheduler::new(),
     }

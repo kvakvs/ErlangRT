@@ -3,172 +3,173 @@
 //! Config used: OTP20
 #![allow(dead_code)]
 
-use crate::{defs::Word, emulator::code::opcode::RawOpcode};
+use crate::defs::Word;
+use crate::emulator::code::opcode::RawOpcode;
 
 
 pub const OPCODE_MAX: RawOpcode = RawOpcode(159);
 
 pub static ARITY_MAP: &'static [u8] = &[
-  0, // opcode 0 does not exist
-  1, // opcode: 1 (label)
-  3, // opcode: 2 (func_info)
-  0, // opcode: 3 (int_code_end)
-  2, // opcode: 4 (call)
-  3, // opcode: 5 (call_last)
-  2, // opcode: 6 (call_only)
-  2, // opcode: 7 (call_ext)
-  3, // opcode: 8 (call_ext_last)
-  2, // opcode: 9 (bif0)
-  4, // opcode: 10 (bif1)
-  5, // opcode: 11 (bif2)
-  2, // opcode: 12 (allocate)
-  3, // opcode: 13 (allocate_heap)
-  2, // opcode: 14 (allocate_zero)
-  3, // opcode: 15 (allocate_heap_zero)
-  2, // opcode: 16 (test_heap)
-  1, // opcode: 17 (init)
-  1, // opcode: 18 (deallocate)
-  0, // opcode: 19 (return)
-  0, // opcode: 20 (send)
-  0, // opcode: 21 (remove_message)
-  0, // opcode: 22 (timeout)
-  2, // opcode: 23 (loop_rec)
-  1, // opcode: 24 (loop_rec_end)
-  1, // opcode: 25 (wait)
-  2, // opcode: 26 (wait_timeout)
-  4, // opcode: 27 (m_plus)
-  4, // opcode: 28 (m_minus)
-  4, // opcode: 29 (m_times)
-  4, // opcode: 30 (m_div)
-  4, // opcode: 31 (int_div)
-  4, // opcode: 32 (int_rem)
-  4, // opcode: 33 (int_band)
-  4, // opcode: 34 (int_bor)
-  4, // opcode: 35 (int_bxor)
-  4, // opcode: 36 (int_bsl)
-  4, // opcode: 37 (int_bsr)
-  3, // opcode: 38 (int_bnot)
-  3, // opcode: 39 (is_lt)
-  3, // opcode: 40 (is_ge)
-  3, // opcode: 41 (is_eq)
-  3, // opcode: 42 (is_ne)
-  3, // opcode: 43 (is_eq_exact)
-  3, // opcode: 44 (is_ne_exact)
-  2, // opcode: 45 (is_integer)
-  2, // opcode: 46 (is_float)
-  2, // opcode: 47 (is_number)
-  2, // opcode: 48 (is_atom)
-  2, // opcode: 49 (is_pid)
-  2, // opcode: 50 (is_reference)
-  2, // opcode: 51 (is_port)
-  2, // opcode: 52 (is_nil)
-  2, // opcode: 53 (is_binary)
-  2, // opcode: 54 (is_constant)
-  2, // opcode: 55 (is_list)
-  2, // opcode: 56 (is_nonempty_list)
-  2, // opcode: 57 (is_tuple)
-  3, // opcode: 58 (test_arity)
-  3, // opcode: 59 (select_val)
-  3, // opcode: 60 (select_tuple_arity)
-  1, // opcode: 61 (jump)
-  2, // opcode: 62 (catch)
-  1, // opcode: 63 (catch_end)
-  2, // opcode: 64 (move)
-  3, // opcode: 65 (get_list)
-  3, // opcode: 66 (get_tuple_element)
-  3, // opcode: 67 (set_tuple_element)
-  3, // opcode: 68 (put_string)
-  3, // opcode: 69 (put_list)
-  2, // opcode: 70 (put_tuple)
-  1, // opcode: 71 (put)
-  1, // opcode: 72 (badmatch)
-  0, // opcode: 73 (if_end)
-  1, // opcode: 74 (case_end)
-  1, // opcode: 75 (call_fun)
-  3, // opcode: 76 (make_fun)
-  2, // opcode: 77 (is_function)
-  2, // opcode: 78 (call_ext_only)
-  2, // opcode: 79 (bs_start_match)
-  5, // opcode: 80 (bs_get_integer)
-  5, // opcode: 81 (bs_get_float)
-  5, // opcode: 82 (bs_get_binary)
-  4, // opcode: 83 (bs_skip_bits)
-  2, // opcode: 84 (bs_test_tail)
-  1, // opcode: 85 (bs_save)
-  1, // opcode: 86 (bs_restore)
-  2, // opcode: 87 (bs_init)
-  2, // opcode: 88 (bs_final)
-  5, // opcode: 89 (bs_put_integer)
-  5, // opcode: 90 (bs_put_binary)
-  5, // opcode: 91 (bs_put_float)
-  2, // opcode: 92 (bs_put_string)
-  1, // opcode: 93 (bs_need_buf)
-  0, // opcode: 94 (fclearerror)
-  1, // opcode: 95 (fcheckerror)
-  2, // opcode: 96 (fmove)
-  2, // opcode: 97 (fconv)
-  4, // opcode: 98 (fadd)
-  4, // opcode: 99 (fsub)
-  4, // opcode: 100 (fmul)
-  4, // opcode: 101 (fdiv)
-  3, // opcode: 102 (fnegate)
-  1, // opcode: 103 (make_fun2)
-  2, // opcode: 104 (try)
-  1, // opcode: 105 (try_end)
-  1, // opcode: 106 (try_case)
-  1, // opcode: 107 (try_case_end)
-  2, // opcode: 108 (raise)
-  6, // opcode: 109 (bs_init2)
-  3, // opcode: 110 (bs_bits_to_bytes)
-  5, // opcode: 111 (bs_add)
-  1, // opcode: 112 (apply)
-  2, // opcode: 113 (apply_last)
-  2, // opcode: 114 (is_boolean)
-  3, // opcode: 115 (is_function2)
-  5, // opcode: 116 (bs_start_match2)
-  7, // opcode: 117 (bs_get_integer2)
-  7, // opcode: 118 (bs_get_float2)
-  7, // opcode: 119 (bs_get_binary2)
-  5, // opcode: 120 (bs_skip_bits2)
-  3, // opcode: 121 (bs_test_tail2)
-  2, // opcode: 122 (bs_save2)
-  2, // opcode: 123 (bs_restore2)
-  5, // opcode: 124 (gc_bif1)
-  6, // opcode: 125 (gc_bif2)
-  2, // opcode: 126 (bs_final2)
-  2, // opcode: 127 (bs_bits_to_bytes2)
-  2, // opcode: 128 (put_literal)
-  2, // opcode: 129 (is_bitstr)
-  1, // opcode: 130 (bs_context_to_binary)
-  3, // opcode: 131 (bs_test_unit)
-  4, // opcode: 132 (bs_match_string)
-  0, // opcode: 133 (bs_init_writable)
-  8, // opcode: 134 (bs_append)
-  6, // opcode: 135 (bs_private_append)
-  2, // opcode: 136 (trim)
-  6, // opcode: 137 (bs_init_bits)
-  5, // opcode: 138 (bs_get_utf8)
-  4, // opcode: 139 (bs_skip_utf8)
-  5, // opcode: 140 (bs_get_utf16)
-  4, // opcode: 141 (bs_skip_utf16)
-  5, // opcode: 142 (bs_get_utf32)
-  4, // opcode: 143 (bs_skip_utf32)
-  3, // opcode: 144 (bs_utf8_size)
-  3, // opcode: 145 (bs_put_utf8)
-  3, // opcode: 146 (bs_utf16_size)
-  3, // opcode: 147 (bs_put_utf16)
-  3, // opcode: 148 (bs_put_utf32)
-  0, // opcode: 149 (on_load)
-  1, // opcode: 150 (recv_mark)
-  1, // opcode: 151 (recv_set)
-  7, // opcode: 152 (gc_bif3)
-  1, // opcode: 153 (line)
-  5, // opcode: 154 (put_map_assoc)
-  5, // opcode: 155 (put_map_exact)
-  2, // opcode: 156 (is_map)
-  3, // opcode: 157 (has_map_fields)
-  3, // opcode: 158 (get_map_elements)
-  4, // opcode: 159 (is_tagged_tuple)
+    0, // opcode 0 does not exist
+    1, // opcode: 1 (label)
+    3, // opcode: 2 (func_info)
+    0, // opcode: 3 (int_code_end)
+    2, // opcode: 4 (call)
+    3, // opcode: 5 (call_last)
+    2, // opcode: 6 (call_only)
+    2, // opcode: 7 (call_ext)
+    3, // opcode: 8 (call_ext_last)
+    2, // opcode: 9 (bif0)
+    4, // opcode: 10 (bif1)
+    5, // opcode: 11 (bif2)
+    2, // opcode: 12 (allocate)
+    3, // opcode: 13 (allocate_heap)
+    2, // opcode: 14 (allocate_zero)
+    3, // opcode: 15 (allocate_heap_zero)
+    2, // opcode: 16 (test_heap)
+    1, // opcode: 17 (init)
+    1, // opcode: 18 (deallocate)
+    0, // opcode: 19 (return)
+    0, // opcode: 20 (send)
+    0, // opcode: 21 (remove_message)
+    0, // opcode: 22 (timeout)
+    2, // opcode: 23 (loop_rec)
+    1, // opcode: 24 (loop_rec_end)
+    1, // opcode: 25 (wait)
+    2, // opcode: 26 (wait_timeout)
+    4, // opcode: 27 (m_plus)
+    4, // opcode: 28 (m_minus)
+    4, // opcode: 29 (m_times)
+    4, // opcode: 30 (m_div)
+    4, // opcode: 31 (int_div)
+    4, // opcode: 32 (int_rem)
+    4, // opcode: 33 (int_band)
+    4, // opcode: 34 (int_bor)
+    4, // opcode: 35 (int_bxor)
+    4, // opcode: 36 (int_bsl)
+    4, // opcode: 37 (int_bsr)
+    3, // opcode: 38 (int_bnot)
+    3, // opcode: 39 (is_lt)
+    3, // opcode: 40 (is_ge)
+    3, // opcode: 41 (is_eq)
+    3, // opcode: 42 (is_ne)
+    3, // opcode: 43 (is_eq_exact)
+    3, // opcode: 44 (is_ne_exact)
+    2, // opcode: 45 (is_integer)
+    2, // opcode: 46 (is_float)
+    2, // opcode: 47 (is_number)
+    2, // opcode: 48 (is_atom)
+    2, // opcode: 49 (is_pid)
+    2, // opcode: 50 (is_reference)
+    2, // opcode: 51 (is_port)
+    2, // opcode: 52 (is_nil)
+    2, // opcode: 53 (is_binary)
+    2, // opcode: 54 (is_constant)
+    2, // opcode: 55 (is_list)
+    2, // opcode: 56 (is_nonempty_list)
+    2, // opcode: 57 (is_tuple)
+    3, // opcode: 58 (test_arity)
+    3, // opcode: 59 (select_val)
+    3, // opcode: 60 (select_tuple_arity)
+    1, // opcode: 61 (jump)
+    2, // opcode: 62 (catch)
+    1, // opcode: 63 (catch_end)
+    2, // opcode: 64 (move)
+    3, // opcode: 65 (get_list)
+    3, // opcode: 66 (get_tuple_element)
+    3, // opcode: 67 (set_tuple_element)
+    3, // opcode: 68 (put_string)
+    3, // opcode: 69 (put_list)
+    2, // opcode: 70 (put_tuple)
+    1, // opcode: 71 (put)
+    1, // opcode: 72 (badmatch)
+    0, // opcode: 73 (if_end)
+    1, // opcode: 74 (case_end)
+    1, // opcode: 75 (call_fun)
+    3, // opcode: 76 (make_fun)
+    2, // opcode: 77 (is_function)
+    2, // opcode: 78 (call_ext_only)
+    2, // opcode: 79 (bs_start_match)
+    5, // opcode: 80 (bs_get_integer)
+    5, // opcode: 81 (bs_get_float)
+    5, // opcode: 82 (bs_get_binary)
+    4, // opcode: 83 (bs_skip_bits)
+    2, // opcode: 84 (bs_test_tail)
+    1, // opcode: 85 (bs_save)
+    1, // opcode: 86 (bs_restore)
+    2, // opcode: 87 (bs_init)
+    2, // opcode: 88 (bs_final)
+    5, // opcode: 89 (bs_put_integer)
+    5, // opcode: 90 (bs_put_binary)
+    5, // opcode: 91 (bs_put_float)
+    2, // opcode: 92 (bs_put_string)
+    1, // opcode: 93 (bs_need_buf)
+    0, // opcode: 94 (fclearerror)
+    1, // opcode: 95 (fcheckerror)
+    2, // opcode: 96 (fmove)
+    2, // opcode: 97 (fconv)
+    4, // opcode: 98 (fadd)
+    4, // opcode: 99 (fsub)
+    4, // opcode: 100 (fmul)
+    4, // opcode: 101 (fdiv)
+    3, // opcode: 102 (fnegate)
+    1, // opcode: 103 (make_fun2)
+    2, // opcode: 104 (try)
+    1, // opcode: 105 (try_end)
+    1, // opcode: 106 (try_case)
+    1, // opcode: 107 (try_case_end)
+    2, // opcode: 108 (raise)
+    6, // opcode: 109 (bs_init2)
+    3, // opcode: 110 (bs_bits_to_bytes)
+    5, // opcode: 111 (bs_add)
+    1, // opcode: 112 (apply)
+    2, // opcode: 113 (apply_last)
+    2, // opcode: 114 (is_boolean)
+    3, // opcode: 115 (is_function2)
+    5, // opcode: 116 (bs_start_match2)
+    7, // opcode: 117 (bs_get_integer2)
+    7, // opcode: 118 (bs_get_float2)
+    7, // opcode: 119 (bs_get_binary2)
+    5, // opcode: 120 (bs_skip_bits2)
+    3, // opcode: 121 (bs_test_tail2)
+    2, // opcode: 122 (bs_save2)
+    2, // opcode: 123 (bs_restore2)
+    5, // opcode: 124 (gc_bif1)
+    6, // opcode: 125 (gc_bif2)
+    2, // opcode: 126 (bs_final2)
+    2, // opcode: 127 (bs_bits_to_bytes2)
+    2, // opcode: 128 (put_literal)
+    2, // opcode: 129 (is_bitstr)
+    1, // opcode: 130 (bs_context_to_binary)
+    3, // opcode: 131 (bs_test_unit)
+    4, // opcode: 132 (bs_match_string)
+    0, // opcode: 133 (bs_init_writable)
+    8, // opcode: 134 (bs_append)
+    6, // opcode: 135 (bs_private_append)
+    2, // opcode: 136 (trim)
+    6, // opcode: 137 (bs_init_bits)
+    5, // opcode: 138 (bs_get_utf8)
+    4, // opcode: 139 (bs_skip_utf8)
+    5, // opcode: 140 (bs_get_utf16)
+    4, // opcode: 141 (bs_skip_utf16)
+    5, // opcode: 142 (bs_get_utf32)
+    4, // opcode: 143 (bs_skip_utf32)
+    3, // opcode: 144 (bs_utf8_size)
+    3, // opcode: 145 (bs_put_utf8)
+    3, // opcode: 146 (bs_utf16_size)
+    3, // opcode: 147 (bs_put_utf16)
+    3, // opcode: 148 (bs_put_utf32)
+    0, // opcode: 149 (on_load)
+    1, // opcode: 150 (recv_mark)
+    1, // opcode: 151 (recv_set)
+    7, // opcode: 152 (gc_bif3)
+    1, // opcode: 153 (line)
+    5, // opcode: 154 (put_map_assoc)
+    5, // opcode: 155 (put_map_exact)
+    2, // opcode: 156 (is_map)
+    3, // opcode: 157 (has_map_fields)
+    3, // opcode: 158 (get_map_elements)
+    4, // opcode: 159 (is_tagged_tuple)
 ];
 
 #[inline]
@@ -177,166 +178,166 @@ pub fn opcode_arity(opcode: RawOpcode) -> u8 {
 }
 
 const OPCODE_NAME_MAP: &[&str] = &[
-  "",                     // opcode 0 does not exist
-  "label",                // opcode: 1
-  "func_info",            // opcode: 2
-  "int_code_end",         // opcode: 3
-  "call",                 // opcode: 4
-  "call_last",            // opcode: 5
-  "call_only",            // opcode: 6
-  "call_ext",             // opcode: 7
-  "call_ext_last",        // opcode: 8
-  "bif0",                 // opcode: 9
-  "bif1",                 // opcode: 10
-  "bif2",                 // opcode: 11
-  "allocate",             // opcode: 12
-  "allocate_heap",        // opcode: 13
-  "allocate_zero",        // opcode: 14
-  "allocate_heap_zero",   // opcode: 15
-  "test_heap",            // opcode: 16
-  "init",                 // opcode: 17
-  "deallocate",           // opcode: 18
-  "return",               // opcode: 19
-  "send",                 // opcode: 20
-  "remove_message",       // opcode: 21
-  "timeout",              // opcode: 22
-  "loop_rec",             // opcode: 23
-  "loop_rec_end",         // opcode: 24
-  "wait",                 // opcode: 25
-  "wait_timeout",         // opcode: 26
-  "m_plus",               // opcode: 27
-  "m_minus",              // opcode: 28
-  "m_times",              // opcode: 29
-  "m_div",                // opcode: 30
-  "int_div",              // opcode: 31
-  "int_rem",              // opcode: 32
-  "int_band",             // opcode: 33
-  "int_bor",              // opcode: 34
-  "int_bxor",             // opcode: 35
-  "int_bsl",              // opcode: 36
-  "int_bsr",              // opcode: 37
-  "int_bnot",             // opcode: 38
-  "is_lt",                // opcode: 39
-  "is_ge",                // opcode: 40
-  "is_eq",                // opcode: 41
-  "is_ne",                // opcode: 42
-  "is_eq_exact",          // opcode: 43
-  "is_ne_exact",          // opcode: 44
-  "is_integer",           // opcode: 45
-  "is_float",             // opcode: 46
-  "is_number",            // opcode: 47
-  "is_atom",              // opcode: 48
-  "is_pid",               // opcode: 49
-  "is_reference",         // opcode: 50
-  "is_port",              // opcode: 51
-  "is_nil",               // opcode: 52
-  "is_binary",            // opcode: 53
-  "is_constant",          // opcode: 54
-  "is_list",              // opcode: 55
-  "is_nonempty_list",     // opcode: 56
-  "is_tuple",             // opcode: 57
-  "test_arity",           // opcode: 58
-  "select_val",           // opcode: 59
-  "select_tuple_arity",   // opcode: 60
-  "jump",                 // opcode: 61
-  "catch",                // opcode: 62
-  "catch_end",            // opcode: 63
-  "move",                 // opcode: 64
-  "get_list",             // opcode: 65
-  "get_tuple_element",    // opcode: 66
-  "set_tuple_element",    // opcode: 67
-  "put_string",           // opcode: 68
-  "put_list",             // opcode: 69
-  "put_tuple",            // opcode: 70
-  "put",                  // opcode: 71
-  "badmatch",             // opcode: 72
-  "if_end",               // opcode: 73
-  "case_end",             // opcode: 74
-  "call_fun",             // opcode: 75
-  "make_fun",             // opcode: 76
-  "is_function",          // opcode: 77
-  "call_ext_only",        // opcode: 78
-  "bs_start_match",       // opcode: 79
-  "bs_get_integer",       // opcode: 80
-  "bs_get_float",         // opcode: 81
-  "bs_get_binary",        // opcode: 82
-  "bs_skip_bits",         // opcode: 83
-  "bs_test_tail",         // opcode: 84
-  "bs_save",              // opcode: 85
-  "bs_restore",           // opcode: 86
-  "bs_init",              // opcode: 87
-  "bs_final",             // opcode: 88
-  "bs_put_integer",       // opcode: 89
-  "bs_put_binary",        // opcode: 90
-  "bs_put_float",         // opcode: 91
-  "bs_put_string",        // opcode: 92
-  "bs_need_buf",          // opcode: 93
-  "fclearerror",          // opcode: 94
-  "fcheckerror",          // opcode: 95
-  "fmove",                // opcode: 96
-  "fconv",                // opcode: 97
-  "fadd",                 // opcode: 98
-  "fsub",                 // opcode: 99
-  "fmul",                 // opcode: 100
-  "fdiv",                 // opcode: 101
-  "fnegate",              // opcode: 102
-  "make_fun2",            // opcode: 103
-  "try",                  // opcode: 104
-  "try_end",              // opcode: 105
-  "try_case",             // opcode: 106
-  "try_case_end",         // opcode: 107
-  "raise",                // opcode: 108
-  "bs_init2",             // opcode: 109
-  "bs_bits_to_bytes",     // opcode: 110
-  "bs_add",               // opcode: 111
-  "apply",                // opcode: 112
-  "apply_last",           // opcode: 113
-  "is_boolean",           // opcode: 114
-  "is_function2",         // opcode: 115
-  "bs_start_match2",      // opcode: 116
-  "bs_get_integer2",      // opcode: 117
-  "bs_get_float2",        // opcode: 118
-  "bs_get_binary2",       // opcode: 119
-  "bs_skip_bits2",        // opcode: 120
-  "bs_test_tail2",        // opcode: 121
-  "bs_save2",             // opcode: 122
-  "bs_restore2",          // opcode: 123
-  "gc_bif1",              // opcode: 124
-  "gc_bif2",              // opcode: 125
-  "bs_final2",            // opcode: 126
-  "bs_bits_to_bytes2",    // opcode: 127
-  "put_literal",          // opcode: 128
-  "is_bitstr",            // opcode: 129
-  "bs_context_to_binary", // opcode: 130
-  "bs_test_unit",         // opcode: 131
-  "bs_match_string",      // opcode: 132
-  "bs_init_writable",     // opcode: 133
-  "bs_append",            // opcode: 134
-  "bs_private_append",    // opcode: 135
-  "trim",                 // opcode: 136
-  "bs_init_bits",         // opcode: 137
-  "bs_get_utf8",          // opcode: 138
-  "bs_skip_utf8",         // opcode: 139
-  "bs_get_utf16",         // opcode: 140
-  "bs_skip_utf16",        // opcode: 141
-  "bs_get_utf32",         // opcode: 142
-  "bs_skip_utf32",        // opcode: 143
-  "bs_utf8_size",         // opcode: 144
-  "bs_put_utf8",          // opcode: 145
-  "bs_utf16_size",        // opcode: 146
-  "bs_put_utf16",         // opcode: 147
-  "bs_put_utf32",         // opcode: 148
-  "on_load",              // opcode: 149
-  "recv_mark",            // opcode: 150
-  "recv_set",             // opcode: 151
-  "gc_bif3",              // opcode: 152
-  "line",                 // opcode: 153
-  "put_map_assoc",        // opcode: 154
-  "put_map_exact",        // opcode: 155
-  "is_map",               // opcode: 156
-  "has_map_fields",       // opcode: 157
-  "get_map_elements",     // opcode: 158
-  "is_tagged_tuple",      // opcode: 159
+        "", // opcode 0 does not exist
+    "label", // opcode: 1
+    "func_info", // opcode: 2
+    "int_code_end", // opcode: 3
+    "call", // opcode: 4
+    "call_last", // opcode: 5
+    "call_only", // opcode: 6
+    "call_ext", // opcode: 7
+    "call_ext_last", // opcode: 8
+    "bif0", // opcode: 9
+    "bif1", // opcode: 10
+    "bif2", // opcode: 11
+    "allocate", // opcode: 12
+    "allocate_heap", // opcode: 13
+    "allocate_zero", // opcode: 14
+    "allocate_heap_zero", // opcode: 15
+    "test_heap", // opcode: 16
+    "init", // opcode: 17
+    "deallocate", // opcode: 18
+    "return", // opcode: 19
+    "send", // opcode: 20
+    "remove_message", // opcode: 21
+    "timeout", // opcode: 22
+    "loop_rec", // opcode: 23
+    "loop_rec_end", // opcode: 24
+    "wait", // opcode: 25
+    "wait_timeout", // opcode: 26
+    "m_plus", // opcode: 27
+    "m_minus", // opcode: 28
+    "m_times", // opcode: 29
+    "m_div", // opcode: 30
+    "int_div", // opcode: 31
+    "int_rem", // opcode: 32
+    "int_band", // opcode: 33
+    "int_bor", // opcode: 34
+    "int_bxor", // opcode: 35
+    "int_bsl", // opcode: 36
+    "int_bsr", // opcode: 37
+    "int_bnot", // opcode: 38
+    "is_lt", // opcode: 39
+    "is_ge", // opcode: 40
+    "is_eq", // opcode: 41
+    "is_ne", // opcode: 42
+    "is_eq_exact", // opcode: 43
+    "is_ne_exact", // opcode: 44
+    "is_integer", // opcode: 45
+    "is_float", // opcode: 46
+    "is_number", // opcode: 47
+    "is_atom", // opcode: 48
+    "is_pid", // opcode: 49
+    "is_reference", // opcode: 50
+    "is_port", // opcode: 51
+    "is_nil", // opcode: 52
+    "is_binary", // opcode: 53
+    "is_constant", // opcode: 54
+    "is_list", // opcode: 55
+    "is_nonempty_list", // opcode: 56
+    "is_tuple", // opcode: 57
+    "test_arity", // opcode: 58
+    "select_val", // opcode: 59
+    "select_tuple_arity", // opcode: 60
+    "jump", // opcode: 61
+    "catch", // opcode: 62
+    "catch_end", // opcode: 63
+    "move", // opcode: 64
+    "get_list", // opcode: 65
+    "get_tuple_element", // opcode: 66
+    "set_tuple_element", // opcode: 67
+    "put_string", // opcode: 68
+    "put_list", // opcode: 69
+    "put_tuple", // opcode: 70
+    "put", // opcode: 71
+    "badmatch", // opcode: 72
+    "if_end", // opcode: 73
+    "case_end", // opcode: 74
+    "call_fun", // opcode: 75
+    "make_fun", // opcode: 76
+    "is_function", // opcode: 77
+    "call_ext_only", // opcode: 78
+    "bs_start_match", // opcode: 79
+    "bs_get_integer", // opcode: 80
+    "bs_get_float", // opcode: 81
+    "bs_get_binary", // opcode: 82
+    "bs_skip_bits", // opcode: 83
+    "bs_test_tail", // opcode: 84
+    "bs_save", // opcode: 85
+    "bs_restore", // opcode: 86
+    "bs_init", // opcode: 87
+    "bs_final", // opcode: 88
+    "bs_put_integer", // opcode: 89
+    "bs_put_binary", // opcode: 90
+    "bs_put_float", // opcode: 91
+    "bs_put_string", // opcode: 92
+    "bs_need_buf", // opcode: 93
+    "fclearerror", // opcode: 94
+    "fcheckerror", // opcode: 95
+    "fmove", // opcode: 96
+    "fconv", // opcode: 97
+    "fadd", // opcode: 98
+    "fsub", // opcode: 99
+    "fmul", // opcode: 100
+    "fdiv", // opcode: 101
+    "fnegate", // opcode: 102
+    "make_fun2", // opcode: 103
+    "try", // opcode: 104
+    "try_end", // opcode: 105
+    "try_case", // opcode: 106
+    "try_case_end", // opcode: 107
+    "raise", // opcode: 108
+    "bs_init2", // opcode: 109
+    "bs_bits_to_bytes", // opcode: 110
+    "bs_add", // opcode: 111
+    "apply", // opcode: 112
+    "apply_last", // opcode: 113
+    "is_boolean", // opcode: 114
+    "is_function2", // opcode: 115
+    "bs_start_match2", // opcode: 116
+    "bs_get_integer2", // opcode: 117
+    "bs_get_float2", // opcode: 118
+    "bs_get_binary2", // opcode: 119
+    "bs_skip_bits2", // opcode: 120
+    "bs_test_tail2", // opcode: 121
+    "bs_save2", // opcode: 122
+    "bs_restore2", // opcode: 123
+    "gc_bif1", // opcode: 124
+    "gc_bif2", // opcode: 125
+    "bs_final2", // opcode: 126
+    "bs_bits_to_bytes2", // opcode: 127
+    "put_literal", // opcode: 128
+    "is_bitstr", // opcode: 129
+    "bs_context_to_binary", // opcode: 130
+    "bs_test_unit", // opcode: 131
+    "bs_match_string", // opcode: 132
+    "bs_init_writable", // opcode: 133
+    "bs_append", // opcode: 134
+    "bs_private_append", // opcode: 135
+    "trim", // opcode: 136
+    "bs_init_bits", // opcode: 137
+    "bs_get_utf8", // opcode: 138
+    "bs_skip_utf8", // opcode: 139
+    "bs_get_utf16", // opcode: 140
+    "bs_skip_utf16", // opcode: 141
+    "bs_get_utf32", // opcode: 142
+    "bs_skip_utf32", // opcode: 143
+    "bs_utf8_size", // opcode: 144
+    "bs_put_utf8", // opcode: 145
+    "bs_utf16_size", // opcode: 146
+    "bs_put_utf16", // opcode: 147
+    "bs_put_utf32", // opcode: 148
+    "on_load", // opcode: 149
+    "recv_mark", // opcode: 150
+    "recv_set", // opcode: 151
+    "gc_bif3", // opcode: 152
+    "line", // opcode: 153
+    "put_map_assoc", // opcode: 154
+    "put_map_exact", // opcode: 155
+    "is_map", // opcode: 156
+    "has_map_fields", // opcode: 157
+    "get_map_elements", // opcode: 158
+    "is_tagged_tuple", // opcode: 159
 ];
 
 pub fn opcode_name(opcode: RawOpcode) -> &'static str {
@@ -502,3 +503,5 @@ pub const OPCODE_IS_MAP: RawOpcode = RawOpcode(156);
 pub const OPCODE_HAS_MAP_FIELDS: RawOpcode = RawOpcode(157);
 pub const OPCODE_GET_MAP_ELEMENTS: RawOpcode = RawOpcode(158);
 pub const OPCODE_IS_TAGGED_TUPLE: RawOpcode = RawOpcode(159);
+
+

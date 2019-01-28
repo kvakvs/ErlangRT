@@ -15,12 +15,12 @@ use std::{
 
 /// Entry point for the command-line interface. Pre-parse command line args
 /// by calling StartArgs methods, or just use default constructed StartArgs.
-pub fn start_emulator(_args: &ErlStartArgs) {
+pub fn start_emulator(args: &mut ErlStartArgs) {
   if cfg!(feature = "r20") {
     println!("Erlang Runtime (compat OTP 20)");
   }
 
-  let mut beam_vm = VM::new();
+  let mut beam_vm = VM::new(args);
 
   let mfargs = MFASomething::new(
     atom::from_str("test2"),

@@ -1,4 +1,4 @@
-use erlangrt::command_line_args::{DistMode, ErlStartArgs};
+use erlangrt::command_line_args::{ErlStartArgs, NodeName};
 use std::env;
 
 // const ERLNAME: &'static str = "erl";
@@ -11,70 +11,113 @@ enum CtMode {
   ErlShell,
 }
 
+struct CtStartArgs {
+  ct_mode: CtMode,
+  browser: String,
+}
+
+impl CtStartArgs {
+  pub fn new() -> Self {
+    Self {
+      ct_mode: CtMode::Normal,
+      browser: String::new(),
+    }
+  }
+}
+
 fn main() {
   let in_args: Vec<String> = env::args().collect();
-  // let emulator = get_default_emulator(&in_args[0]);
-  // let emulator_str = emulator.to_str().unwrap();
-  // env::set_var("ESCRIPT_NAME", emulator_str);
-  let mut start_args = ErlStartArgs::new();
 
-  // let mut cmd = Command::new(emulator);
-  start_args.node_name = String::from("ct");
-  let mut erl_args_pos: Option<usize> = None;
-  start_args.dist_mode = DistMode::ShortName;
-  let mut ct_mode = CtMode::Normal;
-  let mut browser = String::new();
+  let mut erl_args = ErlStartArgs::new();
+  // Because we are running CT, set the default hostname to 'ct' shortname
+  erl_args.add_arg2("-sname", "ct");
 
-  let mut cnt = 1;
-  while cnt < in_args.len() {
-    if in_args[cnt] == "-erl_args" {
-      erl_args_pos = Some(cnt);
-    } else if in_args[cnt] == "-sname" {
-      start_args.node_name = in_args[cnt + 1].clone();
-      cnt += 1;
-    } else if in_args[cnt] == "-name" {
-      start_args.node_name = in_args[cnt + 1].clone();
-      cnt += 1;
-      start_args.dist_mode = DistMode::FullName;
-    } else if erl_args_pos.is_none() {
-      if in_args[cnt] == "-vts" {
-        ct_mode = CtMode::Vts;
-      } else if in_args[cnt] == "-browser" {
-        browser = in_args[cnt + 1].clone();
-        cnt += 1;
-      } else if in_args[cnt] == "-shell" {
-        ct_mode = CtMode::CtShell;
-      } else if in_args[cnt] == "-ctmaster" {
-        start_args.node_name = String::from("ct_master");
-        ct_mode = CtMode::Master;
-      } else if in_args[cnt] == "-ctname" {
-        start_args.node_name = in_args[cnt + 1].clone();
-        cnt += 1;
-        ct_mode = CtMode::ErlShell;
-      }
+  let mut ct_args = CtStartArgs::new();
+
+  // Take everything before erl_args option
+  let before_erl_args: Vec<String> = in_args
+    .iter()
+    .take_while(|s| *s != "-erl_args")
+    .map(|s| s.clone())
+    .collect();
+  // Take everything after erl_args skip the erl_args option itself
+  let after_erl_args: Vec<String> = in_args
+    .iter()
+    .skip_while(|s| *s != "-erl_args")
+    .map(|s| s.clone())
+    .skip(1)
+    .collect();
+
+  let mut b_iter = before_erl_args.iter();
+  let empty_s = String::new();
+  loop {
+    let a = b_iter.next().unwrap_or(&empty_s);
+    if a == "-vts" {
+      ct_args.ct_mode = CtMode::Vts;
+    } else if a == "-browser" {
+      ct_args.browser = b_iter.next().unwrap().clone();
+    } else if a == "-shell" {
+      ct_args.ct_mode = CtMode::CtShell;
+    } else if a == "-ctmaster" {
+      // Note: possible bug here when -ct_master option overrides to short node
+      // name without changing the node mode
+      erl_args.set_node_name("ct_master");
+      ct_args.ct_mode = CtMode::Master;
+    } else if a == "-ctname" {
+      // Note: possible bug here when -ctname option overrides to short node
+      // name without changing the node mode
+      erl_args.set_node_name(b_iter.next().unwrap());
+      ct_args.ct_mode = CtMode::ErlShell;
     }
-    cnt += 1;
   }
 
-  match ct_mode {
+  // Push ctmode args
+  match ct_args.ct_mode {
     CtMode::Vts => {
-      if browser.is_empty() {
-        start_args.add_start(&["ct_webtool", "script_start", "vts"]);
+      if ct_args.browser.is_empty() {
+        erl_args.add_start(&["ct_webtool", "script_start", "vts"]);
       } else {
-        start_args.add_start(&["ct_webtool", "script_start", "vts", browser.as_str()]);
+        erl_args.add_start(&[
+          "ct_webtool",
+          "script_start",
+          "vts",
+          ct_args.browser.as_str(),
+        ]);
       }
-      add_script_start(&mut start_args);
+      add_script_start(&mut erl_args);
     }
     CtMode::CtShell => {
-      add_script_start(&mut start_args);
+      add_script_start(&mut erl_args);
     }
     CtMode::Normal => {
-      add_script_start(&mut start_args);
-      start_args.add_start(&["-s", "erlang", "halt"]);
+      add_script_start(&mut erl_args);
+      erl_args.add_start(&["-s", "erlang", "halt"]);
     }
     CtMode::Master | CtMode::ErlShell => {}
   }
 
+  // Push everything else
+
+  let modified_args = in_args
+    .iter()
+    .map(|arg| {
+      if arg == "-erl_args" {
+        return "-ct_erl_args";
+      }
+      if arg == "-sname" || arg == "-name" {
+        return arg;
+      }
+      if erl_args_pos.is_some() && erl_args_pos.unwrap() > cnt {
+        if in_args[cnt] == "-config" {
+          cmd.arg("-ct_config");
+        } else if in_args[cnt] == "-decrypt_key" {
+          cmd.arg("-ct_decrypt_key");
+        } else if in_args[cnt] == "-decrypt_file" {
+          cmd.arg("-ct_decrypt_file");
+        }
+      }
+    })
+    .collect();
   // Run again through the args
   //  cnt = 1;
   // TODO: Parse the command line here, instead of copy-modifying
@@ -103,7 +146,7 @@ fn main() {
   //  let mut child = cmd.spawn().unwrap();
   //  let exit_status = child.wait().unwrap();
   //  println!("erl exit status: {}", exit_status);
-  erlangrt::lib_main::start_emulator(&start_args);
+  erlangrt::lib_main::start_emulator(&erl_args);
 }
 
 fn add_script_start(args: &mut ErlStartArgs) {

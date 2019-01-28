@@ -17,6 +17,7 @@ use std::{
   collections::BTreeMap,
   path::{Path, PathBuf},
 };
+use crate::command_line_args::ErlStartArgs;
 
 fn module() -> &'static str {
   "code_srv: "
@@ -48,14 +49,11 @@ pub struct CodeServer {
 }
 
 impl CodeServer {
-  pub fn new() -> CodeServer {
+  pub fn new(args: &mut ErlStartArgs) -> CodeServer {
     CodeServer {
       mod_version: 1,
       mods: BTreeMap::new(),
-      search_path: vec![
-        "priv/".to_string(),
-        // "/home/kv/r20/lib/erts-9.1/ebin/".to_string(),
-      ],
+      search_path: args.search_path.clone(),
     }
   }
 
