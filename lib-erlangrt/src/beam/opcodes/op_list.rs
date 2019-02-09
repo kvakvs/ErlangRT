@@ -153,3 +153,61 @@ impl OpcodePutList {
     Ok(DispatchResult::Normal)
   }
 }
+
+/// Retrieve head of a cons cell.
+/// Structure: get_hd(cons:src, dst:dst)
+pub struct OpcodeGetHd {}
+
+impl OpcodeGetHd {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let cons = ctx.fetch_and_load(&mut curr_p.heap);
+    let dst = ctx.fetch_term();
+    (cons, dst)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (cons, dst) = Self::fetch_args(ctx, curr_p);
+
+    let hp = &mut curr_p.heap;
+    let val = unsafe { (*cons.get_cons_ptr()).hd() };
+    ctx.store_value(val, dst, hp)?;
+    Ok(DispatchResult::Normal)
+  }
+}
+
+/// Retrieve tail of a cons cell.
+/// Structure: get_tl(cons:src, dst:dst)
+pub struct OpcodeGetTl {}
+
+impl OpcodeGetTl {
+  pub const ARITY: usize = 2;
+
+  #[inline]
+  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
+    let cons = ctx.fetch_and_load(&mut curr_p.heap);
+    let dst = ctx.fetch_term();
+    (cons, dst)
+  }
+
+  #[inline]
+  pub fn run(
+    _vm: &mut VM,
+    ctx: &mut Context,
+    curr_p: &mut Process,
+  ) -> RtResult<DispatchResult> {
+    let (cons, dst) = Self::fetch_args(ctx, curr_p);
+
+    let hp = &mut curr_p.heap;
+    let val = unsafe { (*cons.get_cons_ptr()).tl() };
+    ctx.store_value(val, dst, hp)?;
+    Ok(DispatchResult::Normal)
+  }
+}

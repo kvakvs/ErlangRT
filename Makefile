@@ -9,3 +9,5 @@ emu_codegen:
 ct: build
 	mkdir tmp; cd tmp && ../target/debug/ct_run 1 2 3 -erl_args 4 5 6
 
+run: build
+	cargo run

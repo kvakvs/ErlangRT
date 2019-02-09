@@ -59,6 +59,27 @@ class OTP20(OTPConfig):
                    biftype=btype)
 
 
+class OTP21(OTPConfig):
+    def __init__(self):
+        super().__init__(min_opcode=1, max_opcode=163,
+                         atoms_tab="atoms.tab",
+                         bif_tab="implemented_bifs.tab",
+                         genop_tab="otp21/genop.tab")
+
+    def parse_bif_line(self, line):
+        line = line.split()
+        btype = line[0]
+        (mod, funarity) = line[1].split(':', 1)
+        (fun, arity) = funarity.rsplit('/', 1)
+        cname = line[2] if len(line) >= 3 else fun
+
+        return Bif(atom=fun,
+                   mod=mod,
+                   arity=arity,
+                   cname=cname,
+                   biftype=btype)
+
+
 class Genop:
     def __init__(self, name: str, arity: int, opcode: int):
         self.name = name

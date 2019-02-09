@@ -250,7 +250,7 @@ impl OpcodeReturn {
     if ctx.cp.is_null() {
       if curr_p.heap.stack_depth() == 0 {
         // Process end of life: return on empty stack
-        println!("Process end of life (return on empty stack)");
+        println!("Process end of life (return on empty stack) x0={}", ctx.get_x(0));
         // return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
         return Ok(DispatchResult::Finished);
       } else {

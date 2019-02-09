@@ -148,10 +148,10 @@ pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
     loop {
       let digit = '0' as usize + (i_val % base) as usize;
       let digit_term = LTerm::make_small_unsigned(digit);
-      lb.prepend(digit_term)?;
       if i_val == 0 {
         break;
       }
+      lb.prepend(digit_term)?;
       i_val /= base;
     } // loop
 

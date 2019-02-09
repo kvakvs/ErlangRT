@@ -2,7 +2,6 @@ use erlangrt::{command_line_args::ErlStartArgs, lib_main::start_emulator};
 use std::env;
 
 fn main() {
-  // let in_args: Vec<String> = env::args().collect();
   let mut args = ErlStartArgs::new();
   args.populate_with(env::args());
   println!("{:?}", args);

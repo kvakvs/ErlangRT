@@ -18,8 +18,8 @@ test() ->
     test_send_receive(),
     test_ring(),
     test_try_catch(),
-    test_mochijson(),
-    test_apply(lists, erlang).
+    test_apply(lists, erlang),
+    test_mochijson().
 
 %%-----------------------------------------------
 test_apply(Lists, Erlang) ->

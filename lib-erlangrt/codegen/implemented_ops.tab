@@ -38,6 +38,8 @@ get_list
 is_nil
 is_nonempty_list
 put_list
+get_tl
+get_hd
 
 #=== === Comparisons and Predicates === ===
 is_eq
