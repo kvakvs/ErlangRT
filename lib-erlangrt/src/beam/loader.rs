@@ -504,6 +504,8 @@ impl Loader {
       let _size = r.read_u32be();
 
       let mut tb = TermBuilder::new(&mut self.lit_heap);
+
+      // TODO: Instead of unwrap return error and possibly log/return error location too?
       let literal = etf::decode(&mut r, &mut tb).unwrap();
 
       self.lit_tab.push(literal);

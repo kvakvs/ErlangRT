@@ -1,6 +1,5 @@
 use erlangrt::command_line_args::{ErlStartArgs};
 use std::env;
-use std::iter::FromIterator;
 
 // const ERLNAME: &'static str = "erl";
 
@@ -42,7 +41,7 @@ fn main() {
     .map(|s| s.clone())
     .collect();
   // Take everything after erl_args skip the erl_args option itself
-  let after_erl_args: Vec<String> = in_args
+  let _after_erl_args: Vec<String> = in_args
     .iter()
     .skip_while(|s| *s != "-erl_args")
     .map(|s| s.clone())
@@ -50,7 +49,7 @@ fn main() {
     .collect();
 
   let mut b_iter = before_erl_args.iter();
-  let empty_s = String::new();
+  let _empty_s = String::new();
   loop {
     let a = match b_iter.next() {
       Some(s) => s,
@@ -103,7 +102,7 @@ fn main() {
 
   // Push everything else
 
-  let modified_args: Vec<String> = in_args
+  let _modified_args: Vec<String> = in_args
     .iter()
     .map(|arg| {
       if arg == "-erl_args" {

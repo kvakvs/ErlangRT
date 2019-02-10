@@ -39,7 +39,9 @@ impl TermBuilder {
   pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<LTerm> {
     debug_assert!(!self.heap.is_null());
     let hp = self.heap.as_mut().unwrap();
+    // Allocate uninitialized binary of some type
     let rbin = boxed::Binary::create_into(hp, ByteSize::new(data.len()))?;
+    // Store bytes
     boxed::Binary::store(rbin, data)?;
     Ok(LTerm::make_boxed(rbin))
   }

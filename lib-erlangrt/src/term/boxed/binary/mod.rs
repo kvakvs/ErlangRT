@@ -19,11 +19,14 @@ mod refc_bin;
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
 pub enum BinaryType {
-  // contains size, followed in memory by the data bytes
+  /// contains size, followed in memory by the actual data bytes.
+  /// The pointer to `Binary` should be converted into `ProcessHeapBinary`.
   ProcessHeap,
-  // contains reference to heapbin
+  /// contains reference to heapbin, the pointer to `Binary`
+  /// should be converted into `ReferenceToBinary`.
   RefToBinaryHeap,
-  // stores data on a separate heap somewhere else with refcount
+  /// stores data on a separate heap with refcount away from the process,
+  /// the pointer to `Binary` should be converted into `BinaryHeapBinary`.
   BinaryHeap,
 }
 
@@ -31,7 +34,11 @@ pub enum BinaryType {
 #[allow(dead_code)]
 pub struct Binary {
   header: BoxHeader,
+  /// Based on the bin_type, the pointer should be converted to one of binary
+  /// subtypes and then used accordingly.
   bin_type: BinaryType,
+  // Size is stored in the storage object, which is overlaid onto this depending
+  // on the bin_type
 }
 
 impl Binary {
@@ -42,40 +49,44 @@ impl Binary {
     BinaryType::BinaryHeap
   }
 
-  fn new(b_type: BinaryType, size: ByteSize) -> Binary {
-    let arity = Binary::storage_size(b_type, size).words();
+  fn new(bin_type: BinaryType, arity: WordSize) -> Binary {
     Binary {
-      header: BoxHeader::new(BOXTYPETAG_BINARY, arity),
-      bin_type: BinaryType::ProcessHeap,
+      header: BoxHeader::new(BOXTYPETAG_BINARY, arity.words()),
+      bin_type,
     }
   }
 
-  pub fn storage_size(b_type: BinaryType, size: ByteSize) -> WordSize {
-    let header_size: ByteSize;
-    match b_type {
-      BinaryType::BinaryHeap => {
-        header_size = ByteSize::new(std::mem::size_of::<BinaryHeapBinary>());
-      }
-      BinaryType::ProcessHeap => {
-        header_size = ByteSize::new(std::mem::size_of::<ProcessHeapBinary>());
-      }
-      BinaryType::RefToBinaryHeap => {
-        header_size = ByteSize::new(std::mem::size_of::<ReferenceToBinary>());
-      }
-    }
-    WordSize::new(
-      header_size.words_rounded_up().words() + size.words_rounded_up().words(),
-    )
-  }
+//  pub fn storage_size(b_type: BinaryType, size: ByteSize) -> WordSize {
+//    let header_size: ByteSize;
+//    match b_type {
+//      BinaryType::BinaryHeap => {
+//        header_size = ByteSize::new(std::mem::size_of::<BinaryHeapBinary>());
+//      }
+//      BinaryType::ProcessHeap => {
+//        header_size = ByteSize::new(std::mem::size_of::<ProcessHeapBinary>());
+//      }
+//      BinaryType::RefToBinaryHeap => {
+//        header_size = ByteSize::new(std::mem::size_of::<ReferenceToBinary>());
+//      }
+//    }
+//    WordSize::new(
+//      header_size.words_rounded_up().words() + size.words_rounded_up().words(),
+//    )
+//  }
 
   pub unsafe fn create_into(hp: &mut Heap, size: ByteSize) -> RtResult<*mut Binary> {
-    let b_type = Binary::get_binary_type_for(size);
-    let storage_sz = Binary::storage_size(b_type, size);
-    let this = hp.alloc::<Binary>(storage_sz, false)?;
-
-    ptr::write(this, Binary::new(b_type, size));
-
-    Ok(this)
+    let b_type = Self::get_binary_type_for(size);
+    match b_type {
+      BinaryType::ProcessHeap => {
+        ProcessHeapBinary::create_into(hp, size)
+      },
+      BinaryType::BinaryHeap => {
+        panic!("notimpl! create binary on the binary heap")
+      },
+      BinaryType::RefToBinaryHeap => {
+        panic!("notimpl! create ref to binary heap")
+      },
+    }
   }
 
   /// Given a byte array, copy it to the binary's memory (depending on

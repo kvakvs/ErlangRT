@@ -13,9 +13,9 @@ run: build
 	cargo run --bin erlexec
 
 test: build
-	cargo run --bin ct_run
+	RUST_BACKTRACE=1 cargo run --bin ct_run
 
 .PHONY: test-gdb
 test-gdb: build
-	RUST_BACKTRACE=1 gdb target/debug/ct_run
+	RUST_BACKTRACE=1 gede --args target/debug/ct_run
 
