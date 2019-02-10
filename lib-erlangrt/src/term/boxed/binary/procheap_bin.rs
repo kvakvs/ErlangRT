@@ -8,7 +8,7 @@ use crate::{
 /// Defines operations with a binary on process heap.
 /// Pointer to this can be directly casted from pointer to boxed::Binary
 pub struct ProcessHeapBinary {
-  pub bin: boxed::binary::Binary,
+  pub bin_header: boxed::binary::Binary,
   pub size: ByteSize,
 }
 
@@ -31,7 +31,7 @@ impl ProcessHeapBinary {
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);
     let new_self = Self {
-      bin: Binary::new(BinaryType::ProcessHeap, storage_sz),
+      bin_header,
       size,
     };
     core::ptr::write(this, new_self);

@@ -27,8 +27,9 @@ impl CtStartArgs {
 
 fn main() {
   let in_args: Vec<String> = env::args().collect();
+  let mut erl_args = ErlStartArgs::new(&in_args);
+  erl_args.populate_with(in_args.iter());
 
-  let mut erl_args = ErlStartArgs::new();
   // Because we are running CT, set the default hostname to 'ct' shortname
   erl_args.add_arg2("-sname", "ct");
 

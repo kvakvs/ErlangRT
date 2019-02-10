@@ -1,3 +1,12 @@
+use crate::{
+  emulator::heap::Heap,
+  fail::RtResult,
+  term::{
+    lterm::LTerm,
+    term_builder::{list_builder::build_erlstr_from_utf8, ListBuilder},
+  },
+};
+
 #[derive(Debug)]
 pub enum NodeName {
   Short(String),
@@ -10,21 +19,31 @@ pub enum NodeName {
 /// variable and so on.
 #[derive(Debug)]
 pub struct ErlStartArgs {
+  /// Whole command line, before parse
+  command_line: Vec<String>,
   /// Storage for other unknown args
   other_args: Vec<String>,
   pub node: NodeName,
   /// Which modules:functions to start (option -s m f arg1,...)
   pub start: Vec<Vec<String>>,
   pub search_path: Vec<String>,
+
+  /// Small heap only for storing command line available globally
+  arg_heap: Heap,
+  /// Command line is stored here when built, otherwise is a non value
+  args_term: LTerm,
 }
 
 impl ErlStartArgs {
-  pub fn new() -> Self {
+  pub fn new(raw_command_line: &Vec<String>) -> Self {
     Self {
+      command_line: raw_command_line.clone(),
       other_args: Vec::new(),
       node: NodeName::Short("nonode@nohost".to_string()),
       start: Vec::new(),
-      search_path: vec![]
+      search_path: vec![],
+      arg_heap: Heap::new(1024),
+      args_term: LTerm::non_value(),
     }
   }
 
@@ -35,9 +54,9 @@ impl ErlStartArgs {
   }
 
   /// Copy args from any string iterator source
-  pub fn populate_with<ITER>(&mut self, mut iter: ITER)
+  pub fn populate_with<'a, ITER>(&'a mut self, mut iter: ITER)
   where
-    ITER: Iterator<Item = String>,
+    ITER: Iterator<Item = &'a String>,
   {
     loop {
       if let Some(s) = iter.next() {
@@ -59,8 +78,7 @@ impl ErlStartArgs {
 
   /// Parses and adds one argument with possible parameters which will be
   /// fetched from the mutable string-collection iterator
-  pub fn parse_arg(&mut self, args: &[&str])
-  {
+  pub fn parse_arg(&mut self, args: &[&str]) {
     // assert at least one string is present in args
     let a = args[0];
     match a.as_ref() {
@@ -80,5 +98,23 @@ impl ErlStartArgs {
       NodeName::Full(_) => self.node = NodeName::Full(n.to_string()),
       NodeName::Short(_) => self.node = NodeName::Short(n.to_string()),
     }
+  }
+
+  /// Using the local small heap build list of strings on it; Then return the
+  /// list value, which also is cached in the args struct.
+  pub fn get_command_line_list(&mut self) -> RtResult<LTerm> {
+    if self.args_term.is_value() {
+      return Ok(self.args_term);
+    }
+
+    let mut lb = unsafe { ListBuilder::new(&mut self.arg_heap) }?;
+    for a in self.command_line.iter() {
+      unsafe {
+        let erl_str = build_erlstr_from_utf8(a.as_str(), &mut self.arg_heap)?;
+        lb.append(erl_str);
+      }
+    }
+    self.args_term = lb.make_term();
+    Ok(self.args_term)
   }
 }

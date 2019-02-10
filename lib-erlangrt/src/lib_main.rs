@@ -28,7 +28,7 @@ pub fn start_emulator(args: &mut ErlStartArgs) {
   let mfargs = MFASomething::new(
     atom::from_str("init"),
     atom::from_str("boot"),
-    Args::AsList(LTerm::nil()),
+    Args::AsList(args.get_command_line_list().unwrap()),
   );
   let _rootp = beam_vm
     .create_process(LTerm::nil(), &mfargs, Prio::Normal)

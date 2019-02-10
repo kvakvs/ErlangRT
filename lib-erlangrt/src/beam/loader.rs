@@ -583,7 +583,7 @@ impl Loader {
           if op == gen_op::OPCODE_FUNC_INFO {
             // arg[0] mod name, arg[1] fun name, arg[2] arity
             let funarity = FunArity {
-              f: args[1].to_lterm(&mut self.lit_heap),
+              f: args[1].to_lterm(&mut self.lit_heap, &self.lit_tab),
               arity: args[2].loadtime_word() as Arity,
             };
 
@@ -632,7 +632,7 @@ impl Loader {
                 PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
               self.maybe_convert_label(LabelId(f), ploc)
             } else {
-              t.to_lterm(&mut self.lit_heap).raw()
+              t.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()
             };
 
             unsafe { boxed::Tuple::set_raw_word_base0(heap_jtab, index, new_t) }
@@ -651,7 +651,7 @@ impl Loader {
         FTerm::LoadTimeLit(lit_index) => self.code.push(self.lit_tab[lit_index].raw()),
 
         // Otherwise convert via a simple method
-        _ => self.code.push(a.to_lterm(&mut self.lit_heap).raw()),
+        _ => self.code.push(a.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()),
       }
     } // for a in args
     Ok(())

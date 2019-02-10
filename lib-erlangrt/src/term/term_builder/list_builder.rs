@@ -85,3 +85,13 @@ impl ListBuilder {
     LTerm::make_cons(self.head_p)
   }
 }
+
+/// A helper which takes a heap and a UTF-8 string, and creates Erlang string
+/// of integer unicode codepoints, one per character.
+pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut Heap) -> RtResult<LTerm> {
+  let mut lb = ListBuilder::new(hp)?;
+  for (_pos, ch) in s.char_indices() {
+    lb.append(LTerm::make_small_unsigned(ch as usize));
+  }
+  Ok(lb.make_term())
+}

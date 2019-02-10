@@ -2,8 +2,9 @@ use erlangrt::{command_line_args::ErlStartArgs, lib_main::start_emulator};
 use std::env;
 
 fn main() {
-  let mut args = ErlStartArgs::new();
-  args.populate_with(env::args());
+  let in_args: Vec<String> = env::args().collect();
+  let mut args = ErlStartArgs::new(&in_args);
+  args.populate_with(in_args.iter());
   println!("{:?}", args);
 
   // TODO: For windows, support ERL_CONSOLE_MODE, with ERL_EMULATOR_DLL from erlexec.c

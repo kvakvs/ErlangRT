@@ -6,7 +6,7 @@ use crate::{
 /// Defines operations with reference to binary.
 /// Pointer to this can be directly casted from pointer to boxed::Binary
 pub struct ReferenceToBinary {
-  pub bin: boxed::binary::Binary,
+  pub bin_header: boxed::binary::Binary,
   pub size: ByteSize,
   refc: Word,
   pub pointer: *mut BinaryHeapBinary,
