@@ -17,4 +17,5 @@ fn main() {
 
   // Get going now
   start_emulator(&mut args);
+  println!("erlexec: Finished.");
 }

@@ -24,7 +24,6 @@ enum Tag {
   Integer = 98,
   Float = 99,
   AtomDeprecated = 100,
-  // deprecated?
   Reference = 101,
   Port = 102,
   Pid = 103,
@@ -40,7 +39,6 @@ enum Tag {
   Export = 113,
   NewReference = 114,
   SmallAtomDeprecated = 115,
-  // deprecated?
   Map = 116,
   Fun = 117,
   AtomUtf8 = 118,
@@ -105,6 +103,11 @@ pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTer
 
     x if x == Tag::Binary as u8 => decode_binary(r, tb),
 
+    x if x == Tag::Map as u8 => {
+      let size = r.read_u32be() as Word;
+      decode_map(r, size, tb)
+    }
+
     _ => {
       let msg = format!(
         "Don't know how to decode ETF value tag 0x{:x} ({})",
@@ -148,7 +151,7 @@ fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> 
 /// Given arity, allocate a tuple and read its elements sequentially.
 fn decode_tuple(
   r: &mut BinaryReader,
-  size: Word,
+  size: usize,
   tb: &mut TermBuilder,
 ) -> RtResult<LTerm> {
   let tuple_builder = tb.create_tuple_builder(size)?;
@@ -157,6 +160,21 @@ fn decode_tuple(
     unsafe { tuple_builder.set_element_base0(i, elem) }
   }
   Ok(tuple_builder.make_term())
+}
+
+/// Given size, create a map of given size and read `size` pairs.
+fn decode_map(
+  r: &mut BinaryReader,
+  size: usize,
+  tb: &mut TermBuilder,
+) -> RtResult<LTerm> {
+  let mut mapb = tb.create_map_builder(size)?;
+  for _i in 0..size {
+    let key = decode_naked(r, tb)?;
+    let val = decode_naked(r, tb)?;
+    unsafe { mapb.add(key, val)? }
+  }
+  Ok(mapb.make_term())
 }
 
 fn decode_u8(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<LTerm> {

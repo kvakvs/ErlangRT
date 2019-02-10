@@ -1,4 +1,3 @@
 [workspace]
 
-# commented out: "ct_run"
-members = ["lib-erlangrt", "erlexec"]
+members = ["lib-erlangrt", "erlexec", "ct_run"]

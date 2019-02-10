@@ -48,6 +48,7 @@ pub enum Error {
   BoxedIsNotAnExport,
   BoxedIsNotAnImport,
   BoxedIsNotATuple,
+  BoxedIsNotAMap,
 
   //--- Binary ---
   CannotCopyIntoRefbin, // To copy into binary, resolve ref into heapbin

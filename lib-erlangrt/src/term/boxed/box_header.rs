@@ -63,14 +63,14 @@ impl BoxHeader {
     headerword_to_boxtype(self.header_word)
   }
 
-  pub fn get_arity(&self) -> Word {
+  pub fn get_arity(&self) -> usize {
     headerword_to_arity(self.header_word)
   }
 }
 
 /// For a header word value, extract bits with arity
 /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
-pub fn headerword_to_arity(w: Word) -> Word {
+pub fn headerword_to_arity(w: Word) -> usize {
   w >> (TERM_TAG_BITS + BOXTYPE_TAG_BITS)
 }
 

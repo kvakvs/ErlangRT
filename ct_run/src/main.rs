@@ -1,5 +1,6 @@
-use erlangrt::command_line_args::{ErlStartArgs, NodeName};
+use erlangrt::command_line_args::{ErlStartArgs};
 use std::env;
+use std::iter::FromIterator;
 
 // const ERLNAME: &'static str = "erl";
 
@@ -51,7 +52,11 @@ fn main() {
   let mut b_iter = before_erl_args.iter();
   let empty_s = String::new();
   loop {
-    let a = b_iter.next().unwrap_or(&empty_s);
+    let a = match b_iter.next() {
+      Some(s) => s,
+      None => break
+    };
+
     if a == "-vts" {
       ct_args.ct_mode = CtMode::Vts;
     } else if a == "-browser" {
@@ -98,24 +103,25 @@ fn main() {
 
   // Push everything else
 
-  let modified_args = in_args
+  let modified_args: Vec<String> = in_args
     .iter()
     .map(|arg| {
       if arg == "-erl_args" {
-        return "-ct_erl_args";
+        return "-ct_erl_args".to_string();
       }
       if arg == "-sname" || arg == "-name" {
-        return arg;
+        return arg.to_string();
       }
-      if erl_args_pos.is_some() && erl_args_pos.unwrap() > cnt {
-        if in_args[cnt] == "-config" {
-          cmd.arg("-ct_config");
-        } else if in_args[cnt] == "-decrypt_key" {
-          cmd.arg("-ct_decrypt_key");
-        } else if in_args[cnt] == "-decrypt_file" {
-          cmd.arg("-ct_decrypt_file");
-        }
-      }
+      arg.to_string()
+//      if erl_args_pos.is_some() && erl_args_pos.unwrap() > cnt {
+//        if in_args[cnt] == "-config" {
+//          cmd.arg("-ct_config");
+//        } else if in_args[cnt] == "-decrypt_key" {
+//          cmd.arg("-ct_decrypt_key");
+//        } else if in_args[cnt] == "-decrypt_file" {
+//          cmd.arg("-ct_decrypt_file");
+//        }
+//      }
     })
     .collect();
   // Run again through the args
@@ -142,11 +148,17 @@ fn main() {
   //    cnt += 1;
   //  }
 
+  erl_args.search_path = vec![
+    "priv/".to_string(),
+    "../otp/erts/preloaded/ebin/".to_string(),
+  ];
+
   //  println!("{:?}", cmd);
   //  let mut child = cmd.spawn().unwrap();
   //  let exit_status = child.wait().unwrap();
   //  println!("erl exit status: {}", exit_status);
-  erlangrt::lib_main::start_emulator(&erl_args);
+  erlangrt::lib_main::start_emulator(&mut erl_args);
+  println!("ct_run: Finished.");
 }
 
 fn add_script_start(args: &mut ErlStartArgs) {

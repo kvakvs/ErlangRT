@@ -62,6 +62,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ct_run"
+version = "0.1.0"
+dependencies = [
+ "erlangrt 0.1.0",
+]
+
+[[package]]
 name = "erlangrt"
 version = "0.1.0"
 dependencies = [

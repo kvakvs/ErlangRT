@@ -12,13 +12,13 @@ edition = "2018"
 #    printing strings with quotes such as JSON.
 [features]
 default = [
-    "r20",
+    "r21",
     "trace_opcode_execution",
     "trace_register_changes",
     "trace_stack_changes",
     "fancy_string_quotes"
     ]
-r20 = []
+r21 = []
 trace_opcode_execution = []
 trace_register_changes = []
 trace_stack_changes = []

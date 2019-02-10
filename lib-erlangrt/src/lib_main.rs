@@ -19,12 +19,15 @@ pub fn start_emulator(args: &mut ErlStartArgs) {
   if cfg!(feature = "r20") {
     println!("Erlang Runtime (compat OTP 20)");
   }
+  if cfg!(feature = "r21") {
+    println!("Erlang Runtime (compat OTP 21)");
+  }
 
   let mut beam_vm = VM::new(args);
 
   let mfargs = MFASomething::new(
-    atom::from_str("test2"),
-    atom::from_str("test"),
+    atom::from_str("init"),
+    atom::from_str("boot"),
     Args::AsList(LTerm::nil()),
   );
   let _rootp = beam_vm

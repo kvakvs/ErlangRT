@@ -3,7 +3,7 @@ use crate::{
   emulator::heap::Heap,
   fail::{Error, RtResult},
   term::{
-    boxed::{self, BoxHeader, BOXTYPETAG_TUPLE},
+    boxed::{BoxHeader, BOXTYPETAG_TUPLE},
     lterm::LTerm,
   },
 };
@@ -33,7 +33,7 @@ impl Tuple {
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
   pub fn create_into(hp: &mut Heap, arity: Word) -> RtResult<*mut Tuple> {
-    let n = boxed::Tuple::storage_size(arity);
+    let n = Self::storage_size(arity);
     let p = hp.alloc::<Tuple>(n, false)?;
     unsafe {
       core::ptr::write(p, Tuple::new(arity));
@@ -62,8 +62,8 @@ impl Tuple {
   // Write tuple's i-th element (base 0) as a raw term value
   pub unsafe fn set_raw_word_base0(this: *mut Tuple, index: Word, val: Word) {
     debug_assert!(index < (*this).get_arity());
-    let p = this as *mut Word;
-    core::ptr::write(p.add(index + 1), val)
+    let p = this.add(1) as *mut Word;
+    core::ptr::write(p.add(index), val)
   }
 
   // Write tuple's i-th element (base 0)
