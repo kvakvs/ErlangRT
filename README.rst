@@ -22,9 +22,9 @@ Progress to the Proof of Concept
 
 .. figure:: http://imgur.com/H5qypZG.png
    :scale: 50%
-   :alt: Trying to run `init:boot/1`
+   :alt: Trying to run ``init:boot/1``
 
-Tests in ``priv/test2.erl`` work. Running `make test` tries to run `init:boot/1` and produces the output above.
+Tests in ``priv/test2.erl`` work. Running ``make test`` tries to run ``init:boot/1`` and produces the output above.
 
 Compiling
 `````````
