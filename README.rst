@@ -17,11 +17,14 @@ Progress to the Proof of Concept
 * Some basic BIFs 7%
 
 .. figure:: https://i.imgur.com/1ryd4K1.png
-   :scale: 70 %
-   :alt: Test2.erl run output
+   :scale: 50 %
+   :alt: Early Test2.erl run output
 
-   Tests in ``priv/test2.erl`` partially work and would produce the output above.
+.. figure:: http://imgur.com/H5qypZG.png
+   :scale: 50%
+   :alt: Trying to run `init:boot/1`
 
+Tests in ``priv/test2.erl`` work. Running `make test` tries to run `init:boot/1` and produces the output above.
 
 Compiling
 `````````
@@ -35,6 +38,9 @@ Compiling
     * ``make test`` - runs the tests
     * ``make build`` and ``make build-rel`` - builds but does not run the debug and
       the release target respectively
+      
+Currently the emulator expects to have preloaded BEAM modules from OTP 21 located in `../otp` relative
+to the project directory.
 
 Editing and Code Navigation
 ```````````````````````````
