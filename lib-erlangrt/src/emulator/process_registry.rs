@@ -3,13 +3,15 @@ use std::collections::HashMap;
 
 pub struct ProcessRegistry {
   /// Dict of pids to process boxes
-  reg: HashMap<LTerm, Process>,
+  pid_to_proc: HashMap<LTerm, Process>,
+  name_to_pidport: HashMap<LTerm, LTerm>,
 }
 
 impl ProcessRegistry {
   pub fn new() -> Self {
     Self {
-      reg: HashMap::new(),
+      pid_to_proc: HashMap::new(),
+      name_to_pidport: HashMap::new(),
     }
   }
 
@@ -17,31 +19,31 @@ impl ProcessRegistry {
   /// execution. This is invoked by vm when a new process is spawned.
   #[inline]
   pub fn insert(&mut self, pid: LTerm, proc: Process) {
-    self.reg.insert(pid, proc);
+    self.pid_to_proc.insert(pid, proc);
   }
 
   #[inline]
   pub fn remove(&mut self, pid: LTerm) {
-    self.reg.remove(&pid);
+    self.pid_to_proc.remove(&pid);
   }
 
   #[inline]
   pub fn count(&self) -> usize {
-    self.reg.len()
+    self.pid_to_proc.len()
   }
 
   /// Borrow a read-only process, if it exists. Return `None` if we are sorry.
   #[inline]
   pub fn lookup_pid(&self, pid: LTerm) -> Option<&Process> {
     assert!(pid.is_local_pid());
-    self.reg.get(&pid)
+    self.pid_to_proc.get(&pid)
   }
 
   /// Borrow a mutable process, if it exists. Return `None` if we are sorry.
   #[inline]
   pub fn lookup_pid_mut(&mut self, pid: LTerm) -> Option<&mut Process> {
     assert!(pid.is_local_pid());
-    self.reg.get_mut(&pid)
+    self.pid_to_proc.get_mut(&pid)
   }
 
 
@@ -50,7 +52,7 @@ impl ProcessRegistry {
   #[allow(dead_code)]
   pub fn unsafe_lookup_pid(&self, pid: LTerm) -> *const Process {
     assert!(pid.is_local_pid());
-    match self.reg.get(&pid) {
+    match self.pid_to_proc.get(&pid) {
       Some(p) => p as *const Process,
       None => core::ptr::null(),
     }
@@ -60,9 +62,20 @@ impl ProcessRegistry {
   #[inline]
   pub fn unsafe_lookup_pid_mut(&mut self, pid: LTerm) -> *mut Process {
     assert!(pid.is_local_pid());
-    match self.reg.get_mut(&pid) {
+    match self.pid_to_proc.get_mut(&pid) {
       Some(p) => p as *mut Process,
       None => core::ptr::null_mut(),
     }
+  }
+
+  /// Query contents of the name-to-pid/port table
+  pub fn find_registered(&self, name: LTerm) -> Option<LTerm> {
+    self.name_to_pidport.get(&name).cloned()
+  }
+
+  /// Add contents of the name-to-pid/port table, no check is made for whether
+  /// the value is new, will overwrite.
+  pub fn register_name(&mut self, name: LTerm, pid_or_port: LTerm) {
+    self.name_to_pidport.insert(name, pid_or_port);
   }
 }

@@ -1,14 +1,14 @@
 use crate::{
-  bif::{assert_arity},
+  bif::assert_arity,
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
-    mfa::{Args, MFASomething, MFArity},
+    mfa::{Args, MFArity, MFASomething},
     process::Process,
     scheduler::Prio,
     vm::VM,
   },
-  fail::{Error, RtResult},
+  fail::{self, Error, RtResult},
   term::{boxed, lterm::*},
 };
 
@@ -65,12 +65,21 @@ pub fn bif_erlang_is_process_alive_1(
   Ok(LTerm::make_bool(result))
 }
 
+/// erlang:register(RegName :: atom(), Pid_or_Port)
 pub fn bif_erlang_register_2(
   vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
-  Ok(LTerm::non_value())
+  assert_arity("erlang:register/2", 2, args);
+  if !args[0].is_atom()
+      || args[0] == gen_atoms::UNDEFINED
+      || !(args[1].is_pid() || args[1].is_port())
+      || vm.processes.find_registered(args[0]).is_some() {
+    return fail::create::badarg();
+  }
+  vm.processes.register_name(args[0], args[1]);
+  Ok(gen_atoms::TRUE)
 }
 
 pub fn bif_erlang_registered_0(
@@ -78,5 +87,5 @@ pub fn bif_erlang_registered_0(
   _cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
-  Ok(LTerm::non_value())
+  panic!("not implemented")
 }
