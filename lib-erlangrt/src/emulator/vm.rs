@@ -8,13 +8,12 @@ use crate::{
     code_srv::CodeServer,
     mfa::MFASomething,
     process::Process,
+    process_registry::ProcessRegistry,
     scheduler::{Prio, Scheduler},
   },
   fail::RtResult,
   term::lterm::*,
 };
-
-// fn module() -> &'static str { "vm: " }
 
 /// VM environment, heaps, tables, processes all goes here.
 /// Atoms are a global API in `atom.rs`.
@@ -27,6 +26,7 @@ pub struct VM {
   pub code_server: CodeServer,
 
   pub scheduler: Scheduler,
+  pub processes: ProcessRegistry,
 }
 
 impl VM {
@@ -37,6 +37,7 @@ impl VM {
       code_server: CodeServer::new(args),
       pid_counter: 0,
       scheduler: Scheduler::new(),
+      processes: ProcessRegistry::new(),
     }
   }
 
@@ -74,8 +75,18 @@ impl VM {
     // Error may happen here due to arg term copy error
     p0.set_spawn_args(&mfargs)?;
 
-    self.scheduler.register_new_process(pid, p0);
+    self.register_new_process(pid, p0);
     Ok(pid)
+  }
+
+  pub fn register_new_process(
+    &mut self,
+    pid: LTerm,
+    mut proc: Process,
+  ) {
+    proc.owned_by_scheduler = (&mut self.scheduler) as *mut Scheduler;
+    self.processes.insert(pid, proc);
+    self.scheduler.enqueue(&mut self.processes, pid);
   }
 
   /// Run the VM loop (one time slice), call this repeatedly to run forever.

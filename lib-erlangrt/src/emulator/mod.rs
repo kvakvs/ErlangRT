@@ -15,3 +15,4 @@ pub mod process;
 pub mod runtime_ctx;
 pub mod scheduler;
 pub mod vm;
+pub mod process_registry;

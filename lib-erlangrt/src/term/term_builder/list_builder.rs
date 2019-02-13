@@ -91,7 +91,7 @@ impl ListBuilder {
 pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut Heap) -> RtResult<LTerm> {
   let mut lb = ListBuilder::new(hp)?;
   for (_pos, ch) in s.char_indices() {
-    lb.append(LTerm::make_small_unsigned(ch as usize));
+    lb.append(LTerm::make_small_unsigned(ch as usize))?;
   }
   Ok(lb.make_term())
 }

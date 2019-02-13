@@ -1,5 +1,5 @@
 use crate::{
-  bif::assert_arity,
+  bif::{assert_arity},
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
@@ -61,6 +61,22 @@ pub fn bif_erlang_is_process_alive_1(
   args: &[LTerm],
 ) -> RtResult<LTerm> {
   assert_arity("erlang:is_process_alive", 1, args);
-  let result = vm.scheduler.lookup_pid(args[0]).is_some();
+  let result = vm.processes.lookup_pid(args[0]).is_some();
   Ok(LTerm::make_bool(result))
+}
+
+pub fn bif_erlang_register_2(
+  vm: &mut VM,
+  _cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  Ok(LTerm::non_value())
+}
+
+pub fn bif_erlang_registered_0(
+  vm: &mut VM,
+  _cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  Ok(LTerm::non_value())
 }

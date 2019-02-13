@@ -14,6 +14,7 @@ use crate::{
   fail::RtResult,
   term::lterm::*,
 };
+use crate::emulator::process_registry::ProcessRegistry;
 
 //#[allow(dead_code)]
 //#[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -156,14 +157,18 @@ impl Process {
   //  }
 
   /// Copy a message and put into process mailbox.
-  pub fn deliver_message(&mut self, message: LTerm) -> RtResult<()> {
+  pub fn deliver_message(
+    &mut self,
+    proc_reg: &mut ProcessRegistry,
+    message: LTerm,
+  ) -> RtResult<()> {
     let m1 = copy_term::copy_to(message, &mut self.heap)?;
     self.mailbox.put(m1);
 
     // Notify our current scheduler that a new message has come to possibly wake
     // up from infinite or timed wait.
     unsafe {
-      (*self.owned_by_scheduler).notify_new_incoming_message(self);
+      (*self.owned_by_scheduler).notify_new_incoming_message(proc_reg, self);
     }
     Ok(())
   }

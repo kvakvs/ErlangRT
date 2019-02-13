@@ -21,14 +21,15 @@ impl OpcodeSend {
   ) -> RtResult<DispatchResult> {
     let sched = vm.get_scheduler_p();
     let x1 = ctx.get_x(1);
-    if let Some(p) = unsafe {
-      let x0 = ctx.get_x(0);
-      if !x0.is_pid() {
-        return fail::create::badarg();
+    let x0 = ctx.get_x(0);
+    if !x0.is_pid() {
+      return fail::create::badarg();
+    }
+    let p = vm.processes.unsafe_lookup_pid_mut(x0);
+    if !p.is_null() {
+      unsafe {
+        (*p).deliver_message(&mut vm.processes, x1)?;
       }
-      (*sched).lookup_pid_mut(x0)
-    } {
-      p.deliver_message(x1)?;
     }
 
     ctx.set_x(0, x1);

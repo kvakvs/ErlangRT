@@ -1,7 +1,7 @@
 //! Code related to task scheduling and priorities.
 use crate::{
   defs::{exc_type::ExceptionType, Word},
-  emulator::{gen_atoms, process::Process},
+  emulator::{gen_atoms, process::Process, process_registry::ProcessRegistry},
   term::lterm::*,
 };
 use colored::Colorize;
@@ -62,7 +62,9 @@ pub struct Scheduler {
   queue_low: VecDeque<LTerm>,
   queue_normal: VecDeque<LTerm>,
   queue_high: VecDeque<LTerm>,
+  /// Wait set for timed suspended processes (waiting for a timer)
   timed_wait: HashMap<LTerm, ()>,
+  /// Wait set for infinitely suspended processes (in endless receive)
   infinite_wait: HashMap<LTerm, ()>,
 
   /// A counter used to skip some schedulings for low processes
@@ -70,13 +72,6 @@ pub struct Scheduler {
 
   /// Currently selected process
   current: Option<LTerm>,
-
-  //  /// Wait set for infinitely suspended processes (in endless receive)
-  //  wait_inf: HashSet<LTerm>,
-  //  /// Wait set for timed suspended processes (waiting for a timer)
-  //  wait_timed: HashSet<LTerm>,
-  /// Dict of pids to process boxes. Owned by the scheduler
-  processes: HashMap<LTerm, Process>,
 }
 
 /// Hint from the logic finalizing timeslice result from a running process.
@@ -99,38 +94,29 @@ impl Scheduler {
 
       advantage_count: 0,
       current: None,
-
-      processes: HashMap::new(),
     }
   }
 
-  pub fn get_process_count(&self) -> usize {
-    self.processes.len()
-  }
-
-  /// Register a process `proc_` in the process table and also queue it for
-  /// execution. This is invoked by vm when a new process is spawned.
-  pub fn register_new_process(&mut self, pid: LTerm, mut proc: Process) {
-    proc.owned_by_scheduler = self as *mut Scheduler;
-    self.processes.insert(pid, proc);
-    self.enqueue(pid);
-  }
-
   /// Queue a process by its pid.
-  pub fn enqueue(&mut self, pid: LTerm) {
-    self.enqueue_opt(pid, false);
+  pub fn enqueue(&mut self, proc_reg: &mut ProcessRegistry, pid: LTerm) {
+    self.enqueue_opt(proc_reg, pid, false);
   }
 
   /// Queue a process by its pid.
   /// Will `panic!` if the process doesn't exist or is already queued.
   /// Arg: `skip_queue_check` allows skipping the current queue assertion for
   ///   when you can guarantee that the process is not queued anywhere.
-  pub fn enqueue_opt(&mut self, pid: LTerm, skip_queue_check: bool) {
+  pub fn enqueue_opt(
+    &mut self,
+    proc_reg: &mut ProcessRegistry,
+    pid: LTerm,
+    skip_queue_check: bool,
+  ) {
     assert!(pid.is_local_pid());
 
     let prio = {
       // Lookup the pid
-      let p = self.lookup_pid(pid).unwrap();
+      let p = proc_reg.lookup_pid(pid).unwrap();
       if !skip_queue_check {
         assert_eq!(
           p.current_queue,
@@ -181,9 +167,9 @@ impl Scheduler {
 
   /// Get another process from the run queue for this scheduler.
   /// Returns: `Option(pid)`
-  pub fn next_process(&mut self) -> Option<LTerm> {
+  pub fn next_process(&mut self, proc_reg: &mut ProcessRegistry) -> Option<LTerm> {
     if let Some(prev_pid) = self.current {
-      let hint = self.next_process_finalize_previous(prev_pid);
+      let hint = self.next_process_finalize_previous(proc_reg, prev_pid);
       if hint == ScheduleHint::ContinueSameProcess {
         // do not change self.current and just do the same process again
         return self.current;
@@ -233,9 +219,13 @@ impl Scheduler {
   /// When time has come to select next running process, first we take a look
   /// at the previous process, what happened to it.
   #[inline]
-  fn next_process_finalize_previous(&mut self, curr_pid: LTerm) -> ScheduleHint {
+  fn next_process_finalize_previous(
+    &mut self,
+    proc_reg: &mut ProcessRegistry,
+    curr_pid: LTerm,
+  ) -> ScheduleHint {
     // Extract the last running process from the process registry
-    let curr_p = self.unsafe_lookup_pid_mut(curr_pid);
+    let curr_p = proc_reg.unsafe_lookup_pid_mut(curr_pid);
     assert!(!curr_p.is_null());
 
     // Unspeakable horrors are happening as we speak: (bypassing borrow checker)
@@ -250,18 +240,18 @@ impl Scheduler {
 
     match curr.timeslice_result {
       SliceResult::Yield | SliceResult::None => {
-        self.enqueue(curr_pid);
+        self.enqueue(proc_reg, curr_pid);
         self.current = None
       }
 
       SliceResult::Finished => {
         // Scheduler will terminate the process with EXIT:NORMAL
         let err = (ExceptionType::Exit, gen_atoms::NORMAL);
-        self.terminate_process(curr_pid, err)
+        self.terminate_process(proc_reg, curr_pid, err)
       }
 
       SliceResult::Exception => {
-        return self.handle_process_exception(curr_p, curr_pid);
+        return self.handle_process_exception(proc_reg, curr_p, curr_pid);
       }
 
       SliceResult::Wait => {
@@ -275,6 +265,7 @@ impl Scheduler {
   /// this moment, otherwise proceed to terminate.
   fn handle_process_exception(
     &mut self,
+    proc_reg: &mut ProcessRegistry,
     proc_p: *mut Process,
     proc_pid: LTerm,
   ) -> ScheduleHint {
@@ -286,7 +277,7 @@ impl Scheduler {
 
     if proc.num_catches <= 0 {
       // time to terminate, no catches
-      self.terminate_process(proc_pid, p_error);
+      self.terminate_process(proc_reg, proc_pid, p_error);
       self.current = None;
       return ScheduleHint::TakeAnotherProcess;
     }
@@ -312,7 +303,7 @@ impl Scheduler {
 
       None => {
         println!("Catch not found, terminating...");
-        self.terminate_process(proc_pid, p_error);
+        self.terminate_process(proc_reg, proc_pid, p_error);
         self.current = None;
       }
     }
@@ -327,46 +318,16 @@ impl Scheduler {
     // TODO: network checks
   }
 
-  /// Borrow a read-only process, if it exists. Return `None` if we are sorry.
-  #[inline]
-  pub fn lookup_pid(&self, pid: LTerm) -> Option<&Process> {
-    assert!(pid.is_local_pid());
-    self.processes.get(&pid)
-  }
-
-  /// Borrow a mutable process, if it exists. Return `None` if we are sorry.
-  #[inline]
-  pub fn lookup_pid_mut(&mut self, pid: LTerm) -> Option<&mut Process> {
-    assert!(pid.is_local_pid());
-    self.processes.get_mut(&pid)
-  }
-
-  /// Find a process and instead of borrowing return a pointer to it.
-  #[inline]
-  #[allow(dead_code)]
-  pub fn unsafe_lookup_pid(&self, pid: LTerm) -> *const Process {
-    assert!(pid.is_local_pid());
-    match self.processes.get(&pid) {
-      Some(p) => p as *const Process,
-      None => core::ptr::null(),
-    }
-  }
-
-  /// Find a process and instead of borrowing return a mutable pointer to it.
-  #[inline]
-  pub fn unsafe_lookup_pid_mut(&mut self, pid: LTerm) -> *mut Process {
-    assert!(pid.is_local_pid());
-    match self.processes.get_mut(&pid) {
-      Some(p) => p as *mut Process,
-      None => core::ptr::null_mut(),
-    }
-  }
-
   /// Assuming that the error was not caught, begin process termination routine.
-  pub fn terminate_process(&mut self, pid: LTerm, e: (ExceptionType, LTerm)) {
+  pub fn terminate_process(
+    &mut self,
+    proc_reg: &mut ProcessRegistry,
+    pid: LTerm,
+    e: (ExceptionType, LTerm),
+  ) {
     // assert that process is not in any queue
     {
-      let p = self.lookup_pid_mut(pid).unwrap();
+      let p = proc_reg.lookup_pid_mut(pid).unwrap();
       assert_eq!(p.current_queue, Queue::None);
     }
 
@@ -392,22 +353,26 @@ impl Scheduler {
     assert!(!self.queue_normal.contains(&pid));
     assert!(!self.queue_low.contains(&pid));
     assert!(!self.queue_high.contains(&pid));
-    self.processes.remove(&pid);
+    proc_reg.remove(pid);
   }
 
   /// Called by `Process` when a new message is received. Checks whether the
   /// process was placed in one of waiting sets and wakes it up.
   #[inline]
-  pub fn notify_new_incoming_message(&mut self, proc: &mut Process) {
+  pub fn notify_new_incoming_message(
+    &mut self,
+    proc_reg: &mut ProcessRegistry,
+    proc: &mut Process,
+  ) {
     // Remove from whatever wait set
     match proc.current_queue {
       Queue::InfiniteWait => {
         self.infinite_wait.remove(&proc.pid);
-        self.enqueue_opt(proc.pid, true);
+        self.enqueue_opt(proc_reg, proc.pid, true);
       }
       Queue::TimedWait => {
         self.timed_wait.remove(&proc.pid);
-        self.enqueue_opt(proc.pid, true);
+        self.enqueue_opt(proc_reg, proc.pid, true);
       }
       _other => {}
     }

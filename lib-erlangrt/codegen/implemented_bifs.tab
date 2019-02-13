@@ -4,9 +4,12 @@
 #
 #
 
-bif     erlang:'++'/2		    plusplus
 bif     erlang:make_fun/3
 bif     erlang:spawn/3
+bif     erlang:register/2
+bif     erlang:registered/0
+
+bif     erlang:'++'/2		    plusplus
 gcbif   erlang:length/1
 ubif    erlang:'*'/2			multiply
 ubif    erlang:'+'/2			plus

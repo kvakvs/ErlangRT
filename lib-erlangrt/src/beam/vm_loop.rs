@@ -16,9 +16,12 @@ impl VM {
   /// used its time slice and wants to run another.
   pub fn dispatch(&mut self) -> RtResult<bool> {
     let scheduler = self.get_scheduler_p();
-    let curr_p = match unsafe { (*scheduler).next_process() } {
+    let curr_p = match self.scheduler.next_process(&mut self.processes) {
       None => return Ok(false),
-      Some(p) => unsafe { (*scheduler).lookup_pid_mut(p).unwrap() },
+      Some(next_pid) => {
+        let next_ptr = self.processes.unsafe_lookup_pid_mut(next_pid);
+        unsafe { &mut (*next_ptr) }
+      }
     };
 
     // Ugly borrowing the context from the process, but we guarantee that the
@@ -77,7 +80,7 @@ impl VM {
       }
 
       // TODO: this seems to not work?
-      if self.scheduler.get_process_count() == 0 {
+      if self.processes.count() == 0 {
         println!("All processes finished, this is the end.");
         return Ok(false);
       }
