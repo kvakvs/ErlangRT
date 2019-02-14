@@ -65,7 +65,13 @@ pub struct Process {
   pub error: Option<(ExceptionType, LTerm)>,
   /// How many catch frames are there on stack
   pub num_catches: isize,
+
+  pub process_flags: usize,
 }
+
+#[derive(Clone, Copy)]
+pub struct ProcessFlag(usize);
+pub const TRAP_EXIT: ProcessFlag = ProcessFlag(1usize << 0);
 
 impl Process {
   // Call this only from VM, the new process must be immediately registered
@@ -85,6 +91,7 @@ impl Process {
       Ok(ip) => {
         let p = Process {
           pid,
+          process_flags: 0,
 
           // Scheduling
           prio,
@@ -180,5 +187,20 @@ impl Process {
   pub fn get_context_p(&self) -> *mut runtime_ctx::Context {
     let p = &self.context as *const runtime_ctx::Context;
     p as *mut runtime_ctx::Context
+  }
+
+  #[inline]
+  pub fn get_process_flag(&mut self, flag: ProcessFlag) -> bool {
+    self.process_flags & flag.0 != 0
+  }
+
+  pub fn set_process_flag(&mut self, flag: ProcessFlag, value: bool) -> bool {
+    let old_val = self.get_process_flag(flag);
+    if value {
+      self.process_flags |= flag.0;
+    } else {
+      self.process_flags &= !flag.0;
+    }
+    old_val
   }
 }

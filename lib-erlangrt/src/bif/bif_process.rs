@@ -3,8 +3,9 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
-    mfa::{Args, MFArity, MFASomething},
-    process::Process,
+    heap::Heap,
+    mfa::{Args, MFASomething, MFArity},
+    process::{self, Process},
     scheduler::Prio,
     vm::VM,
   },
@@ -73,9 +74,10 @@ pub fn bif_erlang_register_2(
 ) -> RtResult<LTerm> {
   assert_arity("erlang:register/2", 2, args);
   if !args[0].is_atom()
-      || args[0] == gen_atoms::UNDEFINED
-      || !(args[1].is_pid() || args[1].is_port())
-      || vm.processes.find_registered(args[0]).is_some() {
+    || args[0] == gen_atoms::UNDEFINED
+    || !(args[1].is_pid() || args[1].is_port())
+    || vm.processes.find_registered(args[0]).is_some()
+  {
     return fail::create::badarg();
   }
   vm.processes.register_name(args[0], args[1]);
@@ -87,5 +89,48 @@ pub fn bif_erlang_registered_0(
   _cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
+  assert_arity("erlang:registered/0", 0, args);
   panic!("not implemented")
+}
+
+pub fn bif_erlang_process_flag_2(
+  vm: &mut VM,
+  cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("erlang:process_flag/2", 2, args);
+  do_erlang_process_flag(cur_proc, args[0], args[1])
+}
+
+pub fn bif_erlang_process_flag_3(
+  vm: &mut VM,
+  _cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("erlang:process_flag/3", 3, args);
+  let proc_p = vm.processes.unsafe_lookup_pid_mut(args[0]);
+  if proc_p.is_null() {
+    return fail::create::badarg();
+  }
+  let p = unsafe { &mut (*proc_p) };
+  do_erlang_process_flag(p, args[1], args[2])
+}
+
+fn do_erlang_process_flag(
+  p: &mut Process,
+  flag: LTerm,
+  value: LTerm,
+) -> RtResult<LTerm> {
+  match flag {
+    gen_atoms::TRAP_EXIT => {
+      if !value.is_bool() {
+        return fail::create::badarg();
+      }
+      Ok(LTerm::make_bool(p.set_process_flag(
+        process::TRAP_EXIT,
+        value == gen_atoms::TRUE,
+      )))
+    }
+    _ => fail::create::badarg_val(flag, &mut p.heap),
+  }
 }
