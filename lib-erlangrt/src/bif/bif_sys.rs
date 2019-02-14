@@ -1,7 +1,7 @@
 use crate::{
   bif::assert_arity,
   defs::exc_type::ExceptionType,
-  emulator::{process::Process, vm::VM},
+  emulator::{gen_atoms, process::Process, vm::VM},
   fail::{Error, RtResult},
   term::{builders::make_badfun_n, lterm::LTerm, term_builder::TupleBuilder},
 };
@@ -70,4 +70,15 @@ pub fn ubif_erlang_is_boolean_1(
 ) -> RtResult<LTerm> {
   assert_arity("erlang:is_boolean", 1, args);
   Ok(LTerm::make_bool(args[0].is_bool()))
+}
+
+/// Make a nice face like we are loading something here
+pub fn bif_erlang_load_nif_2(
+  _vm: &mut VM,
+  cur_proc: &mut Process,
+  args: &[LTerm],
+) -> RtResult<LTerm> {
+  assert_arity("erlang:load_nif/2", 2, args);
+  println!("load_nif({}, {}) - doing nothing", args[0], args[1]);
+  Ok(gen_atoms::OK)
 }

@@ -4,16 +4,17 @@
 #
 #
 
+## Process Stuff
+
 bif     erlang:make_fun/3
 bif     erlang:spawn/3
 bif     erlang:register/2
 bif     erlang:registered/0
 bif     erlang:process_flag/2
 bif     erlang:process_flag/3
+bif     erlang:is_process_alive/1
 
 bif     erlang:'++'/2		    plusplus
-bif     erlang:is_process_alive/1
-gcbif   erlang:length/1
 ubif    erlang:'*'/2			multiply
 ubif    erlang:'+'/2			plus
 ubif    erlang:'-'/2			minus
@@ -25,29 +26,36 @@ ubif    erlang:'=<'/2			lessequal
 ubif    erlang:'=='/2			equalequal
 ubif    erlang:'>'/2			greaterthan
 ubif    erlang:'>='/2			greaterequal
-ubif    erlang:hd/1
 ubif    erlang:is_boolean/1
 ubif    erlang:self/0
-ubif    erlang:tl/1
 
-#bif     erlang:exit/1
-#bif     erlang:exit/2
-#bif     erlang:raise/3
-#bif     erlang:throw/1
+## Error Stuff
+
+# bif     erlang:exit/1
+# bif     erlang:exit/2
+# bif     erlang:raise/3
+# bif     erlang:throw/1
 bif     erlang:atom_to_list/1
 bif     erlang:error/1
 bif     erlang:error/2
 bif     erlang:integer_to_list/1
+
+## NIF Stuff
+
 bif     erlang:nif_error/1
 bif     erlang:nif_error/2
+bif     erlang:load_nif/2
 
 #
 #
-# BIFs in the Lists module
+# BIFs in the Lists module and the Lists Stuff
 #
 #
-bif lists:member/2
-# bif lists:reverse/2
-# bif lists:keymember/3
-# bif lists:keysearch/3
-# bif lists:keyfind/3
+# bif     lists:keyfind/3
+# bif     lists:keymember/3
+# bif     lists:keysearch/3
+# bif     lists:reverse/2
+bif     lists:member/2
+gcbif   erlang:length/1
+ubif    erlang:hd/1
+ubif    erlang:tl/1
