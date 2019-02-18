@@ -651,7 +651,9 @@ impl Loader {
         FTerm::LoadTimeLit(lit_index) => self.code.push(self.lit_tab[lit_index].raw()),
 
         // Otherwise convert via a simple method
-        _ => self.code.push(a.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()),
+        _ => self
+          .code
+          .push(a.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()),
       }
     } // for a in args
     Ok(())

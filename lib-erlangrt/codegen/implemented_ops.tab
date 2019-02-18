@@ -81,3 +81,14 @@ raise
 try
 try_case
 try_end
+
+#=== === Binary Pattern Matching === ===
+bs_start_match2
+# TODO remove arity below
+# bs_get_integer2/7
+# bs_get_float2/7
+# bs_get_binary2/7
+# bs_skip_bits2/5
+# bs_test_tail2/3
+# bs_save2/2
+# bs_restore2/2
