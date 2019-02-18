@@ -14,6 +14,8 @@ bif     erlang:process_flag/2
 bif     erlang:process_flag/3
 bif     erlang:is_process_alive/1
 
+bif     erts_internal:spawn_system_process/3
+
 bif     erlang:'++'/2		    plusplus
 ubif    erlang:'*'/2			multiply
 ubif    erlang:'+'/2			plus

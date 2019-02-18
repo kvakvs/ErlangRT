@@ -3,15 +3,15 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
-    heap::Heap,
-    mfa::{Args, MFASomething, MFArity},
-    process::{self, Process},
-    scheduler::Prio,
+    mfa::{MFArity, ModFunArgs},
+    process::Process,
+    process_flags,
     vm::VM,
   },
   fail::{self, Error, RtResult},
   term::{boxed, lterm::*},
 };
+use crate::emulator::spawn_options::SpawnOptions;
 
 pub fn ubif_erlang_self_0(
   _vm: &mut VM,
@@ -50,8 +50,9 @@ pub fn bif_erlang_spawn_3(
   args: &[LTerm],
 ) -> RtResult<LTerm> {
   assert_arity("erlang:spawn", 3, args);
-  let mfargs = MFASomething::new(args[0], args[1], Args::AsList(args[2]));
-  let pid = vm.create_process(LTerm::nil(), &mfargs, Prio::Normal)?;
+  let mfargs = ModFunArgs::with_args_list(args[0], args[1], args[2]);
+  let spawn_opts = SpawnOptions::default();
+  let pid = vm.create_process(LTerm::nil(), &mfargs, &spawn_opts)?;
 
   Ok(pid)
 }
@@ -85,7 +86,7 @@ pub fn bif_erlang_register_2(
 }
 
 pub fn bif_erlang_registered_0(
-  vm: &mut VM,
+  _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
@@ -94,7 +95,7 @@ pub fn bif_erlang_registered_0(
 }
 
 pub fn bif_erlang_process_flag_2(
-  vm: &mut VM,
+  _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
@@ -116,18 +117,14 @@ pub fn bif_erlang_process_flag_3(
   do_erlang_process_flag(p, args[1], args[2])
 }
 
-fn do_erlang_process_flag(
-  p: &mut Process,
-  flag: LTerm,
-  value: LTerm,
-) -> RtResult<LTerm> {
+fn do_erlang_process_flag(p: &mut Process, flag: LTerm, value: LTerm) -> RtResult<LTerm> {
   match flag {
     gen_atoms::TRAP_EXIT => {
       if !value.is_bool() {
         return fail::create::badarg();
       }
-      Ok(LTerm::make_bool(p.set_process_flag(
-        process::TRAP_EXIT,
+      Ok(LTerm::make_bool(p.process_flags.read_and_set(
+        process_flags::TRAP_EXIT,
         value == gen_atoms::TRUE,
       )))
     }

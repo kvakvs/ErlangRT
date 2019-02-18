@@ -20,6 +20,7 @@ case_clause
 erlang
 error
 exit
+erts_internal
 
 #--- F
 false

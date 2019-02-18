@@ -4,53 +4,64 @@
 use crate::{defs::Arity, emulator::funarity::FunArity, fail::RtResult, term::lterm::*};
 use core::fmt;
 
+#[allow(dead_code)]
 #[derive(Debug)]
-pub enum Args {
+pub enum Args<'a> {
   // list of args
-  AsList(LTerm),
-  /* pointer to args with size
-   * AsSlice(*const LTerm, usize), */
+  List(LTerm),
+  // slice of args array
+  Slice(&'a [LTerm]),
 }
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
-pub struct MFASomething {
+pub struct ModFunArgs<'a> {
   m: LTerm,
   f: LTerm,
-  args: Args,
+  args: Args<'a>,
 }
 
-impl MFASomething {
-  pub fn new(m: LTerm, f: LTerm, args: Args) -> MFASomething {
-    MFASomething { m, f, args }
+impl<'a> ModFunArgs<'a> {
+  pub fn with_args_list(m: LTerm, f: LTerm, args: LTerm) -> ModFunArgs<'a> {
+    ModFunArgs {
+      m,
+      f,
+      args: Args::List(args),
+    }
   }
 
-  pub fn get_mfarity(&self) -> MFArity {
-    MFArity {
+  pub fn get_mfarity(&self) -> RtResult<MFArity> {
+    Ok(MFArity {
       m: self.m,
       f: self.f,
-      arity: self.get_arity(),
-    }
+      arity: self.get_arity()?,
+    })
   }
 
-  fn get_arity(&self) -> usize {
+  pub fn get_arity(&self) -> RtResult<usize> {
     match self.args {
-      Args::AsList(lst) => {
-        if let Ok(len) = cons::list_length(lst) {
-          return len;
-        }
+      Args::List(lst) => {
+        return cons::list_length(lst);
+      }
+      Args::Slice(s) => {
+        return Ok(s.len());
       }
     }
-    panic!("Can't find length for {:?}", self.args)
+    // panic!("Can't find length for {:?}", self.args)
   }
 
-  pub fn for_each_arg<T>(&self, func: T) -> RtResult<()>
+  pub fn for_each_arg<T>(&self, mut func: T) -> RtResult<()>
   where
     T: FnMut(LTerm) -> RtResult<()>,
   {
     match self.args {
-      Args::AsList(lst) => {
+      Args::List(lst) => {
         // ignore return value of for_each but do not ignore a possible error
         cons::for_each(lst, func)?;
+      }
+      Args::Slice(s) => {
+        for elem in s.iter() {
+          func(*elem)?;
+        }
       }
     }
     Ok(())

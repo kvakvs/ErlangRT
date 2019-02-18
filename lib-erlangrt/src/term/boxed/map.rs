@@ -71,6 +71,7 @@ impl Map {
   }
 
   /// Convert any p into *const Map + checking the header word to be Map
+  #[allow(dead_code)]
   pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Map> {
     let mp = p as *const Map;
     if (*mp).header.get_tag() != BOXTYPETAG_MAP {
@@ -80,6 +81,7 @@ impl Map {
   }
 
   /// Convert any p into *mut Map + checking the header word to be Map
+  #[allow(dead_code)]
   pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Map> {
     let mp = p as *mut Map;
     if (*mp).header.get_tag() != BOXTYPETAG_MAP {
@@ -117,6 +119,7 @@ impl Map {
   }
 
   /// Find key in map
+  #[allow(dead_code)]
   pub unsafe fn get(this: *const Map, key: LTerm) -> RtResult<Option<LTerm>> {
     // If found anything, return the value, otherwise not found
     match Self::get_internal(this, key)? {

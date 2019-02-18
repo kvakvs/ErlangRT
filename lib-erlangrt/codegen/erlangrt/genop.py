@@ -93,7 +93,7 @@ def enum_name(name: str) -> str:
         return enum_name(name.strip("'"))
 
     s_parts = name.split("_")
-    result = "".join([s.upper() for s in s_parts])
+    result = "_".join([s.upper() for s in s_parts])
     return result
 
 

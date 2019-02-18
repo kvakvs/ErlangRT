@@ -4,6 +4,7 @@
 use crate::{
   beam::loader,
   bif::{self, BifFn},
+  command_line_args::ErlStartArgs,
   emulator::{
     atom,
     code::{pointer::VersionedCodePtr, CodePtr},
@@ -17,7 +18,6 @@ use std::{
   collections::BTreeMap,
   path::{Path, PathBuf},
 };
-use crate::command_line_args::ErlStartArgs;
 
 fn module() -> &'static str {
   "code_srv: "

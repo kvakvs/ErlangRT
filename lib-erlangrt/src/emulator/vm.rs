@@ -6,14 +6,16 @@ use crate::{
   defs::Word,
   emulator::{
     code_srv::CodeServer,
-    mfa::MFASomething,
+    mfa::ModFunArgs,
     process::Process,
     process_registry::ProcessRegistry,
-    scheduler::{Prio, Scheduler},
+    scheduler::{Scheduler},
+    spawn_options::SpawnOptions,
   },
   fail::RtResult,
   term::lterm::*,
 };
+use crate::emulator::process_flags;
 
 /// VM environment, heaps, tables, processes all goes here.
 /// Atoms are a global API in `atom.rs`.
@@ -43,6 +45,7 @@ impl VM {
 
   /// Dirty trick to not have to dynamically borrow scheduler via
   /// `RefCell<Box<>>` because schedulers live just as long as the VM itself.
+  #[allow(dead_code)]
   pub fn get_scheduler_p(&self) -> *mut Scheduler {
     let p = &self.scheduler as *const Scheduler;
     p as *mut Scheduler
@@ -61,16 +64,16 @@ impl VM {
   pub fn create_process(
     &mut self,
     parent: LTerm,
-    mfargs: &MFASomething,
-    prio: Prio,
+    mfargs: &ModFunArgs,
+    spawn_opts: &SpawnOptions,
   ) -> RtResult<LTerm> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
 
     let pid = LTerm::make_local_pid(pid_c);
-    let mfarity = mfargs.get_mfarity();
+    let mfarity = mfargs.get_mfarity()?;
     let cs = self.get_code_server_p();
-    let mut p0 = Process::new(pid, parent, &mfarity, prio, unsafe { &mut (*cs) })?;
+    let mut p0 = Process::new(pid, parent, &mfarity, spawn_opts, unsafe { &mut (*cs) })?;
 
     // Error may happen here due to arg term copy error
     p0.set_spawn_args(&mfargs)?;
@@ -79,11 +82,20 @@ impl VM {
     Ok(pid)
   }
 
-  pub fn register_new_process(
+  pub fn spawn_system_process(
     &mut self,
-    pid: LTerm,
-    mut proc: Process,
-  ) {
+    parent: LTerm,
+    mfargs: &ModFunArgs,
+    mut spawn_opts: SpawnOptions,
+  ) -> RtResult<LTerm> {
+    let mfarity = mfargs.get_mfarity()?;
+    // Fail if MFA not found, otherwise continue
+    let _ = self.code_server.lookup_mfa(&mfarity, false)?;
+    spawn_opts.process_flags.set(process_flags::SYSTEM_PROCESS);
+    self.create_process(parent, mfargs, &spawn_opts)
+  }
+
+  pub fn register_new_process(&mut self, pid: LTerm, mut proc: Process) {
     proc.owned_by_scheduler = (&mut self.scheduler) as *mut Scheduler;
     self.processes.insert(pid, proc);
     self.scheduler.enqueue(&mut self.processes, pid);

@@ -19,7 +19,7 @@ impl OpcodeSend {
     ctx: &mut Context,
     _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
-    let sched = vm.get_scheduler_p();
+    // let sched = vm.get_scheduler_p();
     let x1 = ctx.get_x(1);
     let x0 = ctx.get_x(0);
     if !x0.is_pid() {

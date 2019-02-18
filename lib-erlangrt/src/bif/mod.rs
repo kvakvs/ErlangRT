@@ -10,14 +10,15 @@ pub mod gen_bif; // generated
 //
 pub mod bif_arith;
 pub mod bif_compare;
+pub mod bif_erts_internal;
 pub mod bif_lists;
 pub mod bif_process;
 pub mod bif_sys;
 pub mod bif_type_conv;
 
 pub use crate::bif::{
-  bif_arith::*, bif_compare::*, bif_lists::*, bif_process::*, bif_sys::*,
-  bif_type_conv::*,
+  bif_arith::*, bif_compare::*, bif_erts_internal::*, bif_lists::*, bif_process::*,
+  bif_sys::*, bif_type_conv::*,
 };
 
 /// A BIF function which runs under some process, takes some args (encoded in

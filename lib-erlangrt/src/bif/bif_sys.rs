@@ -75,10 +75,11 @@ pub fn ubif_erlang_is_boolean_1(
 /// Make a nice face like we are loading something here
 pub fn bif_erlang_load_nif_2(
   _vm: &mut VM,
-  cur_proc: &mut Process,
+  _cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
   assert_arity("erlang:load_nif/2", 2, args);
+  // TODO: Implement pre-linked NIF modules which are ready to be activated
   println!("load_nif({}, {}) - doing nothing", args[0], args[1]);
   Ok(gen_atoms::OK)
 }

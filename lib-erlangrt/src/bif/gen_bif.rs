@@ -81,6 +81,8 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         func: bif::ubif_erlang_self_0 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::SPAWN, arity: 3,
         func: bif::bif_erlang_spawn_3 },
+    BifTabItem { m: gen_atoms::ERTS_INTERNAL, f: gen_atoms::SPAWN_SYSTEM_PROCESS, arity: 3,
+        func: bif::bif_erts_internal_spawn_system_process_3 },
     BifTabItem { m: gen_atoms::ERLANG, f: gen_atoms::TL, arity: 1,
         func: bif::ubif_erlang_tl_1 },
 ];

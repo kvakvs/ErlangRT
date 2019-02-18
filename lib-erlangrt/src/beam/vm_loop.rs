@@ -15,7 +15,7 @@ impl VM {
   /// Returns: `false` if VM found no process to run, `true` if the process has
   /// used its time slice and wants to run another.
   pub fn dispatch(&mut self) -> RtResult<bool> {
-    let scheduler = self.get_scheduler_p();
+    // let scheduler = self.get_scheduler_p();
     let curr_p = match self.scheduler.next_process(&mut self.processes) {
       None => return Ok(false),
       Some(next_pid) => {

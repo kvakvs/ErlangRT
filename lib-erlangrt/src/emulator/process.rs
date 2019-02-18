@@ -7,14 +7,16 @@ use crate::{
     code_srv::CodeServer,
     heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
     mailbox::ProcessMailbox,
-    mfa::{MFASomething, MFArity},
+    mfa::{MFArity, ModFunArgs},
+    process_flags::ProcessFlags,
+    process_registry::ProcessRegistry,
     runtime_ctx,
     scheduler::{self, Scheduler},
+    spawn_options::SpawnOptions,
   },
   fail::RtResult,
   term::lterm::*,
 };
-use crate::emulator::process_registry::ProcessRegistry;
 
 //#[allow(dead_code)]
 //#[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -66,12 +68,8 @@ pub struct Process {
   /// How many catch frames are there on stack
   pub num_catches: isize,
 
-  pub process_flags: usize,
+  pub process_flags: ProcessFlags,
 }
-
-#[derive(Clone, Copy)]
-pub struct ProcessFlag(usize);
-pub const TRAP_EXIT: ProcessFlag = ProcessFlag(1usize << 0);
 
 impl Process {
   // Call this only from VM, the new process must be immediately registered
@@ -80,7 +78,7 @@ impl Process {
     pid: LTerm,
     _parent_pid: LTerm,
     mfarity: &MFArity,
-    prio: scheduler::Prio,
+    spawn_opts: &SpawnOptions,
     code_server: &mut CodeServer,
   ) -> RtResult<Process> {
     assert!(pid.is_local_pid());
@@ -91,10 +89,10 @@ impl Process {
       Ok(ip) => {
         let p = Process {
           pid,
-          process_flags: 0,
+          process_flags: spawn_opts.process_flags,
 
           // Scheduling
-          prio,
+          prio: spawn_opts.prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
           owned_by_scheduler: core::ptr::null_mut(),
@@ -118,7 +116,7 @@ impl Process {
 
   /// Copy args from mfargs-MFA-something into new process heap and set the
   /// registers to the arguments passed to spawn.
-  pub fn set_spawn_args(&mut self, mfargs: &MFASomething) -> RtResult<()> {
+  pub fn set_spawn_args(&mut self, mfargs: &ModFunArgs) -> RtResult<()> {
     let mut xindex = 0;
     mfargs.for_each_arg(|arg| -> RtResult<()> {
       self.context.set_x(xindex, arg);
@@ -187,20 +185,5 @@ impl Process {
   pub fn get_context_p(&self) -> *mut runtime_ctx::Context {
     let p = &self.context as *const runtime_ctx::Context;
     p as *mut runtime_ctx::Context
-  }
-
-  #[inline]
-  pub fn get_process_flag(&mut self, flag: ProcessFlag) -> bool {
-    self.process_flags & flag.0 != 0
-  }
-
-  pub fn set_process_flag(&mut self, flag: ProcessFlag, value: bool) -> bool {
-    let old_val = self.get_process_flag(flag);
-    if value {
-      self.process_flags |= flag.0;
-    } else {
-      self.process_flags &= !flag.0;
-    }
-    old_val
   }
 }

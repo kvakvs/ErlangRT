@@ -3,7 +3,8 @@ use crate::{
   defs::{exc_type::ExceptionType, Word},
   emulator::{
     gen_atoms,
-    process::{self, Process},
+    process::{Process},
+    process_flags,
     process_registry::ProcessRegistry,
   },
   term::lterm::*,
@@ -307,7 +308,7 @@ impl Scheduler {
 
       None => {
         println!("Catch not found, terminating...");
-        if proc.get_process_flag(process::TRAP_EXIT) {
+        if proc.process_flags.get(process_flags::TRAP_EXIT) {
           panic!("todo: on terminate implement trap_exit");
         }
         self.terminate_process(proc_reg, proc_pid, p_error);

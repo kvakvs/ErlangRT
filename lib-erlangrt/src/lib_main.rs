@@ -1,10 +1,7 @@
 use crate::{
   command_line_args::ErlStartArgs,
   emulator::{
-    atom,
-    mfa::{Args, MFASomething},
-    scheduler::Prio,
-    vm::VM,
+    atom, mfa::ModFunArgs, spawn_options::SpawnOptions, vm::VM,
   },
   term::lterm::*,
 };
@@ -25,13 +22,13 @@ pub fn start_emulator(args: &mut ErlStartArgs) {
 
   let mut beam_vm = VM::new(args);
 
-  let mfargs = MFASomething::new(
+  let mfargs = ModFunArgs::with_args_list(
     atom::from_str("init"),
     atom::from_str("boot"),
-    Args::AsList(args.get_command_line_list().unwrap()),
+    args.get_command_line_list().unwrap(),
   );
   let _rootp = beam_vm
-    .create_process(LTerm::nil(), &mfargs, Prio::Normal)
+    .create_process(LTerm::nil(), &mfargs, &SpawnOptions::default())
     .unwrap();
 
   println!("Process created. Entering main loop...");
