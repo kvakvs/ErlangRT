@@ -132,7 +132,7 @@ fn callbif_resolve_import(
 // TODO: Remove this and call find_bif directly
 #[inline]
 fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
-  Ok(BifResolutionResult::FnPointer(native_fun::find_bif(&mfa)?))
+  Ok(BifResolutionResult::FnPointer(native_fun::find_native_fun(&mfa)?))
 }
 
 /// Given a native_fun function pointer and args with possibly register/slot values

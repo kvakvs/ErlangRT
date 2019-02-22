@@ -66,7 +66,7 @@ impl CodeServer {
     allow_load: bool,
   ) -> RtResult<MFALookupResult> {
     // It could be a BIF
-    if let Ok(bif_fn) = native_fun::find_bif(mfa) {
+    if let Ok(bif_fn) = native_fun::find_native_fun(mfa) {
       return Ok(MFALookupResult::FoundBif(bif_fn));
     }
     // Try look for a BEAM export somewhere

@@ -12,7 +12,7 @@ Implementing new BIFs
 `````````````````````
 
 1. Visit ``codegen/otp20/bif.tab`` and find the BIF you want to add, copy the line.
-2. Visit ``codegen/implemented_bifs.tab`` file, and insert the line.
+2. Visit ``codegen/implemented_native_funs.tab`` file, and insert the line.
 3. Run ``make`` in root directory once, which will invoke the codegen and show you errors about a missing function.
 4. Copy from another bif, and satisfy the compiler.
 

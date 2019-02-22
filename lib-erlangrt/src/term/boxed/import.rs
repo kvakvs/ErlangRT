@@ -1,5 +1,5 @@
 use crate::{
-  native_fun::{find_bif, BifFn},
+  native_fun::{find_native_fun, BifFn},
   defs::{ByteSize, WordSize},
   emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
@@ -66,6 +66,6 @@ impl Import {
 
   /// Assuming that this object refers to a BIF function, perform a BIF lookup.
   pub fn resolve_bif(&self) -> RtResult<BifFn> {
-    find_bif(&self.mfarity)
+    find_native_fun(&self.mfarity)
   }
 }

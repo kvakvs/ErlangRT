@@ -41,7 +41,7 @@ pub fn apply(
     return fail::create::badarity();
   }
 
-  if native_fun::is_bif(&mfa) {
+  if native_fun::is_native_fun(&mfa) {
     return call_native_fun::find_and_call_native_fun(
       vm,
       ctx,

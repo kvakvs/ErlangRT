@@ -29,7 +29,7 @@ pub use crate::native_fun::{
 pub type BifFn =
   fn(vm: &mut VM, cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>;
 
-pub fn is_bif(mfa: &MFArity) -> bool {
+pub fn is_native_fun(mfa: &MFArity) -> bool {
   // Naive implementation. TODO: Binary search or a hashmap
   for bt in gen_native_fun::BIF_TABLE {
     if bt.m == mfa.m && bt.f == mfa.f && bt.arity == mfa.arity {
@@ -39,7 +39,7 @@ pub fn is_bif(mfa: &MFArity) -> bool {
   false
 }
 
-pub fn find_bif(mfa: &MFArity) -> RtResult<BifFn> {
+pub fn find_native_fun(mfa: &MFArity) -> RtResult<BifFn> {
   // Naive implementation. TODO: Binary search or a hashmap
   for bt in gen_native_fun::BIF_TABLE {
     if bt.m == mfa.m && bt.f == mfa.f && bt.arity == mfa.arity {

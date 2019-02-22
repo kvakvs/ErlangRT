@@ -746,7 +746,7 @@ impl Loader {
       let mod_atom = self.atom_from_loadtime_index(ri.mod_atom_i);
       let fun_atom = self.atom_from_loadtime_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
-      let is_bif = native_fun::is_bif(&mf_arity);
+      let is_bif = native_fun::is_native_fun(&mf_arity);
       // println!("is_bif {} for {}", is_bif, mf_arity);
       let ho_imp =
         unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity, is_bif)? };
