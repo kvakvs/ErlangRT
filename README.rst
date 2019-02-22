@@ -29,6 +29,9 @@ Tests in ``priv/test2.erl`` work. Running ``make test`` tries to run ``init:boot
 Compiling
 `````````
 
+* The source assumes that you have Erlang OTP 21 source in a directory ``../otp``
+  relative to the ErlangRT directory, and the stdlib and preload BEAM files are
+  compiled and ready.
 * Install latest **Rust** and **Cargo** via `Rustup <http://doc.crates.io/>`_
 * Run ``make`` and with the magic of Bash autocomplete see which targets it
   supports. You might like:

@@ -232,7 +232,7 @@ impl OpcodeReturn {
         return Ok(DispatchResult::Finished);
       } else {
         panic!(
-          "{}Return instruction with 0 in ctx.cp. Possible error in CP value management",
+          "{}Return instruction with null CP and nonempty stack. Possible error in CP value management",
           module()
         )
       }
