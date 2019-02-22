@@ -231,6 +231,7 @@ impl OpcodeReturn {
         // return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
         return Ok(DispatchResult::Finished);
       } else {
+        curr_p.heap.stack_dump();
         panic!(
           "{}Return instruction with null CP and nonempty stack. Possible error in CP value management",
           module()

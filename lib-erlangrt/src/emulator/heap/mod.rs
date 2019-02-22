@@ -281,6 +281,7 @@ impl Heap {
     let cp = LTerm::from_raw(self.data[self.stack_top]);
     assert!(cp.is_cp());
     self.stack_top += n + 1;
+    println!("stk dealloc {}+1", n);
     cp
   }
 
@@ -315,7 +316,7 @@ impl Heap {
   }
 
   #[allow(dead_code)]
-  pub fn print_stack(&self) {
+  pub fn stack_dump(&self) {
     if self.stack_depth() == 0 {
       println!("stack: empty");
       return;

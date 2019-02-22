@@ -289,7 +289,7 @@ impl Scheduler {
 
     println!("Catching {}:{}", p_error.0, p_error.1);
     println!("{}", proc.context);
-    proc.heap.print_stack();
+    proc.heap.stack_dump();
 
     match unsafe { proc.heap.unroll_stack_until_catch() } {
       Some(next_catch) => {
