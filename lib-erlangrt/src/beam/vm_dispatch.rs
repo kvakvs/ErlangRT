@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 
 use crate::{
-  beam::{disp_result::DispatchResult, gen_op::*, opcodes::*},
+  beam::{disp_result::*, gen_op::*, opcodes::*},
   emulator::{code::opcode::RawOpcode, process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
 };
@@ -349,6 +349,6 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
 
     other => unknown_opcode(other, ctx),
   }
-  Ok(DispatchResult::Yield)
+  Ok(DispatchResult::Yield(YieldType::EndOfTheQueue))
 }
 

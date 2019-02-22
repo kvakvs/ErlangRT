@@ -1,6 +1,10 @@
 use crate::{
-  beam::{disp_result::DispatchResult, gen_op, vm_dispatch::dispatch_op_inline},
-  emulator::{disasm, scheduler::SliceResult, vm::VM},
+  beam::{
+    disp_result::{DispatchResult, YieldType},
+    gen_op,
+    vm_dispatch::dispatch_op_inline,
+  },
+  emulator::{disasm, mfa::Args::Slice, scheduler::SliceResult, vm::VM},
   fail::{Error, RtResult},
 };
 
@@ -42,7 +46,7 @@ impl VM {
         unsafe {
           disasm::disasm_op(ctx.ip.get_pointer(), &(*cs));
         }
-//        curr_p.heap.stack_dump();
+        //        curr_p.heap.stack_dump();
       }
 
       // Take next opcode
@@ -65,9 +69,11 @@ impl VM {
       };
 
       match disp_result {
-        DispatchResult::Yield => {
-          // curr_p.heap.print_stack();
-          curr_p.timeslice_result = SliceResult::Yield;
+        DispatchResult::Yield(yt) => {
+          curr_p.timeslice_result = match yt {
+            YieldType::EndOfTheQueue => SliceResult::Yield,
+            YieldType::InfiniteWait => SliceResult::InfiniteWait,
+          };
           return Ok(true);
         }
         DispatchResult::Normal => {

@@ -4,6 +4,7 @@ use crate::{
   fail::{self, RtResult},
   term::lterm::*,
 };
+use crate::beam::disp_result::YieldType;
 
 /// Sends to x0 value x1, x1 is moved to x0 as result of the operation.
 /// If process with pid x0 does not exist, no error is raised.
@@ -114,6 +115,6 @@ impl OpcodeWait {
     label: LTerm,
   ) -> RtResult<DispatchResult> {
     ctx.jump(label);
-    Ok(DispatchResult::Yield)
+    Ok(DispatchResult::Yield(YieldType::InfiniteWait))
   }
 }

@@ -42,12 +42,13 @@ pub enum Queue {
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[allow(dead_code)]
+// TODO: Is this accidentally same thing as YieldType?
 pub enum SliceResult {
   None,
   /// Process willingly gave up run queue (ended the timeslice without events)
   Yield,
-  /// Process entered infinite or timed wait during the last timeslice
-  Wait,
+  /// Process entered infinite wait during the last timeslice
+  InfiniteWait,
   /// Process normally finished during the last timeslice
   Finished,
   /// Error, exit or throw occured during the last timeslice, error is stored
@@ -244,7 +245,12 @@ impl Scheduler {
     );
 
     match curr.timeslice_result {
-      SliceResult::Yield | SliceResult::None => {
+      SliceResult::Yield => {
+        self.enqueue(proc_reg, curr_pid);
+        self.current = None
+      }
+
+      SliceResult::None => {
         self.enqueue(proc_reg, curr_pid);
         self.current = None
       }
@@ -259,7 +265,7 @@ impl Scheduler {
         return self.handle_process_exception(proc_reg, curr_p, curr_pid);
       }
 
-      SliceResult::Wait => {
+      SliceResult::InfiniteWait => {
         self.enqueue_wait(true, curr_pid);
       }
     }
