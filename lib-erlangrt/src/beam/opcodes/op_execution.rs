@@ -19,29 +19,20 @@ fn module() -> &'static str {
 /// Perform a call to a `location` in code, storing address of the next opcode
 /// in `ctx.cp`.
 /// Structure: call(arity:int, loc:CP)
-pub struct OpcodeCall {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeCall, arity: 2,
+  run: { Self::call(ctx, arity, dst) },
+  args: usize(arity), term(dst)
+);
 
 impl OpcodeCall {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
-    _curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term();
-    ctx.live = arity.get_small_unsigned();
-
-    let location = ctx.fetch_term();
-    debug_assert!(
-      location.is_boxed(),
-      "Call location must be a box (have {})",
-      location
-    );
+  pub fn call(ctx: &mut Context, arity: usize, dst: LTerm) -> RtResult<DispatchResult> {
+    ctx.live = arity;
+    debug_assert!(dst.is_boxed(), "Call location must be a box (have {})", dst);
 
     ctx.cp = ctx.ip; // Points at the next opcode after this
-    ctx.jump(location);
+    ctx.jump(dst);
 
     Ok(DispatchResult::Normal)
   }
@@ -49,22 +40,21 @@ impl OpcodeCall {
 
 /// Perform a call to a `location` in code, the `ctx.cp` is not updated.
 /// Behaves like a jump?
-/// Structure: call_only(arity:int, loc:cp)
-pub struct OpcodeCallOnly {}
+/// Structure: call_only(arity:int, dst:cp)
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeCallOnly, arity: 2,
+  run: { Self::call_only(ctx, arity, dst) },
+  args: usize(arity), term(dst)
+);
 
 impl OpcodeCallOnly {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn call_only(
     ctx: &mut Context,
-    _curr_p: &mut Process,
+    arity: usize,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term();
-    ctx.live = arity.get_small_unsigned();
-
-    let dst = ctx.fetch_term();
+    ctx.live = arity;
     ctx.jump(dst); // jump will assert if the location is cp
     Ok(DispatchResult::Normal)
   }
@@ -73,26 +63,24 @@ impl OpcodeCallOnly {
 /// Deallocates stack, and performs a tail-recursive call (jump) to a `location`
 /// in code.
 /// Structure: call_last(arity:smallint, dst:cp, dealloc:smallint)
-pub struct OpcodeCallLast {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeCallLast, arity: 3,
+  run: { Self::call_last(ctx, curr_p, arity, dst, dealloc) },
+  args: usize(arity), term(dst), usize(dealloc)
+);
 
 impl OpcodeCallLast {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn call_last(
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
+    dst: LTerm,
+    dealloc: usize,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term();
-    ctx.live = arity.get_small_unsigned();
-
-    let dst = ctx.fetch_term(); // jump will assert if the location is cp
-
-    let dealloc = ctx.fetch_term();
+    ctx.live = arity;
     let hp = &mut curr_p.heap;
-    ctx.set_cp(hp.stack_deallocate(dealloc.get_small_unsigned()));
-
+    ctx.set_cp(hp.stack_deallocate(dealloc));
     ctx.jump(dst);
     Ok(DispatchResult::Normal)
   }
@@ -102,25 +90,21 @@ impl OpcodeCallLast {
 /// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
 /// point to an external function or a BIF. Does not update the `ctx.cp`.
 /// Structure: call_ext_only(arity:int, import:boxed)
-pub struct OpcodeCallExtOnly {}
+define_opcode!(vm, ctx, curr_p,
+  name: OpcodeCallExtOnly, arity: 2,
+  run: { Self::call_ext_only(vm, ctx, curr_p, arity, dst) },
+  args: usize(arity), term(dst)
+);
 
 impl OpcodeCallExtOnly {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (usize, LTerm) {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let dst = ctx.fetch_and_load(&mut curr_p.heap);
-    (arity, dst)
-  }
-
-  #[inline]
-  pub fn run(
+  pub fn call_ext_only(
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (arity, dst) = Self::fetch_args(ctx, curr_p);
     let args = ctx.registers_slice(0, arity);
     shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
@@ -130,57 +114,46 @@ impl OpcodeCallExtOnly {
 /// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
 /// function or a BIF. Updates the `ctx.cp` with return IP.
 /// Structure: call_ext(arity:int, destination:boxed)
-pub struct OpcodeCallExt {}
+define_opcode!(vm, ctx, curr_p,
+  name: OpcodeCallExt, arity: 2,
+  run: { Self::call_ext(vm, ctx, curr_p, arity, dst) },
+  args: usize(arity), term(dst)
+);
 
 impl OpcodeCallExt {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (usize, LTerm) {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let dst = ctx.fetch_and_load(&mut curr_p.heap);
-    (arity, dst)
-  }
-
-  #[inline]
-  pub fn run(
+  pub fn call_ext(
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (arity, dst) = Self::fetch_args(ctx, curr_p);
     let args = ctx.registers_slice(0, arity);
     shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
   }
 }
 
-
 /// Deallocates stack and performs a tail call to destination.
 /// Structure: call_ext_last(arity:int, destination:boxed, dealloc:smallint)
-pub struct OpcodeCallExtLast {}
+define_opcode!(vm, ctx, curr_p,
+  name: OpcodeCallExtLast, arity: 3,
+  run: { Self::call_ext_last(vm, ctx, curr_p, arity, dst, dealloc) },
+  args: usize(arity), term(dst), usize(dealloc)
+);
 
 impl OpcodeCallExtLast {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (usize, LTerm, usize) {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let dst = ctx.fetch_and_load(&mut curr_p.heap);
-    let dealloc = ctx.fetch_term().get_small_unsigned();
-    (arity, dst, dealloc)
-  }
-
-  #[inline]
-  pub fn run(
+  pub fn call_ext_last(
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
+    dst: LTerm,
+    dealloc: usize,
   ) -> RtResult<DispatchResult> {
-    let (arity, dst, dealloc) = Self::fetch_args(ctx, curr_p);
-
     let new_cp = curr_p.heap.stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
-
     let args = ctx.registers_slice(0, arity);
     shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
@@ -236,14 +209,15 @@ fn shared_call_ext(
 /// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
 /// the process has no more code to execute and will end with reason `normal`.
 /// Structure: return()
-pub struct OpcodeReturn {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeReturn, arity: 0,
+  run: { Self::return_opcode(ctx, curr_p) },
+  args:
+);
 
 impl OpcodeReturn {
-  pub const ARITY: usize = 0;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn return_opcode(
     ctx: &mut Context,
     curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
@@ -271,21 +245,19 @@ impl OpcodeReturn {
   }
 }
 
-pub struct OpcodeFuncInfo {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeFuncInfo, arity: 3,
+  run: { Self::func_info(m, f, arity) },
+  args: term(m), term(f), usize(arity)
+);
 
 impl OpcodeFuncInfo {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
-    _curr_p: &mut Process,
+  pub fn func_info(
+    m: LTerm,
+    f: LTerm,
+    arity: usize,
   ) -> RtResult<DispatchResult> {
-    let m = ctx.fetch_term();
-    let f = ctx.fetch_term();
-    let arity = ctx.fetch_term();
-
     panic!("{}function_clause {}:{}/{}", module(), m, f, arity);
     // DispatchResult::Error
   }
@@ -293,19 +265,19 @@ impl OpcodeFuncInfo {
 
 /// Create an error:badmatch exception
 /// Structure: badmatch(LTerm)
-pub struct OpcodeBadmatch {}
+define_opcode!(_vm, _ctx, curr_p,
+  name: OpcodeBadmatch, arity: 1,
+  run: { Self::badmatch(curr_p, val) },
+  args: load(val)
+);
 
 impl OpcodeBadmatch {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
+  pub fn badmatch(
     curr_p: &mut Process,
+    val: LTerm,
   ) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
-    let val = ctx.fetch_and_load(hp);
     fail::create::badmatch_val(val, hp)
   }
 }
@@ -313,61 +285,48 @@ impl OpcodeBadmatch {
 /// Compares Arg with tuple of pairs {Value1, Label1, ...} and jumps to Label
 /// if it is equal. If none compared, will jump to FailLabel
 /// Structure: select_val(val:src, on_fail:label, tuple_pairs:src)
-pub struct OpcodeSelectVal {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeSelectVal, arity: 3,
+  run: { Self::select_val(ctx, val, fail, pairs) },
+  args: load(val), cp_not_nil(fail), literal_tuple(pairs)
+);
 
 impl OpcodeSelectVal {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
-    let hp = &curr_p.heap;
-    let val = ctx.fetch_and_load(hp);
-    let fail_label = ctx.fetch_term();
-    let pairs_tuple = ctx.fetch_and_load(hp);
-    debug_assert!(pairs_tuple.is_tuple());
-    (val, fail_label, pairs_tuple)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn select_val(
     ctx: &mut Context,
-    curr_p: &mut Process,
+    val: LTerm,
+    fail: LTerm,
+    pairs: *const boxed::Tuple,
   ) -> RtResult<DispatchResult> {
-    let (val, fail_label, pairs_tuple) = Self::fetch_args(ctx, curr_p);
-
-    let tuple_ptr = pairs_tuple.get_box_ptr::<boxed::Tuple>();
-    let pairs_count = unsafe { (*tuple_ptr).get_arity() / 2 };
+    let pairs_count = unsafe { (*pairs).get_arity() / 2 };
 
     for i in 0..pairs_count {
-      let sel_val = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2) };
+      let sel_val = unsafe { boxed::Tuple::get_element_base0(pairs, i * 2) };
       if compare::cmp_terms(val, sel_val, true)? == Ordering::Equal {
-        let sel_label = unsafe { boxed::Tuple::get_element_base0(tuple_ptr, i * 2 + 1) };
+        let sel_label = unsafe { boxed::Tuple::get_element_base0(pairs, i * 2 + 1) };
         ctx.jump(sel_label);
         return Ok(DispatchResult::Normal);
       }
     }
 
     // None matched, jump to fail label
-    ctx.jump(fail_label);
+    ctx.jump(fail);
     Ok(DispatchResult::Normal)
   }
 }
 
 /// Jumps to label.
 /// Structure: jump(dst:label)
-pub struct OpcodeJump {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeJump, arity: 1,
+  run: { Self::jump(ctx, dst) },
+  args: term(dst)
+);
 
 impl OpcodeJump {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
-    _curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
-    let dst = ctx.fetch_term();
+  pub fn jump(ctx: &mut Context, dst: LTerm) -> RtResult<DispatchResult> {
     ctx.jump(dst);
     Ok(DispatchResult::Normal)
   }

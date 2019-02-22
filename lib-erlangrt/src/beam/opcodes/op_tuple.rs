@@ -13,36 +13,32 @@ use crate::{
 /// Creates an empty tuple of `arity` and places the pointer to it into `dst`.
 /// Followed by multiple `put` instructions which will set tuple elements.
 /// Structure: put_tuple(arity:smallint, dst)
-pub struct OpcodePutTuple {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodePutTuple, arity: 2,
+  run: { Self::put_tuple(ctx, curr_p, arity, dst) },
+  args: usize(arity), term(dst)
+);
 
 impl OpcodePutTuple {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context) -> (usize, LTerm) {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let dst = ctx.fetch_term();
-    (arity, dst)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn put_tuple(
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (arity, dst) = Self::fetch_args(ctx);
     let hp = &mut curr_p.heap;
     let tuple_p = boxed::Tuple::create_into(hp, arity)?;
 
     // Now continue fetching opcodes if there are more `put` operations
     for i in 0..arity {
-      let op = opcode::from_memory_word(ctx.fetch());
+      let op = opcode::from_memory_word(ctx.ip_read());
       if op != OPCODE_PUT {
-        ctx.unfetch();
-        break;
+        panic!("put_tuple must be followed by N put opcodes");
       }
-      let val = ctx.fetch_and_load(hp);
+      let val = ctx.ip_load_term_at(1, hp);
+      ctx.ip_advance(2);
+
       // println!("- put {}, {}", i, val);
       unsafe {
         boxed::Tuple::set_element_base0(tuple_p, i, val);
@@ -57,34 +53,28 @@ impl OpcodePutTuple {
 
 /// Checks that tuple in argument1 has arity `arity` otherwise jumps to fail.
 /// Structure: test_arity(on_false:label, value:tuple, arity:int)
-pub struct OpcodeTestArity {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeTestArity, arity: 3,
+  run: { Self::test_arity(ctx, fail, value, arity) },
+  args: cp_not_nil(fail), load(value), usize(arity)
+);
 
 impl OpcodeTestArity {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize) {
-    let on_false = ctx.fetch_term();
-    let val = ctx.fetch_and_load(&mut curr_p.heap);
-    let arity = ctx.fetch_term().get_small_unsigned();
-    (on_false, val, arity)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn test_arity(
     ctx: &mut Context,
-    curr_p: &mut Process,
+    fail: LTerm,
+    value: LTerm,
+    arity: usize,
   ) -> RtResult<DispatchResult> {
-    let (fail_label, val, arity) = Self::fetch_args(ctx, curr_p);
     // Possibly even not a tuple
-    if !val.is_tuple() {
-      ctx.jump(fail_label)
+    if !value.is_tuple() {
+      ctx.jump(fail)
     } else {
       // Get tuple arity and check it
-      let tuple_p = val.get_tuple_ptr();
+      let tuple_p = value.get_tuple_ptr();
       if unsafe { (*tuple_p).get_arity() } != arity {
-        ctx.jump(fail_label)
+        ctx.jump(fail)
       }
     }
     Ok(DispatchResult::Normal)
@@ -94,30 +84,21 @@ impl OpcodeTestArity {
 
 /// From `src` get `index`th element and store it in `dst`.
 /// Structure: get_tuple_element(src:src, index:smallint, dst:dst)
-pub struct OpcodeGetTupleElement {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeGetTupleElement, arity: 3,
+  run: { Self::get_tuple_element(ctx, curr_p, src, index, dst) },
+  args: load(src), usize(index), term(dst)
+);
 
 impl OpcodeGetTupleElement {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, usize, LTerm) {
-    let src = ctx.fetch_and_load(&mut curr_p.heap);
-    let index = ctx.fetch_term().get_small_unsigned();
-    let dst = ctx.fetch_term();
-    (src, index, dst)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn get_tuple_element(
     ctx: &mut Context,
     curr_p: &mut Process,
+    src: LTerm,
+    index: usize,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (src, index, dst) = Self::fetch_args(ctx, curr_p);
-    if !src.is_tuple() {
-      return fail::create::badarg();
-    }
-
     let tuple_p = src.get_tuple_ptr();
     let element = unsafe { boxed::Tuple::get_element_base0(tuple_p, index) };
     ctx.store_value(element, dst, &mut curr_p.heap)?;
@@ -128,30 +109,22 @@ impl OpcodeGetTupleElement {
 
 /// From `src` get `index`th element and store it in `dst`.
 /// Structure: set_tuple_element(val:src, dst:dst, index:smallint)
-pub struct OpcodeSetTupleElement {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeSetTupleElement, arity: 3,
+  run: { Self::set_tuple_element(val, dst, index) },
+  args: load(val), load(dst), usize(index)
+);
 
 impl OpcodeSetTupleElement {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize) {
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    let dst = ctx.fetch_and_load(&mut curr_p.heap);
-    let index = ctx.fetch_term().get_small_unsigned();
-    (value, dst, index)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
+  pub fn set_tuple_element(
+    value: LTerm,
+    dst: LTerm,
+    index: usize,
   ) -> RtResult<DispatchResult> {
-    let (value, dst, index) = Self::fetch_args(ctx, curr_p);
     if !dst.is_tuple() {
       return fail::create::badarg();
     }
-
     let tuple_p = dst.get_tuple_ptr_mut();
     unsafe { boxed::Tuple::set_element_base0(tuple_p, index, value) };
     Ok(DispatchResult::Normal)
@@ -163,27 +136,21 @@ impl OpcodeSetTupleElement {
 /// Test the arity of tuple and jump to label if it is not Arity.
 /// Test the first element of the tuple and jump to label if it is not atom.
 /// Structure: is_tagged_tuple(label:cp, value, arity:smallint, atom:atom)
-pub struct OpcodeIsTaggedTuple {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeIsTaggedTuple, arity: 4,
+  run: { Self::is_tagged_tuple(ctx, label, value, arity, atom) },
+  args: cp_not_nil(label), load(value), usize(arity), term(atom)
+);
 
 impl OpcodeIsTaggedTuple {
-  pub const ARITY: usize = 4;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, usize, LTerm) {
-    let label = ctx.fetch_term();
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let atom = ctx.fetch_term();
-    (label, value, arity, atom)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn is_tagged_tuple(
     ctx: &mut Context,
-    curr_p: &mut Process,
+    label: LTerm,
+    value: LTerm,
+    arity: usize,
+    atom: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (label, value, arity, atom) = Self::fetch_args(ctx, curr_p);
     if !value.is_tuple() {
       ctx.jump(label);
     } else {

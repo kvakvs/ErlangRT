@@ -8,16 +8,17 @@ use crate::{
 /// Sends to x0 value x1, x1 is moved to x0 as result of the operation.
 /// If process with pid x0 does not exist, no error is raised.
 /// Structure: send()
-pub struct OpcodeSend {}
+define_opcode!(vm, ctx, _curr_p,
+  name: OpcodeSend, arity: 0,
+  run: { Self::send(vm, ctx) },
+  args:
+);
 
 impl OpcodeSend {
-  pub const ARITY: usize = 0;
-
   #[inline]
-  pub fn run(
+  pub fn send(
     vm: &mut VM,
     ctx: &mut Context,
-    _curr_p: &mut Process,
   ) -> RtResult<DispatchResult> {
     // let sched = vm.get_scheduler_p();
     let x1 = ctx.get_x(1);
@@ -41,25 +42,19 @@ impl OpcodeSend {
 /// If there is no next message, jumps to `fail` label which points to a `wait`
 /// or `wait_timeout` instruction.
 /// Structure: loop_rec(fail:cp, _source)
-pub struct OpcodeLoopRec {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeLoopRec, arity: 2,
+  run: { Self::loop_rec(ctx, curr_p, fail) },
+  args: cp_not_nil(fail), unused(source)
+);
 
 impl OpcodeLoopRec {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context) -> (LTerm, LTerm) {
-    let fail = ctx.fetch_term();
-    let source = ctx.fetch_term();
-    (fail, source)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn loop_rec(
     ctx: &mut Context,
     curr_p: &mut Process,
+    fail: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (fail, _source) = Self::fetch_args(ctx);
     if let Some(msg) = curr_p.mailbox.get_current() {
       ctx.set_x(0, msg);
     } else {
@@ -72,18 +67,19 @@ impl OpcodeLoopRec {
 /// Advances message receive pointer to the next message then jumps to label
 /// which points to a `loop_rec` instruction.
 /// Structure: loop_rec_end(label:cp)
-pub struct OpcodeLoopRecEnd {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeLoopRecEnd, arity: 1,
+  run: { Self::loop_rec_end(ctx, curr_p, label) },
+  args: cp_not_nil(label)
+);
 
 impl OpcodeLoopRecEnd {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn loop_rec_end(
     ctx: &mut Context,
     curr_p: &mut Process,
+    label: LTerm,
   ) -> RtResult<DispatchResult> {
-    let label = ctx.fetch_term();
     curr_p.mailbox.step_over();
     ctx.jump(label);
     Ok(DispatchResult::Normal)
@@ -92,38 +88,31 @@ impl OpcodeLoopRecEnd {
 
 /// Removes the current message in the process message list and moves it to `x0`
 /// Structure: remove_message()
-pub struct OpcodeRemoveMessage {}
-
-impl OpcodeRemoveMessage {
-  pub const ARITY: usize = 0;
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeRemoveMessage, arity: 0,
+  run: {
     let message = curr_p.mailbox.remove_current();
     ctx.set_x(0, message);
     Ok(DispatchResult::Normal)
-  }
-}
+  },
+  args:
+);
 
 /// Suspends the current process and sets the ip to the label (beginning of the
 /// receive loop).
 /// Structure: wait(label:cp)
-pub struct OpcodeWait {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeWait, arity: 1,
+  run: { Self::wait(ctx, label) },
+  args: cp_not_nil(label)
+);
 
 impl OpcodeWait {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn wait(
     ctx: &mut Context,
-    _curr_p: &mut Process,
+    label: LTerm,
   ) -> RtResult<DispatchResult> {
-    let label = ctx.fetch_term();
     ctx.jump(label);
     Ok(DispatchResult::Yield)
   }

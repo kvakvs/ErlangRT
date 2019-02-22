@@ -1,4 +1,6 @@
 //! Opcodes group of modules provides inline implementations of BEAM opcodes.
+#[macro_use]
+pub mod macros;
 pub mod op_bif;
 pub mod op_bits_and_bins;
 pub mod op_data;

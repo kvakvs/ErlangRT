@@ -10,32 +10,23 @@ use crate::{
 /// Read the source `value` and check whether it is a list and not NIL. On
 /// false jump to the label `fail`.
 /// Structure: is_nonempty_list(fail:cp, value:src)
-pub struct OpcodeIsNonemptyList {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeIsNonemptyList, arity: 2,
+  run: { Self::is_nonempty_list(ctx, fail, value) },
+  args: cp_not_nil(fail), load(value)
+);
 
 impl OpcodeIsNonemptyList {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let fail = ctx.fetch_term();
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    (fail, value)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn is_nonempty_list(
     ctx: &mut Context,
-    curr_p: &mut Process,
+    fail: LTerm,
+    value: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (fail, value) = Self::fetch_args(ctx, curr_p);
-    assert!(fail.is_cp() || fail == LTerm::nil());
-
     if value == LTerm::nil() && !value.is_cons() && fail != LTerm::nil() {
       // jump to fail label
       ctx.jump(fail)
     }
-
     Ok(DispatchResult::Normal)
   }
 }
@@ -43,32 +34,23 @@ impl OpcodeIsNonemptyList {
 /// Check whether the value `value` is an empty list, jump to the `fail` label
 /// if it is not NIL.
 /// Structure: is_nil(fail:CP, value:src)
-pub struct OpcodeIsNil {}
+define_opcode!(_vm, ctx, _curr_p,
+  name: OpcodeIsNil, arity: 2,
+  run: { Self::is_nil(ctx, fail, value) },
+  args: cp_not_nil(fail), load(value)
+);
 
 impl OpcodeIsNil {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let fail = ctx.fetch_term();
-    let value = ctx.fetch_and_load(&mut curr_p.heap);
-    (fail, value)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn is_nil(
     ctx: &mut Context,
-    curr_p: &mut Process,
+    fail: LTerm,
+    value: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (fail, value) = Self::fetch_args(ctx, curr_p);
-    assert!(fail.is_cp() || fail == LTerm::nil());
-
     if value != LTerm::nil() && fail != LTerm::nil() {
       // jump to fail label
       ctx.jump(fail)
     }
-
     Ok(DispatchResult::Normal)
   }
 }
@@ -76,27 +58,21 @@ impl OpcodeIsNil {
 /// Take a list `value` and split it into a head and tail, they are stored in
 /// `hd` and `tl` destinations respectively.
 /// Structure: get_list(value:src, hd:dst, tl:dst)
-pub struct OpcodeGetList {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeGetList, arity: 3,
+  run: { Self::decons(ctx, curr_p, src, dst_hd, dst_tl) },
+  args: load(src), term(dst_hd), term(dst_tl)
+);
 
 impl OpcodeGetList {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
-    let src = ctx.fetch_and_load(&mut curr_p.heap);
-    let dst_hd = ctx.fetch_term();
-    let dst_tl = ctx.fetch_term();
-    (src, dst_hd, dst_tl)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn decons(
     ctx: &mut Context,
     curr_p: &mut Process,
+    src: LTerm,
+    dst_hd: LTerm,
+    dst_tl: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (src, dst_hd, dst_tl) = Self::fetch_args(ctx, curr_p);
-
     if src == LTerm::nil() {
       // TODO: is this badmatch here?
       panic!("Attempt to get_list on a nil[]");
@@ -120,27 +96,21 @@ impl OpcodeGetList {
 /// Given head and tail sources, `hd` and `tl`, read them and compose into a
 /// new list cell which is stored into `dst`.
 /// Structure: put_list(hd:src, tl:src, dst:dst)
-pub struct OpcodePutList {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodePutList, arity: 3,
+  run: { Self::cons(ctx, curr_p, src_hd, src_tl, dst) },
+  args: load(src_hd), load(src_tl), term(dst)
+);
 
 impl OpcodePutList {
-  pub const ARITY: usize = 3;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm, LTerm) {
-    let src_hd = ctx.fetch_and_load(&mut curr_p.heap);
-    let src_tl = ctx.fetch_and_load(&mut curr_p.heap);
-    let dst = ctx.fetch_term();
-    (src_hd, src_tl, dst)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn cons(
     ctx: &mut Context,
     curr_p: &mut Process,
+    src_hd: LTerm,
+    src_tl: LTerm,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (src_hd, src_tl, dst) = Self::fetch_args(ctx, curr_p);
-
     let hp = &mut curr_p.heap;
 
     unsafe {
@@ -156,26 +126,20 @@ impl OpcodePutList {
 
 /// Retrieve head of a cons cell.
 /// Structure: get_hd(cons:src, dst:dst)
-pub struct OpcodeGetHd {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeGetHd, arity: 2,
+  run: { Self::hd(ctx, curr_p, cons, dst) },
+  args: load(cons), term(dst)
+);
 
 impl OpcodeGetHd {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let cons = ctx.fetch_and_load(&mut curr_p.heap);
-    let dst = ctx.fetch_term();
-    (cons, dst)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn hd(
     ctx: &mut Context,
     curr_p: &mut Process,
+    cons: LTerm,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (cons, dst) = Self::fetch_args(ctx, curr_p);
-
     let hp = &mut curr_p.heap;
     let val = unsafe { (*cons.get_cons_ptr()).hd() };
     ctx.store_value(val, dst, hp)?;
@@ -185,26 +149,20 @@ impl OpcodeGetHd {
 
 /// Retrieve tail of a cons cell.
 /// Structure: get_tl(cons:src, dst:dst)
-pub struct OpcodeGetTl {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeGetTl, arity: 2,
+  run: { Self::tl(ctx, curr_p, cons, dst) },
+  args: load(cons), term(dst)
+);
 
 impl OpcodeGetTl {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let cons = ctx.fetch_and_load(&mut curr_p.heap);
-    let dst = ctx.fetch_term();
-    (cons, dst)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn tl(
     ctx: &mut Context,
     curr_p: &mut Process,
+    cons: LTerm,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (cons, dst) = Self::fetch_args(ctx, curr_p);
-
     let hp = &mut curr_p.heap;
     let val = unsafe { (*cons.get_cons_ptr()).tl() };
     ctx.store_value(val, dst, hp)?;

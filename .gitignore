@@ -13,3 +13,5 @@ jquery*
 suite.log*
 variables-ct*
 /tmp/
+
+__pycache__

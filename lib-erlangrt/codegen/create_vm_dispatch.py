@@ -35,7 +35,7 @@ curr_p: &mut Process) -> RtResult<DispatchResult> {{
             )
             print("    OPCODE_{opcode} => {{\n"
                   "      assert_arity(OPCODE_{opcode}, Opcode{camelcased}::ARITY);\n"
-                  "      return Opcode{camelcased}::run(vm, ctx, curr_p);\n"
+                  "      return Opcode{camelcased}::__run(vm, ctx, curr_p);\n"
                   "    }},\n".format(opcode=op.name.upper(),
                             camelcased=camelcased))
 

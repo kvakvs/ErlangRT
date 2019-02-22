@@ -10,34 +10,26 @@ use crate::{
 /// at a `try_case` opcode where the error will be investigated.
 /// We just write the cp given to the given Y register as a catch-value.
 /// Structure: try(reg:regy, label:cp)
-pub struct OpcodeTry {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeTry, arity: 2,
+  run: { Self::try_opcode(curr_p, yreg, catch_label) },
+  args: yreg(yreg), cp_not_nil(catch_label)
+);
 
 impl OpcodeTry {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context) -> (LTerm, LTerm) {
-    let reg = ctx.fetch_term();
-    let catch_label = ctx.fetch_term();
-    (reg, catch_label)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
+  pub fn try_opcode(
     curr_p: &mut Process,
+    yreg: LTerm,
+    catch_label: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (reg, catch_label) = Self::fetch_args(ctx);
-    debug_assert!(reg.is_regy());
-
     curr_p.num_catches += 1;
 
     let hp = &mut curr_p.heap;
 
     // Write catch value into the given stack register
     let catch_val = LTerm::make_catch(catch_label.get_cp_ptr());
-    hp.set_y(reg.get_special_value(), catch_val)?;
+    hp.set_y(yreg.get_special_value(), catch_val)?;
     // curr_p.heap.print_stack();
 
     Ok(DispatchResult::Normal)
@@ -46,24 +38,23 @@ impl OpcodeTry {
 
 /// End try-catch by clearing the catch value on stack
 /// Structure: try_end(reg:regy)
-pub struct OpcodeTryEnd {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeTryEnd, arity: 1,
+  run: { Self::try_end(ctx, curr_p, y) },
+  args: yreg(y)
+);
 
 impl OpcodeTryEnd {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn try_end(
     ctx: &mut Context,
     curr_p: &mut Process,
+    yreg: LTerm,
   ) -> RtResult<DispatchResult> {
-    let reg = ctx.fetch_term();
-    debug_assert!(reg.is_regy());
-
     curr_p.num_catches -= 1;
 
     let hp = &mut curr_p.heap;
-    hp.set_y(reg.get_special_value(), LTerm::nil())?;
+    hp.set_y(yreg.get_special_value(), LTerm::nil())?;
 
     // Not sure why this is happening here, copied from Erlang/OTP
     if ctx.get_x(0).is_non_value() {
@@ -81,24 +72,23 @@ impl OpcodeTryEnd {
 /// Concludes the catch, removes catch value from stack and shifts registers
 /// contents to prepare for exception checking.
 /// Structure: try_case(reg:regy)
-pub struct OpcodeTryCase {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeTryCase, arity: 1,
+  run: { Self::try_case(ctx, curr_p, y) },
+  args: yreg(y)
+);
 
 impl OpcodeTryCase {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn try_case(
     ctx: &mut Context,
     curr_p: &mut Process,
+    yreg: LTerm,
   ) -> RtResult<DispatchResult> {
-    let reg = ctx.fetch_term();
-    debug_assert!(reg.is_regy());
-
     curr_p.num_catches -= 1;
 
     let hp = &mut curr_p.heap;
-    hp.set_y(reg.get_special_value(), LTerm::nil())?;
+    hp.set_y(yreg.get_special_value(), LTerm::nil())?;
 
     // Clear error and shift regs x1-x2-x3 to x0-x1-x2
     curr_p.clear_exception();
@@ -115,27 +105,18 @@ impl OpcodeTryCase {
 /// the exception. The reason of the raised exception is dug up from the stack
 /// trace. Fixed by `raw_raise` in otp21.
 /// Structure: raise(stacktrace:term, exc_value:term)
-pub struct OpcodeRaise {}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeRaise, arity: 2,
+  run: { Self::raise(stacktrace, exc_value) },
+  args: load(stacktrace), load(exc_value)
+);
 
 impl OpcodeRaise {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context, curr_p: &mut Process) -> (LTerm, LTerm) {
-    let hp = &mut curr_p.heap;
-    let stack_trace = ctx.fetch_and_load(hp);
-    let exc_value = ctx.fetch_and_load(hp);
-    (stack_trace, exc_value)
-  }
-
-  #[inline]
-  pub fn run(
-    _vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
+  pub fn raise(
+    raise_trace: LTerm,
+    raise_val: LTerm,
   ) -> RtResult<DispatchResult> {
-    let (raise_trace, raise_val) = Self::fetch_args(ctx, curr_p);
-
     let exc_type = match get_trace_from_exc(raise_trace) {
       None => ExceptionType::Error,
       Some(et) => et,

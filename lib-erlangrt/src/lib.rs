@@ -7,6 +7,8 @@
 #[macro_use]
 extern crate lazy_static;
 
+extern crate paste;
+
 mod beam;
 mod bif;
 pub mod command_line_args;
@@ -16,5 +18,3 @@ mod fail;
 pub mod lib_main;
 mod rt_util;
 mod term;
-
-// use crate::lib_main::start_emulator;

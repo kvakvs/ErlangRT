@@ -10,25 +10,26 @@ use crate::{
     vm::VM,
   },
   fail::{self, RtResult},
-  term::boxed,
+  term::{boxed, lterm::LTerm},
 };
-use core::slice;
 
+/// Create a closure from a lambda table item (loaded from a BEAM file).
 /// Structure: make_fun2(lambda_index:uint)
-/// on load the argument is rewritten with a pointer to the funentry
-pub struct OpcodeMakeFun2 {}
+/// on load the argument is rewritten with a CP pointer to the funentry
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeMakeFun2, arity: 1,
+  run: { Self::make_fun2(ctx, curr_p, export) },
+  args: term(export)
+);
 
 impl OpcodeMakeFun2 {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
-    _vm: &mut VM,
+  pub fn make_fun2(
     ctx: &mut Context,
     curr_p: &mut Process,
+    export: LTerm,
   ) -> RtResult<DispatchResult> {
-    let fe_box = ctx.fetch_term();
-    let fe = fe_box.get_cp_ptr::<FunEntry>();
+    let fe = export.get_cp_ptr::<FunEntry>();
 
     let hp = &mut curr_p.heap;
     let closure = unsafe {
@@ -37,26 +38,27 @@ impl OpcodeMakeFun2 {
       boxed::Closure::create_into(hp, fe.as_ref().unwrap(), frozen)?
     };
     ctx.set_x(0, closure);
-
     Ok(DispatchResult::Normal)
   }
 }
 
 /// Structure: call_fun(arity:uint)
 /// Expects: x[0..arity-1] = args. x[arity] = fun object
-pub struct OpcodeCallFun {}
+define_opcode!(vm, ctx, curr_p,
+  name: OpcodeCallFun, arity: 1,
+  run: { Self::call_fun(vm, ctx, curr_p, arity) },
+  args: usize(arity)
+);
 
 impl OpcodeCallFun {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
+  pub fn call_fun(
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let args = unsafe { slice::from_raw_parts(&ctx.get_x(0), arity) };
+    let args = ctx.registers_slice(0, arity);
 
     // Take function object argument
     let fun_object = ctx.get_x(arity);
@@ -78,22 +80,22 @@ impl OpcodeCallFun {
 /// `x[arity]` and function specified by an atom in `x[arity+1]`.
 /// Structure: apply(arity:uint)
 /// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
-pub struct OpcodeApply {}
+define_opcode!(vm, ctx, curr_p,
+  name: OpcodeApply, arity: 1,
+  run: { Self::apply(vm, ctx, curr_p, arity) },
+  args: usize(arity)
+);
 
 impl OpcodeApply {
-  pub const ARITY: usize = 1;
-
   #[inline]
-  pub fn run(
+  pub fn apply(
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
   ) -> RtResult<DispatchResult> {
-    let arity = ctx.fetch_term().get_small_unsigned();
     let mfa = MFArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
-
     ctx.live = arity + 2;
-
     fixed_apply(vm, ctx, curr_p, &mfa, 0)?;
     Ok(DispatchResult::Normal)
   }
@@ -105,26 +107,21 @@ impl OpcodeApply {
 /// CP on stack top.
 /// Structure: apply_last(arity:smallint, dealloc:smallint)
 /// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
-pub struct OpcodeApplyLast {}
+define_opcode!(vm, ctx, curr_p,
+  name: OpcodeApplyLast, arity: 2,
+  run: { Self::apply_last(vm, ctx, curr_p, arity, dealloc) },
+  args: usize(arity), usize(dealloc)
+);
 
 impl OpcodeApplyLast {
-  pub const ARITY: usize = 2;
-
   #[inline]
-  fn fetch_args(ctx: &mut Context) -> (usize, usize) {
-    let arity = ctx.fetch_term().get_small_unsigned();
-    let dealloc = ctx.fetch_term().get_small_unsigned();
-    (arity, dealloc)
-  }
-
-  #[inline]
-  pub fn run(
+  pub fn apply_last(
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
+    arity: usize,
+    dealloc: usize,
   ) -> RtResult<DispatchResult> {
-    let (arity, dealloc) = Self::fetch_args(ctx);
-
     let module = ctx.get_x(arity);
     let function = ctx.get_x(arity + 1);
     if !function.is_atom() {

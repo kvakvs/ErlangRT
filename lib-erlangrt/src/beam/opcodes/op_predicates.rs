@@ -9,90 +9,60 @@ use crate::{
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
 /// Structure: is_eq_exact(on_false:CP, a:src, b:src)
-pub struct OpcodeIsEqExact {}
-
-impl OpcodeIsEqExact {
-  pub const ARITY: usize = 3;
-
-  #[inline]
-  pub fn run(
-    vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
-    shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Equal, false)
-  }
-}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeIsEqExact, arity: 3,
+  run: {
+    // exact comparison
+    shared_equality(ctx, fail, a, b, true, Ordering::Equal, false)
+  },
+  args: cp_not_nil(fail), load(a), load(b)
+);
 
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
 /// Structure: is_lt(on_false:CP, a:src, b:src)
-pub struct OpcodeIsLt {}
-
-impl OpcodeIsLt {
-  pub const ARITY: usize = 3;
-
-  #[inline]
-  pub fn run(
-    vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
-    shared_equality_opcode(vm, ctx, curr_p, true, Ordering::Less, false)
-  }
-}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeIsLt, arity: 3,
+  run: {
+   // not exact comparison
+   shared_equality(ctx, fail, a, b, false, Ordering::Less, false)
+  },
+  args: cp_not_nil(fail), load(a), load(b)
+);
 
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
 /// Structure: is_eq(on_false:CP, a:src, b:src)
-pub struct OpcodeIsEq {}
-
-impl OpcodeIsEq {
-  pub const ARITY: usize = 3;
-
-  #[inline]
-  pub fn run(
-    vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
-    shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Equal, false)
-  }
-}
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeIsEq, arity: 3,
+  run: {
+   // not exact comparison
+   shared_equality(ctx, fail, a, b, false, Ordering::Equal, false)
+  },
+  args: cp_not_nil(fail), load(a), load(b)
+);
 
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
 /// Structure: is_ge(on_false:CP, a:src, b:src)
-pub struct OpcodeIsGe {}
-
-impl OpcodeIsGe {
-  pub const ARITY: usize = 3;
-
-  #[inline]
-  pub fn run(
-    vm: &mut VM,
-    ctx: &mut Context,
-    curr_p: &mut Process,
-  ) -> RtResult<DispatchResult> {
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodeIsGe, arity: 3,
+  run: {
+    // not exact comparison
     // inverted, other than less will be fail
-    shared_equality_opcode(vm, ctx, curr_p, false, Ordering::Less, true)
-  }
-}
+    shared_equality(ctx, fail, a, b, false, Ordering::Less, true)
+  },
+  args: cp_not_nil(fail), load(a), load(b)
+);
 
 #[inline]
 /// Shared code for equality checks. Assumes arg0 - fail label, arg1,2 - values
-fn shared_equality_opcode(
-  _vm: &mut VM,
+fn shared_equality(
   ctx: &mut Context,
-  curr_p: &mut Process,
+  fail_label: LTerm,
+  a: LTerm,
+  b: LTerm,
   exact: bool,
   desired_result: Ordering,
   invert: bool,
 ) -> RtResult<DispatchResult> {
-  let hp = &curr_p.heap;
-  let fail_label = ctx.fetch_term();
-  let a = ctx.fetch_and_load(hp);
-  let b = ctx.fetch_and_load(hp);
-
-  assert_eq!(false, fail_label == LTerm::nil());
-
   if invert {
     // Invert defines opposite meaning, desired result becomes undesired
     if compare::cmp_terms(a, b, exact)? == desired_result {
