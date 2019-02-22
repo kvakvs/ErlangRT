@@ -3,7 +3,7 @@
 /// on error (to return error use Hopefully's Error::Exception/2)
 #[allow(dead_code)]
 pub enum DispatchResult {
-  // Continue running
+  // Continue running, advance IP to the next opcode
   Normal,
   // Process falls asleep (loses its running status and waits for its turn)
   Yield,

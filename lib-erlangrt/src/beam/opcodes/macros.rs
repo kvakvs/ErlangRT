@@ -38,13 +38,10 @@ macro_rules! define_opcode {
         $procarg: &mut Process
       ) -> RtResult<DispatchResult> {
         define_opcode_args!(
-          $vmarg, $ctxarg, $procarg, 1,
+          $vmarg, $ctxarg, $procarg, 0,
           $($args)*
         );
-        let op_result = $body;
-        // Advance IP by 1 (opcode size) and arity words (args)
-        $ctxarg.ip_advance(1 + $arity);
-        op_result
+        $body
       }
     }
   };
@@ -65,9 +62,9 @@ macro_rules! define_opcode {
 ///   cp_not_nil(ident) - take a term and assert it is a CP, and not a NIL
 ///   yreg(ident) - take a term and assert it is an Y register
 ///
-/// Example: define_opcode_args!(vm, ctx, curr_p, 1,
+/// Example: define_opcode_args!(vm, ctx, curr_p, 0,
 ///             unused(arg1), usize(arg2), term(arg3), slice(args,7))
-/// Argument 1 (arg_pos) is auto-increment position counter, should start from 1
+/// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
 macro_rules! define_opcode_args {
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr, ) => {};
 
@@ -75,7 +72,7 @@ macro_rules! define_opcode_args {
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     slice($arg_ident:ident, $slice_sz:expr)
   ) => {
-    let $arg_ident = $ctxarg.ip_term_slice_at($arg_pos, $slice_sz);
+    let $arg_ident = $ctxarg.op_arg_term_slice_at($arg_pos, $slice_sz);
   };
 
   // UNUSED args are do-nothing
@@ -89,7 +86,7 @@ macro_rules! define_opcode_args {
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     term($arg_ident:ident)
   ) => {
-    let $arg_ident = $ctxarg.ip_read_term_at($arg_pos);
+    let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
   };
 
   // Literal Tuple args are ready to use pointers to a tuple, no extra "load"
@@ -98,7 +95,7 @@ macro_rules! define_opcode_args {
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     literal_tuple($arg_ident:ident)
   ) => {
-    let $arg_ident = $ctxarg.ip_read_term_at($arg_pos).get_tuple_ptr();
+    let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos).get_tuple_ptr();
   };
 
   // Usize args are decoded from term a small unsigned
@@ -106,7 +103,7 @@ macro_rules! define_opcode_args {
     usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
-      let tmp = $ctxarg.ip_read_term_at($arg_pos);
+      let tmp = $ctxarg.op_arg_read_term_at($arg_pos);
       debug_assert!(tmp.is_small());
       tmp.get_small_unsigned()
     };
@@ -117,14 +114,14 @@ macro_rules! define_opcode_args {
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     load($arg_ident:ident)
   ) => {
-    let $arg_ident = $ctxarg.ip_load_term_at($arg_pos, &mut $procarg.heap);
+    let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
   };
 
   // Take a term from IP, and assert it is a CP and not a NIL
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     cp_not_nil($arg_ident:ident)
   ) => {
-    let $arg_ident = $ctxarg.ip_read_term_at($arg_pos);
+    let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!($arg_ident.is_cp() || $arg_ident == LTerm::nil());
   };
 
@@ -132,7 +129,7 @@ macro_rules! define_opcode_args {
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     yreg($arg_ident:ident)
   ) => {
-    let $arg_ident = $ctxarg.ip_read_term_at($arg_pos);
+    let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!($arg_ident.is_regy());
   };
 

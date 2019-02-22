@@ -36,7 +36,7 @@ impl OpcodePutTuple {
       if op != OPCODE_PUT {
         panic!("put_tuple must be followed by N put opcodes");
       }
-      let val = ctx.ip_load_term_at(1, hp);
+      let val = ctx.op_arg_load_term_at(0, hp);
       ctx.ip_advance(2);
 
       // println!("- put {}, {}", i, val);

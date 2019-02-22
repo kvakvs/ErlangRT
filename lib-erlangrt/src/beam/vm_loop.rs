@@ -42,6 +42,7 @@ impl VM {
         unsafe {
           disasm::disasm_op(ctx.ip.get_pointer(), &(*cs));
         }
+//        curr_p.heap.stack_dump();
       }
 
       // Take next opcode

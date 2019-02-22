@@ -17,6 +17,7 @@ use crate::{
 };
 use colored::Colorize;
 use core::{fmt, slice};
+use crate::beam::gen_op;
 
 pub mod call_bif;
 pub mod call_closure;
@@ -32,6 +33,8 @@ fn module() -> &'static str {
 pub struct Context {
   /// Current code location, const ptr (unsafe!).
   pub ip: CodePtr,
+  /// For a fetched opcode this is op arguments location
+  args_ptr: *const Word,
 
   /// Return location, for one return without using the stack.
   pub cp: CodePtr,
@@ -53,6 +56,7 @@ impl Context {
   pub fn new(ip: CodePtr) -> Context {
     Context {
       cp: CodePtr::null(),
+      args_ptr: core::ptr::null(),
       fpregs: [0.0; MAX_FPREGS],
       ip,
       regs: [LTerm::non_value(); MAX_XREGS],
@@ -89,7 +93,10 @@ impl Context {
   #[inline]
   pub fn fetch_opcode(&mut self) -> opcode::RawOpcode {
     self.reductions -= Reductions::FETCH_OPCODE_COST;
-    opcode::from_memory_word(self.ip_read())
+    let op = opcode::from_memory_word(self.ip_read());
+    self.args_ptr = unsafe { self.ip.get_pointer().add(1) };
+    self.ip_advance(1isize + gen_op::opcode_arity(op) as isize);
+    op
   }
 
   /// Read a word from `self.ip` and advance `ip` by 1 word.
@@ -105,9 +112,9 @@ impl Context {
 
   /// Read raw word from `ip[offs]`
   #[inline]
-  pub fn ip_read_at(&mut self, offs: usize) -> Word {
+  pub fn op_arg_read_at(&mut self, offs: usize) -> Word {
     unsafe {
-      let w = *(self.ip.get_pointer().add(offs));
+      let w = *(self.args_ptr.add(offs));
       w
     }
   }
@@ -120,17 +127,17 @@ impl Context {
   /// Fetch a word from code, assume it is an `LTerm`. The code position is
   /// advanced by 1.
   #[inline]
-  pub fn ip_read_term_at(&mut self, offs: usize) -> LTerm {
-    LTerm::from_raw(self.ip_read_at(offs))
+  pub fn op_arg_read_term_at(&mut self, offs: usize) -> LTerm {
+    LTerm::from_raw(self.op_arg_read_at(offs))
   }
 
   /// Using current position in code as the starting address, create a new
   /// `&[LTerm]` slice of given length and advance the read pointer. This is
   /// used for fetching arrays of args from code without moving them.
-  pub fn ip_term_slice_at(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
-    let ip = self.ip.get_pointer() as *const LTerm;
+  pub fn op_arg_term_slice_at(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
+    let arg_p = self.args_ptr as *const LTerm;
     unsafe {
-      slice::from_raw_parts(ip.add(offset), sz)
+      slice::from_raw_parts(arg_p.add(offset), sz)
     }
   }
 
@@ -153,8 +160,8 @@ impl Context {
   /// Fetch a word from code, assume it is either an `LTerm` or a source X, Y or
   /// FP register, then perform a load operation.
   #[inline]
-  pub fn ip_load_term_at(&mut self, offs: usize, hp: &heap::Heap) -> LTerm {
-    let src = self.ip_read_term_at(offs);
+  pub fn op_arg_load_term_at(&mut self, offs: usize, hp: &heap::Heap) -> LTerm {
+    let src = self.op_arg_read_term_at(offs);
     self.load(src, hp)
   }
 
