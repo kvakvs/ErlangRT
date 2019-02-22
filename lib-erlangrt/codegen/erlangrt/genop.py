@@ -24,7 +24,7 @@ class OTP19(OTPConfig):
     def __init__(self):
         super().__init__(min_opcode=1, max_opcode=158,
                          atoms_tab="atoms.tab",
-                         bif_tab="otp19/bif.tab",
+                         bif_tab="otp19/native_fun.tab",
                          genop_tab="otp19/genop.tab")
 
     def parse_bif_line(self, b):
@@ -113,7 +113,7 @@ class Bif:
         atom = atom.strip("'")
         self.atom_str = atom
 
-        self.biftype = biftype  # None, ubif (no heap), gcbif (use heap), bif
+        self.biftype = biftype  # None, ubif (no heap), gcbif (use heap), native_fun
         self.cname = cname.upper()
         self.mod = mod
 
@@ -223,7 +223,7 @@ class OTPTables:
         self.atom_id += 1
 
     def load_atoms_and_bifs(self):
-        """ Load the otp19 or otp20 bif.tab, depending on the self.conf
+        """ Load the otp19 or otp20 native_fun.tab, depending on the self.conf
         """
         # Load atoms table and get rid of lines commented with '#'
         atoms = self.filter_comments(
@@ -245,7 +245,7 @@ class OTPTables:
 
         bif_tab0 = []  # type: List[Bif]
         for bline in bifs:
-            # Parse bif.tab line with the help of the OTP version config
+            # Parse native_fun.tab line with the help of the OTP version config
             # and accumulate Bif() objects in bif_tab0
             bif = self.conf.parse_bif_line(bline)
             bif_tab0.append(bif)

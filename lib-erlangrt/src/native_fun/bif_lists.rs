@@ -1,5 +1,5 @@
 use crate::{
-  bif::assert_arity,
+  native_fun::assert_arity,
   emulator::{process::Process, vm::VM},
   fail::{self, RtResult},
   term::{compare, lterm::*},

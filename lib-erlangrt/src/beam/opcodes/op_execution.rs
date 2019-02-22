@@ -4,7 +4,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{
     process::Process,
-    runtime_ctx::{call_bif, Context},
+    runtime_ctx::{call_native_fun, Context},
     vm::VM,
   },
   fail::{self, RtResult},
@@ -176,8 +176,8 @@ fn shared_call_ext(
     Ok(import_ptr) => unsafe {
       if (*import_ptr).is_bif {
         // Perform a BIF application
-        let cb_target = call_bif::CallBifTarget::ImportPointer(import_ptr);
-        call_bif::find_and_call_bif(
+        let cb_target = call_native_fun::CallBifTarget::ImportPointer(import_ptr);
+        call_native_fun::find_and_call_native_fun(
           vm,
           ctx,
           curr_p,

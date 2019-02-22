@@ -1,5 +1,5 @@
 use crate::{
-  bif::assert_arity,
+  native_fun::assert_arity,
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,

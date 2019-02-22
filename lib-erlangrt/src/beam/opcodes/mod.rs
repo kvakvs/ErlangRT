@@ -1,7 +1,7 @@
 //! Opcodes group of modules provides inline implementations of BEAM opcodes.
 #[macro_use]
 pub mod macros;
-pub mod op_bif;
+pub mod op_native_fun;
 pub mod op_bits_and_bins;
 pub mod op_data;
 pub mod op_execution;
@@ -15,7 +15,7 @@ pub mod op_tuple;
 pub mod op_type_checks;
 
 pub use crate::beam::opcodes::{
-  op_bif::*, op_bits_and_bins::*, op_data::*, op_execution::*, op_fun::*, op_list::*,
+  op_native_fun::*, op_bits_and_bins::*, op_data::*, op_execution::*, op_fun::*, op_list::*,
   op_memory::*, op_message::*, op_predicates::*, op_try_catch::*, op_tuple::*,
   op_type_checks::*,
 };

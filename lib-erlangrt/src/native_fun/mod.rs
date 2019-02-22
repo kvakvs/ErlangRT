@@ -4,7 +4,8 @@ use crate::{
   term::lterm::LTerm,
 };
 
-pub mod gen_bif; // generated
+pub mod gen_native_fun; // generated
+pub mod registry;
 
 // Bif definitions grouped by topic
 //
@@ -16,7 +17,7 @@ pub mod bif_process;
 pub mod bif_sys;
 pub mod bif_type_conv;
 
-pub use crate::bif::{
+pub use crate::native_fun::{
   bif_arith::*, bif_compare::*, bif_erts_internal::*, bif_lists::*, bif_process::*,
   bif_sys::*, bif_type_conv::*,
 };
@@ -30,7 +31,7 @@ pub type BifFn =
 
 pub fn is_bif(mfa: &MFArity) -> bool {
   // Naive implementation. TODO: Binary search or a hashmap
-  for bt in gen_bif::BIF_TABLE {
+  for bt in gen_native_fun::BIF_TABLE {
     if bt.m == mfa.m && bt.f == mfa.f && bt.arity == mfa.arity {
       return true;
     }
@@ -40,7 +41,7 @@ pub fn is_bif(mfa: &MFArity) -> bool {
 
 pub fn find_bif(mfa: &MFArity) -> RtResult<BifFn> {
   // Naive implementation. TODO: Binary search or a hashmap
-  for bt in gen_bif::BIF_TABLE {
+  for bt in gen_native_fun::BIF_TABLE {
     if bt.m == mfa.m && bt.f == mfa.f && bt.arity == mfa.arity {
       return Ok(bt.func);
     }

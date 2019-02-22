@@ -1,5 +1,5 @@
 use crate::{
-  bif::assert_arity,
+  native_fun::assert_arity,
   emulator::{mfa::ModFunArgs, process::Process, spawn_options::SpawnOptions, vm::VM},
   fail::RtResult,
   term::lterm::LTerm,

@@ -1,11 +1,11 @@
 use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
-  bif,
+  native_fun,
   defs::Arity,
   emulator::{
     process::Process,
-    runtime_ctx::call_bif::{self, CallBifTarget},
+    runtime_ctx::call_native_fun::{self, CallBifTarget},
     vm::VM,
   },
   fail::{self, RtResult},
@@ -41,8 +41,8 @@ pub fn apply(
     return fail::create::badarity();
   }
 
-  if bif::is_bif(&mfa) {
-    return call_bif::find_and_call_bif(
+  if native_fun::is_bif(&mfa) {
+    return call_native_fun::find_and_call_native_fun(
       vm,
       ctx,
       curr_p,

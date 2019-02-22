@@ -4,7 +4,7 @@ use crate::{
     gen_op,
     vm_dispatch::dispatch_op_inline,
   },
-  emulator::{disasm, mfa::Args::Slice, scheduler::SliceResult, vm::VM},
+  emulator::{disasm, scheduler::SliceResult, vm::VM},
   fail::{Error, RtResult},
 };
 

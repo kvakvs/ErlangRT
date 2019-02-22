@@ -3,7 +3,7 @@
 
 use crate::{
   beam::loader,
-  bif::{self, BifFn},
+  native_fun::{self, BifFn},
   command_line_args::ErlStartArgs,
   emulator::{
     atom,
@@ -57,7 +57,7 @@ impl CodeServer {
     }
   }
 
-  /// Performs classification whether an MFA is a bif, a code location or
+  /// Performs classification whether an MFA is a native_fun, a code location or
   /// something else.
   /// Arg: `allow_load` allows loading another BEAM file as needed
   pub fn lookup_mfa(
@@ -66,7 +66,7 @@ impl CodeServer {
     allow_load: bool,
   ) -> RtResult<MFALookupResult> {
     // It could be a BIF
-    if let Ok(bif_fn) = bif::find_bif(mfa) {
+    if let Ok(bif_fn) = native_fun::find_bif(mfa) {
       return Ok(MFALookupResult::FoundBif(bif_fn));
     }
     // Try look for a BEAM export somewhere

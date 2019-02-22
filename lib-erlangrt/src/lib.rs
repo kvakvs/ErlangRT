@@ -10,7 +10,7 @@ extern crate lazy_static;
 extern crate paste;
 
 mod beam;
-mod bif;
+mod native_fun;
 pub mod command_line_args;
 mod defs;
 mod emulator;

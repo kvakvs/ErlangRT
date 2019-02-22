@@ -1,5 +1,5 @@
 use crate::{
-  bif::{find_bif, BifFn},
+  native_fun::{find_bif, BifFn},
   defs::{ByteSize, WordSize},
   emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},

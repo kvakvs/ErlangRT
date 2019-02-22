@@ -19,7 +19,7 @@ use colored::Colorize;
 use core::{fmt, slice};
 use crate::beam::gen_op;
 
-pub mod call_bif;
+pub mod call_native_fun;
 pub mod call_closure;
 pub mod call_export;
 
@@ -289,7 +289,7 @@ impl Context {
         self.ip = code_p.clone();
       }
       MFALookupResult::FoundBif(bif_fn) => {
-        let x0 = call_bif::call_bif_fn(vm, self, curr_p, *bif_fn, args)?;
+        let x0 = call_native_fun::call_native_fun_fn(vm, self, curr_p, *bif_fn, args)?;
         self.set_x(0, x0);
       }
     }

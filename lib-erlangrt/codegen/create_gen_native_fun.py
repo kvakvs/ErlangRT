@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # takes: atoms.tab
-# Prints a Rust source file predefined bif names/arities (also they are
+# Prints a Rust source file predefined native_fun names/arities (also they are
 # preregistered by emulator::atom during the startup)
 import erlangrt.genop as genop
 
@@ -15,17 +15,13 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use crate::defs::Arity;
-use crate::emulator::gen_atoms;
-use crate::term::lterm::*;
-use crate::bif;
-
+use crate::{{native_fun, defs::Arity, emulator::gen_atoms, term::lterm::*}};
 
 pub struct BifTabItem {{
     pub m: LTerm, 
     pub f: LTerm, 
     pub arity: Arity, 
-    pub func: bif::BifFn
+    pub func: native_fun::BifFn
 }}
 
 
@@ -36,7 +32,7 @@ pub static BIF_TABLE: &'static [BifTabItem] = &[
         fun_atom = tables.atom_dict[bif.atom_str]  # type: genop.Atom
         print("    BifTabItem {{ m: gen_atoms::{mod_uc}, "
               "f: gen_atoms::{fun}, arity: {arity},"
-              "\n        func: bif::{biftype}_{mod_lc}_{fun_name}_{arity} }},"
+              "\n        func: native_fun::{biftype}_{mod_lc}_{fun_name}_{arity} }},"
               "".format(cname=bif.cname,
                         mod_uc=genop.enum_name(bif.mod).upper(),
                         mod_lc=genop.enum_name(bif.mod).lower(),

@@ -4,14 +4,14 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{
     process::Process,
-    runtime_ctx::{call_bif, Context},
+    runtime_ctx::{call_native_fun, Context},
     vm::VM,
   },
   fail::RtResult,
   term::lterm::*,
 };
 
-/// Call a bif defined by `m:f/0`, a `HOImport` import object stored on heap
+/// Call a native_fun defined by `m:f/0`, a `HOImport` import object stored on heap
 /// there is no way it can fail for bif0 so there is no fail label for bif0,
 /// Result is stored into `dst`.
 /// Structure: bif0(import:boxed, dst:dst)
@@ -32,8 +32,8 @@ impl OpcodeBif0 {
   ) -> RtResult<DispatchResult> {
     // NOTE: bif0 cannot fail (fail_label=NIL)
     println!("bif0 t={} dst={}", target, dst);
-    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::find_and_call_bif(vm, ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
+    let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
   }
 }
 
@@ -55,8 +55,8 @@ impl OpcodeBif1 {
     args: &[LTerm],
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, false)
+    let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, false)
   }
 }
 
@@ -78,8 +78,8 @@ impl OpcodeBif2 {
     args: &[LTerm],
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, false)
+    let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, false)
   }
 }
 
@@ -103,8 +103,8 @@ impl OpcodeGcBif1 {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     ctx.live = live;
-    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, true)
+    let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, true)
   }
 }
 
@@ -129,8 +129,8 @@ impl OpcodeGcBif2 {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     ctx.live = live;
-    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, true)
+    let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, true)
   }
 }
 
@@ -155,7 +155,7 @@ impl OpcodeGcBif3 {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     ctx.live = live;
-    let cb_target = call_bif::CallBifTarget::ImportTerm(target);
-    call_bif::find_and_call_bif(vm, ctx, curr_p, fail, cb_target, args, dst, true)
+    let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, true)
   }
 }
