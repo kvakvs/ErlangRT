@@ -39,7 +39,7 @@ pub fn new() -> NativeModule {
     NativeFnEntry::with_str("hd", 1, nativefun_hd_1),
     NativeFnEntry::with_str("integer_to_list", 1, nativefun_integer_to_list_1),
     NativeFnEntry::with_str("is_boolean", 1, nativefun_is_boolean_1),
-    NativeFnEntry::with_str("is_process_alive", 1, nativefun_is_process_alive_1),
+    NativeFnEntry::with_str("is_process_alive", 1, NfErlangIsPAlive1::_f),
     NativeFnEntry::with_str("length", 1, nativefun_length_1),
     NativeFnEntry::with_str("load_nif", 2, nativefun_load_nif_2),
     NativeFnEntry::with_str("make_fun", 3, nativefun_make_fun_3),
@@ -47,10 +47,10 @@ pub fn new() -> NativeModule {
     NativeFnEntry::with_str("nif_error", 2, nativefun_nif_error_2),
     NativeFnEntry::with_str("process_flag", 2, nativefun_process_flag_2),
     NativeFnEntry::with_str("process_flag", 3, nativefun_process_flag_3),
-    NativeFnEntry::with_str("register", 2, nativefun_register_2),
-    NativeFnEntry::with_str("registered", 0, nativefun_registered_0),
-    NativeFnEntry::with_str("self", 0, nativefun_self_0),
-    NativeFnEntry::with_str("spawn", 3, nativefun_spawn_3),
+    NativeFnEntry::with_str("register", 2, NfErlangRegister2::_f),
+    NativeFnEntry::with_str("registered", 0, NfErlangRegistered0::_f),
+    NativeFnEntry::with_str("self", 0, NfErlangSelf0::_f),
+    NativeFnEntry::with_str("spawn", 3, NfErlangSpawn3::_f),
     NativeFnEntry::with_str("tl", 1, nativefun_tl_1),
   ];
   m.init_with(fn_entries.iter());

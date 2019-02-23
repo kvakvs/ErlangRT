@@ -18,15 +18,11 @@ fn module() -> &'static str {
   "native funs module for erlang[process]: "
 }
 
-#[inline]
-pub fn nativefun_self_0(
-  _vm: &mut VM,
-  cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:self", 0, args);
-  Ok(cur_proc.pid)
-}
+define_nativefun!(_vm, proc, _args,
+  name: "erlang:self/0", struct_name: NfErlangSelf0, arity: 0,
+  invoke: { Ok(proc.pid) },
+  args:
+);
 
 /// Create a function pointer from atom(), atom(), smallint()
 pub fn nativefun_make_fun_3(
@@ -50,55 +46,44 @@ pub fn nativefun_make_fun_3(
 /// Creates a new process specified by `module:function/arity` with `args`
 /// (args are passed as list), `arity` is length of args list.
 /// Spec: erlang:spawn(mod, fun, args:list)
-pub fn nativefun_spawn_3(
-  vm: &mut VM,
-  _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:spawn", 3, args);
-  let mfargs = ModFunArgs::with_args_list(args[0], args[1], args[2]);
-  let spawn_opts = SpawnOptions::default();
-  let pid = vm.create_process(LTerm::nil(), &mfargs, &spawn_opts)?;
+define_nativefun!(vm, _proc, _args,
+  name: "erlang:spawn/3", struct_name: NfErlangSpawn3, arity: 3,
+  invoke: {
+    let mfargs = ModFunArgs::with_args_list(m, f, args);
+    let spawn_opts = SpawnOptions::default();
+    vm.create_process(LTerm::nil(), &mfargs, &spawn_opts)
+  },
+  args: atom(m), atom(f), list(args)
+);
 
-  Ok(pid)
-}
-
-pub fn nativefun_is_process_alive_1(
-  vm: &mut VM,
-  _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:is_process_alive", 1, args);
-  let result = vm.processes.lookup_pid(args[0]).is_some();
-  Ok(LTerm::make_bool(result))
-}
+define_nativefun!(vm, _proc, args,
+  name: "erlang:is_process_alive/1", struct_name: NfErlangIsPAlive1, arity: 1,
+  invoke: { Ok(LTerm::make_bool(vm.processes.lookup_pid(pid).is_some())) },
+  args: pid(pid)
+);
 
 /// erlang:register(RegName :: atom(), Pid_or_Port)
-pub fn nativefun_register_2(
-  vm: &mut VM,
-  _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:register/2", 2, args);
-  if !args[0].is_atom()
-    || args[0] == gen_atoms::UNDEFINED
-    || !(args[1].is_pid() || args[1].is_port())
-    || vm.processes.find_registered(args[0]).is_some()
-  {
+define_nativefun!(vm, _proc, _args,
+  name: "erlang:register/2", struct_name: NfErlangRegister2, arity: 2,
+  invoke: {
+    register_2(vm, name, pid_or_port)
+  },
+  args: atom(name), pid_port(pid_or_port)
+);
+
+pub fn register_2(vm: &mut VM, name: LTerm, pid_or_port: LTerm) -> RtResult<LTerm> {
+  if name == gen_atoms::UNDEFINED || vm.processes.find_registered(name).is_some() {
     return fail::create::badarg();
   }
-  vm.processes.register_name(args[0], args[1]);
+  vm.processes.register_name(name, pid_or_port);
   Ok(gen_atoms::TRUE)
 }
 
-pub fn nativefun_registered_0(
-  _vm: &mut VM,
-  _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:registered/0", 0, args);
-  panic!("not implemented")
-}
+define_nativefun!(_vm, _proc, _args,
+  name: "erlang:registered/0", struct_name: NfErlangRegistered0, arity: 0,
+  invoke: { panic!("not implemented") },
+  args:
+);
 
 pub fn nativefun_process_flag_2(
   _vm: &mut VM,

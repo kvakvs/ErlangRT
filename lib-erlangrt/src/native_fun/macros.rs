@@ -54,8 +54,11 @@ macro_rules! define_nativefun {
 ///   unused(ident) - do nothing
 ///   usize(ident) - take term then unsigned small from it, else return badarg
 ///   term(ident) - take word as a term
-///   tuple(ident) - the value is a tuple, otherwise returns badarg
-///   list(ident) - the value is a list, otherwise returns badarg
+///   tuple(ident) - the value is a tuple, otherwise badarg
+///   list(ident) - the value is a list, otherwise badarg
+///   atom(ident) - must be an atom, otherwise badarg
+///   pid(ident) - must be a pid, otherwise badarg
+///   pid_port(ident) - must be a pid or a port, otherwise badarg
 ///
 /// Example:
 /// ```define_nativefun_args!(vm, curr_p, args, 0,
@@ -101,6 +104,23 @@ macro_rules! define_nativefun_args {
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
     if !$arg_ident.is_atom() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "atom"); }
+  };
+
+  // Pid args are verified to be a pid or [] otherwise a badarg is created.
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    pid($arg_ident:ident)
+  ) => {
+    let $arg_ident = $argsvar[$arg_pos];
+    if !$arg_ident.is_pid() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "pid"); }
+  };
+
+  // Atom args are verified to be an atom otherwise a badarg is created.
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    pid_port($arg_ident:ident)
+  ) => {
+    let $arg_ident = $argsvar[$arg_pos];
+    if !$arg_ident.is_pid() && !$arg_ident.is_port()
+      { debug_badarg!($fn_name, $arg_pos, $arg_ident, "pid|port"); }
   };
 
   // Usize args are decoded from term a small unsigned
