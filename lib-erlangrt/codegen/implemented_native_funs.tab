@@ -14,7 +14,7 @@
 # bif     erlang:process_flag/3
 # bif     erlang:is_process_alive/1
 
-bif     erts_internal:spawn_system_process/3
+# bif     erts_internal:spawn_system_process/3
 
 # bif     erlang:'++'/2		    plusplus
 # ubif    erlang:'*'/2			multiply
@@ -57,7 +57,7 @@ bif     erts_internal:spawn_system_process/3
 # bif     lists:keymember/3
 # bif     lists:keysearch/3
 # bif     lists:reverse/2
-bif     lists:member/2
+# bif     lists:member/2
 # gcbif   erlang:length/1
 # ubif    erlang:hd/1
 # ubif    erlang:tl/1

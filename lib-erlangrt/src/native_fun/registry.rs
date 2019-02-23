@@ -1,6 +1,6 @@
 use crate::{
   emulator::{atom, mfa::MFArity},
-  native_fun::{self, module::NativeModule, NativeFn},
+  native_fun::{erlang, erts_internal, lists, module::NativeModule, NativeFn},
   term::lterm::LTerm,
 };
 use std::collections::HashMap;
@@ -22,9 +22,14 @@ impl NativeFunRegistry {
   }
 
   fn register_preloaded_modules(&mut self) {
-    self
-      .modules
-      .insert(atom::from_str("erlang"), native_fun::erlang::new());
+    let a_erlang = atom::from_str("erlang");
+    self.modules.insert(a_erlang, erlang::new());
+
+    let a_ertsi = atom::from_str("erts_internal");
+    self.modules.insert(a_ertsi, erts_internal::new());
+
+    let a_lists = atom::from_str("lists");
+    self.modules.insert(a_lists, lists::new());
   }
 
   /// Check whether an MFA is loaded as a native function.

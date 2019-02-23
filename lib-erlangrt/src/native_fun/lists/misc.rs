@@ -11,7 +11,7 @@ use core::cmp::Ordering;
 //}
 
 
-pub fn bif_lists_member_2(
+pub fn nativefun_member_2(
   _vm: &mut VM,
   _curr_p: &mut Process,
   args: &[LTerm],

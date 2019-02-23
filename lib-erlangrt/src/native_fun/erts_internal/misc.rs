@@ -12,7 +12,7 @@ fn module() -> &'static str {
 
 /// Spawns special system process
 /// Usage: erts_internal:spawn_system_process(Mod, Fun, Args)
-pub fn bif_erts_internal_spawn_system_process_3(
+pub fn nativefun_spawn_system_process_3(
   vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],

@@ -14,14 +14,8 @@ pub mod macros;
 // Native Modules (precompiled and preloaded)
 //
 pub mod erlang;
-
-// Bif definitions grouped by topic
-pub mod bif_erts_internal;
-pub mod bif_lists;
-
-pub use crate::native_fun::{
-  bif_erts_internal::*, bif_lists::*,
-};
+pub mod erts_internal;
+pub mod lists;
 
 /// A BIF function which runs under some process, takes some args (encoded in
 /// its name and hardcoded in its code), and returns an `LTerm`.

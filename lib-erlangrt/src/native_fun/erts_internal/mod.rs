@@ -1,0 +1,17 @@
+pub mod misc;
+
+use crate::{
+  emulator::atom,
+  native_fun::{erts_internal::misc::*, fn_entry::NativeFnEntry, module::NativeModule},
+};
+
+pub fn new() -> NativeModule {
+  let mut m = NativeModule::new(atom::from_str("erts_internal"));
+  let fn_entries: Vec<NativeFnEntry> = vec![NativeFnEntry::with_str(
+    "spawn_system_process",
+    3,
+    nativefun_spawn_system_process_3,
+  )];
+  m.init_with(fn_entries.iter());
+  m
+}
