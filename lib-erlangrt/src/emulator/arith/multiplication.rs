@@ -6,6 +6,7 @@ use crate::{
 };
 use num::{bigint::BigInt, cast::ToPrimitive};
 
+#[allow(dead_code)]
 fn module() -> &'static str {
   "arith.multiplication: "
 }

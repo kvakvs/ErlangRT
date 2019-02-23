@@ -13,6 +13,11 @@ use crate::{
   term::{boxed, lterm::*},
 };
 
+#[allow(dead_code)]
+fn module() -> &'static str {
+  "native funs module for erlang[process]: "
+}
+
 #[inline]
 pub fn nativefun_self_0(
   _vm: &mut VM,
@@ -58,7 +63,7 @@ pub fn nativefun_spawn_3(
   Ok(pid)
 }
 
-pub fn native_is_process_alive_1(
+pub fn nativefun_is_process_alive_1(
   vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -104,6 +109,7 @@ pub fn nativefun_process_flag_2(
   do_erlang_process_flag(cur_proc, args[0], args[1])
 }
 
+/// Set a supported process flag.
 pub fn nativefun_process_flag_3(
   vm: &mut VM,
   _cur_proc: &mut Process,
@@ -118,6 +124,7 @@ pub fn nativefun_process_flag_3(
   do_erlang_process_flag(p, args[1], args[2])
 }
 
+#[inline]
 fn do_erlang_process_flag(p: &mut Process, flag: LTerm, value: LTerm) -> RtResult<LTerm> {
   match flag {
     gen_atoms::TRAP_EXIT => {

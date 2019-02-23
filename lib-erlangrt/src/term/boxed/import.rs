@@ -49,6 +49,7 @@ impl Import {
     }
   }
 
+  #[allow(dead_code)]
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Import> {
     helper_get_const_from_boxed_term::<Import>(
       t,

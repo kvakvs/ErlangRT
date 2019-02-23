@@ -1,13 +1,13 @@
 use crate::{
   emulator::{process::Process, vm::VM},
-  fail::{RtResult},
+  fail::RtResult,
   term::lterm::LTerm,
 };
 
-pub mod gen_native_fun; // generated
-pub mod registry;
-pub mod module;
 pub mod fn_entry;
+pub mod gen_native_fun; // generated
+pub mod module;
+pub mod registry;
 #[macro_use]
 pub mod macros;
 
@@ -16,17 +16,11 @@ pub mod macros;
 pub mod erlang;
 
 // Bif definitions grouped by topic
-//
-pub mod bif_arith;
-pub mod bif_compare;
 pub mod bif_erts_internal;
 pub mod bif_lists;
-pub mod bif_sys;
-pub mod bif_type_conv;
 
 pub use crate::native_fun::{
-  bif_arith::*, bif_compare::*, bif_erts_internal::*, bif_lists::*,
-  bif_sys::*, bif_type_conv::*,
+  bif_erts_internal::*, bif_lists::*,
 };
 
 /// A BIF function which runs under some process, takes some args (encoded in

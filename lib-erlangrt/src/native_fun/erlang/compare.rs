@@ -10,7 +10,7 @@ fn module() -> &'static str {
 }
 
 /// Compare 2 terms with '=='
-pub fn ubif_erlang_equalequal_2(
+pub fn nativefun_equalequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -21,7 +21,7 @@ pub fn ubif_erlang_equalequal_2(
 
 /// Compare 2 terms with '/='
 /// Expressed as NOT EQUAL
-pub fn ubif_erlang_notequal_2(
+pub fn nativefun_notequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -31,7 +31,7 @@ pub fn ubif_erlang_notequal_2(
 }
 
 /// Compare 2 terms with '=:='
-pub fn ubif_erlang_equal_exact_2(
+pub fn nativefun_equal_exact_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -43,7 +43,7 @@ pub fn ubif_erlang_equal_exact_2(
 /// Compare 2 terms with '=/=' (s not eq)
 /// Expressed as NOT EQUAL (EXACT)
 /// Sssssnek...
-pub fn ubif_erlang_notequal_exact_2(
+pub fn nativefun_notequal_exact_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -53,7 +53,7 @@ pub fn ubif_erlang_notequal_exact_2(
 }
 
 /// Compare 2 terms with '<' (s less-than)
-pub fn ubif_erlang_lessthan_2(
+pub fn nativefun_lessthan_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -63,7 +63,7 @@ pub fn ubif_erlang_lessthan_2(
 }
 
 /// Compare 2 terms with '=<' (s greater-than)
-pub fn ubif_erlang_greaterthan_2(
+pub fn nativefun_greaterthan_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -74,7 +74,7 @@ pub fn ubif_erlang_greaterthan_2(
 
 /// Compare 2 terms with '=<' (s less-equal)
 /// Expressed as NOT GREATER
-pub fn ubif_erlang_lessequal_2(
+pub fn nativefun_lessequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -85,7 +85,7 @@ pub fn ubif_erlang_lessequal_2(
 
 /// Compare 2 terms with '>=' (s greater-equal)
 /// Expressed as NOT LESS
-pub fn ubif_erlang_greaterequal_2(
+pub fn nativefun_greaterequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],

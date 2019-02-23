@@ -5,7 +5,7 @@ use crate::{
   term::lterm::{cons, LTerm},
 };
 
-pub fn bif_erlang_atom_to_list_1(
+pub fn nativefun_atom_to_list_1(
   _vm: &mut VM,
   curr_p: &mut Process,
   args: &[LTerm],
@@ -25,7 +25,7 @@ pub fn bif_erlang_atom_to_list_1(
 }
 
 /// Converts an integer to Erlang string (list of integers)
-pub fn bif_erlang_integer_to_list_1(
+pub fn nativefun_integer_to_list_1(
   _vm: &mut VM,
   curr_p: &mut Process,
   args: &[LTerm],
