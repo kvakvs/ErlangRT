@@ -3,7 +3,6 @@
 
 use crate::{
   beam::loader,
-  native_fun::{self, BifFn},
   command_line_args::ErlStartArgs,
   emulator::{
     atom,
@@ -12,6 +11,7 @@ use crate::{
     module::{Module, VersionedModuleName},
   },
   fail::{Error, RtResult},
+  native_fun::{registry::NativeFunRegistry, NativeFn},
   term::lterm::*,
 };
 use std::{
@@ -35,7 +35,7 @@ struct ModuleGenerations {
 
 pub enum MFALookupResult {
   FoundBeamCode(CodePtr),
-  FoundBif(BifFn),
+  FoundBif(NativeFn),
   /* TODO: also NIF?
    * FoundNif(?), */
 }
@@ -46,6 +46,8 @@ pub struct CodeServer {
   mods: BTreeMap<LTerm, ModuleGenerations>,
   search_path: Vec<String>,
   mod_version: usize,
+
+  pub native_functions: NativeFunRegistry,
 }
 
 impl CodeServer {
@@ -54,6 +56,7 @@ impl CodeServer {
       mod_version: 1,
       mods: BTreeMap::new(),
       search_path: args.search_path.clone(),
+      native_functions: NativeFunRegistry::new(),
     }
   }
 
@@ -66,7 +69,7 @@ impl CodeServer {
     allow_load: bool,
   ) -> RtResult<MFALookupResult> {
     // It could be a BIF
-    if let Ok(bif_fn) = native_fun::find_native_fun(mfa) {
+    if let Some(bif_fn) = self.native_functions.find_mfa(mfa) {
       return Ok(MFALookupResult::FoundBif(bif_fn));
     }
     // Try look for a BEAM export somewhere

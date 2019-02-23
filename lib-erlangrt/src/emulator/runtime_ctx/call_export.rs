@@ -1,7 +1,6 @@
 use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
-  native_fun,
   defs::Arity,
   emulator::{
     process::Process,
@@ -41,7 +40,7 @@ pub fn apply(
     return fail::create::badarity();
   }
 
-  if native_fun::is_native_fun(&mfa) {
+  if vm.code_server.native_functions.mfa_exists(&mfa) {
     return call_native_fun::find_and_call_native_fun(
       vm,
       ctx,

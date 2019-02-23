@@ -1,7 +1,7 @@
 use crate::{
-  native_fun::assert_arity,
   emulator::{process::Process, vm::VM},
   fail::{self, RtResult},
+  native_fun::assert_arity,
   term::{compare, lterm::*},
 };
 use core::cmp::Ordering;

@@ -1,8 +1,8 @@
 use crate::{
-  native_fun::{find_native_fun, BifFn},
   defs::{ByteSize, WordSize},
   emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
   fail::{Error, RtResult},
+  native_fun::NativeFn,
   term::{
     boxed::{BoxHeader, BOXTYPETAG_IMPORT},
     lterm::*,
@@ -14,7 +14,8 @@ use core::{mem::size_of, ptr};
 pub struct Import {
   header: BoxHeader,
   pub mfarity: MFArity,
-  pub is_bif: bool,
+  /// Whether import points to a native fun or to BEAM fun, or we don't know yet
+  is_bif: Option<bool>,
 }
 
 impl Import {
@@ -22,11 +23,7 @@ impl Import {
     ByteSize::new(size_of::<Import>()).words_rounded_up()
   }
 
-  pub unsafe fn create_into(
-    hp: &mut Heap,
-    mfarity: MFArity,
-    is_bif: bool,
-  ) -> RtResult<LTerm> {
+  pub unsafe fn create_into(hp: &mut Heap, mfarity: MFArity) -> RtResult<LTerm> {
     let n_words = Import::storage_size();
     let this = hp.alloc::<Import>(n_words, false)?;
 
@@ -35,10 +32,21 @@ impl Import {
       Import {
         header: BoxHeader::new(BOXTYPETAG_IMPORT, n_words.words()),
         mfarity,
-        is_bif,
+        is_bif: None, // we don't know yet
       },
     );
     Ok(LTerm::make_boxed(this))
+  }
+
+  pub fn get_is_bif(&mut self, code_srv: &CodeServer) -> bool {
+    match self.is_bif {
+      Some(t) => t,
+      None => {
+        let is_bif = code_srv.native_functions.mfa_exists(&self.mfarity);
+        self.is_bif = Some(is_bif);
+        is_bif
+      }
+    }
   }
 
   pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Import> {
@@ -64,8 +72,9 @@ impl Import {
     code_server.lookup_beam_code_and_load(&self.mfarity)
   }
 
-  /// Assuming that this object refers to a BIF function, perform a BIF lookup.
-  pub fn resolve_bif(&self) -> RtResult<BifFn> {
-    find_native_fun(&self.mfarity)
+  /// Assuming that this object refers to a native function, look it up and
+  /// return the function pointer.
+  pub fn get_native_fn_ptr(&self, code_srv: &CodeServer) -> Option<NativeFn> {
+    code_srv.native_functions.find_mfa(&self.mfarity)
   }
 }

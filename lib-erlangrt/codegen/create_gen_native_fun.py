@@ -21,7 +21,7 @@ pub struct BifTabItem {{
     pub m: LTerm, 
     pub f: LTerm, 
     pub arity: Arity, 
-    pub func: native_fun::BifFn
+    pub func: native_fun::NativeFn
 }}
 
 

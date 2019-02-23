@@ -73,17 +73,17 @@ struct AtomStorage {
   //  /// NOTE: By design these blocks are not movable, make movable maybe?
   //  str_storage: Vec<*const u8>,
   /// Direct mapping string to atom index
-  atoms: Mutex<StrLookup>,
+  atoms_by_str: Mutex<StrLookup>,
 
   /// Reverse mapping atom index to string (sorted by index)
-  atoms_r: Mutex<IndexLookup>,
+  atoms_by_index: Mutex<IndexLookup>,
 }
 
 /// Stores atom lookup tables.
 impl AtomStorage {
   pub fn add_init_atoms(&mut self) {
-    let mut atoms = self.atoms.lock().unwrap();
-    let mut atoms_r = self.atoms_r.lock().unwrap();
+    let mut atoms = self.atoms_by_str.lock().unwrap();
+    let mut atoms_r = self.atoms_by_index.lock().unwrap();
 
     for (index, ga) in gen_atoms::ATOM_INIT_NAMES.iter().enumerate() {
       let actual_i = AtomStorage::register_atom(&mut atoms, &mut atoms_r, ga);
@@ -92,13 +92,13 @@ impl AtomStorage {
   }
 
   fn register_atom(
-    atoms: &mut MutexGuard<StrLookup>,
-    atoms_r: &mut MutexGuard<IndexLookup>,
+    atoms_by_str: &mut MutexGuard<StrLookup>,
+    atoms_by_index: &mut MutexGuard<IndexLookup>,
     s: &str,
   ) -> Word {
-    let index = atoms_r.len();
-    atoms.insert(s.to_string(), index);
-    atoms_r.push(Atom::new(s));
+    let index = atoms_by_index.len();
+    atoms_by_str.insert(s.to_string(), index);
+    atoms_by_index.push(Atom::new(s));
     index
   }
 }
@@ -106,8 +106,8 @@ impl AtomStorage {
 lazy_static! {
   static ref ATOMS: AtomStorage = {
     let mut storage = AtomStorage {
-      atoms: Mutex::new(BTreeMap::new()),
-      atoms_r: Mutex::new(Vec::new()),
+      atoms_by_str: Mutex::new(BTreeMap::new()),
+      atoms_by_index: Mutex::new(Vec::new()),
     };
     storage.add_init_atoms();
     storage
@@ -117,13 +117,13 @@ lazy_static! {
 // Allocate new atom in the atom table or find existing. Pack the atom index
 // as an immediate2 Term
 pub fn from_str(val: &str) -> LTerm {
-  let mut atoms = ATOMS.atoms.lock().unwrap();
+  let mut atoms = ATOMS.atoms_by_str.lock().unwrap();
 
   if atoms.contains_key(val) {
     return LTerm::make_atom(atoms[val]);
   }
 
-  let mut atoms_r = ATOMS.atoms_r.lock().unwrap();
+  let mut atoms_r = ATOMS.atoms_by_index.lock().unwrap();
 
   let index = AtomStorage::register_atom(&mut atoms, &mut atoms_r, val);
 
@@ -161,7 +161,7 @@ pub fn is_printable_atom(s: &str) -> bool {
 
 pub fn lookup(a: LTerm) -> *const Atom {
   assert!(a.is_atom());
-  let atoms_r = ATOMS.atoms_r.lock().unwrap();
+  let atoms_r = ATOMS.atoms_by_index.lock().unwrap();
   let index = a.atom_index();
   if index >= atoms_r.len() {
     return ptr::null();

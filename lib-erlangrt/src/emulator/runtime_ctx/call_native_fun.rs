@@ -1,9 +1,9 @@
 use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
-  native_fun::{self, BifFn},
-  emulator::{mfa::MFArity, process::Process, vm::VM},
+  emulator::{code_srv::CodeServer, mfa::MFArity, process::Process, vm::VM},
   fail::{self, Error, RtResult},
+  native_fun::NativeFn,
   term::{boxed::import, lterm::*},
 };
 use core::slice;
@@ -24,7 +24,7 @@ pub enum CallBifTarget {
   /// An MFA reference which needs to be resolved.
   MFArity(MFArity),
   /// A resolved pointer to a `BifFn`.
-  BifFnPointer(BifFn),
+  BifFnPointer(NativeFn),
 }
 
 /// Generic bif0,1,2 application. Bif0 cannot have a fail label but bif1 and
@@ -52,13 +52,19 @@ pub fn find_and_call_native_fun(
   // a pointer to import, or a pointer to native_fun function.
   // TODO: Maybe make this use codeserver generic lookup_mfa or extend it to support this
   let maybe_bif_fn = match target {
-    CallBifTarget::ImportTerm(ho_imp) => callbif_resolve_import(ho_imp, args.len())?,
+    CallBifTarget::ImportTerm(ho_imp) => {
+      callbif_resolve_import(&vm.code_server, ho_imp, args.len())?
+    }
 
-    CallBifTarget::MFArity(mfa) => callbif_resolve_mfa(&mfa)?,
+    CallBifTarget::MFArity(mfa) => callbif_resolve_mfa(&vm.code_server, &mfa)?,
 
     CallBifTarget::ImportPointer(ho_imp_ptr) => {
-      let fn_ptr = unsafe { (*ho_imp_ptr).resolve_bif()? };
-      BifResolutionResult::FnPointer(fn_ptr)
+      if let Some(fn_ptr) = unsafe { (*ho_imp_ptr).get_native_fn_ptr(&vm.code_server) } {
+        BifResolutionResult::FnPointer(fn_ptr)
+      } else {
+        let bif_name = unsafe { format!("{}", (*ho_imp_ptr).mfarity) };
+        return Err(Error::BifNotFound(bif_name));
+      }
     }
 
     CallBifTarget::BifFnPointer(fn_ptr) => BifResolutionResult::FnPointer(fn_ptr),
@@ -66,7 +72,9 @@ pub fn find_and_call_native_fun(
 
   // Now having resolved the native_fun function, let's call it
   let bif_result = match maybe_bif_fn {
-    BifResolutionResult::FnPointer(fn_ptr) => call_native_fun_fn(vm, ctx, curr_p, fn_ptr, args),
+    BifResolutionResult::FnPointer(fn_ptr) => {
+      call_native_fun_fn(vm, ctx, curr_p, fn_ptr, args)
+    }
 
     BifResolutionResult::BadfunError(badfun_val) => {
       return fail::create::badfun_val(badfun_val, &mut curr_p.heap);
@@ -91,7 +99,12 @@ pub fn find_and_call_native_fun(
       Err(bif_result.unwrap_err())
     }
     Ok(val) => {
-      println!("call_native_fun a={} gc={} call result {}", args.len(), gc, val);
+      println!(
+        "call_native_fun a={} gc={} call result {}",
+        args.len(),
+        gc,
+        val
+      );
       // if dst is not NIL, store the result in it
       if dst != LTerm::nil() {
         ctx.store_value(val, dst, &mut curr_p.heap)?;
@@ -108,7 +121,7 @@ pub fn find_and_call_native_fun(
 
 #[allow(dead_code)]
 enum BifResolutionResult {
-  FnPointer(BifFn),
+  FnPointer(NativeFn),
   BadfunError(LTerm),
 }
 
@@ -116,6 +129,7 @@ enum BifResolutionResult {
 /// Arg: check_arity - performs check of args count vs function arity
 /// Return: A native_fun function or an error
 fn callbif_resolve_import(
+  code_srv: &CodeServer,
   imp: LTerm,
   check_arity: usize,
 ) -> RtResult<BifResolutionResult> {
@@ -124,15 +138,26 @@ fn callbif_resolve_import(
   assert_eq!(unsafe { (*imp_p).mfarity.arity }, check_arity);
 
   // Here HOImport pointer is found, try and resolve it to a Rust function ptr
-  let fn_ptr = unsafe { (*imp_p).resolve_bif()? };
-  Ok(BifResolutionResult::FnPointer(fn_ptr))
+  if let Some(fn_ptr) = unsafe {
+    (*imp_p).get_native_fn_ptr(code_srv)
+  } {
+    return Ok(BifResolutionResult::FnPointer(fn_ptr));
+  }
+  let s = unsafe { format!("{}", (*imp_p).mfarity) };
+  Err(Error::BifNotFound(s))
 }
 
 /// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.
 // TODO: Remove this and call find_bif directly
 #[inline]
-fn callbif_resolve_mfa(mfa: &MFArity) -> RtResult<BifResolutionResult> {
-  Ok(BifResolutionResult::FnPointer(native_fun::find_native_fun(&mfa)?))
+fn callbif_resolve_mfa(
+  code_srv: &CodeServer,
+  mfa: &MFArity,
+) -> RtResult<BifResolutionResult> {
+  if let Some(fn_ptr) = code_srv.native_functions.find_mfa(&mfa) {
+    return Ok(BifResolutionResult::FnPointer(fn_ptr));
+  }
+  Err(Error::BifNotFound(format!("{}", mfa)))
 }
 
 /// Given a native_fun function pointer and args with possibly register/slot values
@@ -142,7 +167,7 @@ pub fn call_native_fun_fn(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
-  func_pointer: BifFn,
+  func_pointer: NativeFn,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
   let n_args = args.len();

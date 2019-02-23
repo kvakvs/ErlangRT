@@ -1,7 +1,7 @@
 use crate::{
-  native_fun::assert_arity,
   emulator::{atom, process::Process, vm::VM},
   fail::{self, RtResult},
+  native_fun::assert_arity,
   term::lterm::{cons, LTerm},
 };
 

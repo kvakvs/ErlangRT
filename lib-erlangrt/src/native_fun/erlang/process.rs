@@ -1,19 +1,20 @@
 use crate::{
-  native_fun::assert_arity,
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
     mfa::{MFArity, ModFunArgs},
     process::Process,
     process_flags,
+    spawn_options::SpawnOptions,
     vm::VM,
   },
   fail::{self, Error, RtResult},
+  native_fun::assert_arity,
   term::{boxed, lterm::*},
 };
-use crate::emulator::spawn_options::SpawnOptions;
 
-pub fn ubif_erlang_self_0(
+#[inline]
+pub fn nativefun_self_0(
   _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],
@@ -23,7 +24,7 @@ pub fn ubif_erlang_self_0(
 }
 
 /// Create a function pointer from atom(), atom(), smallint()
-pub fn bif_erlang_make_fun_3(
+pub fn nativefun_make_fun_3(
   _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],
@@ -44,7 +45,7 @@ pub fn bif_erlang_make_fun_3(
 /// Creates a new process specified by `module:function/arity` with `args`
 /// (args are passed as list), `arity` is length of args list.
 /// Spec: erlang:spawn(mod, fun, args:list)
-pub fn bif_erlang_spawn_3(
+pub fn nativefun_spawn_3(
   vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -57,7 +58,7 @@ pub fn bif_erlang_spawn_3(
   Ok(pid)
 }
 
-pub fn bif_erlang_is_process_alive_1(
+pub fn native_is_process_alive_1(
   vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -68,7 +69,7 @@ pub fn bif_erlang_is_process_alive_1(
 }
 
 /// erlang:register(RegName :: atom(), Pid_or_Port)
-pub fn bif_erlang_register_2(
+pub fn nativefun_register_2(
   vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -85,7 +86,7 @@ pub fn bif_erlang_register_2(
   Ok(gen_atoms::TRUE)
 }
 
-pub fn bif_erlang_registered_0(
+pub fn nativefun_registered_0(
   _vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],
@@ -94,7 +95,7 @@ pub fn bif_erlang_registered_0(
   panic!("not implemented")
 }
 
-pub fn bif_erlang_process_flag_2(
+pub fn nativefun_process_flag_2(
   _vm: &mut VM,
   cur_proc: &mut Process,
   args: &[LTerm],
@@ -103,7 +104,7 @@ pub fn bif_erlang_process_flag_2(
   do_erlang_process_flag(cur_proc, args[0], args[1])
 }
 
-pub fn bif_erlang_process_flag_3(
+pub fn nativefun_process_flag_3(
   vm: &mut VM,
   _cur_proc: &mut Process,
   args: &[LTerm],

@@ -4,7 +4,7 @@ use crate::{defs::Arity, term::lterm::*};
 use core::{cmp::Ordering, fmt};
 
 /// Reference to an internal function in some module.
-#[derive(Debug, Eq, Clone)]
+#[derive(Debug, Eq, Clone, Hash)]
 pub struct FunArity {
   pub f: LTerm,
   pub arity: Arity,

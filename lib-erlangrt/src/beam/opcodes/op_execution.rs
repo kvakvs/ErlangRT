@@ -172,9 +172,9 @@ fn shared_call_ext(
 ) -> RtResult<DispatchResult> {
   ctx.live = args.len();
 
-  match unsafe { boxed::Import::const_from_term(dst_import) } {
+  match unsafe { boxed::Import::mut_from_term(dst_import) } {
     Ok(import_ptr) => unsafe {
-      if (*import_ptr).is_bif {
+      if (*import_ptr).get_is_bif(&vm.code_server) {
         // Perform a BIF application
         let cb_target = call_native_fun::CallBifTarget::ImportPointer(import_ptr);
         call_native_fun::find_and_call_native_fun(

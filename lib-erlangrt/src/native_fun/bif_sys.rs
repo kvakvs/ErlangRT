@@ -1,8 +1,8 @@
 use crate::{
-  native_fun::assert_arity,
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, process::Process, vm::VM},
   fail::{Error, RtResult},
+  native_fun::assert_arity,
   term::{builders::make_badfun_n, lterm::LTerm, term_builder::TupleBuilder},
 };
 

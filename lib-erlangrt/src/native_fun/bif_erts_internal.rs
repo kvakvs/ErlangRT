@@ -1,7 +1,7 @@
 use crate::{
-  native_fun::assert_arity,
   emulator::{mfa::ModFunArgs, process::Process, spawn_options::SpawnOptions, vm::VM},
   fail::RtResult,
+  native_fun::assert_arity,
   term::lterm::LTerm,
 };
 

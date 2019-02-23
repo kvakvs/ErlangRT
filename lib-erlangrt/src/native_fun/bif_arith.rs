@@ -5,9 +5,7 @@ use crate::{
 };
 use num;
 
-fn module() -> &'static str {
-  "bif_arith: "
-}
+fn module() -> &'static str {  "native fn erlang/arith: " }
 
 /// Subtraction for 2 mixed terms. Algorithm comes from Erlang/OTP file
 /// `erl_arith.c`, function `erts_mixed_minus`
@@ -16,7 +14,7 @@ pub fn ubif_erlang_minus_2(
   cur_proc: &mut Process,
   args: &[LTerm],
 ) -> RtResult<LTerm> {
-  assert_eq!(args.len(), 2, "{}ubif_sminus_2_2 takes 2 args", module());
+  assert_eq!(args.len(), 2, "{}'-'/2 takes 2 args", module());
   let a: LTerm = args[0];
   let b: LTerm = args[1];
   if a.is_small() {
