@@ -15,7 +15,7 @@ def main():
 //! Config used: {otp} 
 #![allow(dead_code)]
 
-use crate::{{native_fun, defs::Arity, emulator::gen_atoms, term::lterm::*}};
+use crate::{{native_fun, defs::Arity, term::lterm::*}};
 
 pub struct BifTabItem {{
     pub m: LTerm, 

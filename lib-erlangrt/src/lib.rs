@@ -4,8 +4,7 @@
 #![crate_type = "lib"]
 #![crate_name = "erlangrt"]
 
-#[macro_use]
-extern crate lazy_static;
+#[macro_use] extern crate lazy_static;
 
 extern crate paste;
 

@@ -54,6 +54,11 @@ pub enum Error {
   CannotCopyIntoRefbin, // To copy into binary, resolve ref into heapbin
   HeapBinTooSmall(usize, usize), // want bytes, have bytes
   ProcBinTooSmall(usize, usize), // want bytes, have bytes
+
+  //--- Different types of badargs with better debuggability ---
+  // Returned by Native Fun macros
+  NativeFunArgNotATuple(usize),
+  NativeFunArgNotAList(usize),
 }
 
 impl From<bin_reader::ReadError> for Error {

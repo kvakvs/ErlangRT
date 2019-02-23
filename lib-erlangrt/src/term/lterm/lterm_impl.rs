@@ -12,7 +12,7 @@ use crate::{
   term::boxed::{self, BoxHeader, BoxTypeTag},
 };
 use core::{cmp::Ordering, isize};
-//
+use std::fmt;
 
 // Structure of term:
 // [ Value or a pointer ] [ TAG_* value 3 bits ]
@@ -79,7 +79,7 @@ pub const SPECIALCONST_EMPTYBINARY: SpecialConst = SpecialConst(2);
 
 /// A low-level term is either a pointer to memory term or an Immediate with
 /// leading bits defining its type (see TAG_* consts below).
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct LTerm {
   value: Word, // Contains a pointer or an integer
 }
@@ -803,4 +803,10 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
     return Ok(cptr);
   }
   Err(Error::BoxedTagCheckFailed)
+}
+
+impl fmt::Debug for LTerm {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{}", self)
+  }
 }

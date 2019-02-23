@@ -39,9 +39,7 @@ macro_rules! define_nativefun {
         $argsvar: &[LTerm],
       ) -> RtResult<LTerm> {
         crate::native_fun::assert_arity($namestr, $arity, $argsvar);
-        define_nativefun_args!(
-          $vmvar, $procvar, $argsvar, 0, $($args)*
-        );
+        define_nativefun_args!($namestr, $vmvar, $procvar, $argsvar, 0, $($args)*);
         $body
       }
     }
@@ -65,40 +63,54 @@ macro_rules! define_nativefun {
 /// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
 macro_rules! define_nativefun_args {
   // Empty args are handled here
-  ( $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr, ) => {};
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr, ) => {};
 
   // UNUSED args are do-nothing
-  ( $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     unused($arg_ident:ident)
   ) => {
     // unused $type $arg_ident
   };
 
   // Term args are just taken as is from memory
-  ( $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     term($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
   };
 
   // Tuple args are verified to be a tuple otherwise a badarg is created.
-  ( $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     tuple($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_tuple() { return fail::create::badarg(); }
+    if !$arg_ident.is_tuple() {
+      // return fail::create::badarg();
+      if cfg!(debug_assertions) {
+        println!("{}: argument #{} is expected to be a tuple, got {}",
+          $fn_name, $arg_pos+1, $arg_ident);
+      }
+      return Err(crate::fail::Error::NativeFunArgNotATuple($arg_pos));
+    }
   };
 
   // List args are verified to be a list or [] otherwise a badarg is created.
-  ( $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     list($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_list() { return fail::create::badarg(); }
+    if !$arg_ident.is_list() {
+      // return fail::create::badarg();
+      if cfg!(debug_assertions) {
+        println!("{}: argument #{} is expected to be a list, got {}",
+          $fn_name, $arg_pos+1, $arg_ident);
+      }
+      return Err(crate::fail::Error::NativeFunArgNotAList($arg_pos));
+    }
   };
 
   // Usize args are decoded from term a small unsigned
-  ( $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
@@ -110,16 +122,16 @@ macro_rules! define_nativefun_args {
 
   // Recurse for multiple args
   (
-    $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     $arg_type:ident $arg_args:tt,
     $($more_args:tt)*
   ) => {
     define_nativefun_args!(
-      $vmvar, $procvar, $argsvar, $arg_pos,
+      $fn_name, $vmvar, $procvar, $argsvar, $arg_pos,
       $arg_type $arg_args
     );
     define_nativefun_args!(
-      $vmvar, $procvar, $argsvar, ($arg_pos+1),
+      $fn_name, $vmvar, $procvar, $argsvar, ($arg_pos+1),
       $($more_args)*
     );
   };
