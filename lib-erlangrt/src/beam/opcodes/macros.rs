@@ -1,22 +1,31 @@
 /// Creates opcode struct and implementation.
-/// Struct name follows convention: Opcode<Name><Arity>
-/// Body must be a valid body for the run() function returning RtResult<DispatchResult>.
+/// Struct name follows convention: `Opcode<Name><Arity>`
+/// Body must be a valid body for the run() function returning
+/// `RtResult<DispatchResult>`.
+///
+/// The output is:
+/// ```
+/// struct StructName {}
+/// impl StructName {
+///   #[inline]
+///   pub fn __run(...) {
+///     let var = args[...] + argument type checks
+///     $body
+///   }
+/// }
+/// ```
 ///
 /// Example:
-///
+/// ```
 /// define_opcode!(_vm, ctx, curr_p,
 ///   name: OpcodeBsStartMatch2,
 ///   arity: 5,
 ///   run: {
 ///     Self::bs_start_match_2(ctx, fail, context)
 ///   },
-///   args: cp_not_nil(fail),
-///         load(context),
-///         unused(usize_live),
-///         unused(term_src),
-///         slice(args, 1),
-///         load(term_ctxr)
-/// );
+///   args: cp_not_nil(fail), load(context), unused(usize_live), unused(term_src),
+///         slice(args, 1), load(term_ctxr));
+/// ```
 
 #[macro_export]
 macro_rules! define_opcode {
@@ -48,7 +57,7 @@ macro_rules! define_opcode {
   // end macro impl
 }
 
-/// For args, other than unused, create one variable per argument,
+/// For args, other than unused, creates one local variable per argument,
 /// which will capture each arg from the `ip[$arg_pos]`.
 ///
 /// Arguments can be comma-separated many of:
@@ -62,10 +71,12 @@ macro_rules! define_opcode {
 ///   cp_not_nil(ident) - take a term and assert it is a CP, and not a NIL
 ///   yreg(ident) - take a term and assert it is an Y register
 ///
-/// Example: define_opcode_args!(vm, ctx, curr_p, 0,
-///             unused(arg1), usize(arg2), term(arg3), slice(args,7))
+/// Example:
+/// ```define_opcode_args!(vm, ctx, curr_p, 0,
+///   unused(arg1), usize(arg2), term(arg3), slice(args,7))```
 /// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
 macro_rules! define_opcode_args {
+  // Empty args are handled here
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr, ) => {};
 
   // Use a slice of memory of given size as terms

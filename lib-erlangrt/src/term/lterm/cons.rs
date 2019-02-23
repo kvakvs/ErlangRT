@@ -93,12 +93,14 @@ pub fn any<T>(lst: LTerm, mut predicate: T) -> bool
 where
   T: FnMut(LTerm) -> bool,
 {
+  // Not found
   if lst == LTerm::nil() {
     return false;
   }
   let mut p = lst.get_cons_ptr();
   loop {
     let hd_el = unsafe { (*p).hd() };
+    // Found at *p
     if predicate(hd_el) {
       return true;
     }
@@ -110,6 +112,34 @@ where
     } else {
       // for a non list end here
       return false;
+    }
+  }
+}
+
+/// Finds and returns first element of lst which satisfies `predicate`.
+pub fn find_first<T>(lst: LTerm, mut predicate: T) -> Option<*const boxed::Cons>
+  where
+      T: FnMut(LTerm) -> bool,
+{
+  // Not found
+  if lst == LTerm::nil() {
+    return None;
+  }
+  let mut p = lst.get_cons_ptr();
+  loop {
+    let hd_el = unsafe { (*p).hd() };
+    // Found at *p
+    if predicate(hd_el) {
+      return Some(p);
+    }
+
+    let tl_el = unsafe { (*p).tl() };
+    if tl_el.is_cons() {
+      // for a list tail element step forward
+      p = tl_el.get_cons_ptr();
+    } else {
+      // for a non list end here
+      return None;
     }
   }
 }

@@ -34,7 +34,15 @@ enum EqResult {
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
 pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
-  // Comparison might want to recurse.
+  if a == b {
+    return Ok(Ordering::Equal);
+  }
+  cmp_terms_1(a, b, exact)
+}
+
+#[inline]
+fn cmp_terms_1(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
+    // Comparison might want to recurse.
   // To avoid stack growth, do a switch here and continue comparing in a loop.
   // We grow `stack` vector instead of a CPU stack.
   const DEFAULT_CAPACITY: usize = 8;
