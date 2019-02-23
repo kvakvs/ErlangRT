@@ -10,7 +10,7 @@ pub fn new() -> NativeModule {
   let fn_entries: Vec<NativeFnEntry> = vec![NativeFnEntry::with_str(
     "spawn_system_process",
     3,
-    nativefun_spawn_system_process_3,
+    NfErtsiSpawnSysProc3::_f,
   )];
   m.init_with(fn_entries.iter());
   m

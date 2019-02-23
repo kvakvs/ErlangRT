@@ -84,14 +84,7 @@ macro_rules! define_nativefun_args {
     tuple($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_tuple() {
-      // return fail::create::badarg();
-      if cfg!(debug_assertions) {
-        println!("{}: argument #{} is expected to be a tuple, got {}",
-          $fn_name, $arg_pos+1, $arg_ident);
-      }
-      return Err(crate::fail::Error::NativeFunArgNotATuple($arg_pos));
-    }
+    if !$arg_ident.is_tuple() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "tuple"); }
   };
 
   // List args are verified to be a list or [] otherwise a badarg is created.
@@ -99,14 +92,15 @@ macro_rules! define_nativefun_args {
     list($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_list() {
-      // return fail::create::badarg();
-      if cfg!(debug_assertions) {
-        println!("{}: argument #{} is expected to be a list, got {}",
-          $fn_name, $arg_pos+1, $arg_ident);
-      }
-      return Err(crate::fail::Error::NativeFunArgNotAList($arg_pos));
-    }
+    if !$arg_ident.is_list() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "list"); }
+  };
+
+  // Atom args are verified to be an atom otherwise a badarg is created.
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    atom($arg_ident:ident)
+  ) => {
+    let $arg_ident = $argsvar[$arg_pos];
+    if !$arg_ident.is_atom() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "atom"); }
   };
 
   // Usize args are decoded from term a small unsigned
@@ -134,5 +128,15 @@ macro_rules! define_nativefun_args {
       $fn_name, $vmvar, $procvar, $argsvar, ($arg_pos+1),
       $($more_args)*
     );
+  };
+}
+
+macro_rules! debug_badarg {
+  ($fn_name:expr, $arg_pos:expr, $arg_ident:ident, $expected_to_be:expr) => {
+    if cfg!(debug_assertions) {
+      println!("DBG {}: argument #{} is expected to be a {}, got {}",
+        $fn_name, $arg_pos+1, $expected_to_be, $arg_ident);
+    }
+    return crate::fail::create::badarg();
   };
 }
