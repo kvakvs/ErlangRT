@@ -1,8 +1,7 @@
 use crate::{
   defs::exc_type::ExceptionType,
-  emulator::{gen_atoms, process::Process, vm::VM},
+  emulator::{gen_atoms, process::Process},
   fail::{RtErr, RtResult},
-  native_fun::assert_arity,
   term::{builders::make_badfun_n, lterm::LTerm},
 };
 
@@ -46,23 +45,19 @@ pub fn error_2(proc: &mut Process, reason: LTerm, err_args: LTerm) -> RtResult<L
 }
 
 /// Create an exception of type `error`.
-pub fn nativefun_error_1(
-  _vm: &mut VM,
-  _curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:error/1", 1, args);
-  Err(RtErr::Exception(ExceptionType::Error, args[0]))
-}
+define_nativefun!(_vm, _proc, args,
+  name: "erlang:error/1", struct_name: NfErlangError1, arity: 1,
+  invoke: { Err(RtErr::Exception(ExceptionType::Error, reason)) },
+  args: term(reason),
+);
 
 /// Make a nice face like we are loading something here
-pub fn nativefun_load_nif_2(
-  _vm: &mut VM,
-  _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:load_nif/2", 2, args);
-  // TODO: Implement pre-linked NIF modules which are ready to be activated
-  println!("load_nif({}, {}) - doing nothing", args[0], args[1]);
-  Ok(gen_atoms::OK)
-}
+// TODO: Implement pre-linked NIF modules which are ready to be activated
+define_nativefun!(_vm, _proc, args,
+  name: "erlang:load_nif/2", struct_name: NfErlangLoadNif2, arity: 2,
+  invoke: {
+    println!("load_nif({}, {}) - doing nothing", path, load_info);
+    Ok(gen_atoms::OK)
+  },
+  args: list(path), term(load_info),
+);

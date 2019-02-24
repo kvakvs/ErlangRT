@@ -1,25 +1,24 @@
 use crate::{
-  emulator::{atom, process::Process, vm::VM},
+  emulator::{atom, process::Process},
   fail::{self, RtResult},
-  native_fun::assert_arity,
   term::lterm::{cons, LTerm},
 };
 
-pub fn nativefun_atom_to_list_1(
-  _vm: &mut VM,
-  curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:atom_to_list", 1, args);
-  if !args[0].is_atom() {
-    return fail::create::badarg();
-  }
-  let atom_p = atom::lookup(args[0]);
+/// Converts an atom to Erlang string.
+define_nativefun!(_vm, proc, args,
+  name: "erlang:atom_to_list/1", struct_name: NfErlangA2List2, arity: 1,
+  invoke: { atom_to_list_1(proc, atom_val) },
+  args: atom(atom_val),
+);
+
+#[inline]
+pub fn atom_to_list_1(proc: &mut Process, atom_val: LTerm) -> RtResult<LTerm> {
+  let atom_p = atom::lookup(atom_val);
   if atom_p.is_null() {
     return fail::create::badarg();
   }
   unsafe {
-    let s = cons::rust_str_to_list(&(*atom_p).name, &mut curr_p.heap)?;
+    let s = cons::rust_str_to_list(&(*atom_p).name, &mut proc.heap)?;
     Ok(s)
   }
 }
