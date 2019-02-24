@@ -7,7 +7,7 @@ use crate::{
     heap::Heap,
     mfa::MFArity,
   },
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_CLOSURE},
     lterm::*,
@@ -81,7 +81,7 @@ impl Closure {
     helper_get_const_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_CLOSURE,
-      Error::BoxedIsNotAClosure,
+      RtErr::BoxedIsNotAClosure,
     )
   }
 
@@ -90,7 +90,7 @@ impl Closure {
     helper_get_mut_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_CLOSURE,
-      Error::BoxedIsNotAClosure,
+      RtErr::BoxedIsNotAClosure,
     )
   }
 

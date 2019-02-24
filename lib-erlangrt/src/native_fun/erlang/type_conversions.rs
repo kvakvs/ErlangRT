@@ -25,15 +25,28 @@ pub fn nativefun_atom_to_list_1(
 }
 
 /// Converts an integer to Erlang string (list of integers)
-pub fn nativefun_integer_to_list_1(
-  _vm: &mut VM,
-  curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:integer_to_list", 1, args);
-  let val = args[0];
+define_nativefun!(_vm, proc, args,
+  name: "erlang:integer_to_list/1", struct_name: NfErlangInt2List2, arity: 1,
+  invoke: { integer_to_list_1(proc, val) },
+  args: term(val),
+);
+
+#[inline]
+pub fn integer_to_list_1(curr_p: &mut Process, val: LTerm) -> RtResult<LTerm> {
   if !val.is_integer() {
     return fail::create::badarg();
   }
   unsafe { cons::integer_to_list(val, &mut curr_p.heap) }
+}
+
+/// Returns list `list` reversed with `tail` appended (any term).
+define_nativefun!(_vm, proc, args,
+  name: "erlang:list_to_binary/1", struct_name: NfErlangL2b1, arity: 1,
+  invoke: { unsafe { list_to_binary_1(proc, list) } },
+  args: list(list),
+);
+
+#[inline]
+unsafe fn list_to_binary_1(_proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
+  Ok(list)
 }

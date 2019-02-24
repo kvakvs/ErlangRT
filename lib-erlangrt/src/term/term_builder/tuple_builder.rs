@@ -31,3 +31,17 @@ impl TupleBuilder {
     LTerm::make_boxed(self.p)
   }
 }
+
+// Must import TupleBuilder for this helper to appear
+impl Heap {
+  /// Create a 2-tuple.
+  #[inline]
+  pub fn tuple2(&mut self, a: LTerm, b: LTerm) -> RtResult<LTerm> {
+    let tb = TupleBuilder::with_arity(2, self)?;
+    unsafe {
+      tb.set_element_base0(0, a);
+      tb.set_element_base0(1, b);
+    }
+    Ok(tb.make_term())
+  }
+}

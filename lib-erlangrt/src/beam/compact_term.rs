@@ -3,7 +3,7 @@
 
 use crate::{
   defs::{SWord, Word},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
   term::{fterm::FTerm, integral::Integral},
 };
@@ -61,7 +61,7 @@ fn module() -> &'static str {
 
 #[inline]
 fn make_err(e: CTError) -> RtResult<FTerm> {
-  Err(Error::CodeLoadingCompactTerm(e))
+  Err(RtErr::CodeLoadingCompactTerm(e))
 }
 
 // fn word_to_u32(w: Word) -> u32 {

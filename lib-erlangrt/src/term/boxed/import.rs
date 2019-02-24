@@ -1,7 +1,7 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   native_fun::NativeFn,
   term::{
     boxed::{BoxHeader, BOXTYPETAG_IMPORT},
@@ -54,7 +54,7 @@ impl Import {
     helper_get_const_from_boxed_term::<Import>(
       t,
       BOXTYPETAG_IMPORT,
-      Error::BoxedIsNotAnImport,
+      RtErr::BoxedIsNotAnImport,
     )
   }
 
@@ -63,7 +63,7 @@ impl Import {
     helper_get_mut_from_boxed_term::<Import>(
       t,
       BOXTYPETAG_IMPORT,
-      Error::BoxedIsNotAnImport,
+      RtErr::BoxedIsNotAnImport,
     )
   }
 

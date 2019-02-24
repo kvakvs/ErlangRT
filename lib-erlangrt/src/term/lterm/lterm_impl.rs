@@ -8,7 +8,7 @@
 use crate::{
   defs::*,
   emulator::{gen_atoms, heap::Heap},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::boxed::{self, BoxHeader, BoxTypeTag},
 };
 use core::{cmp::Ordering, isize};
@@ -184,14 +184,14 @@ impl LTerm {
 
   pub fn get_box_ptr_safe<T>(self) -> RtResult<*const T> {
     if !self.is_boxed() {
-      return Err(Error::TermIsNotABoxed);
+      return Err(RtErr::TermIsNotABoxed);
     }
     Ok(self.value as *const T)
   }
 
   pub fn get_box_ptr_safe_mut<T>(self) -> RtResult<*mut T> {
     if !self.is_boxed() {
-      return Err(Error::TermIsNotABoxed);
+      return Err(RtErr::TermIsNotABoxed);
     }
     Ok(self.value as *mut T)
   }
@@ -545,7 +545,7 @@ impl LTerm {
 
   pub fn get_f64(self) -> RtResult<f64> {
     if !self.is_boxed() {
-      return Err(Error::TermIsNotABoxed);
+      return Err(RtErr::TermIsNotABoxed);
     }
     let _p = self.get_box_ptr::<BoxHeader>();
     panic!("notimpl: float box")
@@ -778,10 +778,10 @@ impl LTerm {
 pub unsafe fn helper_get_const_from_boxed_term<T>(
   t: LTerm,
   box_type: BoxTypeTag,
-  err: Error,
+  err: RtErr,
 ) -> RtResult<*const T> {
   if !t.is_boxed() {
-    return Err(Error::TermIsNotABoxed);
+    return Err(RtErr::TermIsNotABoxed);
   }
   let cptr = t.get_box_ptr::<T>();
   let hptr = cptr as *const BoxHeader;
@@ -794,7 +794,7 @@ pub unsafe fn helper_get_const_from_boxed_term<T>(
 pub unsafe fn helper_get_mut_from_boxed_term<T>(
   t: LTerm,
   box_type: BoxTypeTag,
-  _err: Error,
+  _err: RtErr,
 ) -> RtResult<*mut T> {
   debug_assert!(t.is_boxed());
   let cptr = t.get_box_ptr_mut::<T>();
@@ -802,7 +802,7 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
   if (*hptr).get_tag() == box_type {
     return Ok(cptr);
   }
-  Err(Error::BoxedTagCheckFailed)
+  Err(RtErr::BoxedTagCheckFailed)
 }
 
 impl fmt::Debug for LTerm {

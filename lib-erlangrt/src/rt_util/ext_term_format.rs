@@ -1,7 +1,7 @@
 use super::bin_reader::BinaryReader;
 use crate::{
   defs::{self, SWord, Word},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{lterm::LTerm, term_builder::TermBuilder},
 };
 use num::{self, ToPrimitive};
@@ -50,7 +50,7 @@ fn module() -> &'static str {
 }
 
 fn fail<TermType: Copy>(msg: String) -> RtResult<TermType> {
-  Err(Error::ETFParseError(msg))
+  Err(RtErr::ETFParseError(msg))
 }
 
 /// Given a binary reader `r` parse term and return it, `heap` is used to

@@ -12,7 +12,7 @@ use std::convert::From;
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub enum Error {
+pub enum RtErr {
   FileNotFound(String),
   ETFParseError(String),
   ReadError(ReadError),
@@ -56,11 +56,11 @@ pub enum Error {
   ProcBinTooSmall(usize, usize), // want bytes, have bytes
 }
 
-impl From<bin_reader::ReadError> for Error {
+impl From<bin_reader::ReadError> for RtErr {
   fn from(e: bin_reader::ReadError) -> Self {
-    Error::ReadError(e)
+    RtErr::ReadError(e)
   }
 }
 
 /// A templated error type based on `fail::Error`.
-pub type RtResult<T> = Result<T, Error>;
+pub type RtResult<T> = Result<T, RtErr>;

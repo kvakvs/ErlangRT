@@ -5,7 +5,7 @@
 use crate::{
   defs::Word,
   emulator::gen_atoms,
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::lterm::*,
 };
 use core::ptr;
@@ -134,7 +134,7 @@ pub fn to_str(a: LTerm) -> RtResult<String> {
   assert!(a.is_atom());
   let p = lookup(a);
   if p.is_null() {
-    return Err(Error::AtomNotExist(format!("index {}", a.atom_index())));
+    return Err(RtErr::AtomNotExist(format!("index {}", a.atom_index())));
   }
   Ok(unsafe { (*p).name.clone() })
 }

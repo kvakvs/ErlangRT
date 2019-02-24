@@ -1,7 +1,7 @@
 use crate::{
   defs::{Word, WordSize},
   emulator::heap::Heap,
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_TUPLE},
     lterm::LTerm,
@@ -45,7 +45,7 @@ impl Tuple {
   pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Tuple> {
     let tp = p as *const Tuple;
     if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
-      return Err(Error::BoxedIsNotATuple);
+      return Err(RtErr::BoxedIsNotATuple);
     }
     Ok(tp)
   }
@@ -54,7 +54,7 @@ impl Tuple {
   pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Tuple> {
     let tp = p as *mut Tuple;
     if (*tp).header.get_tag() != BOXTYPETAG_TUPLE {
-      return Err(Error::BoxedIsNotATuple);
+      return Err(RtErr::BoxedIsNotATuple);
     }
     Ok(tp)
   }

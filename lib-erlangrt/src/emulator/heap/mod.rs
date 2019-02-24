@@ -4,7 +4,7 @@ pub mod iter;
 
 use crate::{
   defs::{Word, WordSize},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{boxed, lterm::*},
 };
 use colored::Colorize;
@@ -234,7 +234,7 @@ impl Heap {
   pub fn set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
     debug_assert!(val.is_value(), "Should never set y[] to a NON_VALUE");
     if !self.stack_have_y(index) {
-      return Err(Error::StackIndexRange(index));
+      return Err(RtErr::StackIndexRange(index));
     }
     if cfg!(feature = "trace_stack_changes") {
       println!("{}{} = {}", "set y".green(), index, val);
@@ -250,7 +250,7 @@ impl Heap {
         index,
         self.stack_depth()
       );
-      return Err(Error::StackIndexRange(index));
+      return Err(RtErr::StackIndexRange(index));
     }
     let pos = index + self.stack_top + 1;
     let result = LTerm::from_raw(self.data[pos]);

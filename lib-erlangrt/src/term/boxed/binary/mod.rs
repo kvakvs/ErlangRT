@@ -1,7 +1,7 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::boxed::{
     binary::{
       binaryheap_bin::BinaryHeapBinary, procheap_bin::ProcessHeapBinary,
@@ -102,19 +102,19 @@ impl Binary {
         let phb_ptr = this as *mut ProcessHeapBinary;
         let avail_size = (*phb_ptr).size.bytes();
         if avail_size < data_len {
-          return Err(Error::ProcBinTooSmall(data_len, avail_size));
+          return Err(RtErr::ProcBinTooSmall(data_len, avail_size));
         }
       }
       BinaryType::BinaryHeap => {
         let bh_ptr = this as *mut BinaryHeapBinary;
         let avail_size = (*bh_ptr).size.bytes();
         if (*bh_ptr).size.bytes() < data_len {
-          return Err(Error::HeapBinTooSmall(data_len, avail_size));
+          return Err(RtErr::HeapBinTooSmall(data_len, avail_size));
         }
       }
       BinaryType::RefToBinaryHeap => {
         // TODO: Maybe should be possible? Assist with resolution into BinaryHeapBinary
-        return Err(Error::CannotCopyIntoRefbin);
+        return Err(RtErr::CannotCopyIntoRefbin);
       }
     }
 

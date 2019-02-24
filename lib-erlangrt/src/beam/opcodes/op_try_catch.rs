@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   defs::exc_type::ExceptionType,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::lterm::LTerm,
 };
 
@@ -125,7 +125,7 @@ impl OpcodeRaise {
     // curr_p.set_exception(exc_type, raise_val);
     // curr_p.set_stacktrace(raise_trace);
 
-    Err(Error::Exception(exc_type, raise_val))
+    Err(RtErr::Exception(exc_type, raise_val))
   }
 }
 

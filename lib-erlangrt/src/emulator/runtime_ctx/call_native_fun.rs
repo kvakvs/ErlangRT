@@ -2,7 +2,7 @@ use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{code_srv::CodeServer, mfa::MFArity, process::Process, vm::VM},
-  fail::{self, Error, RtResult},
+  fail::{self, RtErr, RtResult},
   native_fun::NativeFn,
   term::{boxed::import, lterm::*},
 };
@@ -63,7 +63,7 @@ pub fn find_and_call_native_fun(
         BifResolutionResult::FnPointer(fn_ptr)
       } else {
         let bif_name = unsafe { format!("{}", (*ho_imp_ptr).mfarity) };
-        return Err(Error::BifNotFound(bif_name));
+        return Err(RtErr::BifNotFound(bif_name));
       }
     }
 
@@ -87,7 +87,7 @@ pub fn find_and_call_native_fun(
   // On error and if fail label is a CP, perform a goto
   // Assume that error is already written to `reason` in process
   match bif_result {
-    Err(Error::Exception(_, _)) => {
+    Err(RtErr::Exception(_, _)) => {
       if fail_label.is_cp() {
         ctx.jump(fail_label)
       }
@@ -142,7 +142,7 @@ fn callbif_resolve_import(
     return Ok(BifResolutionResult::FnPointer(fn_ptr));
   }
   let s = unsafe { format!("{}", (*imp_p).mfarity) };
-  Err(Error::BifNotFound(s))
+  Err(RtErr::BifNotFound(s))
 }
 
 /// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.
@@ -155,7 +155,7 @@ fn callbif_resolve_mfa(
   if let Some(fn_ptr) = code_srv.native_functions.find_mfa(&mfa) {
     return Ok(BifResolutionResult::FnPointer(fn_ptr));
   }
-  Err(Error::BifNotFound(format!("{}", mfa)))
+  Err(RtErr::BifNotFound(format!("{}", mfa)))
 }
 
 /// Given a native_fun function pointer and args with possibly register/slot values

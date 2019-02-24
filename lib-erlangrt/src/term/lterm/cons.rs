@@ -2,7 +2,7 @@
 use crate::{
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, heap::Heap},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{boxed, lterm::lterm_impl::LTerm, term_builder::ListBuilder},
 };
 
@@ -22,7 +22,7 @@ pub fn list_length(val: LTerm) -> RtResult<usize> {
       cons_p = tl.get_cons_ptr();
     } else {
       if tl != LTerm::nil() {
-        return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
+        return Err(RtErr::Exception(ExceptionType::Error, gen_atoms::BADARG));
       }
       return Ok(count);
     }

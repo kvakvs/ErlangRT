@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::lterm::LTerm,
 };
 
@@ -20,7 +20,7 @@ fn shared_allocate(
   let hp = &mut curr_p.heap;
 
   if !hp.heap_has_available(heap_need) {
-    return Err(Error::HeapIsFull);
+    return Err(RtErr::HeapIsFull);
   }
 
   if hp.stack_have(stack_need + 1) {
@@ -31,7 +31,7 @@ fn shared_allocate(
     hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
   } else {
     // Stack has not enough, invoke GC and possibly fail
-    return Err(Error::HeapIsFull);
+    return Err(RtErr::HeapIsFull);
   }
   Ok(())
 }
@@ -109,7 +109,7 @@ impl OpcodeTestHeap {
   ) -> RtResult<DispatchResult> {
     if !curr_p.heap.heap_has_available(heap_need) {
       // Heap has not enough, invoke GC and possibly fail
-      return Err(Error::HeapIsFull);
+      return Err(RtErr::HeapIsFull);
     }
     Ok(DispatchResult::Normal)
   }

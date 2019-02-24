@@ -10,7 +10,7 @@ use crate::{
     mfa::MFArity,
     module::{Module, VersionedModuleName},
   },
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   native_fun::{registry::NativeFunRegistry, NativeFn},
   term::lterm::*,
 };
@@ -81,7 +81,7 @@ impl CodeServer {
       return Ok(MFALookupResult::FoundBeamCode(code_p));
     }
     // TODO: Look up a NIF extension function when those are supported
-    Err(Error::NotFound)
+    Err(RtErr::NotFound)
   }
 
   /// Find module:function/arity in BEAM code (i.e. exported by some module)
@@ -94,7 +94,7 @@ impl CodeServer {
     match self.mods.get(&m) {
       None => {
         let msg = format!("{}Module not found {}", module(), m);
-        Err(Error::ModuleNotFound(msg))
+        Err(RtErr::ModuleNotFound(msg))
       }
       Some(mptr) => {
         let v = VersionedModuleName::new(m, mptr.curr_version);
@@ -111,7 +111,7 @@ impl CodeServer {
     match self.mods.get(&m) {
       None => {
         let msg = format!("{}Module not found {}", module(), m);
-        Err(Error::ModuleNotFound(msg))
+        Err(RtErr::ModuleNotFound(msg))
       }
       Some(mptr) => mptr.curr_modp.lookup(mfarity),
     }
@@ -121,7 +121,7 @@ impl CodeServer {
   pub fn find_module_file(&mut self, filename: &str) -> RtResult<PathBuf> {
     match first_that_exists(&self.search_path, filename) {
       Some(found_first) => Ok(found_first),
-      None => Err(Error::FileNotFound(filename.to_string())),
+      None => Err(RtErr::FileNotFound(filename.to_string())),
     }
   }
 
@@ -165,7 +165,7 @@ impl CodeServer {
           fun_str,
           mfarity.arity
         );
-        Err(Error::FunctionNotFound(msg))
+        Err(RtErr::FunctionNotFound(msg))
       }
     }
   }

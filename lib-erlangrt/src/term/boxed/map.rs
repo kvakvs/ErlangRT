@@ -3,7 +3,7 @@ use core::cmp::Ordering;
 use crate::{
   defs::{Word, WordSize},
   emulator::heap::Heap,
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_MAP},
     compare::cmp_terms,
@@ -75,7 +75,7 @@ impl Map {
   pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Map> {
     let mp = p as *const Map;
     if (*mp).header.get_tag() != BOXTYPETAG_MAP {
-      return Err(Error::BoxedIsNotAMap);
+      return Err(RtErr::BoxedIsNotAMap);
     }
     Ok(mp)
   }
@@ -85,7 +85,7 @@ impl Map {
   pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Map> {
     let mp = p as *mut Map;
     if (*mp).header.get_tag() != BOXTYPETAG_MAP {
-      return Err(Error::BoxedIsNotAMap);
+      return Err(RtErr::BoxedIsNotAMap);
     }
     Ok(mp)
   }

@@ -8,7 +8,7 @@ use crate::{
     spawn_options::SpawnOptions,
     vm::VM,
   },
-  fail::{self, Error, RtResult},
+  fail::{self, RtErr, RtResult},
   native_fun::assert_arity,
   term::{boxed, lterm::*},
 };
@@ -32,7 +32,7 @@ pub fn nativefun_make_fun_3(
 ) -> RtResult<LTerm> {
   assert_arity("erlang:make_fun", 3, args);
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
-    return Err(Error::Exception(ExceptionType::Error, gen_atoms::BADARG));
+    return Err(RtErr::Exception(ExceptionType::Error, gen_atoms::BADARG));
   }
 
   let hp = &mut cur_proc.heap;

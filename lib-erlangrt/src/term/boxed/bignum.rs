@@ -1,7 +1,7 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER},
     lterm::*,
@@ -48,7 +48,7 @@ impl Bignum {
     helper_get_const_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_BIGINTEGER,
-      Error::BoxedIsNotABigint,
+      RtErr::BoxedIsNotABigint,
     )
   }
 
@@ -57,7 +57,7 @@ impl Bignum {
     helper_get_mut_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_BIGINTEGER,
-      Error::BoxedIsNotABigint,
+      RtErr::BoxedIsNotABigint,
     )
   }
 }

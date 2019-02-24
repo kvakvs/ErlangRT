@@ -23,7 +23,7 @@ use crate::{
     mfa::MFArity,
     module::{self, Module, VersionedModuleName},
   },
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   rt_util::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
@@ -215,7 +215,7 @@ impl Loader {
         Ok(s) => s,
         // EOF is not an error
         Err(ReadError::PrematureEOF) => break,
-        Err(e) => return Err(Error::ReadError(e)),
+        Err(e) => return Err(RtErr::ReadError(e)),
       };
       let chunk_sz = r.read_u32be();
       let pos_begin = r.pos();
@@ -241,7 +241,7 @@ impl Loader {
 
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
-          return Err(Error::CodeLoadingFailed(msg))
+          return Err(RtErr::CodeLoadingFailed(msg))
         }
       }
 

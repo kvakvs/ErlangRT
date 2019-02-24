@@ -1,7 +1,7 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::{export, heap::Heap, mfa::MFArity},
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BOXTYPETAG_EXPORT},
     lterm::*,
@@ -43,7 +43,7 @@ impl Export {
     helper_get_const_from_boxed_term::<Export>(
       t,
       BOXTYPETAG_EXPORT,
-      Error::BoxedIsNotAnExport,
+      RtErr::BoxedIsNotAnExport,
     )
   }
 
@@ -52,7 +52,7 @@ impl Export {
     helper_get_mut_from_boxed_term::<Export>(
       t,
       BOXTYPETAG_EXPORT,
-      Error::BoxedIsNotAnExport,
+      RtErr::BoxedIsNotAnExport,
     )
   }
 }

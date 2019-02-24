@@ -12,7 +12,7 @@ use crate::{
     },
     vm::VM,
   },
-  fail::{self, Error, RtResult},
+  fail::{self, RtErr, RtResult},
   term::{boxed, compare, lterm::*},
 };
 use core::cmp::Ordering;
@@ -263,7 +263,7 @@ impl OpcodeFuncInfo {
       println!("{}function_clause {}:{}/{}", module(), m, f, arity);
       proc.context.registers_dump(arity);
     }
-    Err(Error::Exception(
+    Err(RtErr::Exception(
       ExceptionType::Error,
       gen_atoms::FUNCTION_CLAUSE,
     ))

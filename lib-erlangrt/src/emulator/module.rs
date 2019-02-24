@@ -10,7 +10,7 @@ use crate::{
     heap::Heap,
     mfa::MFArity,
   },
-  fail::{Error, RtResult},
+  fail::{RtErr, RtResult},
   term::lterm::LTerm,
 };
 use std::collections::BTreeMap;
@@ -86,7 +86,7 @@ impl Module {
           "Function not found {} in {}",
           fa, self.versioned_name.module
         );
-        Err(Error::FunctionNotFound(msg))
+        Err(RtErr::FunctionNotFound(msg))
       }
     }
   }
