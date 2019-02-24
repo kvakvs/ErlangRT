@@ -2,12 +2,14 @@
 //! returns etc.
 use crate::{
   beam::disp_result::DispatchResult,
+  defs::exc_type::ExceptionType,
   emulator::{
+    gen_atoms,
     process::Process,
     runtime_ctx::{call_native_fun, Context},
     vm::VM,
   },
-  fail::{self, RtResult},
+  fail::{self, Error, RtResult},
   term::{boxed, compare, lterm::*},
 };
 use core::cmp::Ordering;
@@ -86,9 +88,9 @@ impl OpcodeCallLast {
   }
 }
 
-/// Performs a tail recursive call to a Destination mfarity (a `HOImport`
+/// Performs a tail recursive call to a Destination mfarity (an `Import`
 /// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
-/// point to an external function or a BIF. Does not update the `ctx.cp`.
+/// point to an external BEAM fn or a native fn. Does not update the `ctx.cp`.
 /// Structure: call_ext_only(arity:int, import:boxed)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExtOnly, arity: 2,
@@ -106,11 +108,11 @@ impl OpcodeCallExtOnly {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     let args = ctx.registers_slice(0, arity);
-    shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
+    generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
 
-/// Performs a call to a Destination mfarity (a `HOImport` object on the heap
+/// Performs a call to a Destination mfarity (an `Import` object on the heap
 /// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
 /// function or a BIF. Updates the `ctx.cp` with return IP.
 /// Structure: call_ext(arity:int, destination:boxed)
@@ -130,7 +132,7 @@ impl OpcodeCallExt {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     let args = ctx.registers_slice(0, arity);
-    shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
+    generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
   }
 }
 
@@ -155,13 +157,13 @@ impl OpcodeCallExtLast {
     let new_cp = curr_p.heap.stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
     let args = ctx.registers_slice(0, arity);
-    shared_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
+    generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
 
 /// Arg: dst_import: boxed::Import which will contain MFArity to call.
 #[inline]
-fn shared_call_ext(
+fn generic_call_ext(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
@@ -193,8 +195,9 @@ fn shared_call_ext(
         if save_cp {
           ctx.cp = ctx.ip; // Points at the next opcode after this
         }
-        let cs = vm.get_code_server_p();
-        ctx.ip = (*import_ptr).resolve(&mut (*cs))?;
+        let code_srv = vm.get_code_server_p();
+        let import_dst = (*import_ptr).resolve(&mut (*code_srv))?;
+        ctx.jump_ptr(import_dst.get_pointer());
         Ok(DispatchResult::Normal)
       }
     },
@@ -246,21 +249,28 @@ impl OpcodeReturn {
   }
 }
 
-define_opcode!(_vm, ctx, _curr_p,
+define_opcode!(_vm, ctx, proc,
   name: OpcodeFuncInfo, arity: 3,
-  run: { Self::func_info(m, f, arity) },
+  run: { Self::func_info(proc, m, f, arity) },
   args: term(m), term(f), usize(arity)
 );
 
 impl OpcodeFuncInfo {
   #[inline]
   pub fn func_info(
+    proc: &Process,
     m: LTerm,
     f: LTerm,
     arity: usize,
   ) -> RtResult<DispatchResult> {
-    panic!("{}function_clause {}:{}/{}", module(), m, f, arity);
-    // DispatchResult::Error
+    if cfg!(debug_assertions) {
+      println!("{}function_clause {}:{}/{}", module(), m, f, arity);
+      proc.context.registers_dump(arity);
+    }
+    Err(Error::Exception(
+      ExceptionType::Error,
+      gen_atoms::FUNCTION_CLAUSE,
+    ))
   }
 }
 
@@ -274,10 +284,7 @@ define_opcode!(_vm, _ctx, curr_p,
 
 impl OpcodeBadmatch {
   #[inline]
-  pub fn badmatch(
-    curr_p: &mut Process,
-    val: LTerm,
-  ) -> RtResult<DispatchResult> {
+  pub fn badmatch(curr_p: &mut Process, val: LTerm) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     fail::create::badmatch_val(val, hp)
   }

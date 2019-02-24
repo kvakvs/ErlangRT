@@ -22,7 +22,7 @@ pub struct ListBuilder {
 }
 
 impl ListBuilder {
-  pub unsafe fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
+  pub fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
     Ok(ListBuilder {
       head_p: core::ptr::null_mut(),
       tail_p: core::ptr::null_mut(),
@@ -70,7 +70,7 @@ impl ListBuilder {
     Ok(())
   }
 
-  pub unsafe fn set_tail(&mut self, tl: LTerm) {
+  pub unsafe fn set_tail(&self, tl: LTerm) {
     (*self.tail_p).set_tl(tl)
   }
 
@@ -78,7 +78,7 @@ impl ListBuilder {
     LTerm::make_cons(self.head_p)
   }
 
-  pub unsafe fn make_term_with_tail(&mut self, tail: LTerm) -> LTerm {
+  pub unsafe fn make_term_with_tail(&self, tail: LTerm) -> LTerm {
     // Cannot set tail if no cells were allocated
     assert!(!self.head_p.is_null());
     self.set_tail(tail);

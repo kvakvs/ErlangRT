@@ -34,8 +34,8 @@ macro_rules! define_nativefun {
     pub struct $struct_name {}
     impl $struct_name {
       pub fn _f(
-        $vmvar: &mut VM,
-        $procvar: &mut Process,
+        $vmvar: &mut crate::emulator::vm::VM,
+        $procvar: &mut crate::emulator::process::Process,
         $argsvar: &[LTerm],
       ) -> RtResult<LTerm> {
         crate::native_fun::assert_arity($namestr, $arity, $argsvar);
@@ -142,7 +142,7 @@ macro_rules! define_nativefun_args {
   ) => {
     let $arg_ident: usize = {
       let tmp = $argsvar[$arg_pos];
-      if !(tmp.is_small()) { return fail::create::badarg(); }
+      if !(tmp.is_small()) { return crate::fail::create::badarg(); }
       tmp.get_small_unsigned()
     };
   };

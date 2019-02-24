@@ -295,6 +295,18 @@ impl Context {
     }
     Ok(())
   }
+
+  #[allow(dead_code)]
+  pub fn registers_dump(&self, arity: usize) {
+    if arity == 0 {
+      println!("registers: empty");
+      return;
+    }
+
+    for i in 0..arity {
+      println!("reg X[{}] = {}", i, self.get_x(i));
+    }
+  }
 }
 
 // === === === ===

@@ -1,5 +1,5 @@
 use crate::{
-  emulator::{mfa::ModFunArgs, process::Process, spawn_options::SpawnOptions, vm::VM},
+  emulator::{mfa::ModFunArgs, spawn_options::SpawnOptions},
   fail::RtResult,
   term::lterm::LTerm,
 };

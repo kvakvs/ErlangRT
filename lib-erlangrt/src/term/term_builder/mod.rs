@@ -63,7 +63,7 @@ impl TermBuilder {
   }
 
   pub fn create_list_builder(&mut self) -> RtResult<ListBuilder> {
-    unsafe { ListBuilder::new(self.heap) }
+    ListBuilder::new(self.heap)
   }
 
   pub fn create_map_builder(&mut self, size_hint: usize) -> RtResult<MapBuilder> {

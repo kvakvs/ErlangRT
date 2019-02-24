@@ -107,7 +107,7 @@ impl ErlStartArgs {
       return Ok(self.args_term);
     }
 
-    let mut lb = unsafe { ListBuilder::new(&mut self.arg_heap) }?;
+    let mut lb = ListBuilder::new(&mut self.arg_heap)?;
     for a in self.command_line.iter() {
       unsafe {
         let erl_str = build_erlstr_from_utf8(a.as_str(), &mut self.arg_heap)?;

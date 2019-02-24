@@ -1,11 +1,11 @@
+//! Implements misc and general purpose list operations.
 use crate::{
-  emulator::{process::Process, vm::VM},
-  fail::{self, RtResult},
+  emulator::process::Process,
+  fail::RtResult,
   term::{compare, lterm::*},
 };
 use core::cmp::Ordering;
-use crate::term::boxed;
-use crate::emulator::gen_atoms;
+use crate::term::term_builder::ListBuilder;
 
 define_nativefun!(_vm, _proc, args,
   name: "lists:member/2", struct_name: NfListsMember2, arity: 2,
@@ -28,34 +28,18 @@ fn member_2(sample: LTerm, list: LTerm) -> RtResult<LTerm> {
   return Ok(LTerm::make_bool(result));
 }
 
-define_nativefun!(_vm, _proc, args,
-  name: "lists:keyfind/3", struct_name: NfListsKeyfind3, arity: 3,
-  invoke: { keyfind_3(key, pos, list) },
-  args: term(key), usize(pos), list(list)
+/// Returns list `list` reversed with `tail` appended (any term).
+define_nativefun!(_vm, proc, args,
+  name: "lists:reverse/2", struct_name: NfListsReverse2, arity: 2,
+  invoke: { unsafe { reverse_2(proc, list, tail) } },
+  args: list(list), term(tail)
 );
 
 #[inline]
-fn keyfind_3(sample: LTerm, pos: usize, list: LTerm) -> RtResult<LTerm> {
-  if let Some(first) = cons::find_first(list, |elem| {
-    if !elem.is_tuple() {
-      return false;
-    }
-
-    // TODO: Count reductions to pay for the complexity
-
-    let tuple_p = elem.get_tuple_ptr();
-    if unsafe { (*tuple_p).get_arity() } <= pos {
-      return false;
-    }
-    let tuple_element = unsafe { boxed::Tuple::get_element_base0(tuple_p, pos) };
-    if let Ok(cmp_result) = compare::cmp_terms(sample, tuple_element, true) {
-      cmp_result == Ordering::Equal
-    } else {
-      return false;
-    }
-  }) {
-    Ok(LTerm::make_boxed(first))
-  } else {
-    Ok(gen_atoms::FALSE)
-  }
+unsafe fn reverse_2(proc: &mut Process, list: LTerm, tail: LTerm) -> RtResult<LTerm> {
+  let mut lb = ListBuilder::new(&mut proc.heap)?;
+  // Going forward the list, prepend values to the result
+  cons::for_each(list, |elem| lb.prepend(elem))?;
+  // Last element's tail in the new list is set to `tail` argument
+  Ok(lb.make_term_with_tail(tail))
 }
