@@ -13,6 +13,7 @@ use crate::{
   term::{boxed, compare, lterm::*},
 };
 use core::cmp::Ordering;
+use crate::emulator::runtime_ctx::call_native_fun::find_and_call_native_fun;
 
 fn module() -> &'static str {
   "opcodes::op_execution: "
@@ -179,7 +180,7 @@ fn generic_call_ext(
       if (*import_ptr).get_is_bif(&vm.code_server) {
         // Perform a BIF application
         let cb_target = call_native_fun::CallBifTarget::ImportPointer(import_ptr);
-        call_native_fun::find_and_call_native_fun(
+        let native_result = find_and_call_native_fun(
           vm,
           ctx,
           curr_p,
@@ -188,7 +189,12 @@ fn generic_call_ext(
           args,
           LTerm::make_regx(0),
           true,
-        )
+        );
+        if !save_cp {
+          // Perform inline return like if it was a tail recursive call
+          ctx.return_and_clear_cp();
+        }
+        native_result
       } else {
         // Perform a regular call to BEAM code, save CP and jump
         //
@@ -241,10 +247,7 @@ impl OpcodeReturn {
         )
       }
     }
-
-    ctx.jump_ptr(ctx.cp.get_pointer());
-    ctx.clear_cp();
-
+    ctx.return_and_clear_cp();
     Ok(DispatchResult::Normal)
   }
 }

@@ -65,6 +65,13 @@ impl Context {
     }
   }
 
+  /// Perform a return just like BEAM `return` instruction does. The result must
+  /// be in X0, but that is none of this function's business.
+  pub fn return_and_clear_cp(&mut self) {
+    self.jump_ptr(self.cp.get_pointer());
+    self.clear_cp();
+  }
+
   /// Read contents of an X register.
   #[inline]
   pub fn get_x(&self, index: usize) -> LTerm {
