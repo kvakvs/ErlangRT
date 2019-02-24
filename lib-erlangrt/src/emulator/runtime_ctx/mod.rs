@@ -1,6 +1,7 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
 use crate::{
+  beam::gen_op,
   defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
   emulator::{
     code::{opcode, CodePtr},
@@ -17,11 +18,10 @@ use crate::{
 };
 use colored::Colorize;
 use core::{fmt, slice};
-use crate::beam::gen_op;
 
-pub mod call_native_fun;
 pub mod call_closure;
 pub mod call_export;
+pub mod call_native_fun;
 
 fn module() -> &'static str {
   "runtime_ctx: "
@@ -52,6 +52,16 @@ pub struct Context {
   pub fpregs: [f64; MAX_FPREGS],
 }
 
+/// Returned from return function, it can either be performed on an empty stack
+/// and lead to the process' end of life, or can be a normal return (jump to CP).
+pub enum ReturnResult {
+  /// Return could not find any CP data on stack, because it was empty.
+  /// This means the process has to end its life (no more code).
+  EmptyStack,
+  /// The return was done.
+  Success,
+}
+
 impl Context {
   pub fn new(ip: CodePtr) -> Context {
     Context {
@@ -67,9 +77,28 @@ impl Context {
 
   /// Perform a return just like BEAM `return` instruction does. The result must
   /// be in X0, but that is none of this function's business.
-  pub fn return_and_clear_cp(&mut self) {
+  #[inline]
+  pub fn return_and_clear_cp(&mut self, proc: &Process) -> ReturnResult {
+    if self.cp.is_null() {
+      if proc.heap.stack_depth() == 0 {
+        // Process end of life: return on empty stack
+        println!(
+          "Process {} end of life (return on empty stack) x0={}",
+          proc.pid,
+          self.get_x(0)
+        );
+        return ReturnResult::EmptyStack;
+      } else {
+        proc.heap.stack_dump();
+        panic!(
+          "{}Return instruction with null CP and nonempty stack. Possible error in CP value management",
+          module()
+        )
+      }
+    }
     self.jump_ptr(self.cp.get_pointer());
     self.clear_cp();
+    ReturnResult::Success
   }
 
   /// Read contents of an X register.
@@ -143,9 +172,7 @@ impl Context {
   /// used for fetching arrays of args from code without moving them.
   pub fn op_arg_term_slice_at(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
     let arg_p = self.args_ptr as *const LTerm;
-    unsafe {
-      slice::from_raw_parts(arg_p.add(offset), sz)
-    }
+    unsafe { slice::from_raw_parts(arg_p.add(offset), sz) }
   }
 
   /// Returns slice of registers `offset` to `sz`, bypassing the borrow checker
@@ -253,7 +280,12 @@ impl Context {
         SpecialTag(st) => panic!("store: specialtag {} not supported", st),
       }
     }
-    panic!("{}Don't know how to ctx.store {} into {}", module(), val, dst)
+    panic!(
+      "{}Don't know how to ctx.store {} into {}",
+      module(),
+      val,
+      dst
+    )
   }
 
   #[inline]
@@ -276,6 +308,7 @@ impl Context {
 
   #[inline]
   pub fn jump_ptr(&mut self, code_ptr: *const Word) {
+    debug_assert!(!code_ptr.is_null(), "Jumping to NULL is a bad idea");
     if cfg!(feature = "trace_opcode_execution") {
       println!("{} {:p}", "jump to".purple(), code_ptr);
     }

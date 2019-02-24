@@ -14,6 +14,16 @@ impl ProcessMailbox {
     }
   }
 
+  #[inline]
+  pub fn have_unread_messages(&self) -> bool {
+    self.read_index < self.inbox.len()
+  }
+
+//  #[inline]
+//  pub fn is_empty(&self) -> bool {
+//    self.inbox.is_empty()
+//  }
+
   /// Copy a message and put into process mailbox.
   /// Assumes: the message is already copied to receiving process heap.
   pub fn put(&mut self, message: LTerm) {

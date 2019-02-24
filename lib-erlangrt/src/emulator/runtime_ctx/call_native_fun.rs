@@ -138,9 +138,7 @@ fn callbif_resolve_import(
   assert_eq!(unsafe { (*imp_p).mfarity.arity }, check_arity);
 
   // Here HOImport pointer is found, try and resolve it to a Rust function ptr
-  if let Some(fn_ptr) = unsafe {
-    (*imp_p).get_native_fn_ptr(code_srv)
-  } {
+  if let Some(fn_ptr) = unsafe { (*imp_p).get_native_fn_ptr(code_srv) } {
     return Ok(BifResolutionResult::FnPointer(fn_ptr));
   }
   let s = unsafe { format!("{}", (*imp_p).mfarity) };

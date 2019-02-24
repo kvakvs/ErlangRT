@@ -228,20 +228,20 @@ impl Scheduler {
     curr_pid: LTerm,
   ) -> ScheduleHint {
     // Extract the last running process from the process registry
-    let curr_p = proc_reg.unsafe_lookup_pid_mut(curr_pid);
-    assert!(!curr_p.is_null());
+    let curr_ptr = proc_reg.unsafe_lookup_pid_mut(curr_pid);
+    assert!(!curr_ptr.is_null());
 
     // Unspeakable horrors are happening as we speak: (bypassing borrow checker)
-    let curr = unsafe { &mut (*curr_p) };
+    let curr_proc = unsafe { &mut (*curr_ptr) };
 
     debug_assert_eq!(
-      curr.current_queue,
+      curr_proc.current_queue,
       Queue::None,
       "Finalizing previous process which is not dequeued, now in {:?}",
-      curr.current_queue
+      curr_proc.current_queue
     );
 
-    match curr.timeslice_result {
+    match curr_proc.timeslice_result {
       SliceResult::Yield => {
         self.enqueue(proc_reg, curr_pid);
         self.current = None
@@ -259,11 +259,16 @@ impl Scheduler {
       }
 
       SliceResult::Exception => {
-        return self.handle_process_exception(proc_reg, curr_p, curr_pid);
+        return self.handle_process_exception(proc_reg, curr_ptr, curr_pid);
       }
 
       SliceResult::InfiniteWait => {
-        self.enqueue_wait(true, curr_pid);
+        // Check if there is anything that should wake it up right now, like
+        // an incoming message or another signal?
+        // TODO: Respect already viewed messages in the mailbox
+        if !curr_proc.mailbox.have_unread_messages() {
+          self.enqueue_wait(true, curr_pid);
+        }
       }
     }
     ScheduleHint::TakeAnotherProcess

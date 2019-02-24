@@ -16,7 +16,7 @@ test() ->
     test_hof_nested(),
     test_lc(),
     test_send_receive(),
-    test_ring(),
+    % test_ring(),
     test_try_catch(),
     test_apply(lists, erlang),
     test_mochijson().

@@ -6,14 +6,16 @@ use crate::{
   emulator::{
     gen_atoms,
     process::Process,
-    runtime_ctx::{call_native_fun, Context},
+    runtime_ctx::{
+      call_native_fun::{self, find_and_call_native_fun},
+      Context, ReturnResult,
+    },
     vm::VM,
   },
   fail::{self, Error, RtResult},
   term::{boxed, compare, lterm::*},
 };
 use core::cmp::Ordering;
-use crate::emulator::runtime_ctx::call_native_fun::find_and_call_native_fun;
 
 fn module() -> &'static str {
   "opcodes::op_execution: "
@@ -167,7 +169,7 @@ impl OpcodeCallExtLast {
 fn generic_call_ext(
   vm: &mut VM,
   ctx: &mut Context,
-  curr_p: &mut Process,
+  proc: &mut Process,
   dst_import: LTerm,
   fail_label: LTerm,
   args: &[LTerm],
@@ -180,21 +182,27 @@ fn generic_call_ext(
       if (*import_ptr).get_is_bif(&vm.code_server) {
         // Perform a BIF application
         let cb_target = call_native_fun::CallBifTarget::ImportPointer(import_ptr);
-        let native_result = find_and_call_native_fun(
+        let native_dispatch_result = find_and_call_native_fun(
           vm,
           ctx,
-          curr_p,
+          proc,
           fail_label,
           cb_target,
           args,
           LTerm::make_regx(0),
           true,
         );
-        if !save_cp {
+        if save_cp {
+          return native_dispatch_result;
+        } else {
           // Perform inline return like if it was a tail recursive call
-          ctx.return_and_clear_cp();
+          // Because tail call might happen on an empty stack, the return with
+          // empty stack will end the process life here (no more code).
+          match ctx.return_and_clear_cp(proc) {
+            ReturnResult::EmptyStack => return Ok(DispatchResult::Finished),
+            ReturnResult::Success => return native_dispatch_result,
+          };
         }
-        native_result
       } else {
         // Perform a regular call to BEAM code, save CP and jump
         //
@@ -210,7 +218,7 @@ fn generic_call_ext(
     Err(_err) => {
       // Create a `{badfun, _}` error
       // panic!("bad call_ext target {}", imp0);
-      fail::create::badfun_val(dst_import, &mut curr_p.heap)
+      fail::create::badfun_val(dst_import, &mut proc.heap)
     }
   }
 }
@@ -228,27 +236,12 @@ impl OpcodeReturn {
   #[inline]
   pub fn return_opcode(
     ctx: &mut Context,
-    curr_p: &mut Process,
+    proc: &mut Process,
   ) -> RtResult<DispatchResult> {
-    if ctx.cp.is_null() {
-      if curr_p.heap.stack_depth() == 0 {
-        // Process end of life: return on empty stack
-        println!(
-          "Process end of life (return on empty stack) x0={}",
-          ctx.get_x(0)
-        );
-        // return Err(Error::Exception(ExceptionType::Exit, gen_atoms::NORMAL));
-        return Ok(DispatchResult::Finished);
-      } else {
-        curr_p.heap.stack_dump();
-        panic!(
-          "{}Return instruction with null CP and nonempty stack. Possible error in CP value management",
-          module()
-        )
-      }
+    match ctx.return_and_clear_cp(proc) {
+      ReturnResult::EmptyStack => Ok(DispatchResult::Finished),
+      ReturnResult::Success => Ok(DispatchResult::Normal),
     }
-    ctx.return_and_clear_cp();
-    Ok(DispatchResult::Normal)
   }
 }
 
