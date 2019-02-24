@@ -28,7 +28,7 @@ pub enum FTerm {
   BigInt(Box<BigInt>),
   /// A regular cons cell with a head and a tail
   Cons(Box<[FTerm]>),
-  /// NIL [] zero sized list
+  /// NIL [] - an empty list
   Nil,
   Tuple(Vec<FTerm>),
   /// zero sized tuple
@@ -37,25 +37,25 @@ pub enum FTerm {
 
   // Internal values not visible in the user data
   /// A runtime index of X register
-  X_(Word),
+  XRegister(Word),
   /// A runtime index of a stack cell relative to the stack top (Y register)
-  Y_(Word),
+  YRegister(Word),
   /// A runtime index of a floating-point register
-  FP_(Word),
+  FloatRegister(Word),
 
   // BEAM loader specials, these never occur at runtime and finding them
   // in runtime must be an error.
   /// A load-time index of label
-  LoadTimeLabel(Word),
+  LoadtimeLabel(Word),
   /// A load-time atom index in the loader atom table
-  LoadTimeAtom(usize),
+  LoadtimeAtom(usize),
   // /// A load-time word value literally specified
-  // LoadTimeInt(SWord),
+  // LoadtimeInt(SWord),
   /// A load-time index in literal heap
-  LoadTimeLit(Word),
+  LoadtimeLit(Word),
   /// A list of value/label pairs, a jump table
-  LoadTimeExtlist(Vec<FTerm>),
-  LoadTimeAlloclist,
+  LoadtimeExtlist(Vec<FTerm>),
+  LoadtimeAlloclist,
 }
 
 impl FTerm {
@@ -81,12 +81,12 @@ impl FTerm {
   pub fn to_lterm(&self, _heap: &mut Heap, lit_tab: &Vec<LTerm>) -> LTerm {
     match *self {
       FTerm::Atom(i) => LTerm::make_atom(i),
-      FTerm::X_(i) => LTerm::make_regx(i),
-      FTerm::Y_(i) => LTerm::make_regy(i),
-      FTerm::FP_(i) => LTerm::make_regfp(i),
+      FTerm::XRegister(i) => LTerm::make_regx(i),
+      FTerm::YRegister(i) => LTerm::make_regy(i),
+      FTerm::FloatRegister(i) => LTerm::make_regfp(i),
       FTerm::SmallInt(i) => LTerm::make_small_signed(i),
       FTerm::Nil => LTerm::nil(),
-      FTerm::LoadTimeLit(lit_index) => lit_tab[lit_index],
+      FTerm::LoadtimeLit(lit_index) => lit_tab[lit_index],
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self),
     }
   }

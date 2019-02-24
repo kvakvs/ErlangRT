@@ -179,7 +179,7 @@ pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
 #[inline]
 fn print_opening_quote(f: &mut fmt::Formatter) -> fmt::Result {
   if cfg!(feature = "fancy_string_quotes") {
-    write!(f, "“")
+    write!(f, "‹")
   } else {
     write!(f, "\"")
   }
@@ -189,7 +189,7 @@ fn print_opening_quote(f: &mut fmt::Formatter) -> fmt::Result {
 #[inline]
 fn print_closing_quote(f: &mut fmt::Formatter) -> fmt::Result {
   if cfg!(feature = "fancy_string_quotes") {
-    write!(f, "”")
+    write!(f, "›")
   } else {
     write!(f, "\"")
   }

@@ -59,6 +59,7 @@ fn module() -> &'static str {
   "compact_term reader: "
 }
 
+#[inline]
 fn make_err(e: CTError) -> RtResult<FTerm> {
   Err(Error::CodeLoadingCompactTerm(e))
 }
@@ -91,31 +92,34 @@ pub fn read(r: &mut BinaryReader) -> RtResult<FTerm> {
         if index == 0 {
           return Ok(FTerm::Nil);
         }
-        return Ok(FTerm::LoadTimeAtom(index as usize));
+        return Ok(FTerm::LoadtimeAtom(index as usize));
       }
       make_err(CTError::BadAtomTag)
     }
     x if x == CTETag::XReg as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::X_(index as Word));
+        return Ok(FTerm::XRegister(index as Word));
       }
       make_err(CTError::BadXRegTag)
     }
     x if x == CTETag::YReg as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::Y_(index as Word));
+        return Ok(FTerm::YRegister(index as Word));
       }
       make_err(CTError::BadYRegTag)
     }
     x if x == CTETag::Label as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::LoadTimeLabel(index as Word));
+        return Ok(FTerm::LoadtimeLabel(index as Word));
       }
       make_err(CTError::BadLabelTag)
     }
     x if x == CTETag::Integer as u8 => {
       if let Integral::Small(s) = bword {
         return Ok(FTerm::from_word(s));
+      }
+      if cfg!(debug_assertions) {
+        println!("bad integer tag when parsing compact term format: {:?}", bword);
       }
       make_err(CTError::BadIntegerTag)
     }
@@ -176,7 +180,7 @@ fn parse_ext_float(r: &mut BinaryReader) -> RtResult<FTerm> {
 fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<FTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
-    return Ok(FTerm::FP_(reg as Word));
+    return Ok(FTerm::FloatRegister(reg as Word));
   }
   let msg = "Ext tag FPReg value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
@@ -185,7 +189,7 @@ fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<FTerm> {
 fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<FTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
-    return Ok(FTerm::LoadTimeLit(reg as Word));
+    return Ok(FTerm::LoadtimeLit(reg as Word));
   }
   let msg = "toExt tag Literal value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
@@ -202,7 +206,7 @@ fn parse_ext_list(r: &mut BinaryReader) -> RtResult<FTerm> {
     el.push(value);
   }
 
-  Ok(FTerm::LoadTimeExtlist(el))
+  Ok(FTerm::LoadtimeExtlist(el))
 }
 
 /// Assume that the stream contains a tagged small integer (check the tag!)

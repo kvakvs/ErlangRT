@@ -6,10 +6,10 @@ edition = "2018"
 
 # Add "trace_opcode_execution" to print every opcode
 # Add "trace_register_changes" to print every register change as we go
-# Add "fancy_string_quotes" to use unicode quotes for strings and disable
-#    \quoting "quotation" characters. This breaks compatibility of printed
+# Add "fancy_string_quotes" to use unicode ‹quotes› for strings and disable
+#    backslash \quoting of "quotation" characters. This breaks compatibility of printed
 #    Erlang terms and the compiler won't accept them back but is beneficial for
-#    printing strings with quotes such as JSON.
+#    reading strings with quotes such as JSON.
 [features]
 default = [
     "r21",

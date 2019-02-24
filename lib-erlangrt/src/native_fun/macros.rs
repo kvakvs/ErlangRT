@@ -54,15 +54,15 @@ macro_rules! define_nativefun {
 /// which will capture each arg from the `ip[$arg_pos]`.
 ///
 /// Arguments can be comma-separated many of:
-///   unused(ident) - do nothing
-///   usize(ident) - take term then unsigned small from it, else return badarg
-///   term(ident) - take word as a term
-///   tuple(ident) - the value is a tuple, otherwise badarg
-///   list(ident) - the value is a list, otherwise badarg
-///   atom(ident) - must be an atom, otherwise badarg
-///   pid(ident) - must be a pid, otherwise badarg
-///   pid_port(ident) - must be a pid or a port, otherwise badarg
-///   bool(ident) - must be a `true` or `false` atom, otherwise badarg
+///   unused(n) - do nothing
+///   usize(n) - take term then unsigned small from it, else return badarg
+///   term(n) - take word as a term
+///   tuple(n) - the value is a tuple, otherwise badarg
+///   list(n), non_empty_list(n) - the value is a list, otherwise badarg
+///   atom(n) - must be an atom, otherwise badarg
+///   pid(n) - must be a pid, otherwise badarg
+///   pid_port(n) - must be a pid or a port, otherwise badarg
+///   bool(n) - must be a `true` or `false` atom, otherwise badarg
 ///
 /// Example:
 /// ```define_nativefun_args!(vm, curr_p, args, 0,
@@ -122,6 +122,14 @@ macro_rules! define_one_arg {
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
     if !$arg_ident.is_list() { return_badarg!($fn_name, $arg_pos, $arg_ident, "list"); }
+  };
+
+  // Non-empty List args are verified to be a list but not [] otherwise a badarg is created.
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    non_empty_list($arg_ident:ident)
+  ) => {
+    let $arg_ident = $argsvar[$arg_pos];
+    if !$arg_ident.is_cons() { return_badarg!($fn_name, $arg_pos, $arg_ident, "non empty list"); }
   };
 
   // Atom args are verified to be an atom otherwise a badarg is created.

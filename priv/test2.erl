@@ -19,7 +19,8 @@ test() ->
     % test_ring(),
     test_try_catch(),
     test_apply(lists, erlang),
-    test_mochijson().
+    test_mochijson(),
+    test_binary_patterns().
 
 %%-----------------------------------------------
 test_apply(Lists, Erlang) ->
@@ -151,3 +152,8 @@ is_palindrome([])                    -> false;
 is_palindrome(L) when length(L) == 1 -> false;
 is_palindrome(L) -> case L == rev(L) of true ->
     true; false -> false end.
+
+test_binary_patterns() ->
+    bs_match_bin_SUITE:byte_split_binary([]),
+    bs_match_bin_SUITE:bit_split_binary([]).
+    % bs_match_bin_SUITE:match_huge_bin([]).

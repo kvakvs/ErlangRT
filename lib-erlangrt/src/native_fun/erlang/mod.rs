@@ -23,7 +23,7 @@ pub fn new() -> NativeModule {
   let fn_entries: Vec<NativeFnEntry> = vec![
     NativeFnEntry::with_str("*", 2, nativefun_multiply_2),
     NativeFnEntry::with_str("+", 2, nativefun_plus_2),
-    NativeFnEntry::with_str("++", 2, nativefun_plusplus_2),
+    NativeFnEntry::with_str("++", 2, NfErlangPlusPlus2::_f),
     NativeFnEntry::with_str("-", 2, nativefun_minus_2),
     NativeFnEntry::with_str("/=", 2, nativefun_notequal_2),
     NativeFnEntry::with_str("<", 2, nativefun_lessthan_2),
@@ -36,11 +36,12 @@ pub fn new() -> NativeModule {
     NativeFnEntry::with_str("atom_to_list", 1, nativefun_atom_to_list_1),
     NativeFnEntry::with_str("error", 1, nativefun_error_1),
     NativeFnEntry::with_str("error", 2, nativefun_error_2),
-    NativeFnEntry::with_str("hd", 1, nativefun_hd_1),
+    NativeFnEntry::with_str("hd", 1, NfErlangHd1::_f),
     NativeFnEntry::with_str("integer_to_list", 1, nativefun_integer_to_list_1),
     NativeFnEntry::with_str("is_boolean", 1, nativefun_is_boolean_1),
     NativeFnEntry::with_str("is_process_alive", 1, NfErlangIsPAlive1::_f),
     NativeFnEntry::with_str("length", 1, nativefun_length_1),
+    NativeFnEntry::with_str("list_to_binary", 1, NfErlangL2b1::_f),
     NativeFnEntry::with_str("load_nif", 2, nativefun_load_nif_2),
     NativeFnEntry::with_str("make_fun", 3, nativefun_make_fun_3),
     NativeFnEntry::with_str("nif_error", 1, nativefun_nif_error_1),
@@ -51,7 +52,7 @@ pub fn new() -> NativeModule {
     NativeFnEntry::with_str("registered", 0, NfErlangRegistered0::_f),
     NativeFnEntry::with_str("self", 0, NfErlangSelf0::_f),
     NativeFnEntry::with_str("spawn", 3, NfErlangSpawn3::_f),
-    NativeFnEntry::with_str("tl", 1, nativefun_tl_1),
+    NativeFnEntry::with_str("tl", 1, NfErlangTl1::_f),
   ];
   m.init_with(fn_entries.iter());
   m

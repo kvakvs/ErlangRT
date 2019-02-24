@@ -230,7 +230,7 @@ impl Loader {
         "ExpT" => self.raw.exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
-        "Line" => self.load_line_info(&mut r),
+        "Line" => self.load_line_info(&mut r)?,
         "LitT" => self.load_literals(&mut r, chunk_sz as Word),
         // LocT same format as ExpT, but for local functions
         "LocT" => self.raw.locals = self.load_exports(&mut r),
@@ -430,7 +430,7 @@ impl Loader {
     }
   }
 
-  fn load_line_info(&mut self, r: &mut BinaryReader) {
+  fn load_line_info(&mut self, r: &mut BinaryReader) -> RtResult<()> {
     let _version = r.read_u32be(); // must match emulator version 0
     let _flags = r.read_u32be();
     let _n_line_instr = r.read_u32be();
@@ -439,11 +439,12 @@ impl Loader {
     let mut _fname_index = 0u32;
 
     for _i in 0..n_line_refs {
-      match compact_term::read(r).unwrap() {
+      match compact_term::read(r)? {
         FTerm::SmallInt(_w) => {
           // self.linerefs.push((_fname_index, w));
         }
         FTerm::Atom(a) => _fname_index = a as u32,
+        FTerm::LoadtimeAtom(a) => _fname_index = a as u32,
         other => panic!(
           "{}Unexpected data in line info section: {:?}",
           module(),
@@ -456,6 +457,7 @@ impl Loader {
       let name_size = r.read_u16be();
       let _fstr = r.read_str_utf8(name_size as Word);
     }
+    Ok(())
   }
 
   /// Given the `r`, reader positioned on the contents of "LitT" chunk,
@@ -611,21 +613,21 @@ impl Loader {
   }
 
   /// Given arity amount of `args` from another opcode, process them and store
-  /// into the `self.code` array. `LoadTimeExtList` get special treatment as a
-  /// container of terms. `LoadTimeLabel` get special treatment as we try to
+  /// into the `self.code` array. `LoadtimeExtList` get special treatment as a
+  /// container of terms. `LoadtimeLabel` get special treatment as we try to
   /// resolve them into an offset.
   fn store_opcode_args(&mut self, args: &[FTerm]) -> RtResult<()> {
     for a in args {
       match *a {
         // Ext list is special so we convert it and its contents to lterm
-        FTerm::LoadTimeExtlist(ref jtab) => {
+        FTerm::LoadtimeExtlist(ref jtab) => {
           // Push a header word with length
           let heap_jtab = boxed::Tuple::create_into(&mut self.lit_heap, jtab.len())?;
           self.code.push(LTerm::make_boxed(heap_jtab).raw());
 
           // Each value convert to LTerm and also push forming a tuple
           for (index, t) in jtab.iter().enumerate() {
-            let new_t = if let FTerm::LoadTimeLabel(f) = *t {
+            let new_t = if let FTerm::LoadtimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
               let ploc =
                 PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
@@ -640,14 +642,14 @@ impl Loader {
 
         // Label value is special, we want to remember where it was
         // to convert it to an offset
-        FTerm::LoadTimeLabel(f) => {
+        FTerm::LoadtimeLabel(f) => {
           let ploc = PatchLocation::PatchCodeOffset(self.code.len());
           let new_t = self.maybe_convert_label(LabelId(f), ploc);
           self.code.push(new_t)
         }
 
         // Load-time literals are already loaded on `self.lit_heap`
-        FTerm::LoadTimeLit(lit_index) => self.code.push(self.lit_tab[lit_index].raw()),
+        FTerm::LoadtimeLit(lit_index) => self.code.push(self.lit_tab[lit_index].raw()),
 
         // Otherwise convert via a simple method
         _ => self
@@ -807,16 +809,16 @@ impl Loader {
   pub fn resolve_loadtime_values(&self, arg: &FTerm) -> Option<FTerm> {
     match *arg {
       // A special value 0 means NIL []
-      FTerm::LoadTimeAtom(0) => Some(FTerm::Nil),
+      FTerm::LoadtimeAtom(0) => Some(FTerm::Nil),
 
       // Repack load-time atom via an `LTerm` index into an `FTerm` atom
-      FTerm::LoadTimeAtom(i) => {
+      FTerm::LoadtimeAtom(i) => {
         let aindex = self.atom_from_loadtime_index(i).atom_index();
         Some(FTerm::Atom(aindex))
       }
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
-      FTerm::LoadTimeExtlist(ref lst) => {
+      FTerm::LoadtimeExtlist(ref lst) => {
         let mut result: Vec<FTerm> = Vec::new();
         result.reserve(lst.len());
         for x in lst.iter() {
@@ -825,7 +827,7 @@ impl Loader {
             None => result.push(x.clone()),
           }
         }
-        Some(FTerm::LoadTimeExtlist(result))
+        Some(FTerm::LoadtimeExtlist(result))
       }
       // Otherwise no changes
       _ => None,

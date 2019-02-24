@@ -1,6 +1,6 @@
 use crate::{
   emulator::{process::Process, vm::VM},
-  fail::{self, RtResult},
+  fail::{RtResult},
   native_fun::assert_arity,
   term::lterm::*,
 };
@@ -24,29 +24,25 @@ pub fn nativefun_length_1(
 
 /// Calculate a new list made of two lists joined together.
 /// Arg1 must be list or NIL.
-pub fn nativefun_plusplus_2(
-  _vm: &mut VM,
-  curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:++", 2, args);
+define_nativefun!(_vm, proc, args,
+  name: "erlang:hd/1", struct_name: NfErlangPlusPlus2, arity: 2,
+  invoke: { plusplus_2(proc, a, b) },
+  args: list(a), term(b),
+);
 
-  if !args[0].is_list() {
-    return fail::create::badarg();
-  }
-
+pub fn plusplus_2(curr_p: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
   // Doing [] ++ X -> X
-  if args[0] == LTerm::nil() {
-    return Ok(args[1]);
+  if a == LTerm::nil() {
+    return Ok(b);
   }
 
-  // Copy the list args[0] without setting its tail, ...
+  // Copy the list a without setting its tail, ...
   let hp = &mut curr_p.heap;
-  let (l1, tail) = unsafe { cons::copy_list_leave_tail(args[0], hp) }?;
+  let (l1, tail) = unsafe { cons::copy_list_leave_tail(a, hp) }?;
 
   // then append the tail
   unsafe {
-    (*tail).set_tl(args[1]);
+    (*tail).set_tl(b);
   }
 
   // Return what we got joined together
@@ -54,29 +50,33 @@ pub fn nativefun_plusplus_2(
 }
 
 /// Takes head of a cons value, otherwise returns badarg.
-pub fn nativefun_hd_1(
-  _vm: &mut VM,
-  _curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:hd", 1, args);
-  if !args[0].is_cons() {
-    return fail::create::badarg();
-  }
-  let p = args[0].get_cons_ptr();
-  unsafe { Ok((*p).hd()) }
-}
+define_nativefun!(_vm, _proc, args,
+  name: "erlang:hd/1", struct_name: NfErlangHd1, arity: 1,
+  invoke: {
+    let p = list.get_cons_ptr();
+    unsafe { Ok((*p).hd()) }
+  },
+  args: non_empty_list(list),
+);
 
 /// Takes tail of a cons value, otherwise returns badarg.
-pub fn nativefun_tl_1(
-  _vm: &mut VM,
-  _curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:hd", 1, args);
-  if !args[0].is_cons() {
-    return fail::create::badarg();
-  }
-  let p = args[0].get_cons_ptr();
-  unsafe { Ok((*p).tl()) }
+define_nativefun!(_vm, _proc, args,
+  name: "erlang:tl/1", struct_name: NfErlangTl1, arity: 1,
+  invoke: {
+    let p = list.get_cons_ptr();
+    unsafe { Ok((*p).tl()) }
+  },
+  args: non_empty_list(list),
+);
+
+/// Returns list `list` reversed with `tail` appended (any term).
+define_nativefun!(_vm, proc, args,
+  name: "erlang:list_to_binary/1", struct_name: NfErlangL2b1, arity: 1,
+  invoke: { unsafe { list_to_binary_1(proc, list) } },
+  args: list(list),
+);
+
+#[inline]
+unsafe fn list_to_binary_1(_proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
+  Ok(list)
 }
