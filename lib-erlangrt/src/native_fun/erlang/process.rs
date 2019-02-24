@@ -53,13 +53,13 @@ define_nativefun!(vm, _proc, _args,
     let spawn_opts = SpawnOptions::default();
     vm.create_process(LTerm::nil(), &mfargs, &spawn_opts)
   },
-  args: atom(m), atom(f), list(args)
+  args: atom(m), atom(f), list(args),
 );
 
 define_nativefun!(vm, _proc, args,
   name: "erlang:is_process_alive/1", struct_name: NfErlangIsPAlive1, arity: 1,
   invoke: { Ok(LTerm::make_bool(vm.processes.lookup_pid(pid).is_some())) },
-  args: pid(pid)
+  args: pid(pid),
 );
 
 /// erlang:register(RegName :: atom(), Pid_or_Port)
@@ -68,7 +68,7 @@ define_nativefun!(vm, _proc, _args,
   invoke: {
     register_2(vm, name, pid_or_port)
   },
-  args: atom(name), pid_port(pid_or_port)
+  args: atom(name), pid_port(pid_or_port),
 );
 
 pub fn register_2(vm: &mut VM, name: LTerm, pid_or_port: LTerm) -> RtResult<LTerm> {
@@ -90,14 +90,14 @@ define_nativefun!(_vm, _proc, _args,
 define_nativefun!(_vm, proc, args,
   name: "erlang:process_flag/2", struct_name: NfErlangProcFlag2, arity: 2,
   invoke: { do_erlang_process_flag(proc, flag, value) },
-  args: atom(flag), bool(value)
+  args: atom(flag), bool(value),
 );
 
 /// Set a supported process flag for some other process.
 define_nativefun!(vm, _proc, args,
   name: "erlang:process_flag/3", struct_name: NfErlangProcFlag3, arity: 3,
   invoke: { process_flag_3(vm, pid, flag, value) },
-  args: pid(pid), atom(flag), bool(value)
+  args: pid(pid), atom(flag), bool(value),
 );
 
 pub fn process_flag_3(

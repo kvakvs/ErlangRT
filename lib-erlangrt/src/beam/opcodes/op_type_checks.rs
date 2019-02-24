@@ -14,7 +14,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_atom() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is a function or closure otherwise jumps to label.
@@ -25,7 +25,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_fun() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is a function or closure otherwise jumps to label.
@@ -33,7 +33,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsFunction2, arity: 3,
   run: { Self::is_function2(ctx, fail, value, arity) },
-  args: cp_not_nil(fail), load(value), term(arity)
+  args: cp_not_nil(fail), load(value), term(arity),
 );
 
 impl OpcodeIsFunction2 {
@@ -82,7 +82,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_small() && !value.is_big_int() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is a boxed tuple or an empty tuple.
@@ -93,7 +93,7 @@ define_opcode!(_vm, ctx, curr_p,
     if value != LTerm::empty_tuple() && !value.is_tuple() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is a boxed binary or an empty binary.
@@ -104,7 +104,7 @@ define_opcode!(_vm, ctx, curr_p,
     if value != LTerm::empty_binary() && !value.is_binary() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is a boxed containing a floating point number.
@@ -115,7 +115,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_float() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is either a smallint, a bigint or a float.
@@ -126,7 +126,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_number() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is local or remote pid.
@@ -137,7 +137,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_pid() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 
@@ -149,7 +149,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_ref() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is either a local or remote port.
@@ -160,7 +160,7 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_port() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 /// Checks that argument is a NIL or a cons pointer, otherwise jumps to label.
@@ -171,6 +171,6 @@ define_opcode!(_vm, ctx, curr_p,
     if !value.is_list() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 

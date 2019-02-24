@@ -14,5 +14,5 @@ define_nativefun!(vm, proc, args,
     let so = SpawnOptions::default();
     vm.spawn_system_process(proc.pid, &mfargs, so)
   },
-  args: atom(m), atom(f), term(a)
+  args: atom(m), atom(f), term(a),
 );

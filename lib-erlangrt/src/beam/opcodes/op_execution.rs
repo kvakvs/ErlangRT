@@ -25,7 +25,7 @@ fn module() -> &'static str {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeCall, arity: 2,
   run: { Self::call(ctx, arity, dst) },
-  args: usize(arity), term(dst)
+  args: usize(arity), term(dst),
 );
 
 impl OpcodeCall {
@@ -47,7 +47,7 @@ impl OpcodeCall {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeCallOnly, arity: 2,
   run: { Self::call_only(ctx, arity, dst) },
-  args: usize(arity), term(dst)
+  args: usize(arity), term(dst),
 );
 
 impl OpcodeCallOnly {
@@ -69,7 +69,7 @@ impl OpcodeCallOnly {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeCallLast, arity: 3,
   run: { Self::call_last(ctx, curr_p, arity, dst, dealloc) },
-  args: usize(arity), term(dst), usize(dealloc)
+  args: usize(arity), term(dst), usize(dealloc),
 );
 
 impl OpcodeCallLast {
@@ -96,7 +96,7 @@ impl OpcodeCallLast {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExtOnly, arity: 2,
   run: { Self::call_ext_only(vm, ctx, curr_p, arity, dst) },
-  args: usize(arity), term(dst)
+  args: usize(arity), term(dst),
 );
 
 impl OpcodeCallExtOnly {
@@ -120,7 +120,7 @@ impl OpcodeCallExtOnly {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExt, arity: 2,
   run: { Self::call_ext(vm, ctx, curr_p, arity, dst) },
-  args: usize(arity), term(dst)
+  args: usize(arity), term(dst),
 );
 
 impl OpcodeCallExt {
@@ -142,7 +142,7 @@ impl OpcodeCallExt {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExtLast, arity: 3,
   run: { Self::call_ext_last(vm, ctx, curr_p, arity, dst, dealloc) },
-  args: usize(arity), term(dst), usize(dealloc)
+  args: usize(arity), term(dst), usize(dealloc),
 );
 
 impl OpcodeCallExtLast {
@@ -255,7 +255,7 @@ impl OpcodeReturn {
 define_opcode!(_vm, ctx, proc,
   name: OpcodeFuncInfo, arity: 3,
   run: { Self::func_info(proc, m, f, arity) },
-  args: term(m), term(f), usize(arity)
+  args: term(m), term(f), usize(arity),
 );
 
 impl OpcodeFuncInfo {
@@ -282,7 +282,7 @@ impl OpcodeFuncInfo {
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeBadmatch, arity: 1,
   run: { Self::badmatch(curr_p, val) },
-  args: load(val)
+  args: load(val),
 );
 
 impl OpcodeBadmatch {
@@ -299,7 +299,7 @@ impl OpcodeBadmatch {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeSelectVal, arity: 3,
   run: { Self::select_val(ctx, val, fail, pairs) },
-  args: load(val), cp_not_nil(fail), literal_tuple(pairs)
+  args: load(val), cp_not_nil(fail), literal_tuple(pairs),
 );
 
 impl OpcodeSelectVal {
@@ -332,7 +332,7 @@ impl OpcodeSelectVal {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeJump, arity: 1,
   run: { Self::jump(ctx, dst) },
-  args: term(dst)
+  args: term(dst),
 );
 
 impl OpcodeJump {

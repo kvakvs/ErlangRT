@@ -39,7 +39,10 @@ macro_rules! define_nativefun {
         $argsvar: &[LTerm],
       ) -> RtResult<LTerm> {
         crate::native_fun::assert_arity($namestr, $arity, $argsvar);
-        define_nativefun_args!($namestr, $vmvar, $procvar, $argsvar, 0, $($args)*);
+        define_multiple_args!(
+          $namestr, $vmvar, $procvar, $argsvar, 0,
+          $($args)*
+        );
         $body
       }
     }
@@ -65,10 +68,21 @@ macro_rules! define_nativefun {
 /// ```define_nativefun_args!(vm, curr_p, args, 0,
 ///   unused(arg1), usize(arg2), term(arg3), list(listarg))```
 /// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
-macro_rules! define_nativefun_args {
+macro_rules! define_multiple_args {
   // Empty args are handled here
   ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr, ) => {};
 
+  // Recurse for multiple args
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    $arg_type:ident $arg_args:tt,
+    $($more_args:tt)*
+  ) => {
+    define_one_arg!( $fn_name, $vmvar, $procvar, $argsvar, $arg_pos, $arg_type $arg_args);
+    define_multiple_args!($fn_name, $vmvar, $procvar, $argsvar, ($arg_pos+1), $($more_args)*);
+  };
+}
+
+macro_rules! define_one_arg {
   // UNUSED args are do-nothing
   ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     unused($arg_ident:ident)
@@ -81,6 +95,17 @@ macro_rules! define_nativefun_args {
     term($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
+  };
+
+  // Usize args are decoded from term a small unsigned
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    usize($arg_ident:ident)
+  ) => {
+    let $arg_ident: usize = {
+      let tmp = $argsvar[$arg_pos];
+      if !(tmp.is_small()) { return crate::fail::create::badarg(); }
+      tmp.get_small_unsigned()
+    };
   };
 
   // Tuple args are verified to be a tuple otherwise a badarg is created.
@@ -134,33 +159,6 @@ macro_rules! define_nativefun_args {
       else if tmp.is_false() { false }
       else { return_badarg!($fn_name, $arg_pos, tmp, "true|false"); }
     };
-  };
-
-  // Usize args are decoded from term a small unsigned
-  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
-    usize($arg_ident:ident)
-  ) => {
-    let $arg_ident: usize = {
-      let tmp = $argsvar[$arg_pos];
-      if !(tmp.is_small()) { return crate::fail::create::badarg(); }
-      tmp.get_small_unsigned()
-    };
-  };
-
-  // Recurse for multiple args
-  (
-    $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
-    $arg_type:ident $arg_args:tt,
-    $($more_args:tt)*
-  ) => {
-    define_nativefun_args!(
-      $fn_name, $vmvar, $procvar, $argsvar, $arg_pos,
-      $arg_type $arg_args
-    );
-    define_nativefun_args!(
-      $fn_name, $vmvar, $procvar, $argsvar, ($arg_pos+1),
-      $($more_args)*
-    );
   };
 }
 

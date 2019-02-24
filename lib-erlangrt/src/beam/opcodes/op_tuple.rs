@@ -16,7 +16,7 @@ use crate::{
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodePutTuple, arity: 2,
   run: { Self::put_tuple(ctx, curr_p, arity, dst) },
-  args: usize(arity), term(dst)
+  args: usize(arity), term(dst),
 );
 
 impl OpcodePutTuple {
@@ -56,7 +56,7 @@ impl OpcodePutTuple {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTestArity, arity: 3,
   run: { Self::test_arity(ctx, fail, value, arity) },
-  args: cp_not_nil(fail), load(value), usize(arity)
+  args: cp_not_nil(fail), load(value), usize(arity),
 );
 
 impl OpcodeTestArity {
@@ -87,7 +87,7 @@ impl OpcodeTestArity {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetTupleElement, arity: 3,
   run: { Self::get_tuple_element(ctx, curr_p, src, index, dst) },
-  args: load(src), usize(index), term(dst)
+  args: load(src), usize(index), term(dst),
 );
 
 impl OpcodeGetTupleElement {
@@ -112,7 +112,7 @@ impl OpcodeGetTupleElement {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeSetTupleElement, arity: 3,
   run: { Self::set_tuple_element(val, dst, index) },
-  args: load(val), load(dst), usize(index)
+  args: load(val), load(dst), usize(index),
 );
 
 impl OpcodeSetTupleElement {
@@ -139,7 +139,7 @@ impl OpcodeSetTupleElement {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsTaggedTuple, arity: 4,
   run: { Self::is_tagged_tuple(ctx, label, value, arity, atom) },
-  args: cp_not_nil(label), load(value), usize(arity), term(atom)
+  args: cp_not_nil(label), load(value), usize(arity), term(atom),
 );
 
 impl OpcodeIsTaggedTuple {

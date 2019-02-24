@@ -10,7 +10,7 @@ use crate::term::term_builder::ListBuilder;
 define_nativefun!(_vm, _proc, args,
   name: "lists:member/2", struct_name: NfListsMember2, arity: 2,
   invoke: { member_2(sample, list) },
-  args: term(sample), list(list)
+  args: term(sample), list(list),
 );
 
 #[inline]
@@ -32,7 +32,7 @@ fn member_2(sample: LTerm, list: LTerm) -> RtResult<LTerm> {
 define_nativefun!(_vm, proc, args,
   name: "lists:reverse/2", struct_name: NfListsReverse2, arity: 2,
   invoke: { unsafe { reverse_2(proc, list, tail) } },
-  args: list(list), term(tail)
+  args: list(list), term(tail),
 );
 
 #[inline]

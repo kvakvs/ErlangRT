@@ -19,7 +19,7 @@ use crate::{
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeMakeFun2, arity: 1,
   run: { Self::make_fun2(ctx, curr_p, export) },
-  args: term(export)
+  args: term(export),
 );
 
 impl OpcodeMakeFun2 {
@@ -47,7 +47,7 @@ impl OpcodeMakeFun2 {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallFun, arity: 1,
   run: { Self::call_fun(vm, ctx, curr_p, arity) },
-  args: usize(arity)
+  args: usize(arity),
 );
 
 impl OpcodeCallFun {
@@ -83,7 +83,7 @@ impl OpcodeCallFun {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeApply, arity: 1,
   run: { Self::apply(vm, ctx, curr_p, arity) },
-  args: usize(arity)
+  args: usize(arity),
 );
 
 impl OpcodeApply {
@@ -110,7 +110,7 @@ impl OpcodeApply {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeApplyLast, arity: 2,
   run: { Self::apply_last(vm, ctx, curr_p, arity, dealloc) },
-  args: usize(arity), usize(dealloc)
+  args: usize(arity), usize(dealloc),
 );
 
 impl OpcodeApplyLast {

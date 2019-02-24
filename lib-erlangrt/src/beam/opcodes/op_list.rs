@@ -13,7 +13,7 @@ use crate::{
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeIsNonemptyList, arity: 2,
   run: { Self::is_nonempty_list(ctx, fail, value) },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 impl OpcodeIsNonemptyList {
@@ -37,7 +37,7 @@ impl OpcodeIsNonemptyList {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeIsNil, arity: 2,
   run: { Self::is_nil(ctx, fail, value) },
-  args: cp_not_nil(fail), load(value)
+  args: cp_not_nil(fail), load(value),
 );
 
 impl OpcodeIsNil {
@@ -61,7 +61,7 @@ impl OpcodeIsNil {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetList, arity: 3,
   run: { Self::decons(ctx, curr_p, src, dst_hd, dst_tl) },
-  args: load(src), term(dst_hd), term(dst_tl)
+  args: load(src), term(dst_hd), term(dst_tl),
 );
 
 impl OpcodeGetList {
@@ -99,7 +99,7 @@ impl OpcodeGetList {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodePutList, arity: 3,
   run: { Self::cons(ctx, curr_p, src_hd, src_tl, dst) },
-  args: load(src_hd), load(src_tl), term(dst)
+  args: load(src_hd), load(src_tl), term(dst),
 );
 
 impl OpcodePutList {
@@ -129,7 +129,7 @@ impl OpcodePutList {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetHd, arity: 2,
   run: { Self::hd(ctx, curr_p, cons, dst) },
-  args: load(cons), term(dst)
+  args: load(cons), term(dst),
 );
 
 impl OpcodeGetHd {
@@ -152,7 +152,7 @@ impl OpcodeGetHd {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetTl, arity: 2,
   run: { Self::tl(ctx, curr_p, cons, dst) },
-  args: load(cons), term(dst)
+  args: load(cons), term(dst),
 );
 
 impl OpcodeGetTl {

@@ -13,7 +13,7 @@ use crate::{
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTry, arity: 2,
   run: { Self::try_opcode(curr_p, yreg, catch_label) },
-  args: yreg(yreg), cp_not_nil(catch_label)
+  args: yreg(yreg), cp_not_nil(catch_label),
 );
 
 impl OpcodeTry {
@@ -41,7 +41,7 @@ impl OpcodeTry {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTryEnd, arity: 1,
   run: { Self::try_end(ctx, curr_p, y) },
-  args: yreg(y)
+  args: yreg(y),
 );
 
 impl OpcodeTryEnd {
@@ -75,7 +75,7 @@ impl OpcodeTryEnd {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTryCase, arity: 1,
   run: { Self::try_case(ctx, curr_p, y) },
-  args: yreg(y)
+  args: yreg(y),
 );
 
 impl OpcodeTryCase {
@@ -108,7 +108,7 @@ impl OpcodeTryCase {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeRaise, arity: 2,
   run: { Self::raise(stacktrace, exc_value) },
-  args: load(stacktrace), load(exc_value)
+  args: load(stacktrace), load(exc_value),
 );
 
 impl OpcodeRaise {

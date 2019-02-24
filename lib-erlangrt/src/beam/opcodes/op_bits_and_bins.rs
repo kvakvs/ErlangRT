@@ -21,7 +21,7 @@ define_opcode!(
   _vm, ctx, curr_p, name: OpcodeBsStartMatch2, arity: 5,
   run: { Self::bs_start_match_2(ctx, fail, context) },
   args: cp_not_nil(fail), load(context), unused(_usize_live), unused(_term_src),
-        unused(_usize_slots), load(_ctxr)
+        unused(_usize_slots), load(_ctxr),
 );
 
 impl OpcodeBsStartMatch2 {

@@ -15,7 +15,7 @@ define_opcode!(_vm, ctx, curr_p,
     // exact comparison
     shared_equality(ctx, fail, a, b, true, Ordering::Equal, false)
   },
-  args: cp_not_nil(fail), load(a), load(b)
+  args: cp_not_nil(fail), load(a), load(b),
 );
 
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
@@ -26,7 +26,7 @@ define_opcode!(_vm, ctx, curr_p,
    // not exact comparison
    shared_equality(ctx, fail, a, b, false, Ordering::Less, false)
   },
-  args: cp_not_nil(fail), load(a), load(b)
+  args: cp_not_nil(fail), load(a), load(b),
 );
 
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
@@ -37,7 +37,7 @@ define_opcode!(_vm, ctx, curr_p,
    // not exact comparison
    shared_equality(ctx, fail, a, b, false, Ordering::Equal, false)
   },
-  args: cp_not_nil(fail), load(a), load(b)
+  args: cp_not_nil(fail), load(a), load(b),
 );
 
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
@@ -49,7 +49,7 @@ define_opcode!(_vm, ctx, curr_p,
     // inverted, other than less will be fail
     shared_equality(ctx, fail, a, b, false, Ordering::Less, true)
   },
-  args: cp_not_nil(fail), load(a), load(b)
+  args: cp_not_nil(fail), load(a), load(b),
 );
 
 #[inline]

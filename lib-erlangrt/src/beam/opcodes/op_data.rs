@@ -17,5 +17,5 @@ define_opcode!(_vm, ctx, curr_p,
     ctx.store_value(src, dst, &mut curr_p.heap)?;
     Ok(DispatchResult::Normal)
   },
-  args: load(src), term(dst)
+  args: load(src), term(dst),
 );

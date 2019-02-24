@@ -222,18 +222,22 @@ impl Context {
   ) -> RtResult<()> {
     debug_assert!(
       !val.is_regx(),
-      "When storing a value, element must not be regx, have {}",
+      "ctx.store value must not be a X reg, have {}",
       val
     );
     debug_assert!(
       !val.is_regy(),
-      "When storing a value, element must not be regy, have {}",
+      "ctx.store value must not be a Y reg, have {}",
       val
     );
     debug_assert!(
       !val.is_regfp(),
-      "When storing a value, element must not be regfp, have {}",
+      "ctx.store value must not be a FP reg, have {}",
       val
+    );
+    debug_assert!(
+      dst.is_regx() || dst.is_regy() || dst.is_regfp(),
+      "ctx.store destination must be a X, Y or FP register"
     );
     if dst.get_term_tag() == TERMTAG_SPECIAL {
       match dst.get_special_tag() {
@@ -249,7 +253,7 @@ impl Context {
         SpecialTag(st) => panic!("store: specialtag {} not supported", st),
       }
     }
-    panic!("{}Don't know how to ctx.store {} to {}", module(), val, dst)
+    panic!("{}Don't know how to ctx.store {} into {}", module(), val, dst)
   }
 
   #[inline]

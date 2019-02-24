@@ -46,7 +46,7 @@ macro_rules! define_opcode {
         $ctxarg: &mut Context,
         $procarg: &mut Process
       ) -> RtResult<DispatchResult> {
-        define_opcode_args!(
+        fetch_multiple_args!(
           $vmarg, $ctxarg, $procarg, 0,
           $($args)*
         );
@@ -75,17 +75,32 @@ macro_rules! define_opcode {
 /// ```define_opcode_args!(vm, ctx, curr_p, 0,
 ///   unused(arg1), usize(arg2), term(arg3), slice(args,7))```
 /// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
-macro_rules! define_opcode_args {
+macro_rules! fetch_multiple_args {
   // Empty args are handled here
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr, ) => {};
 
-  // Use a slice of memory of given size as terms
+  // Handle the special type for arg: slice() which will step arg_pos by arity
+  // instead of stepping by 1. Also recurse for more args.
+  // Use a slice of memory of given size as terms.
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    slice($arg_ident:ident, $slice_sz:expr)
+    slice($arg_ident:ident, $slice_sz:expr),
+    $($more_args:tt)*
   ) => {
     let $arg_ident = $ctxarg.op_arg_term_slice_at($arg_pos, $slice_sz);
+    fetch_multiple_args!($vmarg, $ctxarg, $procarg, ($arg_pos+$slice_sz), $($more_args)*);
   };
 
+  // Recurse for multiple args
+  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    $arg_type:ident $arg_args:tt,
+    $($more_args:tt)*
+  ) => {
+    fetch_one_arg!($vmarg, $ctxarg, $procarg, $arg_pos, $arg_type $arg_args);
+    fetch_multiple_args!($vmarg, $ctxarg, $procarg, ($arg_pos+1), $($more_args)*);
+  };
+}
+
+macro_rules! fetch_one_arg {
   // UNUSED args are do-nothing
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     unused($arg_ident:ident)
@@ -142,21 +157,5 @@ macro_rules! define_opcode_args {
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!($arg_ident.is_regy());
-  };
-
-  // Recurse for multiple args
-  (
-    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    $arg_type:ident $arg_args:tt,
-    $($more_args:tt)*
-  ) => {
-    define_opcode_args!(
-      $vmarg, $ctxarg, $procarg, $arg_pos,
-      $arg_type $arg_args
-    );
-    define_opcode_args!(
-      $vmarg, $ctxarg, $procarg, ($arg_pos+1),
-      $($more_args)*
-    );
   };
 }

@@ -44,7 +44,7 @@ define_opcode!(_vm, ctx, curr_p,
     shared_allocate(ctx, curr_p, stack_need, 0, live, true)?;
     Ok(DispatchResult::Normal)
   },
-  args: usize(stack_need), usize(live)
+  args: usize(stack_need), usize(live),
 );
 
 /// Allocate `need` words on stack, in case of GC use `live` amount of registers.
@@ -54,7 +54,7 @@ define_opcode!(_vm, ctx, curr_p,
     shared_allocate(ctx, curr_p, stack_need, 0, live, false)?;
     Ok(DispatchResult::Normal)
   },
-  args: usize(stack_need), usize(live)
+  args: usize(stack_need), usize(live),
 );
 
 /// Allocate `stack_need` words on stack, check that there's available
@@ -66,7 +66,7 @@ define_opcode!(_vm, ctx, curr_p,
     shared_allocate(ctx, curr_p, stack_need, heap_need, live, true)?;
     Ok(DispatchResult::Normal)
   },
-  args: usize(stack_need), usize(heap_need), usize(live)
+  args: usize(stack_need), usize(heap_need), usize(live),
 );
 
 /// Allocate `need` words on heap, in case of GC use `live` amount of registers.
@@ -76,7 +76,7 @@ define_opcode!(_vm, ctx, curr_p,
     shared_allocate(ctx, curr_p, stack_need, heap_need, live, false)?;
     Ok(DispatchResult::Normal)
   },
-  args: usize(stack_need), usize(heap_need), usize(live)
+  args: usize(stack_need), usize(heap_need), usize(live),
 );
 
 /// Pop `cp` from the top of the stack and then deallocate additional `n_free`
@@ -88,7 +88,7 @@ define_opcode!(_vm, ctx, curr_p,
     ctx.set_cp(curr_p.heap.stack_deallocate(free));
     Ok(DispatchResult::Normal)
   },
-  args: usize(free)
+  args: usize(free),
 );
 
 /// Check that there are `heap_need` words available on heap, otherwise run the
@@ -97,7 +97,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
   run: { Self::test_heap(curr_p, heap_need) },
-  args: usize(heap_need), unused(live)
+  args: usize(heap_need), unused(live),
 );
 // unsigned small 'live' will be used for gc
 
@@ -121,7 +121,7 @@ impl OpcodeTestHeap {
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeTrim, arity: 2,
   run: { Self::trim(curr_p, n_trim) },
-  args: usize(n_trim), unused(remaining)
+  args: usize(n_trim), unused(remaining),
 );
 
 impl OpcodeTrim {
@@ -146,5 +146,5 @@ define_opcode!(_vm, ctx, curr_p,
     curr_p.heap.set_y(y.get_special_value(), LTerm::nil())?;
     Ok(DispatchResult::Normal)
   },
-  args: yreg(y)
+  args: yreg(y),
 );

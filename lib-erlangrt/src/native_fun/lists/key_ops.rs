@@ -12,7 +12,7 @@ use std::cmp::Ordering;
 define_nativefun!(_vm, _proc, args,
   name: "lists:keyfind/3", struct_name: NfListsKeyfind3, arity: 3,
   invoke: { keyfind_3(key, pos, list) },
-  args: term(key), usize(pos), list(list)
+  args: term(key), usize(pos), list(list),
 );
 
 #[inline]
