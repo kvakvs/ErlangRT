@@ -72,6 +72,8 @@ define_nativefun!(vm, _proc, _args,
 );
 
 pub fn register_2(vm: &mut VM, name: LTerm, pid_or_port: LTerm) -> RtResult<LTerm> {
+  // The define_nativefun! macro will check that the arguments are atom and pid/port
+  // but here we additionally check if the name is not `undefined` and does not exist
   if name == gen_atoms::UNDEFINED || vm.processes.find_registered(name).is_some() {
     return fail::create::badarg();
   }
@@ -85,42 +87,40 @@ define_nativefun!(_vm, _proc, _args,
   args:
 );
 
-pub fn nativefun_process_flag_2(
-  _vm: &mut VM,
-  cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
-  assert_arity("erlang:process_flag/2", 2, args);
-  do_erlang_process_flag(cur_proc, args[0], args[1])
-}
+define_nativefun!(_vm, proc, args,
+  name: "erlang:process_flag/2", struct_name: NfErlangProcFlag2, arity: 2,
+  invoke: { do_erlang_process_flag(proc, flag, value) },
+  args: atom(flag), bool(value)
+);
 
-/// Set a supported process flag.
-pub fn nativefun_process_flag_3(
+/// Set a supported process flag for some other process.
+define_nativefun!(vm, _proc, args,
+  name: "erlang:process_flag/3", struct_name: NfErlangProcFlag3, arity: 3,
+  invoke: { process_flag_3(vm, pid, flag, value) },
+  args: pid(pid), atom(flag), bool(value)
+);
+
+pub fn process_flag_3(
   vm: &mut VM,
-  _cur_proc: &mut Process,
-  args: &[LTerm],
+  pid: LTerm,
+  flag: LTerm,
+  value: bool,
 ) -> RtResult<LTerm> {
-  assert_arity("erlang:process_flag/3", 3, args);
-  let proc_p = vm.processes.unsafe_lookup_pid_mut(args[0]);
+  let proc_p = vm.processes.unsafe_lookup_pid_mut(pid);
   if proc_p.is_null() {
     return fail::create::badarg();
   }
   let p = unsafe { &mut (*proc_p) };
-  do_erlang_process_flag(p, args[1], args[2])
+  do_erlang_process_flag(p, flag, value)
 }
 
 #[inline]
-fn do_erlang_process_flag(p: &mut Process, flag: LTerm, value: LTerm) -> RtResult<LTerm> {
+fn do_erlang_process_flag(p: &mut Process, flag: LTerm, value: bool) -> RtResult<LTerm> {
   match flag {
-    gen_atoms::TRAP_EXIT => {
-      if !value.is_bool() {
-        return fail::create::badarg();
-      }
-      Ok(LTerm::make_bool(p.process_flags.read_and_set(
-        process_flags::TRAP_EXIT,
-        value == gen_atoms::TRUE,
-      )))
-    }
+    gen_atoms::TRAP_EXIT => Ok(LTerm::make_bool(
+      p.process_flags
+        .read_and_set(process_flags::TRAP_EXIT, value),
+    )),
     _ => fail::create::badarg_val(flag, &mut p.heap),
   }
 }

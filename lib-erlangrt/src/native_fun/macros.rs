@@ -59,6 +59,7 @@ macro_rules! define_nativefun {
 ///   atom(ident) - must be an atom, otherwise badarg
 ///   pid(ident) - must be a pid, otherwise badarg
 ///   pid_port(ident) - must be a pid or a port, otherwise badarg
+///   bool(ident) - must be a `true` or `false` atom, otherwise badarg
 ///
 /// Example:
 /// ```define_nativefun_args!(vm, curr_p, args, 0,
@@ -87,7 +88,7 @@ macro_rules! define_nativefun_args {
     tuple($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_tuple() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "tuple"); }
+    if !$arg_ident.is_tuple() { return_badarg!($fn_name, $arg_pos, $arg_ident, "tuple"); }
   };
 
   // List args are verified to be a list or [] otherwise a badarg is created.
@@ -95,7 +96,7 @@ macro_rules! define_nativefun_args {
     list($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_list() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "list"); }
+    if !$arg_ident.is_list() { return_badarg!($fn_name, $arg_pos, $arg_ident, "list"); }
   };
 
   // Atom args are verified to be an atom otherwise a badarg is created.
@@ -103,7 +104,7 @@ macro_rules! define_nativefun_args {
     atom($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_atom() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "atom"); }
+    if !$arg_ident.is_atom() { return_badarg!($fn_name, $arg_pos, $arg_ident, "atom"); }
   };
 
   // Pid args are verified to be a pid or [] otherwise a badarg is created.
@@ -111,7 +112,7 @@ macro_rules! define_nativefun_args {
     pid($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_pid() { debug_badarg!($fn_name, $arg_pos, $arg_ident, "pid"); }
+    if !$arg_ident.is_pid() { return_badarg!($fn_name, $arg_pos, $arg_ident, "pid"); }
   };
 
   // Atom args are verified to be an atom otherwise a badarg is created.
@@ -120,14 +121,26 @@ macro_rules! define_nativefun_args {
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
     if !$arg_ident.is_pid() && !$arg_ident.is_port()
-      { debug_badarg!($fn_name, $arg_pos, $arg_ident, "pid|port"); }
+      { return_badarg!($fn_name, $arg_pos, $arg_ident, "pid|port"); }
+  };
+
+  // Atom args are verified to be an atom otherwise a badarg is created.
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    bool($arg_ident:ident)
+  ) => {
+    let $arg_ident: bool = {
+      let tmp = $argsvar[$arg_pos];
+      if tmp.is_true() { true }
+      else if tmp.is_false() { false }
+      else { return_badarg!($fn_name, $arg_pos, tmp, "true|false"); }
+    };
   };
 
   // Usize args are decoded from term a small unsigned
   ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
     usize($arg_ident:ident)
   ) => {
-    let $arg_ident = {
+    let $arg_ident: usize = {
       let tmp = $argsvar[$arg_pos];
       if !(tmp.is_small()) { return fail::create::badarg(); }
       tmp.get_small_unsigned()
@@ -151,7 +164,7 @@ macro_rules! define_nativefun_args {
   };
 }
 
-macro_rules! debug_badarg {
+macro_rules! return_badarg {
   ($fn_name:expr, $arg_pos:expr, $arg_ident:ident, $expected_to_be:expr) => {
     if cfg!(debug_assertions) {
       println!("DBG {}: argument #{} is expected to be a {}, got {}",
