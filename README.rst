@@ -8,13 +8,12 @@ the first attempt so I kinda know what I'm doing.
 Progress to the Proof of Concept
 --------------------------------
 
-* Term library 75%
+* Term library 80% (remaining 80% are in progress)
 * External Term Format (decoder 70%, encoder 0%)
-* BEAM Loader 95%
-* VM and processes 35%
-* VM loop and opcodes 25%
-    * Exceptions: basic support, try/catch works
-* Some basic BIFs 7%
+* BEAM Loader - mostly done
+* VM and processes 40%
+* VM loop and opcodes 42% (70 of 164)
+* Some basic BIFs <10%
 
 .. figure:: https://i.imgur.com/1ryd4K1.png
    :scale: 50 %

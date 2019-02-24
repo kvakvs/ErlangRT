@@ -2,7 +2,7 @@ use crate::{
   emulator::gen_atoms,
   native_fun::{
     erlang::{
-      arithmetic::*, compare::*, list::*, predicate::*, process::*, sys::*,
+      arithmetic::*, compare::*, list::*, predicate::*, process::*, sys::*, tuple::*,
       type_conversions::*,
     },
     fn_entry::NativeFnEntry,
@@ -16,6 +16,7 @@ pub mod list;
 pub mod predicate;
 pub mod process;
 pub mod sys;
+pub mod tuple;
 pub mod type_conversions;
 
 pub fn new() -> NativeModule {
@@ -51,6 +52,7 @@ pub fn new() -> NativeModule {
     NativeFnEntry::with_str("register", 2, NfErlangRegister2::_f),
     NativeFnEntry::with_str("registered", 0, NfErlangRegistered0::_f),
     NativeFnEntry::with_str("self", 0, NfErlangSelf0::_f),
+    NativeFnEntry::with_str("size", 1, NfErlangSize1::_f),
     NativeFnEntry::with_str("spawn", 3, NfErlangSpawn3::_f),
     NativeFnEntry::with_str("tl", 1, NfErlangTl1::_f),
   ];

@@ -1,6 +1,5 @@
 use crate::{
   emulator::{mfa::ModFunArgs, spawn_options::SpawnOptions},
-  fail::RtResult,
   term::lterm::LTerm,
 };
 

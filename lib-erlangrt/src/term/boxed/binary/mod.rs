@@ -131,6 +131,23 @@ impl Binary {
     core::ptr::read(p.add(i))
   }
 
+  pub unsafe fn get_size(this: *const Binary) -> usize {
+    match (*this).bin_type {
+      BinaryType::ProcessHeap => {
+        let phb_ptr = this as *mut ProcessHeapBinary;
+        (*phb_ptr).size.bytes()
+      },
+      BinaryType::RefToBinaryHeap => {
+        let refb_ptr = this as *mut ReferenceToBinary;
+        (*refb_ptr).size.bytes()
+      },
+      BinaryType::BinaryHeap => {
+        let bhb_ptr = this as *mut BinaryHeapBinary;
+        (*bhb_ptr).size.bytes()
+      },
+    }
+  }
+
   /// Called from LTerm formatting function to print binary contents
   pub unsafe fn format_binary(
     this: *const Binary,
