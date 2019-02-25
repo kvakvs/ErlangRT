@@ -1,5 +1,7 @@
-#OTP_EMU_DIR=../../otp/erts/emulator
-#OTP_EMU_TEST_DIR=$(OTP_EMU_DIR)/test
+OTP_DIR=../../otp
+ERLC=$(OTP_DIR)/bin/erlc
+# OTP_EMU_DIR=../../otp/erts/emulator
+# OTP_EMU_TEST_DIR=$(OTP_EMU_DIR)/test
 
 compile: \
     test.S test.beam \
@@ -9,7 +11,7 @@ compile: \
     bs_match_bin_SUITE.erl bs_match_bin_SUITE.beam
 
 %.S: %.erl
-	erlc -S $^
+	$(ERLC) -S $^
 
 %.beam: %.erl
-	erlc $^
+	$(ERLC) $^

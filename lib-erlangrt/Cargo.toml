@@ -10,18 +10,24 @@ edition = "2018"
 #    backslash \quoting of "quotation" characters. This breaks compatibility of printed
 #    Erlang terms and the compiler won't accept them back but is beneficial for
 #    reading strings with quotes such as JSON.
+# Add "trace_comparisons" to log failed comparisons with args involved
+# Add "trace_calls" to see native and BEAM function calls logged
 [features]
 default = [
-    "r21",
+    "r22",
+    "fancy_string_quotes",
     "trace_opcode_execution",
     "trace_register_changes",
     "trace_stack_changes",
-    "fancy_string_quotes"
-    ]
-r21 = []
+    "trace_comparisons",
+    "trace_calls",
+]
+r22 = []
 trace_opcode_execution = []
 trace_register_changes = []
 trace_stack_changes = []
+trace_comparisons = []
+trace_calls = []
 fancy_string_quotes = []
 
 [dependencies]

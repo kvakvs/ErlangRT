@@ -87,6 +87,10 @@ test_calls() ->
     L2 = F2([e3b, e2b, e1b]).
 
 test_eq() ->
+    true = ([atom] /= []),
+    true = ([atom] =/= []),
+    false = ([atom] == []),
+    false = ([atom] =:= []),
     [d1, d2, d3, d4] == rev([d1, d2, d3, d4]).
 
 test_list_ops() ->

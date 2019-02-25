@@ -1,9 +1,10 @@
+use core::cmp::Ordering;
+
 use crate::{
   emulator::atom,
   fail::RtResult,
   term::{classify, lterm::*},
 };
-use core::cmp::Ordering;
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
 /// is stored in `stack` in `eq_terms()` function and tells where to resume
@@ -42,7 +43,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
 
 #[inline]
 fn cmp_terms_1(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
-    // Comparison might want to recurse.
+  // Comparison might want to recurse.
   // To avoid stack growth, do a switch here and continue comparing in a loop.
   // We grow `stack` vector instead of a CPU stack.
   const DEFAULT_CAPACITY: usize = 8;
@@ -175,6 +176,12 @@ fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
 
 /// Compare order of two types without looking into their value.
 fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
+  if a.is_cons() && b == LTerm::nil()
+      || a.is_tuple() && b == LTerm::empty_tuple()
+      || a.is_binary() && b == LTerm::empty_binary() {
+    return Ordering::Greater;
+  }
+
   let aclass = classify::classify_term(a);
   let bclass = classify::classify_term(b);
   aclass.cmp(&bclass)
@@ -223,7 +230,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
   //  let bv = b.raw();
 
   if (a == LTerm::nil() || a == LTerm::empty_tuple() || a == LTerm::empty_binary())
-    && (a.raw() == b.raw())
+      && (a.raw() == b.raw())
   {
     return Ok(Ordering::Equal);
   }
@@ -299,18 +306,18 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
       panic!("TODO: cmp flatmap vs flatmap (+exact)")
     }
 
-  // Hashmap compare strategy:
-  // Phase 1. While keys are identical
-  //    Do synchronous stepping through leafs of both trees in hash
-  //    order. Maintain value compare result of minimal key.
-  //
-  // Phase 2. If key diff was found in phase 1
-  //    Ignore values from now on.
-  //    Continue iterate trees by always advancing the one
-  //    lagging behind hash-wise. Identical keys are skipped.
-  //    A minimal key can only be candidate as tie-breaker if we
-  //    have passed that hash value in the other tree (which means
-  //    the key did not exist in the other tree).
+    // Hashmap compare strategy:
+    // Phase 1. While keys are identical
+    //    Do synchronous stepping through leafs of both trees in hash
+    //    order. Maintain value compare result of minimal key.
+    //
+    // Phase 2. If key diff was found in phase 1
+    //    Ignore values from now on.
+    //    Continue iterate trees by always advancing the one
+    //    lagging behind hash-wise. Identical keys are skipped.
+    //    A minimal key can only be candidate as tie-breaker if we
+    //    have passed that hash value in the other tree (which means
+    //    the key did not exist in the other tree).
   } else if a.is_float() {
     if !b.is_float() {
       // TODO: If b is integer and we don't do exact comparison?

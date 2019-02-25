@@ -36,6 +36,8 @@ impl OpcodeCall {
     ctx.live = arity;
     debug_assert!(dst.is_boxed(), "Call location must be a box (have {})", dst);
 
+    ctx.debug_trace_call("opcode:call", dst, 0, arity);
+
     ctx.cp = ctx.ip; // Points at the next opcode after this
     ctx.jump(dst);
 
@@ -60,6 +62,7 @@ impl OpcodeCallOnly {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     ctx.live = arity;
+    ctx.debug_trace_call("opcode:call_only", dst, 0, arity);
     ctx.jump(dst); // jump will assert if the location is cp
     Ok(DispatchResult::Normal)
   }
@@ -86,6 +89,7 @@ impl OpcodeCallLast {
     ctx.live = arity;
     let hp = &mut curr_p.heap;
     ctx.set_cp(hp.stack_deallocate(dealloc));
+    ctx.debug_trace_call("opcode:call_last", dst, 0, arity);
     ctx.jump(dst);
     Ok(DispatchResult::Normal)
   }
@@ -111,6 +115,7 @@ impl OpcodeCallExtOnly {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     let args = ctx.registers_slice(0, arity);
+    ctx.debug_trace_call("opcode:call_ext_only", dst, 0, arity);
     generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }
@@ -135,6 +140,7 @@ impl OpcodeCallExt {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     let args = ctx.registers_slice(0, arity);
+    ctx.debug_trace_call("opcode:call_ext", dst, 0, arity);
     generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
   }
 }
@@ -160,6 +166,7 @@ impl OpcodeCallExtLast {
     let new_cp = curr_p.heap.stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
     let args = ctx.registers_slice(0, arity);
+    ctx.debug_trace_call("opcode:call_ext_last", dst, 0, arity);
     generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
   }
 }

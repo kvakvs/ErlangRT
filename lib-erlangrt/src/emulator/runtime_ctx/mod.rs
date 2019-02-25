@@ -1,10 +1,14 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
+use core::{fmt, slice};
+
+use colored::Colorize;
+
 use crate::{
   beam::gen_op,
-  defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
+  defs::{MAX_FPREGS, MAX_XREGS, Reductions, Word},
   emulator::{
-    code::{opcode, CodePtr},
+    code::{CodePtr, opcode},
     code_srv::MFALookupResult,
     heap,
     process::Process,
@@ -16,8 +20,6 @@ use crate::{
     TERMTAG_SPECIAL,
   },
 };
-use colored::Colorize;
-use core::{fmt, slice};
 
 pub mod call_closure;
 pub mod call_export;
@@ -79,6 +81,9 @@ impl Context {
   /// be in X0, but that is none of this function's business.
   #[inline]
   pub fn return_and_clear_cp(&mut self, proc: &Process) -> ReturnResult {
+    if cfg!(feature = "trace_calls") {
+      println!("{} x0={}", "Return:".yellow(), self.get_x(0));
+    }
     if self.cp.is_null() {
       if proc.heap.stack_depth() == 0 {
         // Process end of life: return on empty stack
@@ -349,6 +354,17 @@ impl Context {
 
     for i in 0..arity {
       println!("reg X[{}] = {}", i, self.get_x(i));
+    }
+  }
+
+  #[inline]
+  pub fn debug_trace_call(&self, description: &str, dst: LTerm, offset: usize, arity: usize) {
+    if cfg!(feature = "trace_calls") {
+      print!("{} <{}> {}, x[..{}] <", "Call".yellow(), description, dst, arity);
+      for i in offset..(offset + arity) {
+        print!("{}; ", self.get_x(i));
+      }
+      println!(">");
     }
   }
 }

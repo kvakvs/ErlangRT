@@ -44,6 +44,7 @@ get_hd
 #=== === Comparisons and Predicates === ===
 is_eq
 is_eq_exact
+is_ne_exact
 is_ge
 is_lt
 

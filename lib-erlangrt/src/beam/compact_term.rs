@@ -32,7 +32,7 @@ enum CTEExtTag {
 }
 
 // In OTP20 the Float Ext tag is gone and Lists are taking the first value
-#[cfg(feature = "r21")]
+#[cfg(not(feature = "r19"))]
 #[repr(u8)]
 enum CTEExtTag {
   List = 0b0001_0111,
@@ -152,7 +152,6 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<FTerm> {
   }
 }
 
-#[cfg(feature = "r21")]
 fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<FTerm> {
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),

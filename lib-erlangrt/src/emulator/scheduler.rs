@@ -357,7 +357,7 @@ impl Scheduler {
     // TODO: unregister name if registered
     // TODO: if pending timers - become zombie and sit in pending timers queue
     println!(
-      "{}Terminating pid {} error={}:{}",
+      "{}Terminating pid {} reason={}:{}",
       module(),
       pid,
       e.0,
