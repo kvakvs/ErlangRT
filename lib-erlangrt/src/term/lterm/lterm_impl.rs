@@ -117,11 +117,6 @@ impl LTerm {
   }
 
   #[inline]
-  pub const fn empty_binary() -> Self {
-    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYBINARY.0)
-  }
-
-  #[inline]
   pub const fn nil() -> Self {
     Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYLIST.0)
   }
@@ -218,11 +213,25 @@ impl LTerm {
   }
 
   //
+  // === === Binary === ===
+  //
+
+  #[inline]
+  pub const fn empty_binary() -> Self {
+    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYBINARY.0)
+  }
 
   #[inline]
   pub fn is_binary(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
+
+  pub fn binary_byte_size(self) -> ByteSize {
+    let binp = self.get_box_ptr::<boxed::Binary>();
+    unsafe { boxed::Binary::get_size(binp) }
+  }
+
+  //
 
   #[inline]
   pub fn is_immediate(self) -> bool {

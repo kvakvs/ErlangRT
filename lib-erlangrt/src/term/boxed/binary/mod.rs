@@ -56,25 +56,11 @@ impl Binary {
     }
   }
 
-//  pub fn storage_size(b_type: BinaryType, size: ByteSize) -> WordSize {
-//    let header_size: ByteSize;
-//    match b_type {
-//      BinaryType::BinaryHeap => {
-//        header_size = ByteSize::new(std::mem::size_of::<BinaryHeapBinary>());
-//      }
-//      BinaryType::ProcessHeap => {
-//        header_size = ByteSize::new(std::mem::size_of::<ProcessHeapBinary>());
-//      }
-//      BinaryType::RefToBinaryHeap => {
-//        header_size = ByteSize::new(std::mem::size_of::<ReferenceToBinary>());
-//      }
-//    }
-//    WordSize::new(
-//      header_size.words_rounded_up().words() + size.words_rounded_up().words(),
-//    )
-//  }
-
   pub unsafe fn create_into(hp: &mut Heap, size: ByteSize) -> RtResult<*mut Binary> {
+    if size.bytes() == 0 {
+      // Return binary {} immediate special instead!
+      return Err(RtErr::CreatingZeroSizedBinary);
+    }
     let b_type = Self::get_binary_type_for(size);
     match b_type {
       BinaryType::ProcessHeap => {
@@ -131,19 +117,36 @@ impl Binary {
     core::ptr::read(p.add(i))
   }
 
-  pub unsafe fn get_size(this: *const Binary) -> usize {
+  pub unsafe fn get_size(this: *const Binary) -> ByteSize {
     match (*this).bin_type {
       BinaryType::ProcessHeap => {
         let phb_ptr = this as *mut ProcessHeapBinary;
-        (*phb_ptr).size.bytes()
+        (*phb_ptr).size
       },
       BinaryType::RefToBinaryHeap => {
         let refb_ptr = this as *mut ReferenceToBinary;
-        (*refb_ptr).size.bytes()
+        (*refb_ptr).size
       },
       BinaryType::BinaryHeap => {
         let bhb_ptr = this as *mut BinaryHeapBinary;
-        (*bhb_ptr).size.bytes()
+        (*bhb_ptr).size
+      },
+    }
+  }
+
+  pub unsafe fn get_data_mut(this: *const Binary) -> *mut u8 {
+    match (*this).bin_type {
+      BinaryType::ProcessHeap => {
+        let phb_ptr = this as *mut ProcessHeapBinary;
+        phb_ptr.add(1) as *mut u8
+      },
+      BinaryType::RefToBinaryHeap => {
+        let refb_ptr = this as *mut ReferenceToBinary;
+        refb_ptr.add(1) as *mut u8
+      },
+      BinaryType::BinaryHeap => {
+        let bhb_ptr = this as *mut BinaryHeapBinary;
+        bhb_ptr.add(1) as *mut u8
       },
     }
   }
@@ -153,28 +156,30 @@ impl Binary {
     this: *const Binary,
     f: &mut fmt::Formatter,
   ) -> fmt::Result {
-    write!(f, "<<")?;
+    let datap = Self::get_data_mut(this);
     match (*this).bin_type {
       BinaryType::RefToBinaryHeap => {
         let refb_ptr = this as *mut ReferenceToBinary;
         let refb_size = (*refb_ptr).size;
-        write!(f, "#refbin[{}]", refb_size)?;
+        write!(f, "#refbin[{}]<<", refb_size)?;
+        panic!("notimpl: printing refbin to binary heap");
       }
       BinaryType::ProcessHeap => {
         let phb_ptr = this as *mut ProcessHeapBinary;
         let phb_size = (*phb_ptr).size;
-        write!(f, "#procbin[{}]", phb_size)?;
+        write!(f, "#procbin[{}]<<", phb_size)?;
         for i in 0..phb_size.bytes() {
           if i > 0 {
             write!(f, ", ")?;
           }
-          write!(f, "{}", Binary::get_byte(this, i))?;
+          write!(f, "{}", core::ptr::read(datap.add(i)))?;
         }
       }
       BinaryType::BinaryHeap => {
         let bhb_ptr = this as *mut BinaryHeapBinary;
         let bhb_size = (*bhb_ptr).size;
-        write!(f, "#heapbin[{}]", bhb_size)?;
+        write!(f, "#heapbin[{}]<<", bhb_size)?;
+        panic!("notimpl: printing bin on binary heap");
       }
     }
     write!(f, ">>")

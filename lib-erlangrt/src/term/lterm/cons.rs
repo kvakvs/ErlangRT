@@ -5,6 +5,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{boxed, lterm::lterm_impl::LTerm, term_builder::ListBuilder},
 };
+use crate::defs::sizes::ByteSize;
 
 // TODO: Rewrite this with for_each when i can think clear again
 pub fn list_length(val: LTerm) -> RtResult<usize> {
@@ -191,4 +192,21 @@ pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   } // if not 0
 
   return Ok(lb.make_term());
+}
+
+pub fn get_iolist_size(list: LTerm) -> ByteSize {
+  let mut result = ByteSize::new(0);
+  for_each(list, |elem| {
+    if elem.is_small() {
+      // Any small integer even larger than 256 counts as 1 byte
+      result.add(1);
+    } else if elem.is_binary() {
+      result.add_bytesize(elem.binary_byte_size());
+    } else if elem.is_cons() {
+      result.add_bytesize(get_iolist_size(elem));
+    }
+    Ok(())
+  }).unwrap();
+  // unwrap above may panic if you feed a non-iolist or OOM or something
+  result
 }

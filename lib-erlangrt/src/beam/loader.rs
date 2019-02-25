@@ -226,7 +226,7 @@ impl Loader {
         "Attr" => self.load_attributes(&mut r)?,
         "AtU8" => self.load_atoms_utf8(&mut r),
         "CInf" => self.load_compiler_info(&mut r)?,
-        "Code" => self.load_code(&mut r, chunk_sz as Word),
+        "Code" => self.load_code(&mut r, chunk_sz as Word)?,
         "ExpT" => self.raw.exports = self.load_exports(&mut r),
         "FunT" => self.load_fun_table(&mut r),
         "ImpT" => self.load_imports(&mut r),
@@ -365,16 +365,22 @@ impl Loader {
   }
 
   /// Load the `Code` section
-  fn load_code(&mut self, r: &mut BinaryReader, chunk_sz: Word) {
+  fn load_code(&mut self, r: &mut BinaryReader, chunk_sz: Word) -> RtResult<()> {
     let _code_ver = r.read_u32be();
     let _min_opcode = r.read_u32be();
-    let _max_opcode = r.read_u32be();
+    let max_opcode = r.read_u32be();
     let _n_labels = r.read_u32be();
     let _n_funs = r.read_u32be();
     // println!("Code section version {}, opcodes {}-{}, labels: {}, funs: {}",
     //  code_ver, min_opcode, max_opcode, n_labels, n_funs);
 
+    if max_opcode > gen_op::OPCODE_MAX.get() as u32 {
+      let msg = "BEAM file comes from a never and unsupported OTP version".to_string();
+      return Err(RtErr::CodeLoadingFailed(msg));
+    }
+
     self.raw.code = r.read_bytes(chunk_sz - 20).unwrap();
+    Ok(())
   }
 
   /// Read the imports table.

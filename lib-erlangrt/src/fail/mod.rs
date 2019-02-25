@@ -38,6 +38,7 @@ pub enum RtErr {
   StackIndexRange(usize),
 
   //--- VM Checks --
+  CreatingZeroSizedBinary, // can't create 0 sized bin on heap, use immediate {} instead
   Exception(ExceptionType, LTerm), // type, value
   TermIsNotABoxed,
   // used by `helper_get_mut_from_boxed_term` when boxed tag is different from

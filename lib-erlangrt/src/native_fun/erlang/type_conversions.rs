@@ -1,7 +1,10 @@
 use crate::{
   emulator::{atom, process::Process},
   fail::{self, RtResult},
-  term::lterm::{cons, LTerm},
+  term::{
+    lterm::{cons, LTerm},
+    term_builder::BinaryBuilder,
+  },
 };
 
 /// Converts an atom to Erlang string.
@@ -46,6 +49,29 @@ define_nativefun!(_vm, proc, args,
 );
 
 #[inline]
-unsafe fn list_to_binary_1(_proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
+unsafe fn list_to_binary_1(proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
+  let size = cons::get_iolist_size(list);
+  println!("l2b: iolist size for new binary {:?}", size);
+  let mut bb = BinaryBuilder::with_size(size, &mut proc.heap)?;
+  list_to_binary_1_recursive(&mut bb, list)?;
+  Ok(bb.make_term())
+}
+
+unsafe fn list_to_binary_1_recursive(
+  bb: &mut BinaryBuilder,
+  list: LTerm,
+) -> RtResult<LTerm> {
+  cons::for_each(list, |elem| {
+    if elem.is_small() {
+      // Any small integer even larger than 256 counts as 1 byte
+      bb.write_byte(elem.get_small_unsigned() as u8);
+    } else if elem.is_binary() {
+      panic!("l2b: notimpl appending a binary");
+    // bb.write_binary(elem.get_box_ptr());
+    } else if elem.is_cons() {
+      list_to_binary_1_recursive(bb, elem)?;
+    }
+    Ok(())
+  })?;
   Ok(list)
 }

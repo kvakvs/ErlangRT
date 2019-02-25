@@ -19,7 +19,7 @@ fn size_1(t: LTerm) -> RtResult<LTerm> {
   } else if t.is_binary() {
     let bin_ptr = t.get_box_ptr::<boxed::Binary>();
     let bin_size = unsafe { boxed::Binary::get_size(bin_ptr) };
-    return Ok(LTerm::make_small_unsigned(bin_size));
+    return Ok(LTerm::make_small_unsigned(bin_size.bytes()));
   } else {
     return fail::create::badarg();
   }

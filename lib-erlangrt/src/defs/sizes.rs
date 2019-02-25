@@ -32,7 +32,7 @@ impl fmt::Display for WordSize {
   }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct ByteSize(usize);
 
 #[allow(dead_code)]
@@ -42,8 +42,12 @@ impl ByteSize {
     ByteSize(bytes)
   }
 
-  pub fn add(self, n: usize) -> ByteSize {
-    ByteSize(self.0 + n)
+  pub fn add(&mut self, n: usize) {
+    self.0 += n
+  }
+
+  pub fn add_bytesize(&mut self, other: ByteSize) {
+    self.0 = self.0 + other.0
   }
 
   #[inline]
