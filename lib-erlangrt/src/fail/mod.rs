@@ -53,6 +53,7 @@ pub enum RtErr {
 
   //--- Binary ---
   CannotCopyIntoRefbin, // To copy into binary, resolve ref into heapbin
+  CannotCopyIntoBinSlice, // Can not copy into binary slice, it is const
   HeapBinTooSmall(usize, usize), // want bytes, have bytes
   ProcBinTooSmall(usize, usize), // want bytes, have bytes
 }

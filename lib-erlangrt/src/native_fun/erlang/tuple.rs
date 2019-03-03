@@ -17,8 +17,8 @@ fn size_1(t: LTerm) -> RtResult<LTerm> {
     let arity = unsafe { (*t_ptr).get_arity() };
     return Ok(LTerm::make_small_unsigned(arity));
   } else if t.is_binary() {
-    let bin_ptr = t.get_box_ptr::<boxed::Binary>();
-    let bin_size = unsafe { boxed::Binary::get_size(bin_ptr) };
+    let bin_ptr = unsafe { boxed::Binary::get_trait_from_term(t) };
+    let bin_size = unsafe { (*bin_ptr).get_size() };
     return Ok(LTerm::make_small_unsigned(bin_size.bytes()));
   } else {
     return fail::create::badarg();

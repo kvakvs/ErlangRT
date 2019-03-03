@@ -226,9 +226,9 @@ impl LTerm {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
 
-  pub fn binary_byte_size(self) -> ByteSize {
-    let binp = self.get_box_ptr::<boxed::Binary>();
-    unsafe { boxed::Binary::get_size(binp) }
+  pub unsafe fn binary_byte_size(self) -> ByteSize {
+    let binp = boxed::Binary::get_trait_from_term(self);
+    (*binp).get_size()
   }
 
   //

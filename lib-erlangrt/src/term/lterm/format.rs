@@ -75,7 +75,8 @@ unsafe fn format_box_contents(
   let h_tag = boxed::headerword_to_boxtype(value_at_ptr.raw());
   match h_tag {
     boxed::BOXTYPETAG_BINARY => {
-      boxed::Binary::format_binary(val_ptr as *const boxed::Binary, f)
+      let trait_ptr = boxed::Binary::get_trait(val_ptr as *const boxed::Binary);
+      (*trait_ptr).format(f)
     }
     boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
     boxed::BOXTYPETAG_TUPLE => format_tuple(val_ptr, f),

@@ -44,8 +44,8 @@ impl TermBuilder {
     // Allocate uninitialized binary of some type
     let rbin = boxed::Binary::create_into(hp, ByteSize::new(data.len()))?;
     // Store bytes
-    boxed::Binary::store(rbin, data)?;
-    Ok(LTerm::make_boxed(rbin))
+    (*rbin).store(data)?;
+    Ok((*rbin).make_term())
   }
 
   #[inline]

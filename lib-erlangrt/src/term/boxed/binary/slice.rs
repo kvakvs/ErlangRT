@@ -1,11 +1,10 @@
 use crate::{
-  defs::{ByteSize, Word},
+  defs::sizes::ByteSize,
   fail::{RtErr, RtResult},
   term::{
     boxed::{
       self,
       binary::{
-        binaryheap_bin::BinaryHeapBinary,
         trait_interface::{BitSize, TBinary},
         BinaryType,
       },
@@ -15,32 +14,22 @@ use crate::{
 };
 use core::fmt;
 
-/// Defines operations with reference to binary.
-/// Pointer to this can be directly casted from pointer to boxed::Binary
-pub struct ReferenceToBinary {
+/// Another type of binary. Refers to a slice in another binary.
+pub struct BinarySlice {
   pub bin_header: boxed::binary::Binary,
+  pub offset: usize,
   pub size: ByteSize,
-  refc: Word,
-  pub pointer: *mut BinaryHeapBinary,
+  // TODO: Make sure this is detected when garbage collected
+  pub orig: *const TBinary,
 }
 
-impl ReferenceToBinary {
-  #[allow(dead_code)]
-  pub unsafe fn on_destroy(this: *mut ReferenceToBinary) {
-    if (*this).refc > 0 {
-      (*this).refc -= 1;
-      return;
-    }
-  }
-}
-
-impl TBinary for ReferenceToBinary {
+impl TBinary for BinarySlice {
   fn get_type(&self) -> BinaryType {
     unimplemented!()
   }
 
   fn get_size(&self) -> ByteSize {
-    self.size
+    unimplemented!()
   }
 
   fn get_bit_size(&self) -> BitSize {
@@ -56,8 +45,7 @@ impl TBinary for ReferenceToBinary {
   }
 
   fn store(&mut self, _data: &[u8]) -> RtResult<()> {
-    // TODO: Maybe should be possible? Assist with resolution into BinaryHeapBinary
-    return Err(RtErr::CannotCopyIntoRefbin);
+    return Err(RtErr::CannotCopyIntoBinSlice);
   }
 
   fn make_term(&self) -> LTerm {
@@ -65,8 +53,7 @@ impl TBinary for ReferenceToBinary {
   }
 
   fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "#refbin[{}]<<", self.size)?;
-    panic!("notimpl: printing refbin to binary heap");
-    // write!(f, ">>")
+    write!(f, "#subbin[{}]<<", self.size)?;
+    write!(f, "...>>")
   }
 }

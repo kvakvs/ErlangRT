@@ -2,22 +2,23 @@ use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::LTerm},
+  term::boxed::{self, binary::trait_interface::TBinary},
 };
 
 /// Binary match buffer is a part of `BinaryMatchState`
 struct MatchBuffer {
-  pub orig: LTerm,
+  // TODO: Make sure this is detected when garbage collected
+  pub orig: *const TBinary,
   pub base: *const u8,
   pub offset: usize,
   pub bit_size: usize,
 }
 
 impl MatchBuffer {
-  pub fn new(bin_ptr: *const boxed::Binary) -> Self {
+  pub fn new(bin_ptr: *const TBinary) -> Self {
     Self {
-      orig: LTerm::make_boxed(bin_ptr),
-      base: unsafe { boxed::Binary::get_data(bin_ptr) },
+      orig: bin_ptr,
+      base: unsafe { (*bin_ptr).get_data() },
       offset: 0,
       bit_size: 0,
     }
@@ -42,7 +43,7 @@ impl BinaryMatchState {
   }
 
   /// Create a new matchstate for the initial binary match step.
-  fn new(bin_ptr: *const boxed::Binary) -> Self {
+  fn new(bin_ptr: *const TBinary) -> Self {
     let arity = Self::storage_size();
     let mut self_ = Self {
       header: boxed::BoxHeader::new(boxed::BOXTYPETAG_BINARY_MATCH_STATE, arity.words()),
@@ -53,7 +54,7 @@ impl BinaryMatchState {
   }
 
   pub unsafe fn create_into(
-    bin_ptr: *const boxed::Binary,
+    bin_ptr: *const TBinary,
     hp: &mut Heap,
   ) -> RtResult<*mut BinaryMatchState> {
     let storage_sz = Self::storage_size();

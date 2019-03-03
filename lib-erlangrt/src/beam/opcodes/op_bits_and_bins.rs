@@ -5,7 +5,10 @@ use crate::{
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
   term::{
-    boxed::{self, binary::b_match::BinaryMatchState},
+    boxed::{
+      self,
+      binary::{b_match::BinaryMatchState, trait_interface::TBinary},
+    },
     lterm::*,
   },
 };
@@ -62,13 +65,8 @@ impl OpcodeBsStartMatch3 {
       },
 
       boxed::BOXTYPETAG_BINARY => {
-        return Self::start_with_new_binary(
-          runtime_ctx,
-          proc,
-          fail,
-          header as *const boxed::Binary,
-          dst,
-        )
+        let bin_ptr = unsafe { boxed::Binary::get_trait(header as *const boxed::Binary) };
+        return Self::start_with_new_binary(runtime_ctx, proc, fail, bin_ptr, dst);
       }
 
       _ => {
@@ -85,11 +83,11 @@ impl OpcodeBsStartMatch3 {
   fn start_with_new_binary(
     runtime_ctx: &mut Context,
     proc: &mut Process,
-    fail: LTerm,
-    bin_ptr: *const boxed::Binary,
+    _fail: LTerm,
+    bin_ptr: *const TBinary,
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let _total_bin_size = unsafe { boxed::Binary::get_size(bin_ptr) };
+    let _total_bin_size = unsafe { (*bin_ptr).get_size() };
     // OTP has a guard for total_bin_size to fit in 2^(64-3)
 
     // Here we have a new start, matchstate does not exist and the context
@@ -140,15 +138,15 @@ define_opcode!(
 impl OpcodeBsGetBinary2 {
   #[inline]
   fn bs_get_binary2_7(
-    runtime_ctx: &mut Context,
-    proc: &mut Process,
-    fail: LTerm,
-    match_state: *mut BinaryMatchState,
-    live: usize,
-    size: usize,
-    unit: usize,
-    flags: LTerm,
-    dst: LTerm,
+    _runtime_ctx: &mut Context,
+    _proc: &mut Process,
+    _fail: LTerm,
+    _match_state: *mut BinaryMatchState,
+    _live: usize,
+    _size: usize,
+    _unit: usize,
+    _flags: LTerm,
+    _dst: LTerm,
   ) -> RtResult<DispatchResult> {
     // TODO: Allocate a sub-binary and possibly GC if does not fit?
     // TODO: get matchbuffer from match state (why?)

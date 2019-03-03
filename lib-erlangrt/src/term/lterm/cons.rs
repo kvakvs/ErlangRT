@@ -201,7 +201,7 @@ pub fn get_iolist_size(list: LTerm) -> ByteSize {
       // Any small integer even larger than 256 counts as 1 byte
       result.add(1);
     } else if elem.is_binary() {
-      result.add_bytesize(elem.binary_byte_size());
+      result.add_bytesize(unsafe { elem.binary_byte_size() });
     } else if elem.is_cons() {
       result.add_bytesize(get_iolist_size(elem));
     }
