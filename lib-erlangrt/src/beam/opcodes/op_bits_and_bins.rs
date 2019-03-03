@@ -7,7 +7,10 @@ use crate::{
   term::{
     boxed::{
       self,
-      binary::{b_match::BinaryMatchState, trait_interface::TBinary},
+      binary::{
+        b_match::BinaryMatchState, bitsize::BitSize, slice::BinarySlice,
+        trait_interface::TBinary,
+      },
     },
     lterm::*,
   },
@@ -130,29 +133,39 @@ impl OpcodeBsStartMatch3 {
 /// Structure: bs_get_binary(Fail, MatchState, Live, Size, Unit, Flags, Dst)
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsGetBinary2, arity: 7,
-  run: { Self::bs_get_binary2_7(rt_ctx, proc, fail, match_state, live, size, unit, flags, dst) },
+  run: {unsafe {
+    Self::bs_get_binary2_7(rt_ctx, proc, fail, match_state, live, size, unit, flags, dst)
+  }},
   args: cp_not_nil(fail), binary_match_state(match_state),
         usize(live), load_usize(size), usize(unit), term(flags), term(dst),
 );
 
 impl OpcodeBsGetBinary2 {
   #[inline]
-  fn bs_get_binary2_7(
-    _runtime_ctx: &mut Context,
-    _proc: &mut Process,
+  unsafe fn bs_get_binary2_7(
+    runtime_ctx: &mut Context,
+    proc: &mut Process,
     _fail: LTerm,
-    _match_state: *mut BinaryMatchState,
-    _live: usize,
-    _size: usize,
-    _unit: usize,
-    _flags: LTerm,
-    _dst: LTerm,
+    match_state: *mut BinaryMatchState,
+    live: usize,
+    size: usize,
+    unit: usize,
+    flags: LTerm,
+    dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    // TODO: Allocate a sub-binary and possibly GC if does not fit?
-    // TODO: get matchbuffer from match state (why?)
-    // TODO: call the actual get_binary2 logic on num_bits, flags and matchbuffer, which will make binary
-    // TODO: return the sub-binary created
-    panic!("notimpl bs_get_binary2");
-    // Ok(DispatchResult::Normal)
+    println!(
+      "bs_get_binary2 impl: live={} size={} unit={} flags={}",
+      live, size, unit, flags
+    );
+
+    // Allocate a sub-binary and possibly GC if does not fit?
+    let bit_size = BitSize::with_unit(size, unit);
+    let src_bin = (*match_state).get_src_binary();
+    let sub_bin = BinarySlice::create_into(src_bin, bit_size, &mut proc.heap)?;
+
+    // Return the sub-binary created
+    runtime_ctx.store_value((*sub_bin).make_term(), dst, &mut proc.heap)?;
+
+    Ok(DispatchResult::Normal)
   }
 }

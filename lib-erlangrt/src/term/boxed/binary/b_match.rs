@@ -29,7 +29,7 @@ impl MatchBuffer {
 /// offset `LTerm`s.
 pub struct BinaryMatchState {
   pub header: boxed::BoxHeader,
-  mb: MatchBuffer,
+  match_buffer: MatchBuffer,
 }
 
 impl BinaryMatchState {
@@ -47,7 +47,7 @@ impl BinaryMatchState {
     let arity = Self::storage_size();
     let mut self_ = Self {
       header: boxed::BoxHeader::new(boxed::BOXTYPETAG_BINARY_MATCH_STATE, arity.words()),
-      mb: MatchBuffer::new(bin_ptr),
+      match_buffer: MatchBuffer::new(bin_ptr),
     };
     self_.reset();
     self_
@@ -65,5 +65,10 @@ impl BinaryMatchState {
     core::ptr::write(this, new_self);
 
     Ok(this)
+  }
+
+  #[inline]
+  pub fn get_src_binary(&self) -> *const TBinary {
+    self.match_buffer.orig
   }
 }

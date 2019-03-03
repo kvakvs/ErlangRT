@@ -3,11 +3,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      self,
-      binary::{
-        trait_interface::{BitSize, TBinary},
-        BinaryType,
-      },
+      binary::{bitsize::BitSize, trait_interface::TBinary, BinaryType},
       Binary,
     },
     lterm::LTerm,

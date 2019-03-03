@@ -1,4 +1,4 @@
-use crate::defs::WORD_BYTES;
+use crate::defs;
 use core::fmt;
 
 #[derive(Copy, Clone)]
@@ -22,7 +22,7 @@ impl WordSize {
 
   #[inline]
   pub const fn bytes(self) -> usize {
-    self.0 * WORD_BYTES
+    self.0 * defs::WORD_BYTES
   }
 }
 
@@ -57,12 +57,12 @@ impl ByteSize {
 
   #[inline]
   pub const fn words_rounded_down(self) -> WordSize {
-    WordSize::new(self.0 / WORD_BYTES)
+    WordSize::new(self.0 / defs::WORD_BYTES)
   }
 
   #[inline]
   pub const fn words_rounded_up(self) -> WordSize {
-    WordSize::new((self.0 + WORD_BYTES - 1) / WORD_BYTES)
+    WordSize::new((self.0 + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
   }
 }
 

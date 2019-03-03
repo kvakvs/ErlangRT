@@ -3,14 +3,12 @@
 use crate::{
   defs::ByteSize,
   fail::RtResult,
-  term::{boxed::binary::BinaryType, lterm::LTerm},
+  term::{
+    boxed::binary::{bitsize::BitSize, BinaryType},
+    lterm::LTerm,
+  },
 };
 use core::fmt;
-
-pub struct BitSize {
-  pub size: ByteSize,
-  pub last_byte_bits: u8,
-}
 
 /// Trait represents any type of binary with generic access functions.
 pub trait TBinary {

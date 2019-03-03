@@ -42,7 +42,7 @@ impl TermBuilder {
     debug_assert!(!self.heap.is_null());
     let hp = self.heap.as_mut().unwrap();
     // Allocate uninitialized binary of some type
-    let rbin = boxed::Binary::create_into(hp, ByteSize::new(data.len()))?;
+    let rbin = boxed::Binary::create_into(ByteSize::new(data.len()), hp)?;
     // Store bytes
     (*rbin).store(data)?;
     Ok((*rbin).make_term())

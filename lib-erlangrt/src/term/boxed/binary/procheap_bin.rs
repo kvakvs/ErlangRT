@@ -5,10 +5,7 @@ use crate::{
   term::{
     boxed::{
       self,
-      binary::{
-        trait_interface::{BitSize, TBinary},
-        BinaryType,
-      },
+      binary::{bitsize::BitSize, trait_interface::TBinary, BinaryType},
       Binary,
     },
     lterm::LTerm,
@@ -94,14 +91,18 @@ impl ProcessHeapBinary {
     )
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, size: ByteSize) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_into(size: ByteSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size(size);
     let this = hp.alloc::<Self>(storage_sz, false)?;
 
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);
-    let new_self = Self { bin_header, size, data: 0 };
+    let new_self = Self {
+      bin_header,
+      size,
+      data: 0,
+    };
     core::ptr::write(this, new_self);
 
     Ok(this as *mut TBinary)

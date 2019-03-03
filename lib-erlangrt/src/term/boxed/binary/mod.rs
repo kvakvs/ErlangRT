@@ -15,11 +15,14 @@ use crate::{
 };
 
 pub mod b_match;
-mod binaryheap_bin;
-mod procheap_bin;
-mod refc_bin;
-mod slice;
+pub mod binaryheap_bin;
+pub mod bitsize;
+pub mod procheap_bin;
+pub mod refc_bin;
+pub mod slice;
 pub mod trait_interface;
+
+// pub use self::{b_match::*, bitsize::*, slice::*, trait_interface::*};
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
@@ -63,26 +66,26 @@ impl Binary {
     }
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, size: ByteSize) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_into(size: ByteSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
     if size.bytes() == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedBinary);
     }
     let b_type = Self::get_binary_type_for_creation(size);
     match b_type {
-      BinaryType::ProcessHeap => ProcessHeapBinary::create_into(hp, size),
+      BinaryType::ProcessHeap => ProcessHeapBinary::create_into(size, hp),
       BinaryType::BinaryHeap => panic!("notimpl! create binary on the binary heap"),
       BinaryType::RefToBinaryHeap => panic!("notimpl! create ref to binary heap"),
       BinaryType::Slice => panic!("Can't create slice here"),
     }
   }
 
-//  #[inline]
-//  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
-//    panic!("notimpl");
-//    // let p = this.add(1) as *const u8;
-//    // core::ptr::read(p.add(i))
-//  }
+  //  #[inline]
+  //  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
+  //    panic!("notimpl");
+  //    // let p = this.add(1) as *const u8;
+  //    // core::ptr::read(p.add(i))
+  //  }
 
   unsafe fn generic_switch<T>(
     this: *const Binary,
@@ -147,5 +150,4 @@ impl Binary {
       |slice_ptr| slice_ptr as *const TBinary,
     )
   }
-
 }
