@@ -15,12 +15,11 @@ pub type Word = usize;
 pub type SWord = isize;
 pub type Arity = usize;
 
-// pub use term::immediate::SMALL_BITS;
-
 /// How many bits have to shift right or left, to lose the 8 multiplier of a byte
-pub const BYTE_SHIFT: usize = 8;
+pub const BYTE_POF2_BITS: usize = 3;
+
 /// Like there were many other byte-sizes in Erlang VMs ever before.
-pub const BYTE_BITS: usize = 1usize << BYTE_SHIFT;
+pub const BYTE_BITS: usize = 1usize << BYTE_POF2_BITS;
 
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: usize = 32;

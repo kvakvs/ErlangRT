@@ -68,7 +68,7 @@ impl ByteSize {
 
   #[inline]
   pub const fn get_bits(self) -> BitSize {
-    BitSize::with_unit_const(self.0, 1)
+    BitSize::with_unit_const(self.0, defs::WORD_BYTES)
   }
 }
 

@@ -1,5 +1,6 @@
-use crate::defs::{self, ByteSize, WordSize};
 use core::fmt;
+
+use crate::defs::{self, ByteSize, WordSize};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct BitSize {
@@ -49,12 +50,12 @@ impl BitSize {
   #[allow(dead_code)]
   #[inline]
   pub const fn get_last_byte_bits(&self) -> usize {
-    self.bit_count & defs::BYTE_SHIFT
+    self.bit_count & (defs::BYTE_BITS - 1)
   }
 
   #[inline]
   pub const fn get_bytes_rounded_down(&self) -> usize {
-    self.bit_count >> defs::BYTE_SHIFT
+    self.bit_count >> defs::BYTE_POF2_BITS
   }
 
   pub const fn get_bytes_rounded_up(self) -> ByteSize {
