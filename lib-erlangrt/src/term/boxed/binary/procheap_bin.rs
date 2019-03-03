@@ -21,6 +21,7 @@ use core::fmt;
 pub struct ProcessHeapBinary {
   pub bin_header: boxed::binary::Binary,
   pub size: ByteSize,
+  pub data: usize,
 }
 
 impl TBinary for ProcessHeapBinary {
@@ -37,11 +38,11 @@ impl TBinary for ProcessHeapBinary {
   }
 
   fn get_data(&self) -> *const u8 {
-    unimplemented!()
+    (&self.data) as *const usize as *const u8
   }
 
   fn get_data_mut(&mut self) -> *mut u8 {
-    unimplemented!()
+    (&self.data) as *const usize as *mut u8
   }
 
   fn store(&mut self, data: &[u8]) -> RtResult<()> {
@@ -62,7 +63,7 @@ impl TBinary for ProcessHeapBinary {
   }
 
   fn make_term(&self) -> LTerm {
-    unimplemented!()
+    LTerm::make_boxed((&self.bin_header) as *const Binary)
   }
 
   fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -100,7 +101,7 @@ impl ProcessHeapBinary {
 
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);
-    let new_self = Self { bin_header, size };
+    let new_self = Self { bin_header, size, data: 0 };
     core::ptr::write(this, new_self);
 
     Ok(this as *mut TBinary)

@@ -148,22 +148,4 @@ impl Binary {
     )
   }
 
-  //  /// For any binary retrieve const data pointer and size
-  //  pub unsafe fn get_data(this: *const Binary) -> *const u8 {
-  //    Self::generic_switch(
-  //      this,
-  //      |phb_ptr| phb_ptr.add(1) as *const u8,
-  //      |refb_ptr| refb_ptr.add(1) as *const u8,
-  //      |bhb_ptr| bhb_ptr.add(1) as *const u8,
-  //    )
-  //  }
-
-  //  pub unsafe fn get_data_mut(this: *mut Binary) -> *mut u8 {
-  //    Self::generic_switch_mut(
-  //      this,
-  //      |phb_ptr| phb_ptr.add(1) as *mut u8,
-  //      |refb_ptr| refb_ptr.add(1) as *mut u8,
-  //      |bhb_ptr| bhb_ptr.add(1) as *mut u8,
-  //    )
-  //  }
 }

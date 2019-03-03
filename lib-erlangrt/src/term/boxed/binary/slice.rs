@@ -13,10 +13,11 @@ use crate::{
   },
 };
 use core::fmt;
+use crate::term::boxed::Binary;
 
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {
-  pub bin_header: boxed::binary::Binary,
+  pub bin_header: Binary,
   pub offset: usize,
   pub size: ByteSize,
   // TODO: Make sure this is detected when garbage collected
@@ -49,7 +50,7 @@ impl TBinary for BinarySlice {
   }
 
   fn make_term(&self) -> LTerm {
-    unimplemented!()
+    LTerm::make_boxed((&self.bin_header) as *const Binary)
   }
 
   fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {

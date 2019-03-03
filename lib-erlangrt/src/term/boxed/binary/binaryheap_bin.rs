@@ -8,6 +8,7 @@ use crate::{
         trait_interface::{BitSize, TBinary},
         BinaryType,
       },
+      Binary,
     },
     lterm::LTerm,
   },
@@ -17,8 +18,9 @@ use core::fmt;
 /// Defines operations with a binary on the binary heap
 /// Pointer to this can be directly casted from pointer to boxed::Binary
 pub struct BinaryHeapBinary {
-  pub bin_header: boxed::binary::Binary,
+  pub bin_header: Binary,
   pub size: ByteSize,
+  pub data: usize, // first 8 (or 4) bytes of data begin here
 }
 
 impl TBinary for BinaryHeapBinary {
@@ -35,11 +37,11 @@ impl TBinary for BinaryHeapBinary {
   }
 
   fn get_data(&self) -> *const u8 {
-    unimplemented!()
+    (&self.data) as *const usize as *const u8
   }
 
   fn get_data_mut(&mut self) -> *mut u8 {
-    unimplemented!()
+    (&self.data) as *const usize as *mut u8
   }
 
   fn store(&mut self, data: &[u8]) -> RtResult<()> {
@@ -60,7 +62,7 @@ impl TBinary for BinaryHeapBinary {
   }
 
   fn make_term(&self) -> LTerm {
-    unimplemented!()
+    LTerm::make_boxed((&self.bin_header) as *const Binary)
   }
 
   fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
