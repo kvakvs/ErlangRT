@@ -312,11 +312,6 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeIsFunction2::__run(vm, ctx, curr_p);
     },
 
-    OPCODE_BS_START_MATCH2 => {
-      assert_arity(OPCODE_BS_START_MATCH2, OpcodeBsStartMatch2::ARITY);
-      return OpcodeBsStartMatch2::__run(vm, ctx, curr_p);
-    },
-
     OPCODE_GC_BIF1 => {
       assert_arity(OPCODE_GC_BIF1, OpcodeGcBif1::ARITY);
       return OpcodeGcBif1::__run(vm, ctx, curr_p);
@@ -350,6 +345,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
     OPCODE_GET_TL => {
       assert_arity(OPCODE_GET_TL, OpcodeGetTl::ARITY);
       return OpcodeGetTl::__run(vm, ctx, curr_p);
+    },
+
+    OPCODE_BS_START_MATCH3 => {
+      assert_arity(OPCODE_BS_START_MATCH3, OpcodeBsStartMatch3::ARITY);
+      return OpcodeBsStartMatch3::__run(vm, ctx, curr_p);
     },
 
     other => unknown_opcode(other, ctx),

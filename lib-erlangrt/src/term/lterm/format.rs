@@ -98,6 +98,9 @@ unsafe fn format_box_contents(
       let eptr = val_ptr as *const boxed::Export;
       write!(f, "Export<{}>", (*eptr).exp.mfa)
     }
+    boxed::BOXTYPETAG_BINARY_MATCH_STATE => {
+      write!(f, "BinaryMatchState<>")
+    }
 
     _ => panic!("Unexpected header tag {:?}", h_tag),
   }

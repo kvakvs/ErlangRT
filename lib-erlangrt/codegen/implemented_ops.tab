@@ -84,7 +84,8 @@ try_case
 try_end
 
 #=== === Binary Pattern Matching === ===
-bs_start_match2
+# bs_start_match2
+bs_start_match3
 # TODO remove arity below
 # bs_get_integer2/7
 # bs_get_float2/7

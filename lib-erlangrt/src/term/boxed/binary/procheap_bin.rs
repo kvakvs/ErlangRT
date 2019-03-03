@@ -30,10 +30,7 @@ impl ProcessHeapBinary {
 
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);
-    let new_self = Self {
-      bin_header,
-      size,
-    };
+    let new_self = Self { bin_header, size };
     core::ptr::write(this, new_self);
 
     Ok(this as *mut Binary)

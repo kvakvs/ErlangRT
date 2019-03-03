@@ -12,9 +12,15 @@ use crate::{
 };
 use core::{fmt, ptr};
 
+pub mod b_match;
 mod binaryheap_bin;
 mod procheap_bin;
 mod refc_bin;
+
+pub struct BitSize {
+  pub size: ByteSize,
+  pub last_byte_bits: u8,
+}
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
@@ -37,8 +43,8 @@ pub struct Binary {
   /// Based on the bin_type, the pointer should be converted to one of binary
   /// subtypes and then used accordingly.
   bin_type: BinaryType,
-  // Size is stored in the storage object, which is overlaid onto this depending
-  // on the bin_type
+  /* Size is stored in the storage object, which is overlaid onto this depending
+   * on the bin_type */
 }
 
 impl Binary {
@@ -63,15 +69,9 @@ impl Binary {
     }
     let b_type = Self::get_binary_type_for(size);
     match b_type {
-      BinaryType::ProcessHeap => {
-        ProcessHeapBinary::create_into(hp, size)
-      },
-      BinaryType::BinaryHeap => {
-        panic!("notimpl! create binary on the binary heap")
-      },
-      BinaryType::RefToBinaryHeap => {
-        panic!("notimpl! create ref to binary heap")
-      },
+      BinaryType::ProcessHeap => ProcessHeapBinary::create_into(hp, size),
+      BinaryType::BinaryHeap => panic!("notimpl! create binary on the binary heap"),
+      BinaryType::RefToBinaryHeap => panic!("notimpl! create ref to binary heap"),
     }
   }
 
@@ -117,20 +117,74 @@ impl Binary {
     core::ptr::read(p.add(i))
   }
 
-  pub unsafe fn get_size(this: *const Binary) -> ByteSize {
+  unsafe fn generic_switch<T>(
+    this: *const Binary,
+    on_proc_bin: fn(*const ProcessHeapBinary) -> T,
+    on_ref_bin: fn(*const ReferenceToBinary) -> T,
+    on_binheap_bin: fn(*const BinaryHeapBinary) -> T,
+  ) -> T {
     match (*this).bin_type {
       BinaryType::ProcessHeap => {
-        let phb_ptr = this as *mut ProcessHeapBinary;
+        on_proc_bin(this as *const ProcessHeapBinary)
+      }
+      BinaryType::RefToBinaryHeap => {
+        on_ref_bin(this as *const ReferenceToBinary)
+      }
+      BinaryType::BinaryHeap => {
+        on_binheap_bin(this as *const BinaryHeapBinary)
+      }
+    }
+  }
+
+  unsafe fn generic_switch_mut<T>(
+    this: *mut Binary,
+    on_proc_bin: fn(*mut ProcessHeapBinary) -> T,
+    on_ref_bin: fn(*mut ReferenceToBinary) -> T,
+    on_binheap_bin: fn(*mut BinaryHeapBinary) -> T,
+  ) -> T {
+    match (*this).bin_type {
+      BinaryType::ProcessHeap => {
+        on_proc_bin(this as *mut ProcessHeapBinary)
+      }
+      BinaryType::RefToBinaryHeap => {
+        on_ref_bin(this as *mut ReferenceToBinary)
+      }
+      BinaryType::BinaryHeap => {
+        on_binheap_bin(this as *mut BinaryHeapBinary)
+      }
+    }
+  }
+
+  /// Get the size in bytes of any type of binary.
+  pub unsafe fn get_size(this: *const Binary) -> ByteSize {
+    Self::generic_switch(this,
+      |phb_ptr| {
         (*phb_ptr).size
       },
-      BinaryType::RefToBinaryHeap => {
-        let refb_ptr = this as *mut ReferenceToBinary;
+      |refb_ptr| {
         (*refb_ptr).size
       },
-      BinaryType::BinaryHeap => {
-        let bhb_ptr = this as *mut BinaryHeapBinary;
+      |bhb_ptr| {
         (*bhb_ptr).size
-      },
+      })
+    }
+
+
+  /// For any binary retrieve const data pointer and size
+  pub unsafe fn get_data(this: *const Binary) -> *const u8 {
+    match (*this).bin_type {
+      BinaryType::ProcessHeap => {
+        let phb_ptr = this as *const ProcessHeapBinary;
+        phb_ptr.add(1) as *const u8
+      }
+      BinaryType::RefToBinaryHeap => {
+        let refb_ptr = this as *const ReferenceToBinary;
+        refb_ptr.add(1) as *const u8
+      }
+      BinaryType::BinaryHeap => {
+        let bhb_ptr = this as *const BinaryHeapBinary;
+        bhb_ptr.add(1) as *const u8
+      }
     }
   }
 
@@ -139,15 +193,15 @@ impl Binary {
       BinaryType::ProcessHeap => {
         let phb_ptr = this as *mut ProcessHeapBinary;
         phb_ptr.add(1) as *mut u8
-      },
+      }
       BinaryType::RefToBinaryHeap => {
         let refb_ptr = this as *mut ReferenceToBinary;
         refb_ptr.add(1) as *mut u8
-      },
+      }
       BinaryType::BinaryHeap => {
         let bhb_ptr = this as *mut BinaryHeapBinary;
         bhb_ptr.add(1) as *mut u8
-      },
+      }
     }
   }
 

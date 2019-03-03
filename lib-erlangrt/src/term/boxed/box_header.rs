@@ -33,8 +33,9 @@ pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(8);
 pub const BOXTYPETAG_MAP: BoxTypeTag = BoxTypeTag(9);
 
 pub const BOXTYPETAG_BINARY: BoxTypeTag = BoxTypeTag(10);
-pub const BOXTYPETAG_BINARY_MATCH_CTX: BoxTypeTag = BoxTypeTag(11);
-// unused ...
+pub const BOXTYPETAG_BINARY_MATCH_STATE: BoxTypeTag = BoxTypeTag(11);
+// unused 12
+// unused 13
 // unused 14
 // unused 15 => max 15 (1 << BOXTYPE_TAG_BITS)
 

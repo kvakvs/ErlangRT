@@ -6,9 +6,9 @@ use colored::Colorize;
 
 use crate::{
   beam::gen_op,
-  defs::{MAX_FPREGS, MAX_XREGS, Reductions, Word},
+  defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
   emulator::{
-    code::{CodePtr, opcode},
+    code::{opcode, CodePtr},
     code_srv::MFALookupResult,
     heap,
     process::Process,
@@ -233,7 +233,7 @@ impl Context {
   /// Returns void `()` or an error.
   #[allow(dead_code)]
   #[inline]
-  pub fn store_src(
+  pub fn load_then_store(
     &mut self,
     src: LTerm,
     dst: LTerm,
@@ -358,11 +358,20 @@ impl Context {
   }
 
   #[inline]
-  pub fn debug_trace_call(&self, description: &str, dst: LTerm, offset: usize, arity: usize) {
+  pub fn debug_trace_call(
+    &self,
+    description: &str,
+    _dst: LTerm,
+    offset: usize,
+    arity: usize,
+  ) {
     if cfg!(feature = "trace_calls") {
-      print!("{} <{}> {}, x[..{}] <", "Call".yellow(), description, dst, arity);
+      print!("{} <{}>, x[..{}] <", "Call".yellow(), description, arity);
       for i in offset..(offset + arity) {
-        print!("{}; ", self.get_x(i));
+        if i > 0 {
+          print!("{}", "; ".red());
+        }
+        print!("{}", self.get_x(i));
       }
       println!(">");
     }
