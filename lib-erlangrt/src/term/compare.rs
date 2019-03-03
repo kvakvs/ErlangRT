@@ -3,8 +3,9 @@ use core::cmp::Ordering;
 use crate::{
   emulator::atom,
   fail::RtResult,
-  term::{classify, lterm::*},
+  term::{classify, compare::EqResult::Concluded, lterm::*},
 };
+use crate::term::boxed;
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
 /// is stored in `stack` in `eq_terms()` function and tells where to resume
@@ -60,10 +61,8 @@ fn cmp_terms_1(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
     match eq_result {
       EqResult::Concluded(result) if result == Ordering::Equal => {
         if stack.is_empty() {
-          // println!("comparison {} {} concluded {:?}", a, b, result);
           return Ok(result);
         } else {
-          // println!("comparison {} {} got intermediate result {:?}", a, b, result);
           op = stack.pop().unwrap();
           continue;
         } // stack not empty
@@ -150,7 +149,7 @@ fn cmp_f64_naive(a: f64, b: f64) -> Ordering {
 }
 
 fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
-  panic!("TODO: eq_numbers_not_exact")
+  unimplemented!("eq_numbers_not_exact")
 }
 
 /// Compare two atoms for equality. Returns the ordering result.
@@ -177,8 +176,9 @@ fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
 /// Compare order of two types without looking into their value.
 fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
   if a.is_cons() && b == LTerm::nil()
-      || a.is_tuple() && b == LTerm::empty_tuple()
-      || a.is_binary() && b == LTerm::empty_binary() {
+    || a.is_tuple() && b == LTerm::empty_tuple()
+    || a.is_binary() && b == LTerm::empty_binary()
+  {
     return Ordering::Greater;
   }
 
@@ -190,12 +190,11 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
 fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
-  //  let a_val = a.raw();
   let a_prim_tag = a.get_term_tag();
-
-  //  let b_val = b.raw();
   let b_prim_tag = b.get_term_tag();
-  if b_prim_tag != a_prim_tag {
+  // println!("cmp {} tag={:?} vs {} tag={:?}", a, a_prim_tag, b, b_prim_tag);
+
+  if a_prim_tag != b_prim_tag {
     // different primary types, compare their classes
     // This can be optimized a little but is there any value in optimization?
     return Ok(EqResult::Concluded(cmp_type_order(a, b)));
@@ -206,7 +205,7 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
       if a.is_cp() || b.is_cp() {
         panic!("eq_terms for CP is unsupported")
       }
-      cmp_terms_box(a, b)
+      Ok(Concluded(cmp_terms_immed_box(a, b)?))
     }
 
     TERMTAG_CONS => {
@@ -224,22 +223,19 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
   }
 }
 
-// TODO: If this function is used a lot, optimize by doing case on tag bits
+// TODO: Optimize by doing case on tag bits
 fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
-  //  let av = a.raw();
-  //  let bv = b.raw();
-
   if (a == LTerm::nil() || a == LTerm::empty_tuple() || a == LTerm::empty_binary())
-      && (a.raw() == b.raw())
+    && (a.raw() == b.raw())
   {
     return Ok(Ordering::Equal);
   }
 
   if a.is_local_port() {
     if b.is_local_port() {
-      panic!("TODO: cmp local vs local port")
+      unimplemented!("cmp local vs local port")
     } else if b.is_external_port() {
-      panic!("TODO: cmp local vs ext port")
+      unimplemented!("cmp local vs ext port")
     } else {
       return cmp_mixed_types(a, b);
     }
@@ -250,7 +246,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
       // Concluded by comparing raw values
       return Ok(a.raw().cmp(&b.raw()));
     } else if b.is_external_pid() {
-      panic!("TODO: cmp local vs ext pid")
+      unimplemented!("cmp local vs ext pid")
     } else {
       return cmp_mixed_types(a, b);
     }
@@ -274,14 +270,15 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
     return Ok(a_tag.cmp(&b_tag));
   }
 
-  panic!("TODO: eq_terms_immed {} {}", a, b)
+  unimplemented!("eq_terms_immed {} {}", a, b)
 }
 
+// TODO: Optimize by doing case on tag bits
 #[inline]
 fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
   if a.is_tuple() {
     if b.is_tuple() {
-      panic!("TODO: cmp tuple vs tuple")
+      unimplemented!("cmp tuple vs tuple")
     } else {
       return cmp_mixed_types(a, b);
     }
@@ -294,7 +291,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
         }
       } else {
         // Compare two flat maps
-        panic!("TODO: cmp flatmap vs flatmap (+exact)")
+        unimplemented!("cmp flatmap vs flatmap (+exact)")
       }
     } else if !b.is_hash_map() {
       if b.is_flat_map() {
@@ -303,21 +300,21 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
       }
     } else {
       // Compare two hash maps
-      panic!("TODO: cmp flatmap vs flatmap (+exact)")
+      unimplemented!("cmp flatmap vs flatmap (+exact)")
     }
 
-    // Hashmap compare strategy:
-    // Phase 1. While keys are identical
-    //    Do synchronous stepping through leafs of both trees in hash
-    //    order. Maintain value compare result of minimal key.
-    //
-    // Phase 2. If key diff was found in phase 1
-    //    Ignore values from now on.
-    //    Continue iterate trees by always advancing the one
-    //    lagging behind hash-wise. Identical keys are skipped.
-    //    A minimal key can only be candidate as tie-breaker if we
-    //    have passed that hash value in the other tree (which means
-    //    the key did not exist in the other tree).
+  // Hashmap compare strategy:
+  // Phase 1. While keys are identical
+  //    Do synchronous stepping through leafs of both trees in hash
+  //    order. Maintain value compare result of minimal key.
+  //
+  // Phase 2. If key diff was found in phase 1
+  //    Ignore values from now on.
+  //    Continue iterate trees by always advancing the one
+  //    lagging behind hash-wise. Identical keys are skipped.
+  //    A minimal key can only be candidate as tie-breaker if we
+  //    have passed that hash value in the other tree (which means
+  //    the key did not exist in the other tree).
   } else if a.is_float() {
     if !b.is_float() {
       // TODO: If b is integer and we don't do exact comparison?
@@ -339,8 +336,13 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
     // cmp atoms a.module and b.module
     // cmp atoms a.fn and b.fn
     // cmp arity
-    panic!("TODO compare 2 exports")
+    unimplemented!("compare 2 exports")
   } else if a.is_boxed() {
+    if a.is_binary() {
+      if b.is_binary() {
+        return unsafe { cmp_binary(a, b) };
+      }
+    }
     if !a.is_fun() {
       return cmp_mixed_types(a, b);
     }
@@ -349,36 +351,36 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
     // compare old_index
     // compare old_uniq
     // compare num_Free
-    panic!("TODO compare 2 fun objects")
+    unimplemented!("compare 2 fun objects")
   } else if a.is_external_pid() {
     if b.is_local_pid() {
-      panic!("TODO compare ext vs local pid")
+      unimplemented!("compare ext vs local pid")
     } else if b.is_external_pid() {
-      panic!("TODO compare ext vs ext pid")
+      unimplemented!("compare ext vs ext pid")
     } else {
       return cmp_mixed_types(a, b);
     }
   } else if a.is_external_port() {
     if b.is_local_port() {
-      panic!("TODO compare ext vs local port")
+      unimplemented!("compare ext vs local port")
     } else if b.is_external_port() {
-      panic!("TODO compare ext vs ext port")
+      unimplemented!("compare ext vs ext port")
     } else {
       return cmp_mixed_types(a, b);
     }
   } else if a.is_local_ref() {
     if b.is_local_ref() {
-      panic!("TODO compare local vs local ref")
+      unimplemented!("compare local vs local ref")
     } else if b.is_external_ref() {
-      panic!("TODO compare local vs ext ref")
+      unimplemented!("compare local vs ext ref")
     } else {
       return cmp_mixed_types(a, b);
     }
   } else if a.is_external_ref() {
     if b.is_local_ref() {
-      panic!("TODO compare ext vs local ref")
+      unimplemented!("compare ext vs local ref")
     } else if b.is_external_ref() {
-      panic!("TODO compare ext vs ext ref")
+      unimplemented!("compare ext vs ext ref")
     } else {
       return cmp_mixed_types(a, b);
     }
@@ -388,14 +390,26 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
     if !b.is_binary() {
       return cmp_mixed_types(a, b);
     }
-    panic!("TODO cmp binaries")
+    unimplemented!("cmp binaries")
   }
-  panic!("TODO: eq_terms_immed_box {} {}", a, b)
+  unimplemented!("eq_terms_immed_box {} {}", a, b)
+}
+
+#[inline]
+unsafe fn cmp_binary(a: LTerm, b: LTerm) -> RtResult<Ordering> {
+  let a_ptr = boxed::Binary::get_trait_from_term(a);
+  let b_ptr = boxed::Binary::get_trait_from_term(b);
+  let a_size = (*a_ptr).get_bit_size();
+  let b_size = (*b_ptr).get_bit_size();
+  if a_size != b_size {
+    return Ok(a_size.cmp(&b_size));
+  }
+  unimplemented!("cmp_binary of equal bit_size")
 }
 
 /// Deeper comparison of two values with different types
-fn cmp_mixed_types(_a: LTerm, _b: LTerm) -> RtResult<Ordering> {
-  panic!("TODO: cmp_mixed_types(a, b)")
+fn cmp_mixed_types(a: LTerm, b: LTerm) -> RtResult<Ordering> {
+  unimplemented!("cmp_mixed_types {} vs {}", a, b)
 }
 
 /// Compare two cons (list) cells.
@@ -448,7 +462,12 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
   }
 }
 
-fn cmp_terms_box(_a: LTerm, _b: LTerm) -> RtResult<EqResult> {
-  // TODO: see if cmp_terms_immed_box can be useful
-  panic!("TODO: eq_terms_box")
-}
+// fn cmp_terms_box(a: LTerm, b: LTerm) -> RtResult<EqResult> {
+//  println!("Comparing {} vs. {}", a, b);
+//  let a_ptr = a.get_box_ptr::<boxed::BoxHeader>();
+//  let b_ptr = b.get_box_ptr::<boxed::BoxHeader>();
+//
+//
+//  // TODO: see if cmp_terms_immed_box can be useful
+//  unimplemented!("eq_terms_box")
+//}

@@ -384,14 +384,18 @@ impl Context {
 impl fmt::Display for Context {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut str_regs = String::new();
-    for v in self.regs[0..self.live].iter() {
-      str_regs += &format!("{}; ", v)
+    for n in 0..self.live {
+      let xn = format!("x{}", n).black().on_white();
+      str_regs += &format!("{}={}; ", xn, self.get_x(n))
     }
 
     writeln!(
       f,
-      concat!("Emulator state:\n", "ip: {:?}, cp: {:?}\nregs[..10]: {}"),
-      self.ip, self.cp, str_regs
+      "{}\nip: {:?}, cp: {:?}\nregs[..10]: {}",
+      "Emulator state:".white().on_red(),
+      self.ip,
+      self.cp,
+      str_regs
     )
   }
 }

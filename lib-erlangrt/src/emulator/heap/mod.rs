@@ -281,7 +281,6 @@ impl Heap {
     let cp = LTerm::from_raw(self.data[self.stack_top]);
     assert!(cp.is_cp());
     self.stack_top += n + 1;
-    println!("stk dealloc {}+1", n);
     cp
   }
 

@@ -317,6 +317,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeBsGetBinary2::__run(vm, ctx, curr_p);
     },
 
+    OPCODE_BS_TEST_TAIL2 => {
+      assert_arity(OPCODE_BS_TEST_TAIL2, OpcodeBsTestTail2::ARITY);
+      return OpcodeBsTestTail2::__run(vm, ctx, curr_p);
+    },
+
     OPCODE_GC_BIF1 => {
       assert_arity(OPCODE_GC_BIF1, OpcodeGcBif1::ARITY);
       return OpcodeGcBif1::__run(vm, ctx, curr_p);

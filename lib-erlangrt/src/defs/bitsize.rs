@@ -1,6 +1,7 @@
 use core::fmt;
 
 use crate::defs::{self, ByteSize, WordSize};
+use std::ops::Sub;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct BitSize {
@@ -14,13 +15,20 @@ impl fmt::Display for BitSize {
 }
 
 impl BitSize {
+  #[inline]
+  pub const fn with_bits(bit_count: usize) -> Self {
+    Self { bit_count }
+  }
+
   #[allow(dead_code)]
+  #[inline]
   pub const fn with_bytesize(size: ByteSize) -> Self {
     Self {
       bit_count: size.bytes() * defs::BYTE_BITS,
     }
   }
 
+  #[inline]
   pub const fn with_bytes(size: usize) -> Self {
     Self {
       bit_count: size * defs::BYTE_BITS,
@@ -67,5 +75,15 @@ impl BitSize {
     WordSize::new(
       (self.get_bytes_rounded_down() + defs::WORD_BYTES - 1) / defs::WORD_BYTES,
     )
+  }
+}
+
+impl Sub for BitSize {
+  type Output = BitSize;
+
+  fn sub(self, other: BitSize) -> BitSize {
+    BitSize {
+      bit_count: self.bit_count - other.bit_count
+    }
   }
 }

@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  defs::{BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
   term::boxed::{self, binary::trait_interface::TBinary},
@@ -10,8 +10,8 @@ struct MatchBuffer {
   // TODO: Make sure this is detected when garbage collected
   pub orig: *const TBinary,
   pub base: *const u8,
-  pub offset: usize,
-  pub bit_size: usize,
+  pub offset: BitSize,
+  pub size: BitSize,
 }
 
 impl MatchBuffer {
@@ -19,14 +19,15 @@ impl MatchBuffer {
     Self {
       orig: bin_ptr,
       base: unsafe { (*bin_ptr).get_data() },
-      offset: 0,
-      bit_size: 0,
+      offset: BitSize::with_bits(0),
+      size: BitSize::with_bits(0),
     }
   }
 }
 
 /// Matchstate is stored on heap as a heap object. Followed by 1 or more save
 /// offset `LTerm`s.
+/// TODO: Merge match_buffer with this struct, because reasons?
 pub struct BinaryMatchState {
   pub header: boxed::BoxHeader,
   match_buffer: MatchBuffer,
@@ -70,5 +71,16 @@ impl BinaryMatchState {
   #[inline]
   pub fn get_src_binary(&self) -> *const TBinary {
     self.match_buffer.orig
+  }
+
+  #[inline]
+  pub fn get_bits_remaining(&self) -> BitSize {
+    debug_assert!(
+      self.match_buffer.offset.bit_count <= self.match_buffer.size.bit_count,
+      "Offset in match buffer {} can't and shouldn't be greater than the total bits {}",
+      self.match_buffer.offset.bit_count,
+      self.match_buffer.size.bit_count
+    );
+    self.match_buffer.size - self.match_buffer.offset
   }
 }

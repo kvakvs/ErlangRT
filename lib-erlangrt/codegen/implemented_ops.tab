@@ -90,6 +90,6 @@ try_end
 # bs_save2 # /2
 # bs_skip_bits2 # /5
 # bs_start_match2
-# bs_test_tail2 # /3
+bs_test_tail2
 bs_get_binary2
 bs_start_match3

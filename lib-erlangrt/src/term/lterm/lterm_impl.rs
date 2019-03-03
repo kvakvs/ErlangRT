@@ -212,7 +212,6 @@ impl LTerm {
     pred(tag)
   }
 
-  //
   // === === Binary === ===
   //
 
@@ -223,7 +222,7 @@ impl LTerm {
 
   #[inline]
   pub fn is_binary(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
+    self == Self::empty_binary() || self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
 
   pub unsafe fn binary_byte_size(self) -> ByteSize {

@@ -2,20 +2,19 @@
 //! opcodes for binaries.
 use crate::{
   beam::disp_result::DispatchResult,
+  defs::BitSize,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
   term::{
     boxed::{
       self,
       binary::{
-        match_state::BinaryMatchState, slice::BinarySlice,
-        trait_interface::TBinary,
+        match_state::BinaryMatchState, slice::BinarySlice, trait_interface::TBinary,
       },
     },
     lterm::*,
   },
 };
-use crate::defs::BitSize;
 
 #[allow(dead_code)]
 fn module() -> &'static str {
@@ -130,7 +129,6 @@ impl OpcodeBsStartMatch3 {
 
 
 /// Having started binary matching, retrieve a binary piece.
-///
 /// Structure: bs_get_binary(Fail, MatchState, Live, Size, Unit, Flags, Dst)
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsGetBinary2, arity: 7,
@@ -148,16 +146,16 @@ impl OpcodeBsGetBinary2 {
     proc: &mut Process,
     _fail: LTerm,
     match_state: *mut BinaryMatchState,
-    live: usize,
+    _live: usize,
     size: usize,
     unit: usize,
-    flags: LTerm,
+    _flags: LTerm,
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    println!(
-      "bs_get_binary2 impl: live={} size={} unit={} flags={}",
-      live, size, unit, flags
-    );
+    // println!(
+    //  "bs_get_binary2 impl: live={} size={} unit={} flags={}",
+    //  live, size, unit, flags
+    //);
 
     // Allocate a sub-binary and possibly GC if does not fit?
     let bit_size = BitSize::with_unit(size, unit);
@@ -169,9 +167,38 @@ impl OpcodeBsGetBinary2 {
       runtime_ctx.store_value((*sub_bin).make_term(), dst, &mut proc.heap)?;
     } else {
       // ignore error here, can't fail
-      runtime_ctx.store_value(LTerm::empty_tuple(), dst, &mut proc.heap).unwrap();
+      runtime_ctx
+        .store_value(LTerm::empty_tuple(), dst, &mut proc.heap)
+        .unwrap();
     }
 
     Ok(DispatchResult::Normal)
+  }
+}
+
+/// Having started binary matching, check that the match state has so many `Bits`
+/// remaining otherwise will jump to the `Fail` label.
+/// Structure: bs_test_tail2(Fail, MatchState, Bits)
+define_opcode!(
+  _vm, rt_ctx, proc, name: OpcodeBsTestTail2, arity: 3,
+  run: { Self::bs_test_tail2(rt_ctx, proc, fail, match_state, bits) },
+  args: cp_not_nil(fail), binary_match_state(match_state), load_usize(bits),
+);
+
+
+impl OpcodeBsTestTail2 {
+  #[inline]
+  fn bs_test_tail2(
+    runtime_ctx: &mut Context,
+    _proc: &mut Process,
+    fail: LTerm,
+    match_state: *mut BinaryMatchState,
+    bits: usize,
+  ) -> RtResult<DispatchResult> {
+    let remaining = unsafe { (*match_state).get_bits_remaining().bit_count };
+    if remaining != bits {
+      runtime_ctx.jump(fail);
+    }
+    return Ok(DispatchResult::Normal);
   }
 }

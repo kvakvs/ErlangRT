@@ -51,7 +51,6 @@ define_nativefun!(_vm, proc, args,
 #[inline]
 unsafe fn list_to_binary_1(proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
   let size = cons::get_iolist_size(list);
-  println!("l2b: iolist size for new binary {:?}", size);
   let mut bb = BinaryBuilder::with_size(size, &mut proc.heap)?;
   list_to_binary_1_recursive(&mut bb, list)?;
   Ok(bb.make_term())

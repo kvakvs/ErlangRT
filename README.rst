@@ -12,12 +12,9 @@ Progress to the Proof of Concept
 * External Term Format (decoder 70%, encoder 0%)
 * BEAM Loader - mostly done
 * VM and processes 40%
-* VM loop and opcodes 42% (70 of 164)
-* Some basic BIFs <10%
-
-.. figure:: https://i.imgur.com/1ryd4K1.png
-   :scale: 50 %
-   :alt: Early Test2.erl run output
+* VM loop and opcodes 45% (74 of 168)
+* Some basic BIFs <15%
+* Binaries, sub-binaries, binary heap, binary opcodes: <20%
 
 .. figure:: http://imgur.com/H5qypZG.png
    :scale: 50%

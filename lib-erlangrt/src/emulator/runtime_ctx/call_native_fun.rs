@@ -46,7 +46,7 @@ pub fn find_and_call_native_fun(
   target: CallBifTarget,
   args: &[LTerm],
   dst: LTerm,
-  gc: bool,
+  _gc: bool,
 ) -> RtResult<DispatchResult> {
   // Try resolve BIF destination, which can be defined by an import, mfarity
   // a pointer to import, or a pointer to native_fun function.
@@ -99,12 +99,12 @@ pub fn find_and_call_native_fun(
       Err(bif_result.unwrap_err())
     }
     Ok(val) => {
-      println!(
-        "call_native_fun a={} gc={} call result {}",
-        args.len(),
-        gc,
-        val
-      );
+      //  println!(
+      //    "call_native_fun a={} gc={} call result {}",
+      //    args.len(),
+      //    gc,
+      //    val
+      //  );
       // if dst is not NIL, store the result in it
       if dst != LTerm::nil() {
         ctx.store_value(val, dst, &mut curr_p.heap)?;
