@@ -180,7 +180,7 @@ macro_rules! fetch_one_arg {
       let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
       debug_assert!(tmp.is_boxed_of_type(crate::term::boxed::BOXTYPETAG_BINARY_MATCH_STATE),
         "Expected a binary match state, got {}", tmp);
-      tmp.get_box_ptr_mut::<crate::term::boxed::binary::b_match::BinaryMatchState>()
+      tmp.get_box_ptr_mut::<crate::term::boxed::binary::match_state::BinaryMatchState>()
     };
   };
 }

@@ -24,10 +24,10 @@ pub fn nativefun_minus_2(
       subtract_two_small(cur_proc, a, b)
     } else {
       // TODO: See Erlang OTP erl_arith.c function erts_mixed_minus
-      panic!("{}subtract: b={} other than small notimpl", module(), b)
+      unimplemented!("{}subtract: b={} other than small", module(), b)
     }
   } else {
-    panic!("{}subtract: a={} other than small notimpl", module(), a)
+    unimplemented!("{}subtract: a={} other than small", module(), a)
   }
 }
 
@@ -45,10 +45,10 @@ pub fn nativefun_plus_2(
       add_two_small(cur_proc, a, b)
     } else {
       // TODO: See Erlang OTP erl_arith.c function erts_mixed_plus
-      panic!("{}subtract: b={} other than small notimpl", module(), b)
+      unimplemented!("{}subtract: b={} other than small", module(), b)
     }
   } else {
-    panic!("{}subtract: a={} other than small notimpl", module(), a)
+    unimplemented!("{}subtract: a={} other than small", module(), a)
   }
 }
 

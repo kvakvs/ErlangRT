@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  defs::{self, BitSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -13,16 +13,16 @@ use crate::{
     lterm::LTerm,
   },
 };
+use core::fmt;
 
-pub mod b_match;
 pub mod binaryheap_bin;
-pub mod bitsize;
+pub mod match_state;
 pub mod procheap_bin;
 pub mod refc_bin;
 pub mod slice;
 pub mod trait_interface;
 
-// pub use self::{b_match::*, bitsize::*, slice::*, trait_interface::*};
+// pub use self::{match_state::*, bitsize::*, slice::*, trait_interface::*};
 
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
@@ -52,8 +52,8 @@ pub struct Binary {
 }
 
 impl Binary {
-  fn get_binary_type_for_creation(size: ByteSize) -> BinaryType {
-    if size.bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
+  fn get_binary_type_for_creation(size: BitSize) -> BinaryType {
+    if size.get_bytes_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
       return BinaryType::ProcessHeap;
     }
     BinaryType::BinaryHeap
@@ -66,23 +66,23 @@ impl Binary {
     }
   }
 
-  pub unsafe fn create_into(size: ByteSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
-    if size.bytes() == 0 {
+  pub unsafe fn create_into(size: BitSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
+    if size.bit_count == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedBinary);
     }
     let b_type = Self::get_binary_type_for_creation(size);
     match b_type {
       BinaryType::ProcessHeap => ProcessHeapBinary::create_into(size, hp),
-      BinaryType::BinaryHeap => panic!("notimpl! create binary on the binary heap"),
-      BinaryType::RefToBinaryHeap => panic!("notimpl! create ref to binary heap"),
+      BinaryType::BinaryHeap => unimplemented!("create binary on the binary heap"),
+      BinaryType::RefToBinaryHeap => unimplemented!("create ref to binary heap"),
       BinaryType::Slice => panic!("Can't create slice here"),
     }
   }
 
   //  #[inline]
   //  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
-  //    panic!("notimpl");
+  //    unimplemented!();
   //    // let p = this.add(1) as *const u8;
   //    // core::ptr::read(p.add(i))
   //  }
@@ -149,5 +149,35 @@ impl Binary {
       |bhb_ptr| bhb_ptr as *const TBinary,
       |slice_ptr| slice_ptr as *const TBinary,
     )
+  }
+
+  pub unsafe fn format(bin_trait: *const TBinary, f: &mut fmt::Formatter) -> fmt::Result {
+    // Print opening '<<'
+    write!(f, "<<")?;
+
+    let size = (*bin_trait).get_bit_size();
+    let n_bytes = size.get_bytes_rounded_down();
+    let data_ptr = (*bin_trait).get_data();
+
+    // Print comma separated full bytes
+    for i in 0..n_bytes {
+      if i > 0 {
+        write!(f, ", ").unwrap();
+      }
+      let b = core::ptr::read(data_ptr.add(i));
+      write!(f, "{}", b).unwrap();
+    }
+
+    // If last byte bits are not 0, print comma again and print the last byte
+    let lbb = size.get_last_byte_bits();
+    if lbb != 0 {
+      if size.bit_count > defs::BYTE_BITS {
+        write!(f, ", ")?;
+      }
+      let last_byte = core::ptr::read(data_ptr.add(n_bytes));
+      write!(f, "{}:{}", last_byte, lbb)?;
+    }
+
+    write!(f, ">>")
   }
 }

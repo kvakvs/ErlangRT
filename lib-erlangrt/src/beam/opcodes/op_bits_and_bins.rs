@@ -8,13 +8,14 @@ use crate::{
     boxed::{
       self,
       binary::{
-        b_match::BinaryMatchState, bitsize::BitSize, slice::BinarySlice,
+        match_state::BinaryMatchState, slice::BinarySlice,
         trait_interface::TBinary,
       },
     },
     lterm::*,
   },
 };
+use crate::defs::BitSize;
 
 #[allow(dead_code)]
 fn module() -> &'static str {
@@ -90,7 +91,7 @@ impl OpcodeBsStartMatch3 {
     bin_ptr: *const TBinary,
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    let _total_bin_size = unsafe { (*bin_ptr).get_size() };
+    // let _total_bin_size = unsafe { (*bin_ptr).get_byte_size() };
     // OTP has a guard for total_bin_size to fit in 2^(64-3)
 
     // Here we have a new start, matchstate does not exist and the context
@@ -161,10 +162,15 @@ impl OpcodeBsGetBinary2 {
     // Allocate a sub-binary and possibly GC if does not fit?
     let bit_size = BitSize::with_unit(size, unit);
     let src_bin = (*match_state).get_src_binary();
-    let sub_bin = BinarySlice::create_into(src_bin, bit_size, &mut proc.heap)?;
 
-    // Return the sub-binary created
-    runtime_ctx.store_value((*sub_bin).make_term(), dst, &mut proc.heap)?;
+    if bit_size.bit_count > 0 {
+      let sub_bin = BinarySlice::create_into(src_bin, bit_size, &mut proc.heap)?;
+      // Return the sub-binary created
+      runtime_ctx.store_value((*sub_bin).make_term(), dst, &mut proc.heap)?;
+    } else {
+      // ignore error here, can't fail
+      runtime_ctx.store_value(LTerm::empty_tuple(), dst, &mut proc.heap).unwrap();
+    }
 
     Ok(DispatchResult::Normal)
   }

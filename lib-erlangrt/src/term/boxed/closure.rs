@@ -35,7 +35,7 @@ impl Closure {
   #[inline]
   const fn storage_size(nfrozen: Word) -> WordSize {
     ByteSize::new(size_of::<Closure>())
-      .words_rounded_up()
+      .get_words_rounded_up()
       .add(nfrozen)
   }
 

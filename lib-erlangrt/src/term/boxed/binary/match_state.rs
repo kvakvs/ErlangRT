@@ -39,7 +39,7 @@ impl BinaryMatchState {
 
   fn storage_size() -> WordSize {
     let bsize = ByteSize::new(std::mem::size_of::<Self>());
-    bsize.words_rounded_up()
+    bsize.get_words_rounded_up()
   }
 
   /// Create a new matchstate for the initial binary match step.

@@ -12,7 +12,7 @@ pub use self::{
 };
 
 use crate::{
-  defs::ByteSize,
+  defs::BitSize,
   emulator::{atom, heap::Heap},
   fail::RtResult,
   term::{boxed, lterm::*},
@@ -42,7 +42,7 @@ impl TermBuilder {
     debug_assert!(!self.heap.is_null());
     let hp = self.heap.as_mut().unwrap();
     // Allocate uninitialized binary of some type
-    let rbin = boxed::Binary::create_into(ByteSize::new(data.len()), hp)?;
+    let rbin = boxed::Binary::create_into(BitSize::with_bytes(data.len()), hp)?;
     // Store bytes
     (*rbin).store(data)?;
     Ok((*rbin).make_term())

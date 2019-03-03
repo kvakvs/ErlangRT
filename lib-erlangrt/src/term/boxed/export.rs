@@ -18,7 +18,7 @@ pub struct Export {
 impl Export {
   #[inline]
   fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<Export>()).words_rounded_up()
+    ByteSize::new(size_of::<Export>()).get_words_rounded_up()
   }
 
   fn new(mfa: &MFArity) -> Export {

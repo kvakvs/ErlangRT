@@ -228,7 +228,7 @@ impl LTerm {
 
   pub unsafe fn binary_byte_size(self) -> ByteSize {
     let binp = boxed::Binary::get_trait_from_term(self);
-    (*binp).get_size()
+    (*binp).get_byte_size()
   }
 
   //
@@ -557,7 +557,7 @@ impl LTerm {
       return Err(RtErr::TermIsNotABoxed);
     }
     let _p = self.get_box_ptr::<BoxHeader>();
-    panic!("notimpl: float box")
+    unimplemented!("float box")
   }
 
   /// Returns float value, performs no extra checks. The caller is responsible

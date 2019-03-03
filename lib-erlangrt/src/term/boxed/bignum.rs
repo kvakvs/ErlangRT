@@ -24,7 +24,7 @@ pub struct Bignum {
 impl Bignum {
   const fn storage_size() -> WordSize {
     // This impl stores bignum in dynamic heap with the num library
-    ByteSize::new(size_of::<Bignum>()).words_rounded_up()
+    ByteSize::new(size_of::<Bignum>()).get_words_rounded_up()
   }
 
   fn new(bignum_size: WordSize, value: BigInt) -> Bignum {

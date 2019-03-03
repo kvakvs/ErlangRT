@@ -20,7 +20,7 @@ pub struct Import {
 
 impl Import {
   const fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<Import>()).words_rounded_up()
+    ByteSize::new(size_of::<Import>()).get_words_rounded_up()
   }
 
   pub unsafe fn create_into(hp: &mut Heap, mfarity: MFArity) -> RtResult<LTerm> {

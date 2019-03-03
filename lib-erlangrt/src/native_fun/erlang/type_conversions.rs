@@ -66,7 +66,7 @@ unsafe fn list_to_binary_1_recursive(
       // Any small integer even larger than 256 counts as 1 byte
       bb.write_byte(elem.get_small_unsigned() as u8);
     } else if elem.is_binary() {
-      panic!("l2b: notimpl appending a binary");
+      unimplemented!("l2b: appending a binary");
     // bb.write_binary(elem.get_box_ptr());
     } else if elem.is_cons() {
       list_to_binary_1_recursive(bb, elem)?;

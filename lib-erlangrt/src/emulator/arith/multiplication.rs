@@ -26,10 +26,10 @@ pub fn multiply(hp: &mut Heap, x: LTerm, y: LTerm) -> RtResult<LTerm> {
       return Ok(result);
     } else {
       // TODO: See Erlang OTP erl_arith.c function erts_mixed_times
-      panic!("{}b={} other than small notimpl", module(), y)
+      unimplemented!("{}b={} other than small", module(), y)
     }
   }
-  panic!("{}a={} other than small notimpl", module(), x)
+  unimplemented!("{}a={} other than small", module(), x)
 }
 
 /// Implement multiplication for two signed integers, possibly creating a bigint.

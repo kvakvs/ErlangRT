@@ -15,12 +15,12 @@ pub struct Float {
 impl Float {
   #[allow(dead_code)]
   const fn storage_size() -> WordSize {
-    ByteSize::new(core::mem::size_of::<Float>()).words_rounded_up()
+    ByteSize::new(core::mem::size_of::<Float>()).get_words_rounded_up()
   }
 
   #[allow(dead_code)]
   fn new(value: f64) -> Float {
-    let storage_size = ByteSize::new(size_of::<Float>()).words_rounded_up();
+    let storage_size = ByteSize::new(size_of::<Float>()).get_words_rounded_up();
     Float {
       header: BoxHeader::new(BOXTYPETAG_FLOAT, storage_size.words()),
       value,

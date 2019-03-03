@@ -1,7 +1,11 @@
 //! Helper module defines types used everywhere in the VM runtime
 pub mod sizes;
 pub use self::sizes::*;
+
 pub mod exc_type;
+
+pub mod bitsize;
+pub use self::bitsize::*;
 
 use std::{isize, usize};
 

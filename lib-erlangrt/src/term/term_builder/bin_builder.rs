@@ -2,9 +2,11 @@ use crate::{
   defs::sizes::ByteSize,
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::LTerm},
+  term::{
+    boxed::{self, binary::trait_interface::TBinary},
+    lterm::LTerm,
+  },
 };
-use crate::term::boxed::binary::trait_interface::TBinary;
 
 pub struct BinaryBuilder {
   p: *mut TBinary,
@@ -16,7 +18,7 @@ pub struct BinaryBuilder {
 impl BinaryBuilder {
   #[inline]
   pub fn with_size(size: ByteSize, hp: &mut Heap) -> RtResult<Self> {
-    let p = unsafe { boxed::Binary::create_into(size, hp) }?;
+    let p = unsafe { boxed::Binary::create_into(size.get_bits(), hp) }?;
     let write_pos = unsafe { (*p).get_data_mut() };
     Ok(Self {
       p,

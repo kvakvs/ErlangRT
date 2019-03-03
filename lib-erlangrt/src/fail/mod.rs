@@ -9,6 +9,7 @@ use crate::{
   term::lterm::LTerm,
 };
 use std::convert::From;
+use crate::defs::ByteSize;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -55,8 +56,8 @@ pub enum RtErr {
   CreatingZeroSizedSlice, // can't create 0-sized slice, use immediate {} instead
   CannotCopyIntoRefbin, // To copy into binary, resolve ref into heapbin
   CannotCopyIntoBinSlice, // Can not copy into binary slice, it is const
-  HeapBinTooSmall(usize, usize), // want bytes, have bytes
-  ProcBinTooSmall(usize, usize), // want bytes, have bytes
+  HeapBinTooSmall(usize, ByteSize), // want bytes, have bytes
+  ProcBinTooSmall(usize, ByteSize), // want bytes, have bytes
 }
 
 impl From<bin_reader::ReadError> for RtErr {

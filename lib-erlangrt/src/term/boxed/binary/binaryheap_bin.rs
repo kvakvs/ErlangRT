@@ -1,21 +1,20 @@
 use crate::{
-  defs::ByteSize,
+  defs::{BitSize, ByteSize},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{bitsize::BitSize, trait_interface::TBinary, BinaryType},
+      binary::{trait_interface::TBinary, BinaryType},
       Binary,
     },
     lterm::LTerm,
   },
 };
-use core::fmt;
 
 /// Defines operations with a binary on the binary heap
 /// Pointer to this can be directly casted from pointer to boxed::Binary
 pub struct BinaryHeapBinary {
   pub bin_header: Binary,
-  pub size: ByteSize,
+  pub size: BitSize,
   pub data: usize, // first 8 (or 4) bytes of data begin here
 }
 
@@ -24,12 +23,12 @@ impl TBinary for BinaryHeapBinary {
     BinaryType::BinaryHeap
   }
 
-  fn get_size(&self) -> ByteSize {
-    self.size
+  fn get_byte_size(&self) -> ByteSize {
+    self.size.get_bytes_rounded_up()
   }
 
   fn get_bit_size(&self) -> BitSize {
-    unimplemented!()
+    self.size
   }
 
   fn get_data(&self) -> *const u8 {
@@ -45,8 +44,8 @@ impl TBinary for BinaryHeapBinary {
       return Ok(());
     }
 
-    let avail_size = self.size.bytes();
-    if avail_size < data.len() {
+    let avail_size = self.size.get_bytes_rounded_up();
+    if avail_size.bytes() < data.len() {
       return Err(RtErr::HeapBinTooSmall(data.len(), avail_size));
     }
 
@@ -59,11 +58,5 @@ impl TBinary for BinaryHeapBinary {
 
   fn make_term(&self) -> LTerm {
     LTerm::make_boxed((&self.bin_header) as *const Binary)
-  }
-
-  fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "#bhbin[{}]<<", self.size)?;
-    panic!("notimpl: printing bin on binary heap");
-    // write!(f, ">>")
   }
 }

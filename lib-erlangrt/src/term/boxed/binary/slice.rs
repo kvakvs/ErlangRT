@@ -1,16 +1,15 @@
 use crate::{
-  defs::{self, sizes::ByteSize, WordSize},
+  defs::{self, BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{bitsize::BitSize, trait_interface::TBinary, BinaryType},
+      binary::{trait_interface::TBinary, BinaryType},
       Binary,
     },
     lterm::LTerm,
   },
 };
-use core::fmt;
 
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {
@@ -27,7 +26,7 @@ impl BinarySlice {
     let header_size = BitSize::with_unit(std::mem::size_of::<Self>(), defs::BYTE_BITS);
     // The size is `ProcessHeapBinary` in words rounded up + storage bytes rounded up
     WordSize::new(
-      header_size.words_rounded_up().words() + size.words_rounded_up().words(),
+      header_size.get_words_rounded_up().words() + size.get_words_rounded_up().words(),
     )
   }
 
@@ -64,12 +63,12 @@ impl TBinary for BinarySlice {
     unimplemented!()
   }
 
-  fn get_size(&self) -> ByteSize {
-    unimplemented!()
+  fn get_byte_size(&self) -> ByteSize {
+    self.size.get_bytes_rounded_up()
   }
 
   fn get_bit_size(&self) -> BitSize {
-    unimplemented!()
+    self.size
   }
 
   fn get_data(&self) -> *const u8 {
@@ -86,10 +85,5 @@ impl TBinary for BinarySlice {
 
   fn make_term(&self) -> LTerm {
     LTerm::make_boxed((&self.bin_header) as *const Binary)
-  }
-
-  fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "#subbin[{}]<<", self.size)?;
-    write!(f, "...>>")
   }
 }

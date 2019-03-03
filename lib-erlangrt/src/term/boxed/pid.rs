@@ -18,7 +18,7 @@ pub struct ExternalPid {
 
 impl ExternalPid {
   const fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<ExternalPid>()).words_rounded_up()
+    ByteSize::new(size_of::<ExternalPid>()).get_words_rounded_up()
   }
 
   fn new(node: LTerm, id: Word) -> ExternalPid {
