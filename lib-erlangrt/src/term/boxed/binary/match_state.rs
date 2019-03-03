@@ -9,7 +9,6 @@ use crate::{
 struct MatchBuffer {
   // TODO: Make sure this is detected when garbage collected
   pub orig: *const TBinary,
-  pub base: *const u8,
   pub offset: BitSize,
   pub size: BitSize,
 }
@@ -18,7 +17,6 @@ impl MatchBuffer {
   pub fn new(bin_ptr: *const TBinary) -> Self {
     Self {
       orig: bin_ptr,
-      base: unsafe { (*bin_ptr).get_data() },
       offset: BitSize::with_bits(0),
       size: BitSize::with_bits(0),
     }
@@ -82,5 +80,10 @@ impl BinaryMatchState {
       self.match_buffer.size.bit_count
     );
     self.match_buffer.size - self.match_buffer.offset
+  }
+
+  #[inline]
+  pub fn get_offset(&self) -> BitSize {
+    self.match_buffer.offset
   }
 }

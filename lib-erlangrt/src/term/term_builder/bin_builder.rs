@@ -19,7 +19,9 @@ impl BinaryBuilder {
   #[inline]
   pub fn with_size(size: ByteSize, hp: &mut Heap) -> RtResult<Self> {
     let p = unsafe { boxed::Binary::create_into(size.get_bits(), hp) }?;
-    let write_pos = unsafe { (*p).get_data_mut() };
+    let write_slice = unsafe { (*p).get_data_mut() };
+    let write_pos = write_slice.as_mut_ptr();
+
     Ok(Self {
       p,
       write_pos,

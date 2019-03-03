@@ -1,5 +1,5 @@
 use crate::{
-  defs::{self, BitSize, ByteSize, WordSize},
+  defs::{BitDataPointer, BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -14,7 +14,7 @@ use crate::{
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {
   pub bin_header: Binary,
-  pub offset: usize,
+  pub offset: BitSize,
   pub size: BitSize,
   // TODO: Make sure this is recognized as a term during the GC
   pub orig: *const TBinary,
@@ -22,16 +22,16 @@ pub struct BinarySlice {
 
 impl BinarySlice {
   /// Return size in words for on-heap creation
-  pub fn storage_size(size: BitSize) -> WordSize {
-    let header_size = BitSize::with_unit(std::mem::size_of::<Self>(), defs::BYTE_BITS);
-    // The size is `ProcessHeapBinary` in words rounded up + storage bytes rounded up
-    WordSize::new(
-      header_size.get_words_rounded_up().words() + size.get_words_rounded_up().words(),
-    )
+  pub fn storage_size() -> WordSize {
+    let header_size = ByteSize::new(std::mem::size_of::<Self>());
+
+    // The size of `BinarySlice` in words rounded up, no extra storage
+    header_size.get_words_rounded_up()
   }
 
   pub unsafe fn create_into(
     orig: *const TBinary,
+    offset: BitSize,
     size: BitSize,
     hp: &mut Heap,
   ) -> RtResult<*const TBinary> {
@@ -41,14 +41,15 @@ impl BinarySlice {
     }
 
     // Size of header + data in words, to be allocated
-    let storage_sz = Self::storage_size(size);
+    let storage_sz = Self::storage_size();
     let this = hp.alloc::<Self>(storage_sz, false)?;
 
+    let bin_header = Binary::new(BinaryType::Slice, storage_sz);
+
     // Create and write the block header (Self)
-    let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);
     let new_self = Self {
       bin_header,
-      offset: 0,
+      offset,
       size,
       orig,
     };
@@ -60,7 +61,7 @@ impl BinarySlice {
 
 impl TBinary for BinarySlice {
   fn get_type(&self) -> BinaryType {
-    unimplemented!()
+    BinaryType::Slice
   }
 
   fn get_byte_size(&self) -> ByteSize {
@@ -71,12 +72,19 @@ impl TBinary for BinarySlice {
     self.size
   }
 
-  fn get_data(&self) -> *const u8 {
-    unimplemented!()
+  unsafe fn get_data(&self) -> &[u8] {
+    // Can not use byte access on slice, use get_data_bitptr() instead
+    core::slice::from_raw_parts(core::ptr::null(), 0)
   }
 
-  fn get_data_mut(&mut self) -> *mut u8 {
-    unimplemented!()
+  unsafe fn get_data_mut(&mut self) -> &mut [u8] {
+    // Can not use mutable access on slice
+    core::slice::from_raw_parts_mut(core::ptr::null_mut(), 0)
+  }
+
+  fn get_data_bitptr(&self) -> BitDataPointer {
+    let data = unsafe { (*self.orig).get_data() };
+    BitDataPointer::new(data, self.offset)
   }
 
   fn store(&mut self, _data: &[u8]) -> RtResult<()> {
@@ -84,6 +92,6 @@ impl TBinary for BinarySlice {
   }
 
   fn make_term(&self) -> LTerm {
-    LTerm::make_boxed((&self.bin_header) as *const Binary)
+    LTerm::make_boxed(&self.bin_header)
   }
 }

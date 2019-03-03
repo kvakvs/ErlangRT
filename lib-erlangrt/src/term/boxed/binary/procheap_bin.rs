@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitSize, ByteSize, WordSize},
+  defs::{BitDataPointer, BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -33,12 +33,20 @@ impl TBinary for ProcessHeapBinary {
     self.size
   }
 
-  fn get_data(&self) -> *const u8 {
-    (&self.data) as *const usize as *const u8
+  unsafe fn get_data(&self) -> &[u8] {
+    let data = (&self.data) as *const usize as *const u8;
+    let len = self.size.get_bytes_rounded_up().bytes();
+    core::slice::from_raw_parts(data, len)
   }
 
-  fn get_data_mut(&mut self) -> *mut u8 {
-    (&self.data) as *const usize as *mut u8
+  unsafe fn get_data_mut(&mut self) -> &mut [u8] {
+    let data = (&self.data) as *const usize as *mut u8;
+    let len = self.size.get_bytes_rounded_up().bytes();
+    core::slice::from_raw_parts_mut(data, len)
+  }
+
+  fn get_data_bitptr(&self) -> BitDataPointer {
+    unimplemented!()
   }
 
   fn store(&mut self, data: &[u8]) -> RtResult<()> {
@@ -51,9 +59,9 @@ impl TBinary for ProcessHeapBinary {
       return Err(RtErr::ProcBinTooSmall(data.len(), avail_size));
     }
 
-    let bin_bytes = self.get_data_mut();
+    let bin_bytes = unsafe { self.get_data_mut() };
     unsafe {
-      core::ptr::copy_nonoverlapping(&data[0], bin_bytes, data.len());
+      core::ptr::copy_nonoverlapping(&data[0], bin_bytes.as_mut_ptr(), data.len());
     }
     Ok(())
   }

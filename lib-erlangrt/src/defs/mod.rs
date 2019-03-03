@@ -1,4 +1,6 @@
 //! Helper module defines types used everywhere in the VM runtime
+use std::{isize, usize};
+
 pub mod sizes;
 pub use self::sizes::*;
 
@@ -7,7 +9,8 @@ pub mod exc_type;
 pub mod bitsize;
 pub use self::bitsize::*;
 
-use std::{isize, usize};
+pub mod bitptr;
+pub use self::bitptr::*;
 
 /// Word is an unsigned machine-register sized word. Do not use for sizes and
 /// counters, use usize instead.

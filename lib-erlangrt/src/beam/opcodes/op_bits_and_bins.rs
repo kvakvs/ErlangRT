@@ -146,29 +146,34 @@ impl OpcodeBsGetBinary2 {
     proc: &mut Process,
     _fail: LTerm,
     match_state: *mut BinaryMatchState,
-    _live: usize,
+    live: usize,
     size: usize,
     unit: usize,
-    _flags: LTerm,
+    flags: LTerm,
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
-    // println!(
-    //  "bs_get_binary2 impl: live={} size={} unit={} flags={}",
-    //  live, size, unit, flags
-    //);
+    println!(
+      "bgb2: live={} size={} unit={} flags={}",
+      live, size, unit, flags
+    );
 
     // Allocate a sub-binary and possibly GC if does not fit?
     let bit_size = BitSize::with_unit(size, unit);
     let src_bin = (*match_state).get_src_binary();
 
     if bit_size.bit_count > 0 {
-      let sub_bin = BinarySlice::create_into(src_bin, bit_size, &mut proc.heap)?;
+      let bit_offset = (*match_state).get_offset();
+      let sub_bin =
+        BinarySlice::create_into(src_bin, bit_offset, bit_size, &mut proc.heap)?;
+
+      println!("bgb2: created {}", (*sub_bin).make_term());
       // Return the sub-binary created
       runtime_ctx.store_value((*sub_bin).make_term(), dst, &mut proc.heap)?;
     } else {
       // ignore error here, can't fail
+      println!("bgb2: created empty <<>>");
       runtime_ctx
-        .store_value(LTerm::empty_tuple(), dst, &mut proc.heap)
+        .store_value(LTerm::empty_binary(), dst, &mut proc.heap)
         .unwrap();
     }
 

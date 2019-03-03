@@ -9,6 +9,7 @@ use crate::{
     lterm::LTerm,
   },
 };
+use crate::defs::BitDataPointer;
 
 /// Defines operations with reference to binary.
 /// Pointer to this can be directly casted from pointer to boxed::Binary
@@ -42,11 +43,15 @@ impl TBinary for ReferenceToBinary {
     self.size
   }
 
-  fn get_data(&self) -> *const u8 {
-    unimplemented!()
+  unsafe fn get_data(&self) -> &[u8] {
+    core::slice::from_raw_parts(core::ptr::null(), 0)
   }
 
-  fn get_data_mut(&mut self) -> *mut u8 {
+  unsafe fn get_data_mut(&mut self) -> &mut [u8] {
+    core::slice::from_raw_parts_mut(core::ptr::null_mut(), 0)
+  }
+
+  fn get_data_bitptr(&self) -> BitDataPointer {
     unimplemented!()
   }
 
