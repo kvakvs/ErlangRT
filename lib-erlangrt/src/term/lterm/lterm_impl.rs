@@ -193,7 +193,7 @@ impl LTerm {
 
   /// Checks boxed tag to be equal to t, also returns false if not a boxed.
   #[inline]
-  fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
+  pub fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
     self.is_boxed_of_(|boxtag| boxtag == t)
   }
 

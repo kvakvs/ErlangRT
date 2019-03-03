@@ -52,7 +52,10 @@ impl BinaryMatchState {
     self_
   }
 
-  pub unsafe fn create_into(bin_ptr: *const boxed::Binary, hp: &mut Heap) -> RtResult<*mut BinaryMatchState> {
+  pub unsafe fn create_into(
+    bin_ptr: *const boxed::Binary,
+    hp: &mut Heap,
+  ) -> RtResult<*mut BinaryMatchState> {
     let storage_sz = Self::storage_size();
     let this = hp.alloc::<Self>(storage_sz, false)?;
 

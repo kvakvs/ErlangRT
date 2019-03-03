@@ -113,8 +113,9 @@ impl Binary {
 
   #[inline]
   unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
-    let p = this.add(1) as *const u8;
-    core::ptr::read(p.add(i))
+    panic!("notimpl");
+    // let p = this.add(1) as *const u8;
+    // core::ptr::read(p.add(i))
   }
 
   unsafe fn generic_switch<T>(
@@ -124,15 +125,9 @@ impl Binary {
     on_binheap_bin: fn(*const BinaryHeapBinary) -> T,
   ) -> T {
     match (*this).bin_type {
-      BinaryType::ProcessHeap => {
-        on_proc_bin(this as *const ProcessHeapBinary)
-      }
-      BinaryType::RefToBinaryHeap => {
-        on_ref_bin(this as *const ReferenceToBinary)
-      }
-      BinaryType::BinaryHeap => {
-        on_binheap_bin(this as *const BinaryHeapBinary)
-      }
+      BinaryType::ProcessHeap => on_proc_bin(this as *const ProcessHeapBinary),
+      BinaryType::RefToBinaryHeap => on_ref_bin(this as *const ReferenceToBinary),
+      BinaryType::BinaryHeap => on_binheap_bin(this as *const BinaryHeapBinary),
     }
   }
 
@@ -143,66 +138,40 @@ impl Binary {
     on_binheap_bin: fn(*mut BinaryHeapBinary) -> T,
   ) -> T {
     match (*this).bin_type {
-      BinaryType::ProcessHeap => {
-        on_proc_bin(this as *mut ProcessHeapBinary)
-      }
-      BinaryType::RefToBinaryHeap => {
-        on_ref_bin(this as *mut ReferenceToBinary)
-      }
-      BinaryType::BinaryHeap => {
-        on_binheap_bin(this as *mut BinaryHeapBinary)
-      }
+      BinaryType::ProcessHeap => on_proc_bin(this as *mut ProcessHeapBinary),
+      BinaryType::RefToBinaryHeap => on_ref_bin(this as *mut ReferenceToBinary),
+      BinaryType::BinaryHeap => on_binheap_bin(this as *mut BinaryHeapBinary),
     }
   }
 
   /// Get the size in bytes of any type of binary.
   pub unsafe fn get_size(this: *const Binary) -> ByteSize {
-    Self::generic_switch(this,
-      |phb_ptr| {
-        (*phb_ptr).size
-      },
-      |refb_ptr| {
-        (*refb_ptr).size
-      },
-      |bhb_ptr| {
-        (*bhb_ptr).size
-      })
-    }
+    Self::generic_switch(
+      this,
+      |phb_ptr| (*phb_ptr).size,
+      |refb_ptr| (*refb_ptr).size,
+      |bhb_ptr| (*bhb_ptr).size,
+    )
+  }
 
 
   /// For any binary retrieve const data pointer and size
   pub unsafe fn get_data(this: *const Binary) -> *const u8 {
-    match (*this).bin_type {
-      BinaryType::ProcessHeap => {
-        let phb_ptr = this as *const ProcessHeapBinary;
-        phb_ptr.add(1) as *const u8
-      }
-      BinaryType::RefToBinaryHeap => {
-        let refb_ptr = this as *const ReferenceToBinary;
-        refb_ptr.add(1) as *const u8
-      }
-      BinaryType::BinaryHeap => {
-        let bhb_ptr = this as *const BinaryHeapBinary;
-        bhb_ptr.add(1) as *const u8
-      }
-    }
+    Self::generic_switch(
+      this,
+      |phb_ptr| phb_ptr.add(1) as *const u8,
+      |refb_ptr| refb_ptr.add(1) as *const u8,
+      |bhb_ptr| bhb_ptr.add(1) as *const u8,
+    )
   }
 
-  pub unsafe fn get_data_mut(this: *const Binary) -> *mut u8 {
-    match (*this).bin_type {
-      BinaryType::ProcessHeap => {
-        let phb_ptr = this as *mut ProcessHeapBinary;
-        phb_ptr.add(1) as *mut u8
-      }
-      BinaryType::RefToBinaryHeap => {
-        let refb_ptr = this as *mut ReferenceToBinary;
-        refb_ptr.add(1) as *mut u8
-      }
-      BinaryType::BinaryHeap => {
-        let bhb_ptr = this as *mut BinaryHeapBinary;
-        bhb_ptr.add(1) as *mut u8
-      }
-    }
+  pub unsafe fn get_data_mut(this: *mut Binary) -> *mut u8 {
+    Self::generic_switch_mut(
+      this,
+      |phb_ptr| phb_ptr.add(1) as *mut u8,
+      |refb_ptr| refb_ptr.add(1) as *mut u8,
+      |bhb_ptr| bhb_ptr.add(1) as *mut u8,
+    )
   }
 
   /// Called from LTerm formatting function to print binary contents
@@ -210,7 +179,7 @@ impl Binary {
     this: *const Binary,
     f: &mut fmt::Formatter,
   ) -> fmt::Result {
-    let datap = Self::get_data_mut(this);
+    let datap = Self::get_data(this);
     match (*this).bin_type {
       BinaryType::RefToBinaryHeap => {
         let refb_ptr = this as *mut ReferenceToBinary;

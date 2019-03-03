@@ -20,15 +20,15 @@
 
 -module(bs_match_bin_SUITE).
 
--export([all/0, suite/0,groups/0,init_per_suite/1, end_per_suite/1,
-	 init_per_group/2,end_per_group/2,
-	 byte_split_binary/1,bit_split_binary/1
+-export([all/0, suite/0, groups/0, init_per_suite/1, end_per_suite/1,
+         init_per_group/2, end_per_group/2,
+         byte_split_binary/1, bit_split_binary/1
          % match_huge_bin/1
-         ]).
+]).
 
 -include_lib("common_test/include/ct.hrl").
 
-suite() -> [{ct_hooks,[ts_install_cth]}].
+suite() -> [{ct_hooks, [ts_install_cth]}].
 
 all() ->
     [byte_split_binary, bit_split_binary, match_huge_bin].
@@ -60,62 +60,62 @@ byte_split_binary(Config) when is_list(Config) ->
 byte_split(L, B, Pos) when Pos >= 0 ->
     Sz1 = Pos,
     Sz2 = size(B) - Pos,
-    <<B1:Sz1/binary,B2:Sz2/binary>> = B,
+    <<B1:Sz1/binary, B2:Sz2/binary>> = B,
     B1 = list_to_binary(lists:sublist(L, 1, Pos)),
     B2 = list_to_binary(lists:nthtail(Pos, L)),
-    byte_split(L, B, Pos-1);
+    byte_split(L, B, Pos - 1);
 byte_split(_, _, _) -> ok.
 
 %% Tries to split a binary at all positions.
 bit_split_binary(Config) when is_list(Config) ->
     Fun = fun(Bin, List, SkipBef, N) ->
-		  SkipAft = 8*size(Bin) - N - SkipBef,
-		  %%io:format("~p, ~p, ~p", [SkipBef,N,SkipAft]),
-		  <<_:SkipBef,OutBin:N/binary-unit:1,_:SkipAft>> = Bin,
-		  OutBin = make_bin_from_list(List, N)
-	  end,
-    bit_split_binary1(Fun, erlang:md5(<<1,2,3>>)),
+        SkipAft = 8 * size(Bin) - N - SkipBef,
+        %%io:format("~p, ~p, ~p", [SkipBef,N,SkipAft]),
+        <<_:SkipBef, OutBin:N/binary-unit:1, _:SkipAft>> = Bin,
+        OutBin = make_bin_from_list(List, N)
+          end,
+    bit_split_binary1(Fun, erlang:md5(<<1, 2, 3>>)),
     bit_split_binary1(Fun,
-			    make_unaligned_sub_binary(erlang:md5(<<1,2,3>>))),
+                      make_unaligned_sub_binary(erlang:md5(<<1, 2, 3>>))),
     ok.
 
 bit_split_binary1(Action, Bin) ->
     BitList = bits_to_list(binary_to_list(Bin), 16#80),
     bit_split_binary2(Action, Bin, BitList, 0).
 
-bit_split_binary2(Action, Bin, [_|T]=List, Bef) ->
-    bit_split_binary3(Action, Bin, List, Bef, size(Bin)*8),
-    bit_split_binary2(Action, Bin, T, Bef+1);
+bit_split_binary2(Action, Bin, [_ | T] = List, Bef) ->
+    bit_split_binary3(Action, Bin, List, Bef, size(Bin) * 8),
+    bit_split_binary2(Action, Bin, T, Bef + 1);
 bit_split_binary2(_, _, [], _) -> ok.
 
 bit_split_binary3(Action, Bin, List, Bef, Aft) when Bef =< Aft ->
-    Action(Bin, List, Bef, (Aft-Bef) div 8 * 8),
-    bit_split_binary3(Action, Bin, List, Bef, Aft-8);
+    Action(Bin, List, Bef, (Aft - Bef) div 8 * 8),
+    bit_split_binary3(Action, Bin, List, Bef, Aft - 8);
 bit_split_binary3(_, _, _, _, _) -> ok.
 
 make_bin_from_list(_, 0) -> mkbin([]);
 make_bin_from_list(List, N) ->
     list_to_binary([make_int(List, 8, 0),
-		    make_bin_from_list(lists:nthtail(8, List), N-8)]).
+                    make_bin_from_list(lists:nthtail(8, List), N - 8)]).
 
 
-make_int(_, 0, Acc) -> Acc;
-make_int([H|T], N, Acc) -> make_int(T, N-1, Acc bsl 1 bor H).
+make_int(_, 0, Acc)       -> Acc;
+make_int([H | T], N, Acc) -> make_int(T, N - 1, Acc bsl 1 bor H).
 
-bits_to_list([_|T], 0) -> bits_to_list(T, 16#80);
-bits_to_list([H|_]=List, Mask) ->
+bits_to_list([_ | T], 0) -> bits_to_list(T, 16#80);
+bits_to_list([H | _] = List, Mask) ->
     [case H band Mask of
-	 0 -> 0;
-	 _ -> 1
-     end|bits_to_list(List, Mask bsr 1)];
-bits_to_list([], _) -> [].
+         0 -> 0;
+         _ -> 1
+     end | bits_to_list(List, Mask bsr 1)];
+bits_to_list([], _)      -> [].
 
 mkbin(L) when is_list(L) -> list_to_binary(L).
 
 make_unaligned_sub_binary(Bin0) ->
-    Bin1 = <<0:3,Bin0/binary,31:5>>,
+    Bin1 = <<0:3, Bin0/binary, 31:5>>,
     Sz = size(Bin0),
-    <<0:3,Bin:Sz/binary,31:5>> = id(Bin1),
+    <<0:3, Bin:Sz/binary, 31:5>> = id(Bin1),
     Bin.
 
 id(I) -> I.

@@ -94,18 +94,19 @@ impl OpcodeBsStartMatch3 {
 
     // Here we have a new start, matchstate does not exist and the context
     // is a binary. Have to construct a new match context.
-    let m_state = unsafe { BinaryMatchState::create_into(bin_ptr, &mut proc.heap)? };
+    let new_match_state =
+      unsafe { BinaryMatchState::create_into(bin_ptr, &mut proc.heap)? };
 
     // The binary, we're working on, is stored temporarily in x[live]
     // runtime_ctx.set_x(live, context);
     // TODO: GC if no space on heap, verify that GC gave us enough space
     // context = runtime_ctx.get_x(live);
 
-    if m_state.is_null() {
-      runtime_ctx.jump(fail);
-      return Ok(DispatchResult::Normal);
-    }
-    runtime_ctx.store_value(LTerm::make_boxed(m_state), dst, &mut proc.heap);
+    //    if new_match_state.is_null() {
+    //      runtime_ctx.jump(fail);
+    //      return Ok(DispatchResult::Normal);
+    //    }
+    runtime_ctx.store_value(LTerm::make_boxed(new_match_state), dst, &mut proc.heap)?;
     Ok(DispatchResult::Normal)
   }
 
@@ -120,7 +121,40 @@ impl OpcodeBsStartMatch3 {
     // Here we continue, matchstate has already been created, in context
     // Reset the position to the beginning
     (*match_state).reset();
-    runtime_ctx.store_value(LTerm::make_boxed(match_state), dst, &mut proc.heap);
+    runtime_ctx.store_value(LTerm::make_boxed(match_state), dst, &mut proc.heap)?;
     Ok(DispatchResult::Normal)
+  }
+}
+
+
+/// Having started binary matching, retrieve a binary piece.
+///
+/// Structure: bs_get_binary(Fail, MatchState, Live, Size, Unit, Flags, Dst)
+define_opcode!(
+  _vm, rt_ctx, proc, name: OpcodeBsGetBinary2, arity: 7,
+  run: { Self::bs_get_binary2_7(rt_ctx, proc, fail, match_state, live, size, unit, flags, dst) },
+  args: cp_not_nil(fail), binary_match_state(match_state),
+        usize(live), load_usize(size), usize(unit), term(flags), term(dst),
+);
+
+impl OpcodeBsGetBinary2 {
+  #[inline]
+  fn bs_get_binary2_7(
+    runtime_ctx: &mut Context,
+    proc: &mut Process,
+    fail: LTerm,
+    match_state: *mut BinaryMatchState,
+    live: usize,
+    size: usize,
+    unit: usize,
+    flags: LTerm,
+    dst: LTerm,
+  ) -> RtResult<DispatchResult> {
+    // TODO: Allocate a sub-binary and possibly GC if does not fit?
+    // TODO: get matchbuffer from match state (why?)
+    // TODO: call the actual get_binary2 logic on num_bits, flags and matchbuffer, which will make binary
+    // TODO: return the sub-binary created
+    panic!("notimpl bs_get_binary2");
+    // Ok(DispatchResult::Normal)
   }
 }

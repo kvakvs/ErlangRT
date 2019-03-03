@@ -61,15 +61,17 @@ macro_rules! define_opcode {
 /// which will capture each arg from the `ip[$arg_pos]`.
 ///
 /// Arguments can be comma-separated many of:
-///   unused(ident) - do nothing
-///   usize(ident) - take term then unsigned small from it, debug type check
-///   term(ident) - take word as a term
-///   load(ident) - take word possibly register or stack cell, and load the value
+///   unused(n) - do nothing
+///   usize(n) - take term then unsigned small from it, debug type check
+///   load_usize(n) - first load then treat it as a small unsigned
+///   term(n) - take word as a term
+///   load(n) - take word possibly register or stack cell, and load the value
 ///   slice(ident,n) - `&[LTerm]` from arg position of length n
-///   literal_tuple(ident) - the value is a tuple, which does not need to be
+///   literal_tuple(n) - the value is a tuple, which does not need to be
 ///       "loaded" from a register or stack
-///   cp_not_nil(ident) - take a term and assert it is a CP, and not a NIL
-///   yreg(ident) - take a term and assert it is an Y register
+///   cp_not_nil(n) - take a term and assert it is a CP, and not a NIL
+///   yreg(n) - take a term and assert it is an Y register
+///   binary_match_state(n) - extract and assert the boxed is a binary match state
 ///
 /// Example:
 /// ```define_opcode_args!(vm, ctx, curr_p, 0,
@@ -130,7 +132,18 @@ macro_rules! fetch_one_arg {
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_read_term_at($arg_pos);
-      debug_assert!(tmp.is_small());
+      debug_assert!(tmp.is_small(), "Expected a small int, got {}", tmp);
+      tmp.get_small_unsigned()
+    };
+  };
+
+  // Load_usize args are first loaded then decoded from term a small unsigned
+  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    load_usize($arg_ident:ident)
+  ) => {
+    let $arg_ident = {
+      let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
+      debug_assert!(tmp.is_small(), "Expected a small int, got {}", tmp);
       tmp.get_small_unsigned()
     };
   };
@@ -156,6 +169,18 @@ macro_rules! fetch_one_arg {
     yreg($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
-    debug_assert!($arg_ident.is_regy());
+    debug_assert!($arg_ident.is_regy(), "Expected an Y register, got {}", $arg_ident);
+  };
+
+  // Take a term from IP, and assert it is a binary match state
+  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    binary_match_state($arg_ident:ident)
+  ) => {
+    let $arg_ident = {
+      let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
+      debug_assert!(tmp.is_boxed_of_type(crate::term::boxed::BOXTYPETAG_BINARY_MATCH_STATE),
+        "Expected a binary match state, got {}", tmp);
+      tmp.get_box_ptr_mut::<crate::term::boxed::binary::b_match::BinaryMatchState>()
+    };
   };
 }
