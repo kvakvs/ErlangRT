@@ -14,6 +14,12 @@ impl fmt::Display for BitSize {
   }
 }
 
+impl fmt::Debug for BitSize {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{} bits", self.bit_count)
+  }
+}
+
 impl BitSize {
   #[inline]
   pub const fn with_bits(bit_count: usize) -> Self {

@@ -172,7 +172,7 @@ impl Binary {
   where
     Reader: TDataReader,
   {
-    let size = reader.get_size();
+    let size = reader.get_bit_size();
     let n_bytes = size.get_byte_size_rounded_down().bytes();
 
     // Print comma separated full bytes

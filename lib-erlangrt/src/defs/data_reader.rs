@@ -5,7 +5,7 @@ use crate::defs::ByteSize;
 /// or bit reader, depending whether the data is byte-aligned. In the future
 /// there might as well appear another word-aligned reader?
 pub trait TDataReader {
-  fn get_size(&self) -> BitSize;
+  fn get_bit_size(&self) -> BitSize;
   fn read(&self, n: usize) -> u8;
 }
 
@@ -17,13 +17,14 @@ pub struct BitDataReader {
 }
 
 impl BitDataReader {
+  #[allow(dead_code)]
   pub fn new(data: &'static [u8], offset: BitSize) -> Self {
     Self { data, offset }
   }
 }
 
 impl TDataReader for BitDataReader {
-  fn get_size(&self) -> BitSize {
+  fn get_bit_size(&self) -> BitSize {
     // Length of the data minus the bit offset.
     // The last byte will be possibly incomplete.
     BitSize::with_bits(self.data.len() * defs::BYTE_BITS - self.offset.bit_count)
@@ -60,7 +61,7 @@ impl ByteDataReader {
 
 impl TDataReader for ByteDataReader {
   #[inline]
-  fn get_size(&self) -> BitSize {
+  fn get_bit_size(&self) -> BitSize {
     BitSize::with_bytes(self.data.len())
   }
 

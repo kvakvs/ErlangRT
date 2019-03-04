@@ -1,11 +1,16 @@
 use core::cmp::Ordering;
 
 use crate::{
+  defs::TDataReader,
   emulator::atom,
   fail::RtResult,
-  term::{classify, compare::EqResult::Concluded, lterm::*},
+  term::{
+    boxed::{self, binary::trait_interface::TBinary},
+    classify,
+    compare::EqResult::Concluded,
+    lterm::*,
+  },
 };
-use crate::term::boxed;
 
 /// When comparing nested terms they might turn out to be equal. `CompareOp`
 /// is stored in `stack` in `eq_terms()` function and tells where to resume
@@ -397,14 +402,70 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
 
 #[inline]
 unsafe fn cmp_binary(a: LTerm, b: LTerm) -> RtResult<Ordering> {
-  let a_ptr = boxed::Binary::get_trait_from_term(a);
-  let b_ptr = boxed::Binary::get_trait_from_term(b);
-  let a_size = (*a_ptr).get_bit_size();
-  let b_size = (*b_ptr).get_bit_size();
+  let a_trait = boxed::Binary::get_trait_from_term(a);
+  let b_trait = boxed::Binary::get_trait_from_term(b);
+  let a_size = (*a_trait).get_bit_size();
+  let b_size = (*b_trait).get_bit_size();
   if a_size != b_size {
     return Ok(a_size.cmp(&b_size));
   }
-  unimplemented!("cmp_binary of equal bit_size")
+
+  // Try figure out a compatible byte- or bit-reader combination for A arg and
+  // B arg and then call a branch function which will do the same for B.
+  match (*a_trait).get_byte_reader() {
+    Some(a_reader) => cmp_reader_vs_binary(a_reader, b_trait),
+    None => {
+      let a_reader = (*a_trait).get_bit_reader();
+      cmp_reader_vs_binary(a_reader, b_trait)
+    }
+  }
+}
+
+/// Generic function which will branch statically depending whether we've been
+/// able to get a byte-reader for A arg, or a bit-reader. It will further branch
+/// by doing the same for B arg.
+unsafe fn cmp_reader_vs_binary<AReader>(
+  a_reader: AReader,
+  b_trait: *const TBinary,
+) -> RtResult<Ordering>
+where
+  AReader: TDataReader,
+{
+  match (*b_trait).get_byte_reader() {
+    Some(b_reader) => cmp_reader_vs_reader(a_reader, b_reader),
+    None => {
+      let b_reader = (*b_trait).get_bit_reader();
+      cmp_reader_vs_reader(a_reader, b_reader)
+    }
+  }
+}
+
+/// Now that we finally have two compatible readers, get some bytes and see
+/// how they compare until a first mismatch.
+unsafe fn cmp_reader_vs_reader<AReader, BReader>(
+  a_reader: AReader,
+  b_reader: BReader,
+) -> RtResult<Ordering>
+where
+  AReader: TDataReader,
+  BReader: TDataReader,
+{
+  assert_eq!(a_reader.get_bit_size(), b_reader.get_bit_size());
+  let size = a_reader.get_bit_size();
+
+  // Use rounded up byte-size, and then because the bit-sizes must be equal,
+  // the last byte bits will have same size
+  let n_bytes = size.get_byte_size_rounded_up().bytes();
+
+  for i in 0..n_bytes {
+    let a_byte = a_reader.read(i);
+    let b_byte = b_reader.read(i);
+    if a_byte != b_byte {
+      return Ok(a_byte.cmp(&b_byte));
+    }
+  }
+  // No differences we've been able to find
+  return Ok(Ordering::Equal)
 }
 
 /// Deeper comparison of two values with different types
