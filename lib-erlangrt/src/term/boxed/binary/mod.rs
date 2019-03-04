@@ -1,5 +1,5 @@
 use crate::{
-  defs::{self, BitSize, WordSize},
+  defs::{self, data_reader::TDataReader, BitSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -53,7 +53,7 @@ pub struct Binary {
 
 impl Binary {
   fn get_binary_type_for_creation(size: BitSize) -> BinaryType {
-    if size.get_bytes_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
+    if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
       return BinaryType::ProcessHeap;
     }
     BinaryType::BinaryHeap
@@ -152,20 +152,35 @@ impl Binary {
   }
 
   pub unsafe fn format(bin_trait: *const TBinary, f: &mut fmt::Formatter) -> fmt::Result {
-    let size = (*bin_trait).get_bit_size();
+    // let size = (*bin_trait).get_bit_size();
 
     // Print opening '<<'
-    write!(f, "{}<<", size)?;
+    write!(f, "<<")?;
 
-    let n_bytes = size.get_bytes_rounded_down();
-    let data_slice = (*bin_trait).get_data();
+    match (*bin_trait).get_byte_reader() {
+      Some(byte_reader) => Self::format_binary_with(byte_reader, f)?,
+      None => {
+        let bit_reader = (*bin_trait).get_bit_reader();
+        Self::format_binary_with(bit_reader, f)?
+      }
+    }
+
+    write!(f, ">>")
+  }
+
+  fn format_binary_with<Reader>(reader: Reader, f: &mut fmt::Formatter) -> fmt::Result
+  where
+    Reader: TDataReader,
+  {
+    let size = reader.get_size();
+    let n_bytes = size.get_byte_size_rounded_down().bytes();
 
     // Print comma separated full bytes
     for i in 0..n_bytes {
       if i > 0 {
         write!(f, ", ").unwrap();
       }
-      let b = data_slice[i];
+      let b = reader.read(i);
       write!(f, "{}", b).unwrap();
     }
 
@@ -175,10 +190,9 @@ impl Binary {
       if size.bit_count > defs::BYTE_BITS {
         write!(f, ", ")?;
       }
-      let last_byte = data_slice[n_bytes];
+      let last_byte = reader.read(n_bytes);
       write!(f, "{}:{}", last_byte, lbb)?;
     }
-
-    write!(f, ">>")
+    Ok(())
   }
 }

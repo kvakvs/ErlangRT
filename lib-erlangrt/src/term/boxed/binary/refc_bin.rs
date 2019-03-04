@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitSize, ByteSize, Word},
+  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, Word},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -9,7 +9,6 @@ use crate::{
     lterm::LTerm,
   },
 };
-use crate::defs::BitDataPointer;
 
 /// Defines operations with reference to binary.
 /// Pointer to this can be directly casted from pointer to boxed::Binary
@@ -36,22 +35,22 @@ impl TBinary for ReferenceToBinary {
   }
 
   fn get_byte_size(&self) -> ByteSize {
-    self.size.get_bytes_rounded_up()
+    self.size.get_byte_size_rounded_up()
   }
 
   fn get_bit_size(&self) -> BitSize {
     self.size
   }
 
-  unsafe fn get_data(&self) -> &[u8] {
-    core::slice::from_raw_parts(core::ptr::null(), 0)
+  fn get_byte_reader(&self) -> Option<ByteDataReader> {
+    unimplemented!("return reader from the master binary")
   }
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
-    core::slice::from_raw_parts_mut(core::ptr::null_mut(), 0)
+    unimplemented!("return read-writer from the master binary")
   }
 
-  fn get_data_bitptr(&self) -> BitDataPointer {
+  fn get_bit_reader(&self) -> BitDataReader {
     unimplemented!()
   }
 

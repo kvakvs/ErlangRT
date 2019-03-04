@@ -9,8 +9,8 @@ pub mod exc_type;
 pub mod bitsize;
 pub use self::bitsize::*;
 
-pub mod bitptr;
-pub use self::bitptr::*;
+pub mod data_reader;
+pub use self::data_reader::*;
 
 /// Word is an unsigned machine-register sized word. Do not use for sizes and
 /// counters, use usize instead.

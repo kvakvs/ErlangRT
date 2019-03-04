@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitDataPointer, BitSize, ByteSize},
+  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -24,26 +24,26 @@ impl TBinary for BinaryHeapBinary {
   }
 
   fn get_byte_size(&self) -> ByteSize {
-    self.size.get_bytes_rounded_up()
+    self.size.get_byte_size_rounded_up()
   }
 
   fn get_bit_size(&self) -> BitSize {
     self.size
   }
 
-  unsafe fn get_data(&self) -> &[u8] {
+  fn get_byte_reader(&self) -> Option<ByteDataReader> {
     let data = (&self.data) as *const usize as *const u8;
-    let len = self.size.get_bytes_rounded_up().bytes();
-    core::slice::from_raw_parts(data, len)
+    let len = self.size.get_byte_size_rounded_up();
+    Some(ByteDataReader::new(data, len.bytes()))
   }
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
     let data = (&self.data) as *const usize as *mut u8;
-    let len = self.size.get_bytes_rounded_up().bytes();
-    core::slice::from_raw_parts_mut(data, len)
+    let len = self.size.get_byte_size_rounded_up();
+    core::slice::from_raw_parts_mut(data, len.bytes())
   }
 
-  fn get_data_bitptr(&self) -> BitDataPointer {
+  fn get_bit_reader(&self) -> BitDataReader {
     unimplemented!()
   }
 
@@ -52,7 +52,7 @@ impl TBinary for BinaryHeapBinary {
       return Ok(());
     }
 
-    let avail_size = self.size.get_bytes_rounded_up();
+    let avail_size = self.size.get_byte_size_rounded_up();
     if avail_size.bytes() < data.len() {
       return Err(RtErr::HeapBinTooSmall(data.len(), avail_size));
     }

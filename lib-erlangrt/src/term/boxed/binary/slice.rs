@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitDataPointer, BitSize, ByteSize, WordSize},
+  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -65,16 +65,25 @@ impl TBinary for BinarySlice {
   }
 
   fn get_byte_size(&self) -> ByteSize {
-    self.size.get_bytes_rounded_up()
+    self.size.get_byte_size_rounded_up()
   }
 
   fn get_bit_size(&self) -> BitSize {
     self.size
   }
 
-  unsafe fn get_data(&self) -> &[u8] {
-    // Can not use byte access on slice, use get_data_bitptr() instead
-    core::slice::from_raw_parts(core::ptr::null(), 0)
+  fn get_byte_reader(&self) -> Option<ByteDataReader> {
+    if self.offset.get_last_byte_bits() == 0 {
+      // The offset is byte-aligned, we can actually return a faster byte-reader
+      match unsafe { (*self.orig).get_byte_reader() } {
+        Some(r) => unsafe {
+          Some(r.set_byte_offset(self.offset.get_byte_size_rounded_down()))
+        },
+        None => None
+      }
+    } else {
+      None
+    }
   }
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
@@ -82,9 +91,8 @@ impl TBinary for BinarySlice {
     core::slice::from_raw_parts_mut(core::ptr::null_mut(), 0)
   }
 
-  fn get_data_bitptr(&self) -> BitDataPointer {
-    let data = unsafe { (*self.orig).get_data() };
-    BitDataPointer::new(data, self.offset)
+  fn get_bit_reader(&self) -> BitDataReader {
+    unsafe { (*self.orig).get_bit_reader() }
   }
 
   fn store(&mut self, _data: &[u8]) -> RtResult<()> {

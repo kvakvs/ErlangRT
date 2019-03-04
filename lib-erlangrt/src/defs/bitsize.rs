@@ -62,19 +62,18 @@ impl BitSize {
   }
 
   #[inline]
-  pub const fn get_bytes_rounded_down(&self) -> usize {
-    self.bit_count >> defs::BYTE_POF2_BITS
+  pub const fn get_byte_size_rounded_down(&self) -> ByteSize {
+    ByteSize::new(self.bit_count >> defs::BYTE_POF2_BITS)
   }
 
-  pub const fn get_bytes_rounded_up(self) -> ByteSize {
+  pub const fn get_byte_size_rounded_up(self) -> ByteSize {
     ByteSize::new((self.bit_count + defs::BYTE_BITS - 1) / defs::BYTE_BITS)
   }
 
   #[inline]
   pub const fn get_words_rounded_up(self) -> WordSize {
-    WordSize::new(
-      (self.get_bytes_rounded_down() + defs::WORD_BYTES - 1) / defs::WORD_BYTES,
-    )
+    let b = self.get_byte_size_rounded_down().bytes();
+    WordSize::new((b + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
   }
 }
 
@@ -83,7 +82,7 @@ impl Sub for BitSize {
 
   fn sub(self, other: BitSize) -> BitSize {
     BitSize {
-      bit_count: self.bit_count - other.bit_count
+      bit_count: self.bit_count - other.bit_count,
     }
   }
 }
