@@ -1,3 +1,5 @@
+use core::fmt;
+
 use crate::{
   defs::{self, data_reader::TDataReader, BitSize, WordSize},
   emulator::heap::Heap,
@@ -13,7 +15,6 @@ use crate::{
     lterm::LTerm,
   },
 };
-use core::fmt;
 
 pub mod binaryheap_bin;
 pub mod match_state;

@@ -51,9 +51,13 @@ define_nativefun!(_vm, proc, args,
 #[inline]
 unsafe fn list_to_binary_1(proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
   let size = cons::get_iolist_size(list);
-  let mut bb = BinaryBuilder::with_size(size, &mut proc.heap)?;
-  list_to_binary_1_recursive(&mut bb, list)?;
-  Ok(bb.make_term())
+  if size.bytes() == 0 {
+    Ok(LTerm::empty_binary())
+  } else {
+    let mut bb = BinaryBuilder::with_size(size, &mut proc.heap)?;
+    list_to_binary_1_recursive(&mut bb, list)?;
+    Ok(bb.make_term())
+  }
 }
 
 unsafe fn list_to_binary_1_recursive(

@@ -79,7 +79,7 @@ impl TBinary for BinarySlice {
         Some(r) => unsafe {
           Some(r.set_byte_offset(self.offset.get_byte_size_rounded_down()))
         },
-        None => None
+        None => None,
       }
     } else {
       None
