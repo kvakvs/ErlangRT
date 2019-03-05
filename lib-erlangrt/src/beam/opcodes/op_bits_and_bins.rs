@@ -165,6 +165,7 @@ impl OpcodeBsGetBinary2 {
       let bit_offset = (*match_state).get_offset();
       let sub_bin =
         BinarySlice::create_into(src_bin, bit_offset, bit_size, &mut proc.heap)?;
+      (*match_state).increase_offset(bit_size);
 
       println!("bgb2: created {}", (*sub_bin).make_term());
       // Return the sub-binary created

@@ -9,16 +9,19 @@ use crate::{
 struct MatchBuffer {
   // TODO: Make sure this is detected when garbage collected
   pub orig: *const TBinary,
-  pub offset: BitSize,
-  pub size: BitSize,
+  /// The window begins at bit offset 0 always, and `start_at` will advance
+  /// forward as we are reading from the binary.
+  pub read_position: BitSize,
+  pub stop_at: BitSize,
 }
 
 impl MatchBuffer {
   pub fn new(bin_ptr: *const TBinary) -> Self {
+    let stop_at = unsafe { (*bin_ptr).get_bit_size() };
     Self {
       orig: bin_ptr,
-      offset: BitSize::with_bits(0),
-      size: BitSize::with_bits(0),
+      read_position: BitSize::with_bits(0),
+      stop_at,
     }
   }
 }
@@ -73,17 +76,23 @@ impl BinaryMatchState {
 
   #[inline]
   pub fn get_bits_remaining(&self) -> BitSize {
+    let stop_at = self.match_buffer.stop_at.bit_count;
+    let read_pos = self.match_buffer.read_position.bit_count;
     debug_assert!(
-      self.match_buffer.offset.bit_count <= self.match_buffer.size.bit_count,
+      read_pos <= stop_at,
       "Offset in match buffer {} can't and shouldn't be greater than the total bits {}",
-      self.match_buffer.offset.bit_count,
-      self.match_buffer.size.bit_count
+      read_pos,
+      stop_at
     );
-    self.match_buffer.size - self.match_buffer.offset
+    BitSize::with_bits(stop_at - read_pos)
   }
 
   #[inline]
   pub fn get_offset(&self) -> BitSize {
-    self.match_buffer.offset
+    self.match_buffer.read_position
+  }
+
+  pub fn increase_offset(&mut self, offs: BitSize) {
+    self.match_buffer.read_position = self.match_buffer.read_position + offs;
   }
 }
