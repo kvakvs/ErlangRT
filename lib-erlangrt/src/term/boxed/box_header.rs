@@ -1,71 +1,60 @@
 use crate::{
   defs::*,
-  term::lterm::{TERMTAG_HEADER, TERM_TAG_BITS},
+  term::{
+    boxed::trait_interface::TBoxed,
+    lterm::{TERMTAG_HEADER, TERM_TAG_BITS},
+  },
 };
 
-// Structure of a header word:
-// [ Arity ... ] [ Header type: 3 bits ] [ Header tag: 3 bits ]
-//
-
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-pub struct BoxTypeTag(Word);
-
-impl BoxTypeTag {
-  #[inline]
-  pub fn get(self) -> Word {
-    let BoxTypeTag(t) = self;
-    t
-  }
-}
-
-pub const BOXTYPETAG_TUPLE: BoxTypeTag = BoxTypeTag(0);
-pub const BOXTYPETAG_BIGINTEGER: BoxTypeTag = BoxTypeTag(1); // todo: separate tag for negative?
-pub const BOXTYPETAG_EXTERNALPID: BoxTypeTag = BoxTypeTag(2);
-pub const BOXTYPETAG_EXTERNALREF: BoxTypeTag = BoxTypeTag(3);
-pub const BOXTYPETAG_EXTERNALPORT: BoxTypeTag = BoxTypeTag(4);
-
-// A function object with frozen (captured) variable values
-pub const BOXTYPETAG_CLOSURE: BoxTypeTag = BoxTypeTag(5);
-
-pub const BOXTYPETAG_FLOAT: BoxTypeTag = BoxTypeTag(6);
-pub const BOXTYPETAG_IMPORT: BoxTypeTag = BoxTypeTag(7);
-pub const BOXTYPETAG_EXPORT: BoxTypeTag = BoxTypeTag(8);
-pub const BOXTYPETAG_MAP: BoxTypeTag = BoxTypeTag(9);
-
-pub const BOXTYPETAG_BINARY: BoxTypeTag = BoxTypeTag(10);
-pub const BOXTYPETAG_BINARY_MATCH_STATE: BoxTypeTag = BoxTypeTag(11);
-// unused 12
-// unused 13
-// unused 14
-// unused 15 => max 15 (1 << BOXTYPE_TAG_BITS)
-
-const BOXTYPE_TAG_BITS: Word = 4;
-
-#[allow(dead_code)]
-const BOXTYPE_TAG_MASK: Word = (1 << BOXTYPE_TAG_BITS) - 1;
-
-/// Term header in memory, followed by corresponding data.
+/// Term header in memory, followed by corresponding data. The first header word
+/// is parsed just like any term, tag bits are set to TERMTAG_HEADER.
 pub struct BoxHeader {
-  /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
+  /// Format is <arity> <TAG_HEADER:TERM_TAG_BITS>
   header_word: Word,
+  /// Pointer to TBoxed trait vtable depending on the type. Necessary for
+  /// reconstructing the fat trait pointer
+  trait_vtab: *mut (),
 }
 
 impl BoxHeader {
-  pub fn new(t: BoxTypeTag, arity: Word) -> BoxHeader {
+  pub fn new<TraitType>(arity: Word) -> BoxHeader
+  where
+    TraitType: TBoxed,
+  {
     let mut header_word = arity;
-    header_word <<= BOXTYPE_TAG_BITS;
-    header_word |= t.get();
     header_word <<= TERM_TAG_BITS;
     header_word |= TERMTAG_HEADER.get();
-    BoxHeader { header_word }
+
+    // Extract and store vtable pointer from the TBoxed trait object
+    let trait_ptr = core::ptr::null_mut::<TraitType>() as *mut TBoxed;
+    let trait_obj: core::raw::TraitObject = unsafe { core::mem::transmute(trait_ptr) };
+    println!("creating box header, vtab={:p}", trait_obj.vtable);
+    BoxHeader {
+      header_word,
+      trait_vtab: trait_obj.vtable,
+    }
   }
 
   pub const fn storage_size() -> WordSize {
-    WordSize::new(1)
+    ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up()
   }
 
-  pub fn get_tag(&self) -> BoxTypeTag {
-    headerword_to_boxtype(self.header_word)
+  #[inline]
+  pub fn get_trait_ptr(&self) -> *const TBoxed {
+    let trait_obj = core::raw::TraitObject {
+      data: self as *const Self as *mut (),
+      vtable: self.trait_vtab,
+    };
+    unsafe { core::mem::transmute(trait_obj) }
+  }
+
+  #[inline]
+  pub fn get_trait_ptr_mut(&mut self) -> *mut TBoxed {
+    let trait_obj = core::raw::TraitObject {
+      data: self as *mut Self as *mut (),
+      vtable: self.trait_vtab,
+    };
+    unsafe { core::mem::transmute(trait_obj) }
   }
 
   pub fn get_arity(&self) -> usize {
@@ -76,9 +65,9 @@ impl BoxHeader {
 /// For a header word value, extract bits with arity
 /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
 pub fn headerword_to_arity(w: Word) -> usize {
-  w >> (TERM_TAG_BITS + BOXTYPE_TAG_BITS)
+  w >> TERM_TAG_BITS
 }
 
-pub const fn headerword_to_boxtype(w: Word) -> BoxTypeTag {
-  BoxTypeTag((w >> TERM_TAG_BITS) & BOXTYPE_TAG_MASK)
-}
+// pub const fn headerword_to_boxtype(w: Word) -> BoxType {
+//  BoxType((w >> TERM_TAG_BITS) & BOXTYPE_TAG_MASK)
+//}

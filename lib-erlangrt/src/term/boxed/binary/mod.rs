@@ -10,8 +10,11 @@ use crate::{
         binaryheap_bin::BinaryHeapBinary, procheap_bin::ProcessHeapBinary,
         refc_bin::ReferenceToBinary, slice::BinarySlice, trait_interface::TBinary,
       },
-      BoxHeader, BOXTYPETAG_BINARY,
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader,
     },
+    classify,
     lterm::LTerm,
   },
 };
@@ -52,6 +55,16 @@ pub struct Binary {
    * on the bin_type */
 }
 
+impl TBoxed for Binary {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_BINARY
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_BINARY
+  }
+}
+
 impl Binary {
   fn get_binary_type_for_creation(size: BitSize) -> BinaryType {
     if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
@@ -62,7 +75,7 @@ impl Binary {
 
   fn new(bin_type: BinaryType, arity: WordSize) -> Binary {
     Binary {
-      header: BoxHeader::new(BOXTYPETAG_BINARY, arity.words()),
+      header: BoxHeader::new::<Binary>(arity.words()),
       bin_type,
     }
   }

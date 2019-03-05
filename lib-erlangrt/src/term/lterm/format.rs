@@ -4,11 +4,12 @@ use crate::{
   defs::Word,
   emulator::atom,
   term::{
-    boxed,
+    boxed::{self, boxtype, trait_interface::TBoxed},
     lterm::{cons, lterm_impl::*},
   },
 };
 use core::fmt;
+use crate::term::boxed::box_header::BoxHeader;
 
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -20,9 +21,9 @@ impl fmt::Display for LTerm {
         if self.is_cp() {
           write!(f, "CP({:p})", self.get_cp_ptr::<Word>())
         } else {
-          let p = self.get_box_ptr::<LTerm>();
+          let box_ptr = self.get_box_ptr::<boxed::BoxHeader>();
           // `p` can't be null because non_value=0 is checked above
-          format_box_contents(*p, p as *const Word, f)
+          format_box_contents(box_ptr, f)
         }
       },
 
@@ -68,14 +69,15 @@ impl fmt::Display for LTerm {
 /// follow it. Arg `p` if not null is used to fetch the following memory words
 /// and display more detail.
 unsafe fn format_box_contents(
-  value_at_ptr: LTerm,
-  val_ptr: *const Word,
+  box_ptr: *const BoxHeader,
   f: &mut fmt::Formatter,
 ) -> fmt::Result {
-  let h_tag = boxed::headerword_to_boxtype(value_at_ptr.raw());
-  match h_tag {
-    boxed::BOXTYPETAG_BINARY => {
-      let trait_ptr = boxed::Binary::get_trait(val_ptr as *const boxed::Binary);
+  let trait_ptr = (*box_ptr).get_trait_ptr();
+  let box_type = (*trait_ptr).get_type();
+
+  match box_type {
+    boxtype::BOXTYPETAG_BINARY => {
+      let trait_ptr = boxed::Binary::get_trait(trait_ptr as *const boxed::Binary);
       if cfg!(debug_assertions) {
         write!(
           f,
@@ -87,30 +89,33 @@ unsafe fn format_box_contents(
       }
       boxed::Binary::format(trait_ptr, f)
     }
-    boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
-    boxed::BOXTYPETAG_TUPLE => format_tuple(val_ptr, f),
-    boxed::BOXTYPETAG_CLOSURE => {
-      let fun_p = val_ptr as *const boxed::Closure;
+    boxtype::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
+    boxtype::BOXTYPETAG_TUPLE => {
+      let tuple_ptr = trait_ptr as *const boxed::Tuple;
+      (*tuple_ptr).format(f)
+    },
+    boxtype::BOXTYPETAG_CLOSURE => {
+      let fun_p = trait_ptr as *const boxed::Closure;
       write!(f, "Fun<{}>", (*fun_p).mfa)
     }
-    boxed::BOXTYPETAG_FLOAT => {
-      let fptr = val_ptr as *const boxed::Float;
+    boxtype::BOXTYPETAG_FLOAT => {
+      let fptr = trait_ptr as *const boxed::Float;
       write!(f, "{}", (*fptr).value)
     }
-    boxed::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid<>"),
-    boxed::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort<>"),
-    boxed::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef<>"),
-    boxed::BOXTYPETAG_IMPORT => {
-      let iptr = val_ptr as *const boxed::Import;
+    boxtype::BOXTYPETAG_EXTERNALPID => write!(f, "ExtPid<>"),
+    boxtype::BOXTYPETAG_EXTERNALPORT => write!(f, "ExtPort<>"),
+    boxtype::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef<>"),
+    boxtype::BOXTYPETAG_IMPORT => {
+      let iptr = trait_ptr as *const boxed::Import;
       write!(f, "Import<{}>", (*iptr).mfarity)
     }
-    boxed::BOXTYPETAG_EXPORT => {
-      let eptr = val_ptr as *const boxed::Export;
+    boxtype::BOXTYPETAG_EXPORT => {
+      let eptr = trait_ptr as *const boxed::Export;
       write!(f, "Export<{}>", (*eptr).exp.mfa)
     }
-    boxed::BOXTYPETAG_BINARY_MATCH_STATE => write!(f, "BinaryMatchState<>"),
+    boxtype::BOXTYPETAG_BINARY_MATCH_STATE => write!(f, "BinaryMatchState<>"),
 
-    _ => panic!("Unexpected header tag {:?}", h_tag),
+    _ => panic!("Unexpected header tag {:?}", box_type),
   }
 }
 
@@ -143,25 +148,6 @@ fn format_special(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
     term.get_special_tag().0,
     term.get_special_value()
   )
-}
-
-/// Given `p`, a pointer to tuple header word, format tuple contents.
-unsafe fn format_tuple(p: *const Word, f: &mut fmt::Formatter) -> fmt::Result {
-  let tptr = match boxed::Tuple::from_pointer(p) {
-    Ok(x) => x,
-    Err(e) => return write!(f, "<err formatting tuple: {:?}>", e),
-  };
-
-  write!(f, "{{")?;
-
-  let arity = (*tptr).get_arity();
-  for i in 0..arity {
-    write!(f, "{}", boxed::Tuple::get_element_base0(tptr, i))?;
-    if i < arity - 1 {
-      write!(f, ", ")?
-    }
-  }
-  write!(f, "}}")
 }
 
 pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {

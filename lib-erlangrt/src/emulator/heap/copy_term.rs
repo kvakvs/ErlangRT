@@ -48,14 +48,17 @@ unsafe fn copy_cons_to(lst: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
 }
 
 unsafe fn copy_boxed_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
-  let box_p = term.get_box_ptr::<boxed::BoxHeader>();
-  match (*box_p).get_tag() {
+  let header_ptr = term.get_box_ptr::<boxed::BoxHeader>();
+  let trait_ptr = (*header_ptr).get_trait_ptr();
+  let box_type = (*trait_ptr).get_type();
+
+  match box_type {
     boxed::BOXTYPETAG_TUPLE => {
-      let tuple_p = box_p as *const boxed::Tuple;
+      let tuple_p = header_ptr as *const boxed::Tuple;
       let arity = (*tuple_p).get_arity();
       let tb = TupleBuilder::with_arity(arity, hp)?;
       for i in 0..arity {
-        let element = boxed::Tuple::get_element_base0(tuple_p, i);
+        let element = (*tuple_p).get_element_base0(i);
         let copied = copy_to(element, hp)?;
         tb.set_element_base0(i, copied);
       }

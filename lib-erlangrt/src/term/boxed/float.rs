@@ -2,7 +2,14 @@ use crate::{
   defs::{ByteSize, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
-  term::boxed::{BoxHeader, BOXTYPETAG_FLOAT},
+  term::{
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader,
+    },
+    classify,
+  },
 };
 use core::{mem::size_of, ptr};
 
@@ -10,6 +17,16 @@ use core::{mem::size_of, ptr};
 pub struct Float {
   header: BoxHeader,
   pub value: f64,
+}
+
+impl TBoxed for Float {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_NUMBER
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_FLOAT
+  }
 }
 
 impl Float {
@@ -22,7 +39,7 @@ impl Float {
   fn new(value: f64) -> Float {
     let storage_size = ByteSize::new(size_of::<Float>()).get_words_rounded_up();
     Float {
-      header: BoxHeader::new(BOXTYPETAG_FLOAT, storage_size.words()),
+      header: BoxHeader::new::<Float>(storage_size.words()),
       value,
     }
   }

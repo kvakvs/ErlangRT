@@ -642,7 +642,7 @@ impl Loader {
               t.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()
             };
 
-            unsafe { boxed::Tuple::set_raw_word_base0(heap_jtab, index, new_t) }
+            unsafe { (*heap_jtab).set_raw_word_base0(index, new_t) }
           }
         }
 
@@ -704,15 +704,10 @@ impl Loader {
         }
 
         PatchLocation::PatchJtabElement(jtab, index) => {
-          let tuple_ptr = jtab.get_box_ptr_mut::<boxed::Tuple>();
+          let jtab_ptr = jtab.get_box_ptr_mut::<boxed::Tuple>();
           unsafe {
-            let jtab_ptr = boxed::Tuple::from_pointer_mut(tuple_ptr)?;
-            let val = boxed::Tuple::get_element_base0(jtab_ptr, index);
-            boxed::Tuple::set_raw_word_base0(
-              jtab_ptr,
-              index,
-              self.postprocess_fix_1_label(val),
-            )
+            let val = (*jtab_ptr).get_element_base0(index);
+            (*jtab_ptr).set_raw_word_base0(index, self.postprocess_fix_1_label(val))
           }
         }
       } // match
@@ -754,8 +749,7 @@ impl Loader {
       let fun_atom = self.atom_from_loadtime_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       // println!("is_bif {} for {}", is_bif, mf_arity);
-      let ho_imp =
-        unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity)? };
+      let ho_imp = unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity)? };
 
       self.imports.push(ho_imp);
     }

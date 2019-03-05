@@ -3,9 +3,14 @@ use core::cmp::Ordering;
 use crate::{
   defs::{Word, WordSize},
   emulator::heap::Heap,
-  fail::{RtErr, RtResult},
+  fail::RtResult,
   term::{
-    boxed::{BoxHeader, BOXTYPETAG_MAP},
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader,
+    },
+    classify,
     compare::cmp_terms,
     lterm::LTerm,
   },
@@ -33,6 +38,16 @@ pub struct Map {
   count: usize,
 }
 
+impl TBoxed for Map {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_MAP
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_MAP
+  }
+}
+
 impl Map {
   /// Size of a tuple in memory with the header word (used for allocations)
   #[inline]
@@ -44,7 +59,7 @@ impl Map {
   /// TODO: capacity is not words count on heap, but the count of k/v pairs
   fn new(capacity: usize) -> Self {
     Self {
-      header: BoxHeader::new(BOXTYPETAG_MAP, capacity),
+      header: BoxHeader::new::<Map>(capacity),
       map_type: MapType::FlatMap,
       count: 0,
     }
@@ -70,25 +85,25 @@ impl Map {
     Ok(p)
   }
 
-  /// Convert any p into *const Map + checking the header word to be Map
-  #[allow(dead_code)]
-  pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Map> {
-    let mp = p as *const Map;
-    if (*mp).header.get_tag() != BOXTYPETAG_MAP {
-      return Err(RtErr::BoxedIsNotAMap);
-    }
-    Ok(mp)
-  }
+  //  /// Convert any p into *const Map + checking the header word to be Map
+  //  #[allow(dead_code)]
+  //  pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Map> {
+  //    let mp = p as *const Map;
+  //    if (*mp).header.get_tag() != BOXTYPETAG_MAP {
+  //      return Err(RtErr::BoxedIsNotAMap);
+  //    }
+  //    Ok(mp)
+  //  }
 
-  /// Convert any p into *mut Map + checking the header word to be Map
-  #[allow(dead_code)]
-  pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Map> {
-    let mp = p as *mut Map;
-    if (*mp).header.get_tag() != BOXTYPETAG_MAP {
-      return Err(RtErr::BoxedIsNotAMap);
-    }
-    Ok(mp)
-  }
+  //  /// Convert any p into *mut Map + checking the header word to be Map
+  //  #[allow(dead_code)]
+  //  pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Map> {
+  //    let mp = p as *mut Map;
+  //    if (*mp).header.get_tag() != BOXTYPETAG_MAP {
+  //      return Err(RtErr::BoxedIsNotAMap);
+  //    }
+  //    Ok(mp)
+  //  }
 
   /// Add a key/value pair to map (unsorted).
   /// Note: the flatmap must be sorted for use
@@ -132,7 +147,8 @@ impl Map {
   }
 
   #[inline]
-  unsafe fn get_internal(this: *const Map, key: LTerm) -> RtResult<MapGetResult> {    match (*this).map_type {
+  unsafe fn get_internal(this: *const Map, key: LTerm) -> RtResult<MapGetResult> {
+    match (*this).map_type {
       MapType::FlatMap => Self::get_flatmap(this, key),
     }
   }

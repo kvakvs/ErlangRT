@@ -3,7 +3,12 @@ use crate::{
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
-    boxed::{BoxHeader, BOXTYPETAG_BIGINTEGER},
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader, BOXTYPETAG_BIGINTEGER,
+    },
+    classify,
     lterm::*,
   },
 };
@@ -21,6 +26,16 @@ pub struct Bignum {
   pub value: BigInt,
 }
 
+impl TBoxed for BigInt {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_NUMBER
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_BIGINTEGER
+  }
+}
+
 impl Bignum {
   const fn storage_size() -> WordSize {
     // This impl stores bignum in dynamic heap with the num library
@@ -29,7 +44,7 @@ impl Bignum {
 
   fn new(bignum_size: WordSize, value: BigInt) -> Bignum {
     Bignum {
-      header: BoxHeader::new(BOXTYPETAG_BIGINTEGER, bignum_size.words()),
+      header: BoxHeader::new::<BigInt>(bignum_size.words()),
       value,
     }
   }

@@ -3,6 +3,7 @@
 //! This is done in `erl` and in `ct_run` projects.
 #![crate_type = "lib"]
 #![crate_name = "erlangrt"]
+#![feature(raw)]
 
 #[macro_use] extern crate lazy_static;
 

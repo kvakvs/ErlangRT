@@ -34,3 +34,8 @@ pub use self::box_header::*;
 pub mod map;
 pub use self::map::*;
 
+pub mod trait_interface;
+pub use trait_interface::*;
+
+pub mod boxtype;
+pub use boxtype::*;

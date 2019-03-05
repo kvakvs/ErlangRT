@@ -2,7 +2,15 @@ use crate::{
   defs::{BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
-  term::boxed::{self, binary::trait_interface::TBinary},
+  term::{
+    boxed::{
+      self,
+      binary::trait_interface::TBinary,
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+    },
+    classify,
+  },
 };
 
 /// Binary match buffer is a part of `BinaryMatchState`
@@ -34,6 +42,16 @@ pub struct BinaryMatchState {
   match_buffer: MatchBuffer,
 }
 
+impl TBoxed for BinaryMatchState {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_SPECIAL
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_BINARY_MATCH_STATE
+  }
+}
+
 impl BinaryMatchState {
   pub fn reset(&mut self) {
     println!("TODO: reset binary match state");
@@ -48,7 +66,7 @@ impl BinaryMatchState {
   fn new(bin_ptr: *const TBinary) -> Self {
     let arity = Self::storage_size();
     let mut self_ = Self {
-      header: boxed::BoxHeader::new(boxed::BOXTYPETAG_BINARY_MATCH_STATE, arity.words()),
+      header: boxed::BoxHeader::new::<BinaryMatchState>(arity.words()),
       match_buffer: MatchBuffer::new(bin_ptr),
     };
     self_.reset();

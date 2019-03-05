@@ -3,7 +3,12 @@ use crate::{
   emulator::{export, heap::Heap, mfa::MFArity},
   fail::{RtErr, RtResult},
   term::{
-    boxed::{BoxHeader, BOXTYPETAG_EXPORT},
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader, BOXTYPETAG_EXPORT,
+    },
+    classify,
     lterm::*,
   },
 };
@@ -15,6 +20,16 @@ pub struct Export {
   pub exp: export::Export,
 }
 
+impl TBoxed for Export {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_FUN
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_EXPORT
+  }
+}
+
 impl Export {
   #[inline]
   fn storage_size() -> WordSize {
@@ -24,7 +39,7 @@ impl Export {
   fn new(mfa: &MFArity) -> Export {
     let n_words = Export::storage_size();
     Export {
-      header: BoxHeader::new(BOXTYPETAG_EXPORT, n_words.words()),
+      header: BoxHeader::new::<Export>(n_words.words()),
       exp: export::Export::new(*mfa),
     }
   }

@@ -54,10 +54,11 @@ impl OpcodeBsStartMatch3 {
     }
 
     let header = match_context.get_box_ptr_mut::<boxed::BoxHeader>();
-    let h_tag = unsafe { (*header).get_tag() };
+    let trait_ptr = unsafe { (*header).get_trait_ptr() };
+    let box_type = unsafe { (*trait_ptr).get_type() };
 
     // Switch based on the box type of the context...
-    match h_tag {
+    match box_type {
       boxed::BOXTYPETAG_BINARY_MATCH_STATE => unsafe {
         return Self::continue_with_matchstate(
           runtime_ctx,

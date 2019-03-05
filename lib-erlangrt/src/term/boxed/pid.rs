@@ -3,17 +3,30 @@ use crate::{
   emulator::heap::Heap,
   fail::RtResult,
   term::{
-    boxed::{BoxHeader, BOXTYPETAG_EXTERNALPID},
+    boxed::{BoxHeader, boxtype},
     lterm::LTerm,
   },
 };
 use core::{mem::size_of, ptr};
+use crate::term::boxed::trait_interface::TBoxed;
+use crate::term::classify;
+use crate::term::boxed::boxtype::BoxType;
 
 /// Represents Pid box on heap.
 pub struct ExternalPid {
   pub header: BoxHeader,
   pub node: LTerm,
   pub id: Word,
+}
+
+impl TBoxed for ExternalPid {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_PID
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_EXTERNALPID
+  }
 }
 
 impl ExternalPid {
@@ -24,7 +37,7 @@ impl ExternalPid {
   fn new(node: LTerm, id: Word) -> ExternalPid {
     let arity = ExternalPid::storage_size().words() - 1;
     ExternalPid {
-      header: BoxHeader::new(BOXTYPETAG_EXTERNALPID, arity),
+      header: BoxHeader::new::<ExternalPid>(arity),
       node,
       id,
     }

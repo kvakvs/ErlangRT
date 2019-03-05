@@ -23,7 +23,7 @@ impl TupleBuilder {
 
   #[inline]
   pub unsafe fn set_element_base0(&self, i: usize, val: LTerm) {
-    boxed::Tuple::set_element_base0(self.p, i, val)
+    (*self.p).set_element_base0(i, val)
   }
 
   #[inline]

@@ -9,7 +9,7 @@ use crate::{
   defs::*,
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
-  term::boxed::{self, BoxHeader, BoxTypeTag},
+  term::boxed::{self, BoxHeader, BoxType},
 };
 use core::{cmp::Ordering, isize};
 use std::fmt;
@@ -27,29 +27,24 @@ pub const SMALLEST_SMALL: SWord = isize::MIN >> TERM_TAG_BITS;
 pub const LARGEST_SMALL: SWord = isize::MAX >> TERM_TAG_BITS;
 
 #[derive(Eq, PartialEq, Debug, Ord, PartialOrd)]
-pub struct TermTag(Word);
+pub struct TermTag(usize);
 
 impl TermTag {
   #[inline]
-  pub const fn new(t: Word) -> TermTag {
-    TermTag(t)
-  }
-
-  #[inline]
-  pub const fn get(self) -> Word {
+  pub const fn get(self) -> usize {
     self.0
   }
 }
 
-pub const TERMTAG_BOXED: TermTag = TermTag::new(0);
-pub const TERMTAG_HEADER: TermTag = TermTag::new(1);
-pub const TERMTAG_CONS: TermTag = TermTag::new(2);
+pub const TERMTAG_BOXED: TermTag = TermTag(0);
+pub const TERMTAG_HEADER: TermTag = TermTag(1);
+pub const TERMTAG_CONS: TermTag = TermTag(2);
 // From here and below, values are immediate (fit into a single word)
-pub const TERMTAG_SMALL: TermTag = TermTag::new(3);
-pub const TERMTAG_ATOM: TermTag = TermTag::new(4);
-pub const TERMTAG_LOCALPID: TermTag = TermTag::new(5);
-pub const TERMTAG_LOCALPORT: TermTag = TermTag::new(6);
-pub const TERMTAG_SPECIAL: TermTag = TermTag::new(7);
+pub const TERMTAG_SMALL: TermTag = TermTag(3);
+pub const TERMTAG_ATOM: TermTag = TermTag(4);
+pub const TERMTAG_LOCALPID: TermTag = TermTag(5);
+pub const TERMTAG_LOCALPORT: TermTag = TermTag(6);
+pub const TERMTAG_SPECIAL: TermTag = TermTag(7);
 
 // Structure of SPECIAL values,
 // they are plethora of term types requiring fewer bits or useful in other ways
@@ -193,7 +188,7 @@ impl LTerm {
 
   /// Checks boxed tag to be equal to t, also returns false if not a boxed.
   #[inline]
-  pub fn is_boxed_of_type(self, t: BoxTypeTag) -> bool {
+  pub fn is_boxed_of_type(self, t: BoxType) -> bool {
     self.is_boxed_of_(|boxtag| boxtag == t)
   }
 
@@ -202,13 +197,14 @@ impl LTerm {
   #[inline]
   fn is_boxed_of_<F>(self, pred: F) -> bool
   where
-    F: Fn(BoxTypeTag) -> bool,
+    F: Fn(BoxType) -> bool,
   {
     if !self.is_boxed() {
       return false;
     }
-    let p = self.get_box_ptr::<BoxHeader>();
-    let tag = unsafe { (*p).get_tag() };
+    let box_ptr = self.get_box_ptr::<BoxHeader>();
+    let trait_ptr = unsafe { (*box_ptr).get_trait_ptr() };
+    let tag = unsafe { (*trait_ptr).get_type() };
     pred(tag)
   }
 
@@ -635,15 +631,18 @@ impl LTerm {
     if !self.is_boxed() {
       return false;
     }
-    let p = self.get_box_ptr::<BoxHeader>();
-    let tag = unsafe { (*p).get_tag() };
-    match tag {
+
+    let box_ptr = self.get_box_ptr::<BoxHeader>();
+    let trait_ptr = unsafe { (*box_ptr).get_trait_ptr() };
+    let box_type = unsafe { (*trait_ptr).get_type() };
+
+    match box_type {
       boxed::BOXTYPETAG_CLOSURE => {
-        let closure_p = p as *const boxed::Closure;
+        let closure_p = box_ptr as *const boxed::Closure;
         unsafe { (*closure_p).mfa.arity - (*closure_p).nfrozen == a }
       }
       boxed::BOXTYPETAG_EXPORT => {
-        let expt_p = p as *const boxed::Export;
+        let expt_p = box_ptr as *const boxed::Export;
         unsafe { (*expt_p).exp.mfa.arity == a }
       }
       _ => false,
@@ -785,15 +784,18 @@ impl LTerm {
 
 pub unsafe fn helper_get_const_from_boxed_term<T>(
   t: LTerm,
-  box_type: BoxTypeTag,
+  box_type: BoxType,
   err: RtErr,
 ) -> RtResult<*const T> {
   if !t.is_boxed() {
     return Err(RtErr::TermIsNotABoxed);
   }
+
   let cptr = t.get_box_ptr::<T>();
-  let hptr = cptr as *const BoxHeader;
-  if (*hptr).get_tag() != box_type {
+  let box_ptr = cptr as *const BoxHeader;
+  let trait_ptr = (*box_ptr).get_trait_ptr();
+
+  if (*trait_ptr).get_type() != box_type {
     return Err(err);
   }
   Ok(cptr)
@@ -801,13 +803,16 @@ pub unsafe fn helper_get_const_from_boxed_term<T>(
 
 pub unsafe fn helper_get_mut_from_boxed_term<T>(
   t: LTerm,
-  box_type: BoxTypeTag,
+  box_type: BoxType,
   _err: RtErr,
 ) -> RtResult<*mut T> {
   debug_assert!(t.is_boxed());
+
   let cptr = t.get_box_ptr_mut::<T>();
-  let hptr = cptr as *const BoxHeader;
-  if (*hptr).get_tag() == box_type {
+  let box_ptr = cptr as *const BoxHeader;
+  let trait_ptr = (*box_ptr).get_trait_ptr();
+
+  if (*trait_ptr).get_type() == box_type {
     return Ok(cptr);
   }
   Err(RtErr::BoxedTagCheckFailed)

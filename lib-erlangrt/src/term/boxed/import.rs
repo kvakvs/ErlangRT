@@ -4,7 +4,12 @@ use crate::{
   fail::{RtErr, RtResult},
   native_fun::NativeFn,
   term::{
-    boxed::{BoxHeader, BOXTYPETAG_IMPORT},
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader, BOXTYPETAG_IMPORT,
+    },
+    classify,
     lterm::*,
   },
 };
@@ -16,6 +21,16 @@ pub struct Import {
   pub mfarity: MFArity,
   /// Whether import points to a native fun or to BEAM fun, or we don't know yet
   is_bif: Option<bool>,
+}
+
+impl TBoxed for Import {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_FUN
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_IMPORT
+  }
 }
 
 impl Import {
@@ -30,7 +45,7 @@ impl Import {
     ptr::write(
       this,
       Import {
-        header: BoxHeader::new(BOXTYPETAG_IMPORT, n_words.words()),
+        header: BoxHeader::new::<Import>(n_words.words()),
         mfarity,
         is_bif: None, // we don't know yet
       },

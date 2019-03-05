@@ -9,7 +9,12 @@ use crate::{
   },
   fail::{RtErr, RtResult},
   term::{
-    boxed::{BoxHeader, BOXTYPETAG_CLOSURE},
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader, BOXTYPETAG_CLOSURE,
+    },
+    classify,
     lterm::*,
   },
 };
@@ -31,6 +36,16 @@ pub struct Closure {
   pub nfrozen: usize,
 }
 
+impl TBoxed for Closure {
+  fn get_class(&self) -> classify::TermClass {
+    classify::CLASS_FUN
+  }
+
+  fn get_type(&self) -> BoxType {
+    boxtype::BOXTYPETAG_CLOSURE
+  }
+}
+
 impl Closure {
   #[inline]
   const fn storage_size(nfrozen: Word) -> WordSize {
@@ -42,7 +57,7 @@ impl Closure {
   fn new(mfa: MFArity, nfrozen: usize) -> Closure {
     let arity = Closure::storage_size(nfrozen).words() - 1;
     Closure {
-      header: BoxHeader::new(BOXTYPETAG_CLOSURE, arity),
+      header: BoxHeader::new::<Closure>(arity),
       mfa,
       dst: None,
       nfrozen: nfrozen as Arity,
