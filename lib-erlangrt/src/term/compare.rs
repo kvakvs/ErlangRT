@@ -410,13 +410,17 @@ unsafe fn cmp_binary(a: LTerm, b: LTerm) -> RtResult<Ordering> {
     return Ok(a_size.cmp(&b_size));
   }
 
+  println!("Going to compare {} {}", a, b);
+  println!("sizes - {} {} vs {} {}", a_size, (*a_trait).get_byte_size(),
+           b_size, (*b_trait).get_byte_size());
+
   // Try figure out a compatible byte- or bit-reader combination for A arg and
   // B arg and then call a branch function which will do the same for B.
   match (*a_trait).get_byte_reader() {
-    Some(a_reader) => cmp_reader_vs_binary(a_reader, b_trait),
+    Some(a_reader) => cmp_reader_vs_binary(a, b, a_reader, b_trait),
     None => {
       let a_reader = (*a_trait).get_bit_reader();
-      cmp_reader_vs_binary(a_reader, b_trait)
+      cmp_reader_vs_binary(a, b, a_reader, b_trait)
     }
   }
 }
@@ -425,6 +429,8 @@ unsafe fn cmp_binary(a: LTerm, b: LTerm) -> RtResult<Ordering> {
 /// able to get a byte-reader for A arg, or a bit-reader. It will further branch
 /// by doing the same for B arg.
 unsafe fn cmp_reader_vs_binary<AReader>(
+  a: LTerm,
+  b: LTerm,
   a_reader: AReader,
   b_trait: *const TBinary,
 ) -> RtResult<Ordering>
@@ -432,10 +438,10 @@ where
   AReader: TDataReader,
 {
   match (*b_trait).get_byte_reader() {
-    Some(b_reader) => cmp_reader_vs_reader(a_reader, b_reader),
+    Some(b_reader) => cmp_reader_vs_reader(a, b, a_reader, b_reader),
     None => {
       let b_reader = (*b_trait).get_bit_reader();
-      cmp_reader_vs_reader(a_reader, b_reader)
+      cmp_reader_vs_reader(a, b, a_reader, b_reader)
     }
   }
 }
@@ -443,6 +449,8 @@ where
 /// Now that we finally have two compatible readers, get some bytes and see
 /// how they compare until a first mismatch.
 unsafe fn cmp_reader_vs_reader<AReader, BReader>(
+  _a: LTerm,
+  _b: LTerm,
   a_reader: AReader,
   b_reader: BReader,
 ) -> RtResult<Ordering>
@@ -450,7 +458,15 @@ where
   AReader: TDataReader,
   BReader: TDataReader,
 {
-  assert_eq!(a_reader.get_bit_size(), b_reader.get_bit_size());
+  //  assert_eq!(
+  //    a_reader.get_bit_size(),
+  //    b_reader.get_bit_size(),
+  //    "Comparing 2 binaries with different bit sizes {} ({}) vs {} ({})",
+  //    a,
+  //    a_reader.get_bit_size(),
+  //    b,
+  //    b_reader.get_bit_size()
+  //  );
   let size = a_reader.get_bit_size();
 
   // Use rounded up byte-size, and then because the bit-sizes must be equal,
@@ -465,7 +481,7 @@ where
     }
   }
   // No differences we've been able to find
-  return Ok(Ordering::Equal)
+  return Ok(Ordering::Equal);
 }
 
 /// Deeper comparison of two values with different types

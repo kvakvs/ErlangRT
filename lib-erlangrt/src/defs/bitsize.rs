@@ -1,7 +1,7 @@
 use core::fmt;
 
 use crate::defs::{self, ByteSize, WordSize};
-use std::ops::Sub;
+use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct BitSize {
@@ -80,6 +80,16 @@ impl BitSize {
   pub const fn get_words_rounded_up(self) -> WordSize {
     let b = self.get_byte_size_rounded_down().bytes();
     WordSize::new((b + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
+  }
+}
+
+impl Add for BitSize {
+  type Output = BitSize;
+
+  fn add(self, other: BitSize) -> BitSize {
+    BitSize {
+      bit_count: self.bit_count + other.bit_count,
+    }
   }
 }
 

@@ -21,6 +21,10 @@ impl BitDataReader {
   pub fn new(data: &'static [u8], offset: BitSize) -> Self {
     Self { data, offset }
   }
+
+  pub fn add_bit_offset(&self, offs: BitSize) -> Self {
+    Self { data: self.data, offset: self.offset + offs }
+  }
 }
 
 impl TDataReader for BitDataReader {
@@ -44,15 +48,17 @@ pub struct ByteDataReader {
 
 impl ByteDataReader {
   pub fn new(data: *const u8, size: usize) -> Self {
+    // println!("Creating data reader size={}", size);
     Self {
       data: unsafe { core::slice::from_raw_parts(data, size) },
     }
   }
 
   /// From a byte reader create one shorter byte reader, offset forward by `size`
-  pub unsafe fn set_byte_offset(self, offs: ByteSize) -> Self {
+  pub unsafe fn set_offset_and_size(self, offs: ByteSize, size: ByteSize) -> Self {
+    // println!("Setting data reader offset={}", offs);
     let new_ptr = self.data.as_ptr().add(offs.bytes());
-    let new_len = self.data.len() - offs.bytes();
+    let new_len = core::cmp::min(self.data.len() - offs.bytes(), size.bytes());
     Self {
       data: core::slice::from_raw_parts(new_ptr, new_len)
     }

@@ -77,7 +77,9 @@ impl TBinary for BinarySlice {
       // The offset is byte-aligned, we can actually return a faster byte-reader
       match unsafe { (*self.orig).get_byte_reader() } {
         Some(r) => unsafe {
-          Some(r.set_byte_offset(self.offset.get_byte_size_rounded_down()))
+          Some(r.set_offset_and_size(
+            self.offset.get_byte_size_rounded_down(),
+            self.size.get_byte_size_rounded_down()))
         },
         None => None,
       }
@@ -92,7 +94,8 @@ impl TBinary for BinarySlice {
   }
 
   fn get_bit_reader(&self) -> BitDataReader {
-    unsafe { (*self.orig).get_bit_reader() }
+    let r = unsafe { (*self.orig).get_bit_reader() };
+    r.add_bit_offset(self.offset)
   }
 
   fn store(&mut self, _data: &[u8]) -> RtResult<()> {

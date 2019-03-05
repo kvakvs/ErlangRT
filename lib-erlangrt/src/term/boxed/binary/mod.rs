@@ -25,7 +25,7 @@ pub mod trait_interface;
 
 // pub use self::{match_state::*, bitsize::*, slice::*, trait_interface::*};
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 #[allow(dead_code)]
 pub enum BinaryType {
   /// contains size, followed in memory by the actual data bytes.

@@ -76,6 +76,15 @@ unsafe fn format_box_contents(
   match h_tag {
     boxed::BOXTYPETAG_BINARY => {
       let trait_ptr = boxed::Binary::get_trait(val_ptr as *const boxed::Binary);
+      if cfg!(debug_assertions) {
+        write!(
+          f,
+          "{:?}({};{})",
+          (*trait_ptr).get_type(),
+          (*trait_ptr).get_byte_size(),
+          (*trait_ptr).get_bit_size()
+        )?;
+      }
       boxed::Binary::format(trait_ptr, f)
     }
     boxed::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
@@ -99,9 +108,7 @@ unsafe fn format_box_contents(
       let eptr = val_ptr as *const boxed::Export;
       write!(f, "Export<{}>", (*eptr).exp.mfa)
     }
-    boxed::BOXTYPETAG_BINARY_MATCH_STATE => {
-      write!(f, "BinaryMatchState<>")
-    }
+    boxed::BOXTYPETAG_BINARY_MATCH_STATE => write!(f, "BinaryMatchState<>"),
 
     _ => panic!("Unexpected header tag {:?}", h_tag),
   }
@@ -183,7 +190,7 @@ pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
 #[inline]
 fn print_opening_quote(f: &mut fmt::Formatter) -> fmt::Result {
   if cfg!(feature = "fancy_string_quotes") {
-    write!(f, "‹")
+    write!(f, "⹂")
   } else {
     write!(f, "\"")
   }
@@ -193,7 +200,7 @@ fn print_opening_quote(f: &mut fmt::Formatter) -> fmt::Result {
 #[inline]
 fn print_closing_quote(f: &mut fmt::Formatter) -> fmt::Result {
   if cfg!(feature = "fancy_string_quotes") {
-    write!(f, "›")
+    write!(f, "‟")
   } else {
     write!(f, "\"")
   }
