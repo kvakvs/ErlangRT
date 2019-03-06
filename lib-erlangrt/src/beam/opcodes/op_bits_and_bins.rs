@@ -15,6 +15,7 @@ use crate::{
     lterm::*,
   },
 };
+use crate::defs::ByteSize;
 
 #[allow(dead_code)]
 fn module() -> &'static str {
@@ -29,7 +30,7 @@ fn module() -> &'static str {
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsStartMatch3, arity: 4,
   run: { Self::bs_start_match_3(rt_ctx, proc, fail, match_context, live, dst) },
-  args: cp_not_nil(fail), load(match_context), usize(live), term(dst),
+  args: cp_or_nil(fail), load(match_context), usize(live), term(dst),
 );
 
 impl OpcodeBsStartMatch3 {
@@ -136,7 +137,7 @@ define_opcode!(
   run: {unsafe {
     Self::bs_get_binary2_7(rt_ctx, proc, fail, match_state, live, size, unit, flags, dst)
   }},
-  args: cp_not_nil(fail), binary_match_state(match_state),
+  args: cp_or_nil(fail), binary_match_state(match_state),
         usize(live), load_usize(size), usize(unit), term(flags), term(dst),
 );
 
@@ -189,7 +190,7 @@ impl OpcodeBsGetBinary2 {
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsTestTail2, arity: 3,
   run: { Self::bs_test_tail2(rt_ctx, proc, fail, match_state, bits) },
-  args: cp_not_nil(fail), binary_match_state(match_state), load_usize(bits),
+  args: cp_or_nil(fail), binary_match_state(match_state), load_usize(bits),
 );
 
 
@@ -204,6 +205,54 @@ impl OpcodeBsTestTail2 {
   ) -> RtResult<DispatchResult> {
     let remaining = unsafe { (*match_state).get_bits_remaining().bit_count };
     if remaining != bits {
+      runtime_ctx.jump(fail);
+    }
+    return Ok(DispatchResult::Normal);
+  }
+}
+
+/// This instruction is rewritten on Erlang/OTP to `move S2, Dst`
+/// Structure: bs_add(Fail, S1_ignored, S2, Unit, Dst)
+define_opcode!(
+  _vm, rt_ctx, proc, name: OpcodeBsAdd, arity: 5,
+  run: { Self::bs_add(rt_ctx, proc, fail, s2, unit, dst) },
+  args: cp_or_nil(fail), unused(s1), load(s2), usize(unit), term(dst),
+);
+
+impl OpcodeBsAdd {
+  #[inline]
+  fn bs_add(
+    runtime_ctx: &mut Context,
+    proc: &mut Process,
+    _fail: LTerm,
+    s2: LTerm,
+    unit: usize,
+    dst: LTerm,
+  ) -> RtResult<DispatchResult> {
+    // TODO: Rewrite this command into something shorter like Erlang/OTP does
+    assert_eq!(unit, 1, "in bs_add unit arg is always expected to be 1");
+    runtime_ctx.store_value(s2, dst, &mut proc.heap);
+    return Ok(DispatchResult::Normal);
+  }
+}
+
+/// Spec: bs_init2 Fail Sz Words Regs Flags Dst | binary_too_big(Sz) => system_limit Fail
+define_opcode!(
+  _vm, rt_ctx, proc, name: OpcodeBsInit2, arity: 6,
+  run: { Self::bs_init2(rt_ctx, proc, fail, sz) },
+  args: cp_or_nil(fail), load_usize(sz), unused(words), unused(regs),
+        unused(flags), unused(dst),
+);
+
+impl OpcodeBsInit2 {
+  #[inline]
+  fn bs_init2(
+    runtime_ctx: &mut Context,
+    _proc: &mut Process,
+    fail: LTerm,
+    sz: usize,
+  ) -> RtResult<DispatchResult> {
+    if fail != LTerm::nil() && boxed::Binary::is_size_too_big(ByteSize::new(sz)) {
       runtime_ctx.jump(fail);
     }
     return Ok(DispatchResult::Normal);

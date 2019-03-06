@@ -13,7 +13,7 @@ use crate::{
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeIsNonemptyList, arity: 2,
   run: { Self::is_nonempty_list(ctx, fail, value) },
-  args: cp_not_nil(fail), load(value),
+  args: cp_or_nil(fail), load(value),
 );
 
 impl OpcodeIsNonemptyList {
@@ -37,7 +37,7 @@ impl OpcodeIsNonemptyList {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeIsNil, arity: 2,
   run: { Self::is_nil(ctx, fail, value) },
-  args: cp_not_nil(fail), load(value),
+  args: cp_or_nil(fail), load(value),
 );
 
 impl OpcodeIsNil {

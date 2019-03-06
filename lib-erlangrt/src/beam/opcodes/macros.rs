@@ -23,7 +23,7 @@
 ///   run: {
 ///     Self::bs_start_match_2(ctx, fail, context)
 ///   },
-///   args: cp_not_nil(fail), load(context), unused(usize_live), unused(term_src),
+///   args: cp_or_nil(fail), load(context), unused(usize_live), unused(term_src),
 ///         slice(args, 1), load(term_ctxr));
 /// ```
 
@@ -69,7 +69,7 @@ macro_rules! define_opcode {
 ///   slice(ident,n) - `&[LTerm]` from arg position of length n
 ///   literal_tuple(n) - the value is a tuple, which does not need to be
 ///       "loaded" from a register or stack
-///   cp_not_nil(n) - take a term and assert it is a CP, and not a NIL
+///   cp_or_nil(n) - take a term and assert it is either a CP, or a NIL
 ///   yreg(n) - take a term and assert it is an Y register
 ///   binary_match_state(n) - extract and assert the boxed is a binary match state
 ///
@@ -156,9 +156,9 @@ macro_rules! fetch_one_arg {
     let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
   };
 
-  // Take a term from IP, and assert it is a CP and not a NIL
+  // Take a term from IP, and assert it is a CP or a NIL
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    cp_not_nil($arg_ident:ident)
+    cp_or_nil($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!($arg_ident.is_cp() || $arg_ident == LTerm::nil());

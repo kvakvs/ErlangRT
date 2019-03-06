@@ -18,6 +18,7 @@ use crate::{
     lterm::LTerm,
   },
 };
+use crate::defs::ByteSize;
 
 pub mod binaryheap_bin;
 pub mod match_state;
@@ -208,5 +209,11 @@ impl Binary {
       write!(f, "{}:{}", last_byte, lbb)?;
     }
     Ok(())
+  }
+
+  /// Check whether byte-size is too big to be stored in bitsize (i.e. more than
+  /// max value div 8)
+  pub const fn is_size_too_big(size: ByteSize) -> bool {
+    size.bytes() < core::usize::MAX / defs::BYTE_BITS
   }
 }

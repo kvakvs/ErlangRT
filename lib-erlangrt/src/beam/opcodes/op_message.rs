@@ -46,7 +46,7 @@ impl OpcodeSend {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeLoopRec, arity: 2,
   run: { Self::loop_rec(ctx, curr_p, fail) },
-  args: cp_not_nil(fail), unused(source),
+  args: cp_or_nil(fail), unused(source),
 );
 
 impl OpcodeLoopRec {
@@ -71,7 +71,7 @@ impl OpcodeLoopRec {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeLoopRecEnd, arity: 1,
   run: { Self::loop_rec_end(ctx, curr_p, label) },
-  args: cp_not_nil(label),
+  args: cp_or_nil(label),
 );
 
 impl OpcodeLoopRecEnd {
@@ -105,7 +105,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeWait, arity: 1,
   run: { Self::wait(ctx, label) },
-  args: cp_not_nil(label),
+  args: cp_or_nil(label),
 );
 
 impl OpcodeWait {

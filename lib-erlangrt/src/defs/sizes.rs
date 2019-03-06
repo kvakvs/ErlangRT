@@ -47,6 +47,7 @@ impl ByteSize {
     self.0 += n
   }
 
+  // TODO: impl Add trait
   pub fn add_bytesize(&mut self, other: ByteSize) {
     self.0 = self.0 + other.0
   }

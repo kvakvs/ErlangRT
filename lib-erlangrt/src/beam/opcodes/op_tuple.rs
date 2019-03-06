@@ -56,7 +56,7 @@ impl OpcodePutTuple {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTestArity, arity: 3,
   run: { Self::test_arity(ctx, fail, value, arity) },
-  args: cp_not_nil(fail), load(value), usize(arity),
+  args: cp_or_nil(fail), load(value), usize(arity),
 );
 
 impl OpcodeTestArity {
@@ -139,7 +139,7 @@ impl OpcodeSetTupleElement {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsTaggedTuple, arity: 4,
   run: { Self::is_tagged_tuple(ctx, label, value, arity, atom) },
-  args: cp_not_nil(label), load(value), usize(arity), term(atom),
+  args: cp_or_nil(label), load(value), usize(arity), term(atom),
 );
 
 impl OpcodeIsTaggedTuple {

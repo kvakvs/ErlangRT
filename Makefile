@@ -1,4 +1,4 @@
-.PHONY: build emu_codegen ct
+.PHONY: build codegen ct
 
 build: codegen
 	cargo build

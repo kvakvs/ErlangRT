@@ -13,7 +13,7 @@ use crate::{
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTry, arity: 2,
   run: { Self::try_opcode(curr_p, yreg, catch_label) },
-  args: yreg(yreg), cp_not_nil(catch_label),
+  args: yreg(yreg), cp_or_nil(catch_label),
 );
 
 impl OpcodeTry {

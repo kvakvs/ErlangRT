@@ -299,7 +299,7 @@ impl OpcodeBadmatch {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeSelectVal, arity: 3,
   run: { Self::select_val(ctx, val, fail, pairs) },
-  args: load(val), cp_not_nil(fail), literal_tuple(pairs),
+  args: load(val), cp_or_nil(fail), literal_tuple(pairs),
 );
 
 impl OpcodeSelectVal {

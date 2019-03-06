@@ -41,7 +41,7 @@ impl OpcodeBif0 {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeBif1, arity: 4,
   run: { Self::bif1(vm, ctx, curr_p, fail, target, bif_args, dst) },
-  args: cp_not_nil(fail), load(target), slice(bif_args, 1), term(dst),
+  args: cp_or_nil(fail), load(target), slice(bif_args, 1), term(dst),
 );
 
 impl OpcodeBif1 {
@@ -64,7 +64,7 @@ impl OpcodeBif1 {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeBif2, arity: 5,
   run: { Self::bif2(vm, ctx, curr_p, fail, target, bif_args, dst) },
-  args: cp_not_nil(fail), load(target), slice(bif_args, 2), term(dst),
+  args: cp_or_nil(fail), load(target), slice(bif_args, 2), term(dst),
 );
 
 impl OpcodeBif2 {
@@ -87,7 +87,7 @@ impl OpcodeBif2 {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeGcBif1, arity: 5,
   run: { Self::gc_bif1(vm, ctx, curr_p, fail, live, target, bif_args, dst) },
-  args: cp_not_nil(fail), usize(live), load(target), slice(bif_args, 1), term(dst),
+  args: cp_or_nil(fail), usize(live), load(target), slice(bif_args, 1), term(dst),
 );
 
 impl OpcodeGcBif1 {
@@ -113,7 +113,7 @@ impl OpcodeGcBif1 {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeGcBif2, arity: 6,
   run: { Self::gc_bif2(vm, ctx, curr_p, fail, live, target, bif_args, dst) },
-  args: cp_not_nil(fail), usize(live), load(target), slice(bif_args, 2), term(dst),
+  args: cp_or_nil(fail), usize(live), load(target), slice(bif_args, 2), term(dst),
 );
 
 impl OpcodeGcBif2 {
@@ -139,7 +139,7 @@ impl OpcodeGcBif2 {
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeGcBif3, arity: 7,
   run: { Self::gc_bif3(vm, ctx, curr_p, fail, live, target, bif_args, dst) },
-  args: cp_not_nil(fail), usize(live), load(target), slice(bif_args, 3), term(dst),
+  args: cp_or_nil(fail), usize(live), load(target), slice(bif_args, 3), term(dst),
 );
 
 impl OpcodeGcBif3 {

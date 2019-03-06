@@ -18,7 +18,7 @@ define_opcode!(_vm, ctx, curr_p,
     generic_comparison(ctx, fail, a, b,
       CmpPrecision::Exact, Ordering::Equal, CmpInvert::Just)
   },
-  args: cp_not_nil(fail), load(a), load(b),
+  args: cp_or_nil(fail), load(a), load(b),
 );
 
 /// Checks exact inequality between arg1 and arg2, on false jump to arg0
@@ -30,7 +30,7 @@ define_opcode!(_vm, ctx, curr_p,
     generic_comparison(ctx, fail, a, b,
       CmpPrecision::Exact, Ordering::Equal, CmpInvert::Not)
   },
-  args: cp_not_nil(fail), load(a), load(b),
+  args: cp_or_nil(fail), load(a), load(b),
 );
 
 /// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
@@ -42,7 +42,7 @@ define_opcode!(_vm, ctx, curr_p,
     generic_comparison(ctx, fail, a, b,
       CmpPrecision::Relaxed, Ordering::Less, CmpInvert::Just)
   },
-  args: cp_not_nil(fail), load(a), load(b),
+  args: cp_or_nil(fail), load(a), load(b),
 );
 
 /// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
@@ -54,7 +54,7 @@ define_opcode!(_vm, ctx, curr_p,
     generic_comparison(ctx, fail, a, b,
       CmpPrecision::Relaxed, Ordering::Equal, CmpInvert::Just)
   },
-  args: cp_not_nil(fail), load(a), load(b),
+  args: cp_or_nil(fail), load(a), load(b),
 );
 
 /// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
@@ -67,7 +67,7 @@ define_opcode!(_vm, ctx, curr_p,
     generic_comparison(ctx, fail, a, b,
       CmpPrecision::Relaxed, Ordering::Less, CmpInvert::Not)
   },
-  args: cp_not_nil(fail), load(a), load(b),
+  args: cp_or_nil(fail), load(a), load(b),
 );
 
 #[derive(Eq, PartialEq, Debug)]
