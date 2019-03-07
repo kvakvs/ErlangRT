@@ -642,7 +642,7 @@ impl Loader {
               t.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()
             };
 
-            unsafe { (*heap_jtab).set_raw_word_base0(index, new_t) }
+            unsafe { (*heap_jtab).set_element_raw(index, new_t) }
           }
         }
 
@@ -706,8 +706,8 @@ impl Loader {
         PatchLocation::PatchJtabElement(jtab, index) => {
           let jtab_ptr = jtab.get_box_ptr_mut::<boxed::Tuple>();
           unsafe {
-            let val = (*jtab_ptr).get_element_base0(index);
-            (*jtab_ptr).set_raw_word_base0(index, self.postprocess_fix_1_label(val))
+            let val = (*jtab_ptr).get_element(index);
+            (*jtab_ptr).set_element_raw(index, self.postprocess_fix_1_label(val))
           }
         }
       } // match
@@ -749,9 +749,10 @@ impl Loader {
       let fun_atom = self.atom_from_loadtime_index(ri.fun_atom_i);
       let mf_arity = MFArity::new(mod_atom, fun_atom, ri.arity);
       // println!("is_bif {} for {}", is_bif, mf_arity);
-      let ho_imp = unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity)? };
+      let boxed_import =
+        unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity)? };
 
-      self.imports.push(ho_imp);
+      self.imports.push(boxed_import);
     }
 
     // Step 2
@@ -800,8 +801,7 @@ impl Loader {
   fn rewrite_lambda_index_arg(&self, cp: CodePtrMut, n: usize) {
     let lambda_i = unsafe { LTerm::from_raw(cp.read_n(n)) };
     let lambda_p = &self.lambdas[lambda_i.get_small_unsigned()] as *const FunEntry;
-    let lambda_term = LTerm::make_cp(lambda_p as *const Word);
-    unsafe { cp.write_n(n, lambda_term.raw()) }
+    unsafe { cp.write_n(n, LTerm::make_cp(lambda_p).raw()) }
   }
 
   /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,

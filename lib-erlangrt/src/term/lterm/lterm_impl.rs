@@ -13,6 +13,7 @@ use crate::{
 };
 use core::{cmp::Ordering, isize};
 use std::fmt;
+use crate::term::boxed::box_header;
 
 // Structure of term:
 // [ Value or a pointer ] [ TAG_* value 3 bits ]
@@ -410,15 +411,29 @@ impl LTerm {
 
   #[inline]
   pub fn get_cons_ptr(self) -> *const boxed::Cons {
+    self.assert_is_not_boxheader_guard_value();
     debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
     (self.value & (!TERM_TAG_MASK)) as *const boxed::Cons
   }
 
   #[inline]
   pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
+    self.assert_is_not_boxheader_guard_value();
     debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
     (self.value & (!TERM_TAG_MASK)) as *mut boxed::Cons
   }
+
+  /// When a box header guard value is interpreted as a term, it will be caught here
+  #[cfg(debug_assertions)]
+  #[inline]
+  fn assert_is_not_boxheader_guard_value(&self) {
+    debug_assert_ne!(self.value, box_header::GUARD_WORD_VALUE,
+      "Box header guard value cannot be interpreted as a term. Your pointer to data is corrupt.");
+  }
+
+  #[cfg(not(debug_assertions))]
+  #[inline]
+  const fn assert_is_not_boxheader_guard_value(&self) {}
 
   /// Create a LTerm from pointer to Cons cell. Pass a pointer to `LTerm` or
   /// a pointer to `boxed::Cons`. Attempting to create cons cell to Null pointer
@@ -503,7 +518,7 @@ impl LTerm {
 
   #[inline]
   pub fn get_small_signed(self) -> SWord {
-    debug_assert!(self.is_small());
+    debug_assert!(self.is_small(), "Small is expected, got raw=0x{:x}", self.value);
     (self.value as SWord) >> TERM_TAG_BITS
   }
 

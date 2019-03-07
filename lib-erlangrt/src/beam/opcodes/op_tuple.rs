@@ -41,7 +41,7 @@ impl OpcodePutTuple {
 
       // println!("- put {}, {}", i, val);
       unsafe {
-        (*tuple_p).set_element_base0(i, val);
+        (*tuple_p).set_element(i, val);
       }
     }
 
@@ -100,7 +100,7 @@ impl OpcodeGetTupleElement {
     dst: LTerm,
   ) -> RtResult<DispatchResult> {
     let tuple_p = src.get_tuple_ptr();
-    let element = unsafe { (*tuple_p).get_element_base0(index) };
+    let element = unsafe { (*tuple_p).get_element(index) };
     ctx.store_value(element, dst, &mut curr_p.heap)?;
     Ok(DispatchResult::Normal)
   }
@@ -126,7 +126,7 @@ impl OpcodeSetTupleElement {
       return fail::create::badarg();
     }
     let tuple_p = dst.get_tuple_ptr_mut();
-    unsafe { (*tuple_p).set_element_base0(index, value) };
+    unsafe { (*tuple_p).set_element(index, value) };
     Ok(DispatchResult::Normal)
   }
 }
@@ -159,7 +159,7 @@ impl OpcodeIsTaggedTuple {
         ctx.jump(label);
       } else {
         debug_assert!(atom.is_atom());
-        let first = unsafe { (*tuple_p).get_element_base0(0) };
+        let first = unsafe { (*tuple_p).get_element(0) };
         // assuming atom parameter is an atom, we can use direct comparison
         // instead of calling compare::cmp_terms/3
         if first != atom {

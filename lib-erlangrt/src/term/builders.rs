@@ -15,10 +15,10 @@ pub fn make_badfun_n(args: &[LTerm], hp: &mut Heap) -> RtResult<LTerm> {
   let mut tb = TermBuilder::new(hp);
   let val = tb.create_tuple_builder(1 + args.len())?;
   unsafe {
-    val.set_element_base0(0, gen_atoms::BADFUN);
+    val.set_element(0, gen_atoms::BADFUN);
     let mut i = 1usize;
     for arg in args {
-      val.set_element_base0(i, *arg);
+      val.set_element(i, *arg);
       i += 1;
     }
   }

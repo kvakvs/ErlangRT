@@ -58,9 +58,9 @@ unsafe fn copy_boxed_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
       let arity = (*tuple_p).get_arity();
       let tb = TupleBuilder::with_arity(arity, hp)?;
       for i in 0..arity {
-        let element = (*tuple_p).get_element_base0(i);
+        let element = (*tuple_p).get_element(i);
         let copied = copy_to(element, hp)?;
-        tb.set_element_base0(i, copied);
+        tb.set_element(i, copied);
       }
       return Ok(tb.make_term());
     }

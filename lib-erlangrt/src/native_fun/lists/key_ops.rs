@@ -28,7 +28,7 @@ fn keyfind_3(sample: LTerm, pos: usize, list: LTerm) -> RtResult<LTerm> {
     if unsafe { (*tuple_p).get_arity() } <= pos {
       return false;
     }
-    let tuple_element = unsafe { (*tuple_p).get_element_base0(pos) };
+    let tuple_element = unsafe { (*tuple_p).get_element(pos) };
     if let Ok(cmp_result) = compare::cmp_terms(sample, tuple_element, true) {
       cmp_result == Ordering::Equal
     } else {

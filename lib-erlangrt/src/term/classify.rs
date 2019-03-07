@@ -30,6 +30,7 @@ pub struct TermClass(usize);
 
 pub const CLASS_NUMBER: TermClass = TermClass(10);
 pub const CLASS_ATOM: TermClass = TermClass(20);
+#[allow(dead_code)]
 pub const CLASS_REF: TermClass = TermClass(30);
 pub const CLASS_FUN: TermClass = TermClass(40);
 pub const CLASS_PORT: TermClass = TermClass(50);

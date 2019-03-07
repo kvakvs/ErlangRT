@@ -313,9 +313,9 @@ impl OpcodeSelectVal {
     let pairs_count = unsafe { (*pairs).get_arity() / 2 };
 
     for i in 0..pairs_count {
-      let sel_val = unsafe { (*pairs).get_element_base0(i * 2) };
+      let sel_val = unsafe { (*pairs).get_element(i * 2) };
       if compare::cmp_terms(val, sel_val, true)? == Ordering::Equal {
-        let sel_label = unsafe { (*pairs).get_element_base0(i * 2 + 1) };
+        let sel_label = unsafe { (*pairs).get_element(i * 2 + 1) };
         ctx.jump(sel_label);
         return Ok(DispatchResult::Normal);
       }

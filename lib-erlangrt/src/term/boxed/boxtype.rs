@@ -12,22 +12,22 @@ impl BoxType {
   }
 }
 
-pub const BOXTYPETAG_TUPLE: BoxType = BoxType(0);
-pub const BOXTYPETAG_BIGINTEGER: BoxType = BoxType(1); // todo: separate tag for negative?
-pub const BOXTYPETAG_EXTERNALPID: BoxType = BoxType(2);
-pub const BOXTYPETAG_EXTERNALREF: BoxType = BoxType(3);
-pub const BOXTYPETAG_EXTERNALPORT: BoxType = BoxType(4);
+pub const BOXTYPETAG_TUPLE: BoxType = BoxType(10);
+pub const BOXTYPETAG_BIGINTEGER: BoxType = BoxType(20); // todo: separate tag for negative?
+pub const BOXTYPETAG_EXTERNALPID: BoxType = BoxType(30);
+pub const BOXTYPETAG_EXTERNALREF: BoxType = BoxType(40);
+pub const BOXTYPETAG_EXTERNALPORT: BoxType = BoxType(50);
 
 // A function object with frozen (captured) variable values
-pub const BOXTYPETAG_CLOSURE: BoxType = BoxType(5);
+pub const BOXTYPETAG_CLOSURE: BoxType = BoxType(60);
 
-pub const BOXTYPETAG_FLOAT: BoxType = BoxType(6);
-pub const BOXTYPETAG_IMPORT: BoxType = BoxType(7);
-pub const BOXTYPETAG_EXPORT: BoxType = BoxType(8);
-pub const BOXTYPETAG_MAP: BoxType = BoxType(9);
+pub const BOXTYPETAG_FLOAT: BoxType = BoxType(70);
+pub const BOXTYPETAG_IMPORT: BoxType = BoxType(80);
+pub const BOXTYPETAG_EXPORT: BoxType = BoxType(90);
+pub const BOXTYPETAG_MAP: BoxType = BoxType(100);
 
-pub const BOXTYPETAG_BINARY: BoxType = BoxType(10);
-pub const BOXTYPETAG_BINARY_MATCH_STATE: BoxType = BoxType(11);
+pub const BOXTYPETAG_BINARY: BoxType = BoxType(110);
+pub const BOXTYPETAG_BINARY_MATCH_STATE: BoxType = BoxType(120);
 // unused 12
 // unused 13
 // unused 14

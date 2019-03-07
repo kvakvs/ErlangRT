@@ -4,12 +4,11 @@ use crate::{
   defs::Word,
   emulator::atom,
   term::{
-    boxed::{self, boxtype, trait_interface::TBoxed},
+    boxed::{self, box_header::BoxHeader, boxtype},
     lterm::{cons, lterm_impl::*},
   },
 };
 use core::fmt;
-use crate::term::boxed::box_header::BoxHeader;
 
 impl fmt::Display for LTerm {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -93,7 +92,7 @@ unsafe fn format_box_contents(
     boxtype::BOXTYPETAG_TUPLE => {
       let tuple_ptr = trait_ptr as *const boxed::Tuple;
       (*tuple_ptr).format(f)
-    },
+    }
     boxtype::BOXTYPETAG_CLOSURE => {
       let fun_p = trait_ptr as *const boxed::Closure;
       write!(f, "Fun<{}>", (*fun_p).mfa)
