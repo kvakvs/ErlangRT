@@ -3,7 +3,7 @@ use crate::{
   native_fun::{
     erlang::{
       arithmetic::*, compare::*, list::*, predicate::*, process::*, sys::*, tuple::*,
-      type_conversions::*,
+      type_conversions::*, binary::*,
     },
     fn_entry::NativeFnEntry,
     module::NativeModule,
@@ -18,6 +18,7 @@ pub mod process;
 pub mod sys;
 pub mod tuple;
 pub mod type_conversions;
+pub mod binary;
 
 pub fn new() -> NativeModule {
   let mut m = NativeModule::new(gen_atoms::ERLANG);
@@ -53,6 +54,8 @@ pub fn new() -> NativeModule {
     NativeFnEntry::with_str("registered", 0, NfErlangRegistered0::_f),
     NativeFnEntry::with_str("self", 0, NfErlangSelf0::_f),
     NativeFnEntry::with_str("size", 1, NfErlangSize1::_f),
+    NativeFnEntry::with_str("bit_size", 1, NfErlangBitSize1::_f),
+    NativeFnEntry::with_str("byte_size", 1, NfErlangByteSize1::_f),
     NativeFnEntry::with_str("spawn", 3, NfErlangSpawn3::_f),
     NativeFnEntry::with_str("tl", 1, NfErlangTl1::_f),
   ];

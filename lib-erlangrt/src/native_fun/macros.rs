@@ -58,6 +58,7 @@ macro_rules! define_nativefun {
 ///   usize(n) - take term then unsigned small from it, else return badarg
 ///   term(n) - take word as a term
 ///   tuple(n) - the value is a tuple, otherwise badarg
+///   binary(n) - the value is a binary, otherwise badarg
 ///   list(n), non_empty_list(n) - the value is a list, otherwise badarg
 ///   atom(n) - must be an atom, otherwise badarg
 ///   pid(n) - must be a pid, otherwise badarg
@@ -114,6 +115,14 @@ macro_rules! define_one_arg {
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
     if !$arg_ident.is_tuple() { return_badarg!($fn_name, $arg_pos, $arg_ident, "tuple"); }
+  };
+
+  // Binary args are verified to be a binary or <<>> otherwise a badarg is created.
+  ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
+    binary($arg_ident:ident)
+  ) => {
+    let $arg_ident = $argsvar[$arg_pos];
+    if !$arg_ident.is_binary() { return_badarg!($fn_name, $arg_pos, $arg_ident, "binary"); }
   };
 
   // List args are verified to be a list or [] otherwise a badarg is created.
