@@ -1,8 +1,8 @@
-//! Friendly term library
-//!
+//! Loadtime term library.
 //! Representing Erlang terms as a complex Rust enum, more developer friendly,
 //! there's an memory cost, but we don't care yet. This is only used at the
-//! loading time, not for internal VM logic. VM uses `low_level::LTerm`
+//! loading time, not for internal VM logic. VM uses its own `LTerm` which is
+//! a memory efficient representation.
 //!
 use crate::{
   defs::{SWord, Word},
@@ -12,7 +12,7 @@ use crate::{
 use num::{bigint::BigInt, FromPrimitive};
 
 fn module() -> &'static str {
-  "term::friendly: "
+  "loader/lt_term: "
 }
 
 /// A friendly Rust-enum representing Erlang term both runtime and load-time
@@ -21,16 +21,16 @@ fn module() -> &'static str {
 #[derive(Debug, PartialEq, Clone)]
 #[allow(dead_code)]
 // TODO: Remove deadcode directive later and fix
-pub enum FTerm {
+pub enum LtTerm {
   /// Runtime atom index in the VM atom table
   Atom(Word),
   SmallInt(SWord),
   BigInt(Box<BigInt>),
   /// A regular cons cell with a head and a tail
-  Cons(Box<[FTerm]>),
+  Cons(Box<[LtTerm]>),
   /// NIL [] - an empty list
   Nil,
-  Tuple(Vec<FTerm>),
+  Tuple(Vec<LtTerm>),
   /// zero sized tuple
   Tuple0,
   Float(f64),
@@ -52,25 +52,25 @@ pub enum FTerm {
   // /// A load-time word value literally specified
   // LoadtimeInt(SWord),
   /// A load-time index in literal heap
-  LoadtimeLit(Word),
+  LoadtimeLiteral(Word),
   /// A list of value/label pairs, a jump table
-  LoadtimeExtlist(Vec<FTerm>),
+  LoadtimeExtlist(Vec<LtTerm>),
   LoadtimeAlloclist,
 }
 
-impl FTerm {
+impl LtTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
-  pub fn from_word(s: SWord) -> FTerm {
+  pub fn from_word(s: SWord) -> LtTerm {
     if LTerm::small_fits(s) {
-      return FTerm::SmallInt(s as SWord);
+      return LtTerm::SmallInt(s as SWord);
     }
-    FTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))
+    LtTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))
   }
 
   /// Parse self as Int_ (load-time integer) and return the contained value.
   pub fn loadtime_word(&self) -> SWord {
-    if let FTerm::SmallInt(w) = *self {
+    if let LtTerm::SmallInt(w) = *self {
       return w;
     }
     panic!("{}Expected a smallint, got {:?}", module(), self)
@@ -80,30 +80,14 @@ impl FTerm {
   /// Some terms cannot be converted, consider checking `to_lterm_vec()`
   pub fn to_lterm(&self, _heap: &mut Heap, lit_tab: &Vec<LTerm>) -> LTerm {
     match *self {
-      FTerm::Atom(i) => LTerm::make_atom(i),
-      FTerm::XRegister(i) => LTerm::make_regx(i),
-      FTerm::YRegister(i) => LTerm::make_regy(i),
-      FTerm::FloatRegister(i) => LTerm::make_regfp(i),
-      FTerm::SmallInt(i) => LTerm::make_small_signed(i),
-      FTerm::Nil => LTerm::nil(),
-      FTerm::LoadtimeLit(lit_index) => lit_tab[lit_index],
+      LtTerm::Atom(i) => LTerm::make_atom(i),
+      LtTerm::XRegister(i) => LTerm::make_regx(i),
+      LtTerm::YRegister(i) => LTerm::make_regy(i),
+      LtTerm::FloatRegister(i) => LTerm::make_regfp(i),
+      LtTerm::SmallInt(i) => LTerm::make_small_signed(i),
+      LtTerm::Nil => LTerm::nil(),
+      LtTerm::LoadtimeLiteral(lit_index) => lit_tab[lit_index],
       _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self),
     }
   }
-
-  //  /// Converts a few special friendly terms, which hold longer structures into
-  //  /// an array of Words (raw values of low_level LTerms).
-  //  pub fn to_lterm_vec(&self) -> Vec<LTerm> {
-  //    match self {
-  //      &FTerm::ExtList_(ref v) => {
-  //        let mut result: Vec<LTerm> = Vec::with_capacity(v.len() + 1);
-  //        result.push(LTerm::make_header(v.len()));
-  //        for x in v.iter() {
-  //          result.push(x.to_lterm())
-  //        };
-  //        result
-  //      },
-  //      _ => panic!("{}Don't know how to convert {:?} to LTerm[]", module(), self)
-  //    }
-  //  }
 }

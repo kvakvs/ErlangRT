@@ -5,10 +5,10 @@ use super::load_time_structs::*;
 pub struct LoaderRaw {
   /// Raw atoms loaded from BEAM module as strings
   pub atoms: Vec<String>,
-  pub imports: Vec<LImport>,
-  pub exports: Vec<LExport>,
-  pub locals: Vec<LExport>,
-  pub lambdas: Vec<LFun>,
+  pub imports: Vec<LtImport>,
+  pub exports: Vec<LtExport>,
+  pub locals: Vec<LtExport>,
+  pub lambdas: Vec<LtFun>,
   /// Temporary storage for loaded code, will be parsed in stage 2
   pub code: Vec<u8>,
 }

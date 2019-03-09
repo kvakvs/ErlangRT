@@ -2,7 +2,7 @@ use crate::defs::Arity;
 
 /// Imports table item (mfa's referred by this module).
 /// Raw data structure as loaded from BEAM file
-pub struct LImport {
+pub struct LtImport {
   pub mod_atom_i: usize,
   pub fun_atom_i: usize,
   pub arity: Arity,
@@ -10,7 +10,7 @@ pub struct LImport {
 
 /// Exports table item, as specified in `-export()` attribute.
 /// Raw data structure as loaded from BEAM file.
-pub struct LExport {
+pub struct LtExport {
   pub fun_atom_i: usize,
   pub arity: Arity,
   pub label: usize,
@@ -18,7 +18,7 @@ pub struct LExport {
 
 /// Function closures used in this file, with info on captured values.
 /// Raw data structure as loaded from BEAM file
-pub struct LFun {
+pub struct LtFun {
   pub arity: Arity,
   pub fun_atom_i: usize,
   pub code_pos: usize,

@@ -9,7 +9,7 @@ mod raw;
 use self::raw::*;
 
 mod compact_term;
-mod fterm;
+mod load_time_term;
 mod load_time_structs;
 
 mod impl_fix_labels;
@@ -19,7 +19,7 @@ mod impl_setup_imports;
 mod impl_stage2;
 
 use crate::{
-  beam::loader::fterm::FTerm,
+  beam::loader::load_time_term::LtTerm,
   defs::Word,
   emulator::{
     code::{opcode::RawOpcode, Code, CodeOffset, LabelId},
@@ -193,20 +193,20 @@ impl LoaderState {
 
   /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
   /// resolve it to a runtime atom index using a lookup table.
-  pub fn resolve_loadtime_values(&self, arg: &FTerm) -> Option<FTerm> {
+  pub fn resolve_loadtime_values(&self, arg: &LtTerm) -> Option<LtTerm> {
     match *arg {
       // A special value 0 means NIL []
-      FTerm::LoadtimeAtom(0) => Some(FTerm::Nil),
+      LtTerm::LoadtimeAtom(0) => Some(LtTerm::Nil),
 
       // Repack load-time atom via an `LTerm` index into an `FTerm` atom
-      FTerm::LoadtimeAtom(i) => {
+      LtTerm::LoadtimeAtom(i) => {
         let aindex = self.atom_from_loadtime_index(i).atom_index();
-        Some(FTerm::Atom(aindex))
+        Some(LtTerm::Atom(aindex))
       }
 
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
-      FTerm::LoadtimeExtlist(ref lst) => {
-        let mut result: Vec<FTerm> = Vec::new();
+      LtTerm::LoadtimeExtlist(ref lst) => {
+        let mut result: Vec<LtTerm> = Vec::new();
         result.reserve(lst.len());
         for x in lst.iter() {
           match self.resolve_loadtime_values(x) {
@@ -214,7 +214,7 @@ impl LoaderState {
             None => result.push(x.clone()),
           }
         }
-        Some(FTerm::LoadtimeExtlist(result))
+        Some(LtTerm::LoadtimeExtlist(result))
       }
       // Otherwise no changes
       _ => None,
@@ -224,7 +224,7 @@ impl LoaderState {
 
 /// Report a bad opcode arg
 // TODO: Use this more, than just label opcode
-fn op_badarg_panic(op: RawOpcode, args: &[FTerm], argi: Word) {
+fn op_badarg_panic(op: RawOpcode, args: &[LtTerm], argi: Word) {
   panic!(
     "{}Opcode {} the arg #{} in {:?} is bad",
     module(),

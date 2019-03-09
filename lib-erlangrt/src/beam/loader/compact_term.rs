@@ -2,7 +2,7 @@
 //! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
 use crate::{
-  beam::loader::{fterm::FTerm, CTError},
+  beam::loader::{load_time_term::LtTerm, CTError},
   defs::{SWord, Word},
   fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
@@ -47,7 +47,7 @@ fn module() -> &'static str {
 }
 
 #[inline]
-fn make_err(e: CTError) -> RtResult<FTerm> {
+fn make_err(e: CTError) -> RtResult<LtTerm> {
   Err(RtErr::CodeLoadingCompactTerm(e))
 }
 
@@ -56,7 +56,7 @@ fn make_err(e: CTError) -> RtResult<FTerm> {
 //  w as u32
 //}
 
-pub fn read(r: &mut BinaryReader) -> RtResult<FTerm> {
+pub fn read(r: &mut BinaryReader) -> RtResult<LtTerm> {
   let b = r.read_u8();
   let tag = b & 0b111;
   // let err_msg: &'static str = "Failed to parse beam compact term";
@@ -70,40 +70,40 @@ pub fn read(r: &mut BinaryReader) -> RtResult<FTerm> {
   match tag {
     x if x == CTETag::LiteralInt as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::SmallInt(index));
+        return Ok(LtTerm::SmallInt(index));
       }
       make_err(CTError::BadLiteralTag)
     }
     x if x == CTETag::Atom as u8 => {
       if let Integral::Small(index) = bword {
         if index == 0 {
-          return Ok(FTerm::Nil);
+          return Ok(LtTerm::Nil);
         }
-        return Ok(FTerm::LoadtimeAtom(index as usize));
+        return Ok(LtTerm::LoadtimeAtom(index as usize));
       }
       make_err(CTError::BadAtomTag)
     }
     x if x == CTETag::XReg as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::XRegister(index as Word));
+        return Ok(LtTerm::XRegister(index as Word));
       }
       make_err(CTError::BadXRegTag)
     }
     x if x == CTETag::YReg as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::YRegister(index as Word));
+        return Ok(LtTerm::YRegister(index as Word));
       }
       make_err(CTError::BadYRegTag)
     }
     x if x == CTETag::Label as u8 => {
       if let Integral::Small(index) = bword {
-        return Ok(FTerm::LoadtimeLabel(index as Word));
+        return Ok(LtTerm::LoadtimeLabel(index as Word));
       }
       make_err(CTError::BadLabelTag)
     }
     x if x == CTETag::Integer as u8 => {
       if let Integral::Small(s) = bword {
-        return Ok(FTerm::from_word(s));
+        return Ok(LtTerm::from_word(s));
       }
       if cfg!(debug_assertions) {
         println!(
@@ -115,7 +115,7 @@ pub fn read(r: &mut BinaryReader) -> RtResult<FTerm> {
     }
     x if x == CTETag::Character as u8 => {
       if let Integral::Small(s) = bword {
-        return Ok(FTerm::from_word(s));
+        return Ok(LtTerm::from_word(s));
       }
       make_err(CTError::BadCharacterTag)
     }
@@ -126,7 +126,7 @@ pub fn read(r: &mut BinaryReader) -> RtResult<FTerm> {
 }
 
 #[cfg(feature = "r19")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<FTerm> {
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
   match b {
     x if x == CTEExtTag::Float as u8 => parse_ext_float(r),
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
@@ -142,7 +142,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<FTerm> {
   }
 }
 
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<FTerm> {
+fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(r),
     x if x == CTEExtTag::AllocList as u8 => {
@@ -159,35 +159,35 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<FTerm> {
 }
 
 #[cfg(feature = "r19")]
-fn parse_ext_float(r: &mut BinaryReader) -> RtResult<FTerm> {
+fn parse_ext_float(r: &mut BinaryReader) -> RtResult<LtTerm> {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
   let fp: f64 = unsafe { std::mem::transmute::<u64, f64>(fp_bytes) };
-  Ok(FTerm::Float(fp as defs::Float))
+  Ok(LtTerm::Float(fp as defs::Float))
 }
 
-fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<FTerm> {
+fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<LtTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
-    return Ok(FTerm::FloatRegister(reg as Word));
+    return Ok(LtTerm::FloatRegister(reg as Word));
   }
   let msg = "Ext tag FPReg value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
 }
 
-fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<FTerm> {
+fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<LtTerm> {
   let b = r.read_u8();
   if let Integral::Small(reg) = read_word(b, r) {
-    return Ok(FTerm::LoadtimeLit(reg as Word));
+    return Ok(LtTerm::LoadtimeLiteral(reg as Word));
   }
   let msg = "toExt tag Literal value too big".to_string();
   make_err(CTError::BadExtendedTag(msg))
 }
 
-fn parse_ext_list(r: &mut BinaryReader) -> RtResult<FTerm> {
+fn parse_ext_list(r: &mut BinaryReader) -> RtResult<LtTerm> {
   // The stream now contains a smallint size, then size/2 pairs of values
   let n_elts = read_int(r);
-  let mut el: Vec<FTerm> = Vec::new();
+  let mut el: Vec<LtTerm> = Vec::new();
   el.reserve(n_elts as usize);
 
   for _i in 0..n_elts {
@@ -195,7 +195,7 @@ fn parse_ext_list(r: &mut BinaryReader) -> RtResult<FTerm> {
     el.push(value);
   }
 
-  Ok(FTerm::LoadtimeExtlist(el))
+  Ok(LtTerm::LoadtimeExtlist(el))
 }
 
 /// Assume that the stream contains a tagged small integer (check the tag!)
@@ -256,7 +256,7 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
 mod tests {
   use super::*;
 
-  fn try_parse(inp: Vec<u8>, expect: FTerm) {
+  fn try_parse(inp: Vec<u8>, expect: LtTerm) {
     let mut r = BinaryReader::from_bytes(inp);
     match read(&mut r) {
       Ok(ref e) if e == &expect => {}
@@ -276,12 +276,12 @@ mod tests {
 
   #[test]
   fn test_lit() {
-    try_parse(vec![0u8], FTerm::SmallInt(0));
+    try_parse(vec![0u8], LtTerm::SmallInt(0));
   }
 
   #[test]
   fn test_int() {
-    try_parse(vec![0b1u8], FTerm::SmallInt(0));
+    try_parse(vec![0b1u8], LtTerm::SmallInt(0));
   }
 
   // This test is not applicable to R20+ where the Float ext tag is removed
@@ -290,7 +290,7 @@ mod tests {
   fn test_float() {
     try_parse(
       vec![0b00010111u8, 63, 243, 192, 193, 252, 143, 50, 56],
-      FTerm::Float(1.23456),
+      LtTerm::Float(1.23456),
     );
   }
 

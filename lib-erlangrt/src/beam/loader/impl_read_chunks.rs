@@ -3,8 +3,8 @@ use crate::{
     gen_op,
     loader::{
       compact_term,
-      fterm::FTerm,
-      load_time_structs::{LExport, LFun, LImport},
+      load_time_term::LtTerm,
+      load_time_structs::{LtExport, LtFun, LtImport},
       LoaderState,
     },
   },
@@ -157,7 +157,7 @@ impl LoaderState {
     let n_imports = r.read_u32be();
     self.raw.imports.reserve(n_imports as usize);
     for _i in 0..n_imports {
-      let imp = LImport {
+      let imp = LtImport {
         mod_atom_i: r.read_u32be() as usize,
         fun_atom_i: r.read_u32be() as usize,
         arity: r.read_u32be() as defs::Arity,
@@ -168,12 +168,12 @@ impl LoaderState {
 
   /// Read the exports or local functions table (same format).
   /// Format is u32/big count { funindex: u32, arity: u32, label: u32 }
-  fn load_exports(&mut self, r: &mut BinaryReader) -> Vec<LExport> {
+  fn load_exports(&mut self, r: &mut BinaryReader) -> Vec<LtExport> {
     let n_exports = r.read_u32be();
     let mut exports = Vec::new();
     exports.reserve(n_exports as usize);
     for _i in 0..n_exports {
-      let exp = LExport {
+      let exp = LtExport {
         fun_atom_i: r.read_u32be() as usize,
         arity: r.read_u32be() as defs::Arity,
         label: r.read_u32be() as usize,
@@ -193,7 +193,7 @@ impl LoaderState {
       let index = r.read_u32be() as usize;
       let nfrozen = r.read_u32be() as usize;
       let ouniq = r.read_u32be() as usize;
-      self.raw.lambdas.push(LFun {
+      self.raw.lambdas.push(LtFun {
         fun_atom_i: fun_atom,
         arity: arity as defs::Arity,
         code_pos,
@@ -214,11 +214,11 @@ impl LoaderState {
 
     for _i in 0..n_line_refs {
       match compact_term::read(r)? {
-        FTerm::SmallInt(_w) => {
+        LtTerm::SmallInt(_w) => {
           // self.linerefs.push((_fname_index, w));
         }
-        FTerm::Atom(a) => _fname_index = a as u32,
-        FTerm::LoadtimeAtom(a) => _fname_index = a as u32,
+        LtTerm::Atom(a) => _fname_index = a as u32,
+        LtTerm::LoadtimeAtom(a) => _fname_index = a as u32,
         other => panic!(
           "{}Unexpected data in line info section: {:?}",
           module(),
