@@ -1,11 +1,14 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  defs::ByteSize,
+  defs::{BitSize, ByteSize},
   emulator::{process::Process, runtime_ctx::Context},
-  fail::RtResult,
+  fail::{self, RtResult},
   term::{boxed, lterm::Term},
 };
 
+/// Create a binary on proc heap or binary heap with GC if required.
+/// Sz - size of the binary, Words - some extra size to reserve on heap
+///
 /// Spec:
 /// bs_init2 Fail Sz Words Regs Flags Dst | binary_too_big(Sz) => system_limit Fail
 /// bs_init2 Fail Sz Words Regs Flags Dst=y =>    bs_init2 Fail Sz Words Regs Flags x | move x Dst
@@ -25,7 +28,7 @@ impl OpcodeBsInit2 {
   #[inline]
   fn bs_init2(
     runtime_ctx: &mut Context,
-    _proc: &mut Process,
+    proc: &mut Process,
     fail: Term,
     sz: usize,
     words: usize,
@@ -34,8 +37,18 @@ impl OpcodeBsInit2 {
     dst: Term,
   ) -> RtResult<DispatchResult> {
     if fail != Term::nil() && boxed::Binary::is_size_too_big(ByteSize::new(sz)) {
-      runtime_ctx.jump(fail);
+      return fail::create::system_limit();
     }
-    return Ok(DispatchResult::Normal);
+    if sz == 0 {
+      // TODO: Check GC for extra words on heap
+      runtime_ctx.store_value(Term::empty_binary(), dst, &mut proc.heap);
+      return Ok(DispatchResult::Normal);
+    }
+    let binary_size = BitSize::with_bytes(sz);
+    let bin = unsafe { boxed::Binary::create_into(binary_size, &mut proc.heap)? };
+
+    let bin_term = unsafe { (*bin).make_term() };
+    runtime_ctx.store_value(bin_term, dst, &mut proc.heap);
+    Ok(DispatchResult::Normal)
   }
 }
