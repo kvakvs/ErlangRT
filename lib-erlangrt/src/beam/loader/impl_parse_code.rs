@@ -19,7 +19,7 @@ fn module() -> &'static str {
   "beam/loader/parsecode: "
 }
 
-const MAX_LTOP_ARGS: usize = 16;
+// const MAX_LTOP_ARGS: usize = 16;
 
 /// Load-time Instruction with opcode and args.
 /// Exists temporarily between parsing the code from BEAM file and writing it
@@ -51,7 +51,7 @@ impl LoaderState {
   pub fn parse_raw_code(&mut self) -> RtResult<()> {
     // Dirty swap to take raw_code out of self and give it to the binary reader
     let mut raw_code: Vec<u8> = Vec::new();
-    core::mem::swap(&mut self.raw.code, &mut raw_code);
+    core::mem::swap(&mut self.beam_file.code, &mut raw_code);
 
     // Estimate code size and preallocate the code storage
     // TODO: This step is not efficient and does double parse of all args
@@ -82,7 +82,7 @@ impl LoaderState {
     // The code queue is built up and the rewrite rules are continuously tried
     // on the code in the queue. If the rules confirm the code, or none of the
     // rules did match, it gets written into the code output.
-    let code_queue = Vec::<LtInstruction>::with_capacity(3);
+    // let code_queue = Vec::<LtInstruction>::with_capacity(3);
     let mut next_instr = LtInstruction::new();
 
     while !r.eof() {
@@ -121,7 +121,8 @@ impl LoaderState {
         gen_op::OPCODE_FUNC_INFO => {
           // arg[0] mod name, arg[1] fun name, arg[2] arity
           let funarity = FunArity {
-            f: next_instr.args[1].to_lterm(&mut self.lit_heap, &self.lit_tab),
+            f: next_instr.args[1]
+              .to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab),
             arity: next_instr.args[2].loadtime_word() as Arity,
           };
 
@@ -165,7 +166,8 @@ impl LoaderState {
         // Ext list is special so we convert it and its contents to lterm
         LtTerm::LoadtimeExtlist(ref jtab) => {
           // Push a header word with length
-          let heap_jtab = boxed::Tuple::create_into(&mut self.lit_heap, jtab.len())?;
+          let heap_jtab =
+            boxed::Tuple::create_into(&mut self.beam_file.lit_heap, jtab.len())?;
           self.code.push(LTerm::make_boxed(heap_jtab).raw());
 
           // Each value convert to LTerm and also push forming a tuple
@@ -176,7 +178,8 @@ impl LoaderState {
                 PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
               self.maybe_convert_label(LabelId(f), ploc)
             } else {
-              t.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()
+              t.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab)
+                .raw()
             };
 
             unsafe { (*heap_jtab).set_element_raw(index, new_t) }
@@ -193,13 +196,14 @@ impl LoaderState {
 
         // Load-time literals are already loaded on `self.lit_heap`
         LtTerm::LoadtimeLiteral(lit_index) => {
-          self.code.push(self.lit_tab[lit_index].raw())
+          self.code.push(self.beam_file.lit_tab[lit_index].raw())
         }
 
         // Otherwise convert via a simple method
-        _ => self
-          .code
-          .push(a.to_lterm(&mut self.lit_heap, &self.lit_tab).raw()),
+        _ => {
+          let a_term = a.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab);
+          self.code.push(a_term.raw())
+        }
       }
     } // for a in args
     Ok(())

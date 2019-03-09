@@ -3,18 +3,18 @@ use crate::{
     gen_op,
     loader::{
       compact_term,
-      load_time_term::LtTerm,
       load_time_structs::{LtExport, LtFun, LtImport},
-      LoaderState,
+      load_time_term::LtTerm,
     },
   },
   defs,
+  emulator::heap::{Heap, DEFAULT_LIT_HEAP},
   fail::{RtErr, RtResult},
   rt_util::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
   },
-  term::term_builder::TermBuilder,
+  term::{lterm::LTerm, term_builder::TermBuilder},
 };
 use bytes::Bytes;
 use compress::zlib;
@@ -24,15 +24,54 @@ use std::{
 };
 
 fn module() -> &'static str {
-  "beam/loader/read: "
+  "beam/file: "
 }
 
-impl LoaderState {
+pub struct BeamFile {
+  /// Raw atoms loaded from BEAM module as strings
+  pub atoms: Vec<String>,
+  pub imports: Vec<LtImport>,
+  pub exports: Vec<LtExport>,
+  pub locals: Vec<LtExport>,
+  pub lambdas: Vec<LtFun>,
+  /// Temporary storage for loaded code, will be parsed in stage 2
+  pub code: Vec<u8>,
+
+  /// Literal table decoded into friendly terms (does not use process heap).
+  pub lit_tab: Vec<LTerm>,
+
+  /// A place to allocate larger lterms (literal heap)
+  pub lit_heap: Heap,
+
+  /// Proplist of module attributes as loaded from "Attr" section
+  mod_attrs: LTerm,
+
+  /// Compiler flags as loaded from "Attr" section
+  compiler_info: LTerm,
+}
+
+impl BeamFile {
+  fn new() -> Self {
+    Self {
+      atoms: Vec::new(),
+      imports: Vec::new(),
+      exports: Vec::new(),
+      locals: Vec::new(),
+      lambdas: Vec::new(),
+      code: Vec::new(),
+
+      lit_tab: Vec::new(),
+      lit_heap: Heap::new(DEFAULT_LIT_HEAP),
+      mod_attrs: LTerm::nil(),
+      compiler_info: LTerm::nil(),
+    }
+  }
+
   /// Loading the module. Validate the header and iterate over sections,
   /// then call `load_stage2()` to apply changes to the VM, and then finalize
   /// it by calling `load_finalize()` which will return you a module object.
-  pub fn read_chunks(fname: &PathBuf) -> RtResult<LoaderState> {
-    let mut loader = Self::new();
+  pub fn read_chunks(fname: &PathBuf) -> RtResult<BeamFile> {
+    let mut beam_file = Self::new();
 
     // Prebuffered BEAM file should be released as soon as the initial phase
     // is done.
@@ -61,18 +100,18 @@ impl LoaderState {
 
       // println!("Chunk {}", chunk_h);
       match chunk_h.as_ref() {
-        "Atom" => loader.load_atoms_latin1(&mut r),
-        "Attr" => loader.load_attributes(&mut r)?,
-        "AtU8" => loader.load_atoms_utf8(&mut r),
-        "CInf" => loader.load_compiler_info(&mut r)?,
-        "Code" => loader.load_code(&mut r, chunk_sz as defs::Word)?,
-        "ExpT" => loader.raw.exports = loader.load_exports(&mut r),
-        "FunT" => loader.load_fun_table(&mut r),
-        "ImpT" => loader.load_imports(&mut r),
-        "Line" => loader.load_line_info(&mut r)?,
-        "LitT" => loader.load_literals(&mut r, chunk_sz as defs::Word),
+        "Atom" => beam_file.load_atoms_latin1(&mut r),
+        "Attr" => beam_file.load_attributes(&mut r)?,
+        "AtU8" => beam_file.load_atoms_utf8(&mut r),
+        "CInf" => beam_file.load_compiler_info(&mut r)?,
+        "Code" => beam_file.load_code(&mut r, chunk_sz as defs::Word)?,
+        "ExpT" => beam_file.exports = beam_file.load_exports(&mut r),
+        "FunT" => beam_file.load_fun_table(&mut r),
+        "ImpT" => beam_file.load_imports(&mut r),
+        "Line" => beam_file.load_line_info(&mut r)?,
+        "LitT" => beam_file.load_literals(&mut r, chunk_sz as defs::Word),
         // LocT same format as ExpT, but for local functions
-        "LocT" => loader.raw.locals = loader.load_exports(&mut r),
+        "LocT" => beam_file.locals = beam_file.load_exports(&mut r),
 
         "Dbgi" | // skip debug info
         "StrT" | // skip strings TODO load strings?
@@ -89,7 +128,7 @@ impl LoaderState {
       r.seek(pos_begin + aligned_sz as usize);
     }
 
-    Ok(loader)
+    Ok(beam_file)
   }
 
   /// Approaching AtU8 section, populate atoms table in the Loader state.
@@ -97,11 +136,11 @@ impl LoaderState {
   /// Formats are absolutely compatible except that Atom is latin-1
   fn load_atoms_utf8(&mut self, r: &mut BinaryReader) {
     let n_atoms = r.read_u32be();
-    self.raw.atoms.reserve(n_atoms as usize);
+    self.atoms.reserve(n_atoms as usize);
     for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_utf8(atom_bytes as defs::Word).unwrap();
-      self.raw.atoms.push(atom_text);
+      self.atoms.push(atom_text);
     }
   }
 
@@ -110,11 +149,11 @@ impl LoaderState {
   /// Same as `load_atoms_utf8` but interprets strings per-character as latin-1
   fn load_atoms_latin1(&mut self, r: &mut BinaryReader) {
     let n_atoms = r.read_u32be();
-    self.raw.atoms.reserve(n_atoms as usize);
+    self.atoms.reserve(n_atoms as usize);
     for _i in 0..n_atoms {
       let atom_bytes = r.read_u8();
       let atom_text = r.read_str_latin1(atom_bytes as defs::Word).unwrap();
-      self.raw.atoms.push(atom_text);
+      self.atoms.push(atom_text);
     }
   }
 
@@ -147,7 +186,7 @@ impl LoaderState {
       return Err(RtErr::CodeLoadingFailed(msg));
     }
 
-    self.raw.code = r.read_bytes(chunk_sz - 20).unwrap();
+    self.code = r.read_bytes(chunk_sz - 20).unwrap();
     Ok(())
   }
 
@@ -155,14 +194,14 @@ impl LoaderState {
   /// Format is u32/big count { modindex: u32, funindex: u32, arity: u32 }
   fn load_imports(&mut self, r: &mut BinaryReader) {
     let n_imports = r.read_u32be();
-    self.raw.imports.reserve(n_imports as usize);
+    self.imports.reserve(n_imports as usize);
     for _i in 0..n_imports {
       let imp = LtImport {
         mod_atom_i: r.read_u32be() as usize,
         fun_atom_i: r.read_u32be() as usize,
         arity: r.read_u32be() as defs::Arity,
       };
-      self.raw.imports.push(imp);
+      self.imports.push(imp);
     }
   }
 
@@ -185,7 +224,7 @@ impl LoaderState {
 
   fn load_fun_table(&mut self, r: &mut BinaryReader) {
     let n_funs = r.read_u32be();
-    self.raw.lambdas.reserve(n_funs as usize);
+    self.lambdas.reserve(n_funs as usize);
     for _i in 0..n_funs {
       let fun_atom = r.read_u32be() as usize;
       let arity = r.read_u32be() as usize;
@@ -193,7 +232,7 @@ impl LoaderState {
       let index = r.read_u32be() as usize;
       let nfrozen = r.read_u32be() as usize;
       let ouniq = r.read_u32be() as usize;
-      self.raw.lambdas.push(LtFun {
+      self.lambdas.push(LtFun {
         fun_atom_i: fun_atom,
         arity: arity as defs::Arity,
         code_pos,

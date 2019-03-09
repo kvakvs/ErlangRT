@@ -16,14 +16,14 @@ impl LoaderState {
     // Step 1
     // Write imports onto literal heap as {Mod, Fun, Arity} triplets
     //
-    self.imports.reserve(self.raw.imports.len());
-    for ri in &self.raw.imports {
+    self.imports.reserve(self.beam_file.imports.len());
+    for ri in &self.beam_file.imports {
       let mod_atom = self.atom_from_loadtime_index(ri.mod_atom_i);
       let fun_atom = self.atom_from_loadtime_index(ri.fun_atom_i);
       let mf_arity = ModFunArity::new(mod_atom, fun_atom, ri.arity);
       // println!("is_bif {} for {}", is_bif, mf_arity);
       let boxed_import =
-        unsafe { boxed::Import::create_into(&mut self.lit_heap, mf_arity)? };
+        unsafe { boxed::Import::create_into(&mut self.beam_file.lit_heap, mf_arity)? };
 
       self.imports.push(boxed_import);
     }

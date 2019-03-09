@@ -5,37 +5,29 @@
 //!
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
-mod raw;
-use self::raw::*;
-
+mod beam_file;
 mod compact_term;
-mod load_time_term;
-mod load_time_structs;
-
 mod impl_fix_labels;
 mod impl_parse_code;
-mod impl_read_chunks;
 mod impl_setup_imports;
 mod impl_stage2;
+mod load_time_structs;
+mod load_time_term;
 
 use crate::{
-  beam::loader::load_time_term::LtTerm,
+  beam::loader::{beam_file::BeamFile, load_time_term::LtTerm},
   defs::Word,
   emulator::{
     code::{opcode::RawOpcode, Code, CodeOffset, LabelId},
     code_srv::CodeServer,
     function::FunEntry,
-    heap::{Heap, DEFAULT_LIT_HEAP},
     module::{self, Module, VersionedModuleName},
   },
   fail::RtResult,
   term::lterm::*,
 };
 use core::mem;
-use std::{
-  collections::BTreeMap,
-  path::PathBuf,
-};
+use std::{collections::BTreeMap, path::PathBuf};
 
 // macro_rules! rt_debug {
 //    ($($arg:tt)*) => (if cfg!(trace_beam_loader) { println!($($arg)*); })
@@ -68,8 +60,9 @@ enum PatchLocation {
 
 /// BEAM loader state.
 struct LoaderState {
+  beam_file: BeamFile,
+
   name: Option<VersionedModuleName>,
-  raw: LoaderRaw,
 
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms. Remember to use from_loadtime_atom_index()
@@ -91,18 +84,6 @@ struct LoaderState {
 
   funs: module::ModuleFunTable,
 
-  /// Literal table decoded into friendly terms (does not use process heap).
-  lit_tab: Vec<LTerm>,
-
-  /// A place to allocate larger lterms (literal heap)
-  lit_heap: Heap,
-
-  /// Proplist of module attributes as loaded from "Attr" section
-  mod_attrs: LTerm,
-
-  /// Compiler flags as loaded from "Attr" section
-  compiler_info: LTerm,
-
   /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
   imports: Vec<LTerm>,
 
@@ -114,21 +95,17 @@ struct LoaderState {
 
 impl LoaderState {
   /// Construct a new loader state.
-  fn new() -> LoaderState {
+  pub fn new(beam_file: BeamFile) -> LoaderState {
     LoaderState {
-      raw: LoaderRaw::new(),
+      beam_file,
       name: None,
 
-      lit_tab: Vec::new(),
-      lit_heap: Heap::new(DEFAULT_LIT_HEAP),
       vm_atoms: Vec::new(),
 
       code: Vec::new(),
       labels: BTreeMap::new(),
       replace_labels: Vec::new(),
       funs: BTreeMap::new(),
-      mod_attrs: LTerm::nil(),
-      compiler_info: LTerm::nil(),
       imports: Vec::new(),
       lambdas: Vec::new(),
       // exports: BTreeMap::new(),
@@ -164,7 +141,7 @@ impl LoaderState {
     {
       mem::swap(&mut self.funs, &mut newmod.funs);
       mem::swap(&mut self.code, &mut newmod.code);
-      mem::swap(&mut self.lit_heap, &mut newmod.lit_heap);
+      mem::swap(&mut self.beam_file.lit_heap, &mut newmod.lit_heap);
       mem::swap(&mut self.lambdas, &mut newmod.lambdas);
     }
 
@@ -242,7 +219,8 @@ pub fn load_module(
 
   // Preload data structures
   // located in impl_read_chunks.rs
-  let mut loader = LoaderState::read_chunks(mod_file_path)?;
+  let beam_file = BeamFile::read_chunks(mod_file_path)?;
+  let mut loader = LoaderState::new(beam_file);
 
   // Apply changes to the VM after module loading succeeded. The
   // module object is not created yet, but some effects like atoms table
