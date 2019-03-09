@@ -1,7 +1,7 @@
 //! Loadtime term library.
 //! Representing Erlang terms as a complex Rust enum, more developer friendly,
 //! there's an memory cost, but we don't care yet. This is only used at the
-//! loading time, not for internal VM logic. VM uses its own `LTerm` which is
+//! loading time, not for internal VM logic. VM uses its own `Term` which is
 //! a memory efficient representation.
 //!
 use crate::{
@@ -62,7 +62,7 @@ impl LtTerm {
   /// Given a word, determine if it fits into Smallint (word size - 4 bits)
   /// otherwise form a BigInt
   pub fn from_word(s: SWord) -> LtTerm {
-    if LTerm::small_fits(s) {
+    if Term::small_fits(s) {
       return LtTerm::SmallInt(s as SWord);
     }
     LtTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))
@@ -78,16 +78,16 @@ impl LtTerm {
 
   /// Convert a high level (friendly) term to a compact low-level term.
   /// Some terms cannot be converted, consider checking `to_lterm_vec()`
-  pub fn to_lterm(&self, _heap: &mut Heap, lit_tab: &Vec<LTerm>) -> LTerm {
+  pub fn to_lterm(&self, _heap: &mut Heap, lit_tab: &Vec<Term>) -> Term {
     match *self {
-      LtTerm::Atom(i) => LTerm::make_atom(i),
-      LtTerm::XRegister(i) => LTerm::make_regx(i),
-      LtTerm::YRegister(i) => LTerm::make_regy(i),
-      LtTerm::FloatRegister(i) => LTerm::make_regfp(i),
-      LtTerm::SmallInt(i) => LTerm::make_small_signed(i),
-      LtTerm::Nil => LTerm::nil(),
+      LtTerm::Atom(i) => Term::make_atom(i),
+      LtTerm::XRegister(i) => Term::make_regx(i),
+      LtTerm::YRegister(i) => Term::make_regy(i),
+      LtTerm::FloatRegister(i) => Term::make_regfp(i),
+      LtTerm::SmallInt(i) => Term::make_small_signed(i),
+      LtTerm::Nil => Term::nil(),
       LtTerm::LoadtimeLiteral(lit_index) => lit_tab[lit_index],
-      _ => panic!("{}Don't know how to convert {:?} to LTerm", module(), self),
+      _ => panic!("{}Don't know how to convert {:?} to Term", module(), self),
     }
   }
 }

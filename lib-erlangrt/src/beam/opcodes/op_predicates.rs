@@ -6,7 +6,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context},
   fail::RtResult,
-  term::{compare, lterm::LTerm},
+  term::{compare, lterm::Term},
 };
 
 /// Checks exact equality between arg1 and arg2, on false jump to arg0
@@ -86,9 +86,9 @@ enum CmpInvert {
 /// Shared code for equality checks. Assumes arg0 - fail label, arg1,2 - values
 fn generic_comparison(
   ctx: &mut Context,
-  fail_label: LTerm,
-  a: LTerm,
-  b: LTerm,
+  fail_label: Term,
+  a: Term,
+  b: Term,
   exact: CmpPrecision,
   desired_result: Ordering,
   invert: CmpInvert,

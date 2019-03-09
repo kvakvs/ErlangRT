@@ -4,7 +4,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{self, binary::trait_interface::TBinary},
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 
@@ -40,7 +40,7 @@ impl BinaryBuilder {
     self.write_pos = self.write_pos.add(1);
   }
 
-  pub fn make_term(self) -> LTerm {
+  pub fn make_term(self) -> Term {
     unsafe { (*self.p).make_term() }
   }
 }

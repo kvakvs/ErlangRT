@@ -1,7 +1,7 @@
 use crate::{
   emulator::{process::Process, vm::VM},
   fail::RtResult,
-  term::{compare::cmp_terms, lterm::LTerm},
+  term::{compare::cmp_terms, lterm::Term},
 };
 use core::cmp::Ordering;
 
@@ -13,8 +13,8 @@ fn module() -> &'static str {
 pub fn nativefun_equalequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seqeq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Equal, false, false)
 }
@@ -24,8 +24,8 @@ pub fn nativefun_equalequal_2(
 pub fn nativefun_notequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seqeq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Equal, true, false)
 }
@@ -34,8 +34,8 @@ pub fn nativefun_notequal_2(
 pub fn nativefun_equal_exact_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Equal, false, true)
 }
@@ -46,8 +46,8 @@ pub fn nativefun_equal_exact_2(
 pub fn nativefun_notequal_exact_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Equal, true, true)
 }
@@ -56,8 +56,8 @@ pub fn nativefun_notequal_exact_2(
 pub fn nativefun_lessthan_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Less, false, false)
 }
@@ -66,8 +66,8 @@ pub fn nativefun_lessthan_2(
 pub fn nativefun_greaterthan_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Greater, false, false)
 }
@@ -77,8 +77,8 @@ pub fn nativefun_greaterthan_2(
 pub fn nativefun_lessequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Greater, true, false)
 }
@@ -88,8 +88,8 @@ pub fn nativefun_lessequal_2(
 pub fn nativefun_greaterequal_2(
   _vm: &mut VM,
   _cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_eq!(args.len(), 2, "{}ubif_seq_2_2 takes 2 args", module());
   shared_eq(args, Ordering::Less, true, false)
 }
@@ -100,11 +100,11 @@ pub fn nativefun_greaterequal_2(
 /// * Arg: `exact`: The comparison can be exact or with number coercion
 #[inline]
 fn shared_eq(
-  args: &[LTerm],
+  args: &[Term],
   ordering: Ordering,
   invert: bool,
   exact: bool,
-) -> RtResult<LTerm> {
+) -> RtResult<Term> {
   let cmp_result = cmp_terms(args[0], args[1], exact)? == ordering;
-  Ok(LTerm::make_bool(cmp_result ^ invert))
+  Ok(Term::make_bool(cmp_result ^ invert))
 }

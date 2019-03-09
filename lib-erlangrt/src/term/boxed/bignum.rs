@@ -59,7 +59,7 @@ impl Bignum {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Self> {
+  pub unsafe fn const_from_term(t: Term) -> RtResult<*const Self> {
     helper_get_const_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_BIGINTEGER,
@@ -68,7 +68,7 @@ impl Bignum {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Self> {
+  pub unsafe fn mut_from_term(t: Term) -> RtResult<*mut Self> {
     helper_get_mut_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_BIGINTEGER,

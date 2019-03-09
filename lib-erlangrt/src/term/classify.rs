@@ -43,7 +43,7 @@ pub const CLASS_BINARY: TermClass = TermClass(100);
 pub const CLASS_SPECIAL: TermClass = TermClass(500);
 
 
-pub fn classify_term(t: LTerm) -> TermClass {
+pub fn classify_term(t: Term) -> TermClass {
   // let _v = t.raw();
   match t.get_term_tag() {
     TERMTAG_BOXED => {
@@ -64,14 +64,14 @@ pub fn classify_term(t: LTerm) -> TermClass {
   }
 }
 
-fn classify_special(val: LTerm) -> TermClass {
+fn classify_special(val: Term) -> TermClass {
   match val.get_special_tag() {
     SPECIALTAG_CONST => {
-      if val == LTerm::nil() {
+      if val == Term::nil() {
         CLASS_LIST
-      } else if val == LTerm::empty_binary() {
+      } else if val == Term::empty_binary() {
         CLASS_BINARY
-      } else if val == LTerm::empty_tuple() {
+      } else if val == Term::empty_tuple() {
         CLASS_TUPLE
       } else {
         CLASS_SPECIAL
@@ -84,7 +84,7 @@ fn classify_special(val: LTerm) -> TermClass {
 
 /// Given term's raw value `v` and the term itself, try and figure out the
 /// classification value for this term.
-unsafe fn classify_boxed(val: LTerm) -> TermClass {
+unsafe fn classify_boxed(val: Term) -> TermClass {
   let val_box_ptr = val.get_box_ptr_mut::<BoxHeader>();
   let trait_ptr = (*val_box_ptr).get_trait_ptr();
   (*trait_ptr).get_class()

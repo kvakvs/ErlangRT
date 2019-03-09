@@ -7,7 +7,7 @@ use crate::{
       binary::{trait_interface::TBinary, BinaryType},
       Binary,
     },
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 
@@ -103,7 +103,7 @@ impl TBinary for BinarySlice {
     return Err(RtErr::CannotCopyIntoBinSlice);
   }
 
-  fn make_term(&self) -> LTerm {
-    LTerm::make_boxed(&self.bin_header)
+  fn make_term(&self) -> Term {
+    Term::make_boxed(&self.bin_header)
   }
 }

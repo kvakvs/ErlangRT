@@ -1,7 +1,7 @@
 use crate::term::lterm::*;
 
 pub struct ProcessMailbox {
-  inbox: Vec<LTerm>,
+  inbox: Vec<Term>,
   // TODO: Some structure on proc heap?
   read_index: usize,
 }
@@ -26,12 +26,12 @@ impl ProcessMailbox {
 
   /// Copy a message and put into process mailbox.
   /// Assumes: the message is already copied to receiving process heap.
-  pub fn put(&mut self, message: LTerm) {
+  pub fn put(&mut self, message: Term) {
     self.inbox.push(message);
   }
 
   /// Read message at the current receive pointer.
-  pub fn get_current(&mut self) -> Option<LTerm> {
+  pub fn get_current(&mut self) -> Option<Term> {
     if self.inbox.is_empty() {
       return None;
     }
@@ -76,10 +76,10 @@ impl ProcessMailbox {
 
   // Remove value from current mailbox position and return it, move pointer
   // forward.
-  pub fn remove_current(&mut self) -> LTerm {
+  pub fn remove_current(&mut self) -> Term {
     let mri = self.read_index;
     let val = self.inbox[mri];
-    self.inbox[mri] = LTerm::non_value();
+    self.inbox[mri] = Term::non_value();
     self.step_over();
     val
   }

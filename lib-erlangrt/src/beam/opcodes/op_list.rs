@@ -4,7 +4,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{heap::allocate_cons, process::Process, runtime_ctx::Context, },
   fail::{self, RtResult},
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 
 /// Read the source `value` and check whether it is a list and not NIL. On
@@ -20,10 +20,10 @@ impl OpcodeIsNonemptyList {
   #[inline]
   pub fn is_nonempty_list(
     ctx: &mut Context,
-    fail: LTerm,
-    value: LTerm,
+    fail: Term,
+    value: Term,
   ) -> RtResult<DispatchResult> {
-    if value == LTerm::nil() && !value.is_cons() && fail != LTerm::nil() {
+    if value == Term::nil() && !value.is_cons() && fail != Term::nil() {
       // jump to fail label
       ctx.jump(fail)
     }
@@ -44,10 +44,10 @@ impl OpcodeIsNil {
   #[inline]
   pub fn is_nil(
     ctx: &mut Context,
-    fail: LTerm,
-    value: LTerm,
+    fail: Term,
+    value: Term,
   ) -> RtResult<DispatchResult> {
-    if value != LTerm::nil() && fail != LTerm::nil() {
+    if value != Term::nil() && fail != Term::nil() {
       // jump to fail label
       ctx.jump(fail)
     }
@@ -69,11 +69,11 @@ impl OpcodeGetList {
   pub fn decons(
     ctx: &mut Context,
     curr_p: &mut Process,
-    src: LTerm,
-    dst_hd: LTerm,
-    dst_tl: LTerm,
+    src: Term,
+    dst_hd: Term,
+    dst_tl: Term,
   ) -> RtResult<DispatchResult> {
-    if src == LTerm::nil() {
+    if src == Term::nil() {
       // TODO: is this badmatch here?
       panic!("Attempt to get_list on a nil[]");
     }
@@ -107,9 +107,9 @@ impl OpcodePutList {
   pub fn cons(
     ctx: &mut Context,
     curr_p: &mut Process,
-    src_hd: LTerm,
-    src_tl: LTerm,
-    dst: LTerm,
+    src_hd: Term,
+    src_tl: Term,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
 
@@ -117,7 +117,7 @@ impl OpcodePutList {
       let cons_p = allocate_cons(hp).unwrap();
       (*cons_p).set_hd(src_hd);
       (*cons_p).set_tl(src_tl);
-      ctx.store_value(LTerm::make_cons(cons_p), dst, hp)?;
+      ctx.store_value(Term::make_cons(cons_p), dst, hp)?;
     }
 
     Ok(DispatchResult::Normal)
@@ -137,8 +137,8 @@ impl OpcodeGetHd {
   pub fn hd(
     ctx: &mut Context,
     curr_p: &mut Process,
-    cons: LTerm,
-    dst: LTerm,
+    cons: Term,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     let val = unsafe { (*cons.get_cons_ptr()).hd() };
@@ -160,8 +160,8 @@ impl OpcodeGetTl {
   pub fn tl(
     ctx: &mut Context,
     curr_p: &mut Process,
-    cons: LTerm,
-    dst: LTerm,
+    cons: Term,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     let val = unsafe { (*cons.get_cons_ptr()).tl() };

@@ -24,7 +24,7 @@ const fn module() -> &'static str {
   "closure: "
 }
 
-/// Boxed `Closure` is placed on heap and referred via LTerm::p
+/// Boxed `Closure` is placed on heap and referred via Term::p
 #[allow(dead_code)]
 pub struct Closure {
   pub header: BoxHeader,
@@ -67,8 +67,8 @@ impl Closure {
   pub unsafe fn create_into(
     hp: &mut Heap,
     fe: &FunEntry,
-    frozen: &[LTerm],
-  ) -> RtResult<LTerm> {
+    frozen: &[Term],
+  ) -> RtResult<Term> {
     let n_words = Closure::storage_size(fe.nfrozen);
     let this = hp.alloc::<Closure>(n_words, false)?;
 
@@ -88,11 +88,11 @@ impl Closure {
     let dst = Self::get_frozen_mut(this);
     dst.copy_from_slice(frozen);
 
-    Ok(LTerm::make_boxed(this))
+    Ok(Term::make_boxed(this))
   }
 
   #[allow(dead_code)]
-  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Self> {
+  pub unsafe fn const_from_term(t: Term) -> RtResult<*const Self> {
     helper_get_const_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_CLOSURE,
@@ -101,7 +101,7 @@ impl Closure {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Self> {
+  pub unsafe fn mut_from_term(t: Term) -> RtResult<*mut Self> {
     helper_get_mut_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_CLOSURE,
@@ -122,9 +122,9 @@ impl Closure {
   /// can access frozen values (read only).
   /// It is responsibility of the caller to forget the slice as soon as possible.
   #[inline]
-  pub unsafe fn get_frozen(this: *const Closure) -> &'static [LTerm] {
+  pub unsafe fn get_frozen(this: *const Closure) -> &'static [Term] {
     let nfrozen = (*this).nfrozen;
-    let frozen_ptr = this.add(1) as *const LTerm;
+    let frozen_ptr = this.add(1) as *const Term;
     core::slice::from_raw_parts(frozen_ptr, nfrozen)
   }
 
@@ -132,9 +132,9 @@ impl Closure {
   /// can access frozen values (read/write).
   /// It is responsibility of the caller to forget the slice as soon as possible.
   #[inline]
-  pub unsafe fn get_frozen_mut(this: *mut Closure) -> &'static mut [LTerm] {
+  pub unsafe fn get_frozen_mut(this: *mut Closure) -> &'static mut [Term] {
     let nfrozen = (*this).nfrozen;
-    let frozen_ptr = this.add(1) as *mut LTerm;
+    let frozen_ptr = this.add(1) as *mut Term;
     core::slice::from_raw_parts_mut(frozen_ptr, nfrozen)
   }
 }

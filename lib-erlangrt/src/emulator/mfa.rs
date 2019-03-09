@@ -8,20 +8,20 @@ use core::fmt;
 #[derive(Debug)]
 pub enum Args<'a> {
   // list of args
-  List(LTerm),
+  List(Term),
   // slice of args array
-  Slice(&'a [LTerm]),
+  Slice(&'a [Term]),
 }
 
 /// Reference to an M:F(Args) function, ready to be called with arguments.
 pub struct ModFunArgs<'a> {
-  m: LTerm,
-  f: LTerm,
+  m: Term,
+  f: Term,
   args: Args<'a>,
 }
 
 impl<'a> ModFunArgs<'a> {
-  pub fn with_args_list(m: LTerm, f: LTerm, args: LTerm) -> ModFunArgs<'a> {
+  pub fn with_args_list(m: Term, f: Term, args: Term) -> ModFunArgs<'a> {
     ModFunArgs {
       m,
       f,
@@ -51,7 +51,7 @@ impl<'a> ModFunArgs<'a> {
 
   pub fn for_each_arg<T>(&self, mut func: T) -> RtResult<()>
   where
-    T: FnMut(LTerm) -> RtResult<()>,
+    T: FnMut(Term) -> RtResult<()>,
   {
     match self.args {
       Args::List(lst) => {
@@ -70,17 +70,17 @@ impl<'a> ModFunArgs<'a> {
 
 #[derive(Debug, Copy, Clone)]
 pub struct ModFunArity {
-  pub m: LTerm,
-  pub f: LTerm,
+  pub m: Term,
+  pub f: Term,
   pub arity: Arity,
 }
 
 impl ModFunArity {
-  pub fn new(m: LTerm, f: LTerm, arity: Arity) -> ModFunArity {
+  pub fn new(m: Term, f: Term, arity: Arity) -> ModFunArity {
     ModFunArity { m, f, arity }
   }
 
-  pub fn from_slice(lterms: &[LTerm]) -> ModFunArity {
+  pub fn from_slice(lterms: &[Term]) -> ModFunArity {
     ModFunArity {
       m: lterms[0],
       f: lterms[1],
@@ -88,7 +88,7 @@ impl ModFunArity {
     }
   }
 
-  pub fn new_from_funarity(m: LTerm, fa: &FunArity) -> ModFunArity {
+  pub fn new_from_funarity(m: Term, fa: &FunArity) -> ModFunArity {
     ModFunArity {
       m,
       f: fa.f,

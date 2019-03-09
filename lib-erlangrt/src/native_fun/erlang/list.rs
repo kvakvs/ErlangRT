@@ -10,7 +10,7 @@ define_nativefun!(_vm, _proc, args,
   name: "erlang:length/1", struct_name: NfErlangLength1, arity: 1,
   invoke: {
     let result = cons::list_length(list)?;
-    Ok(LTerm::make_small_unsigned(result))
+    Ok(Term::make_small_unsigned(result))
   },
   args: list(list),
 );
@@ -24,9 +24,9 @@ define_nativefun!(_vm, proc, args,
 );
 
 #[inline]
-pub fn plusplus_2(curr_p: &mut Process, a: LTerm, b: LTerm) -> RtResult<LTerm> {
+pub fn plusplus_2(curr_p: &mut Process, a: Term, b: Term) -> RtResult<Term> {
   // Doing [] ++ X -> X
-  if a == LTerm::nil() {
+  if a == Term::nil() {
     return Ok(b);
   }
 

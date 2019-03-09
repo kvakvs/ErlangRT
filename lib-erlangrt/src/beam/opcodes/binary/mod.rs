@@ -32,7 +32,7 @@ impl OpcodeBsTestTail2 {
   fn bs_test_tail2(
     runtime_ctx: &mut Context,
     _proc: &mut Process,
-    fail: LTerm,
+    fail: Term,
     match_state: *mut BinaryMatchState,
     bits: usize,
   ) -> RtResult<DispatchResult> {

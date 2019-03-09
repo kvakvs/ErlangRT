@@ -16,7 +16,7 @@ use crate::{
   },
   fail::RtResult,
   term::lterm::{
-    LTerm, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,
+    Term, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,
     TERMTAG_SPECIAL,
   },
 };
@@ -45,7 +45,7 @@ pub struct Context {
   pub reductions: isize,
 
   /// Current state of X registers.
-  regs: [LTerm; MAX_XREGS],
+  regs: [Term; MAX_XREGS],
 
   /// How many X registers are currently used.
   pub live: usize,
@@ -71,7 +71,7 @@ impl Context {
       args_ptr: core::ptr::null(),
       fpregs: [0.0; MAX_FPREGS],
       ip,
-      regs: [LTerm::non_value(); MAX_XREGS],
+      regs: [Term::non_value(); MAX_XREGS],
       live: 0,
       reductions: 0,
     }
@@ -108,7 +108,7 @@ impl Context {
 
   /// Read contents of an X register.
   #[inline]
-  pub fn get_x(&self, index: usize) -> LTerm {
+  pub fn get_x(&self, index: usize) -> Term {
     // debug_assert!(index < self.live);
     let result = self.regs[index];
     debug_assert!(result.is_value(), "Should never get a NON_VALUE from x[]");
@@ -116,7 +116,7 @@ impl Context {
   }
 
   #[inline]
-  pub fn set_x(&mut self, index: usize, val: LTerm) {
+  pub fn set_x(&mut self, index: usize, val: Term) {
     if cfg!(feature = "trace_register_changes") {
       println!("{}{} = {}", "set x".blue(), index, val);
     }
@@ -165,24 +165,24 @@ impl Context {
     self.ip.offset(offs);
   }
 
-  /// Fetch a word from code, assume it is an `LTerm`. The code position is
+  /// Fetch a word from code, assume it is an `Term`. The code position is
   /// advanced by 1.
   #[inline]
-  pub fn op_arg_read_term_at(&mut self, offs: usize) -> LTerm {
-    LTerm::from_raw(self.op_arg_read_at(offs))
+  pub fn op_arg_read_term_at(&mut self, offs: usize) -> Term {
+    Term::from_raw(self.op_arg_read_at(offs))
   }
 
   /// Using current position in code as the starting address, create a new
-  /// `&[LTerm]` slice of given length and advance the read pointer. This is
+  /// `&[Term]` slice of given length and advance the read pointer. This is
   /// used for fetching arrays of args from code without moving them.
-  pub fn op_arg_term_slice_at(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
-    let arg_p = self.args_ptr as *const LTerm;
+  pub fn op_arg_term_slice_at(&mut self, offset: usize, sz: usize) -> &'static [Term] {
+    let arg_p = self.args_ptr as *const Term;
     unsafe { slice::from_raw_parts(arg_p.add(offset), sz) }
   }
 
   /// Returns slice of registers `offset` to `sz`, bypassing the borrow checker
   /// It is the caller responsibility to forget the registers slice ASAP.
-  pub fn registers_slice(&mut self, offset: usize, sz: usize) -> &'static [LTerm] {
+  pub fn registers_slice(&mut self, offset: usize, sz: usize) -> &'static [Term] {
     unsafe { slice::from_raw_parts(self.regs.as_ptr().add(offset), sz) }
   }
 
@@ -192,14 +192,14 @@ impl Context {
     &mut self,
     offset: usize,
     sz: usize,
-  ) -> &'static mut [LTerm] {
+  ) -> &'static mut [Term] {
     unsafe { slice::from_raw_parts_mut(self.regs.as_mut_ptr().add(offset), sz) }
   }
 
-  /// Fetch a word from code, assume it is either an `LTerm` or a source X, Y or
+  /// Fetch a word from code, assume it is either an `Term` or a source X, Y or
   /// FP register, then perform a load operation.
   #[inline]
-  pub fn op_arg_load_term_at(&mut self, offs: usize, hp: &heap::Heap) -> LTerm {
+  pub fn op_arg_load_term_at(&mut self, offs: usize, hp: &heap::Heap) -> Term {
     let src = self.op_arg_read_term_at(offs);
     self.load(src, hp)
   }
@@ -212,7 +212,7 @@ impl Context {
 
   /// Read a register otherwise term is returned unchanged.
   // TODO: Optimize - separate load constant from load register instruction
-  pub fn load(&self, src: LTerm, hp: &heap::Heap) -> LTerm {
+  pub fn load(&self, src: Term, hp: &heap::Heap) -> Term {
     if src.is_special() {
       match src.get_special_tag() {
         SPECIALTAG_REGX => return self.get_x(src.get_special_value()),
@@ -235,8 +235,8 @@ impl Context {
   #[inline]
   pub fn load_then_store(
     &mut self,
-    src: LTerm,
-    dst: LTerm,
+    src: Term,
+    dst: Term,
     hp: &mut heap::Heap,
   ) -> RtResult<()> {
     let src_val = self.load(src, hp);
@@ -248,8 +248,8 @@ impl Context {
   /// Returns void `()` or an error.
   pub fn store_value(
     &mut self,
-    val: LTerm,
-    dst: LTerm,
+    val: Term,
+    dst: Term,
     hp: &mut heap::Heap,
   ) -> RtResult<()> {
     debug_assert!(
@@ -294,7 +294,7 @@ impl Context {
   }
 
   #[inline]
-  pub fn set_cp(&mut self, cp: LTerm) {
+  pub fn set_cp(&mut self, cp: Term) {
     debug_assert!(cp.is_cp());
     self.cp = CodePtr::from_cp(cp);
   }
@@ -305,7 +305,7 @@ impl Context {
   }
 
   #[inline]
-  pub fn jump(&mut self, cp: LTerm) {
+  pub fn jump(&mut self, cp: Term) {
     debug_assert!(cp.is_cp());
     println!("{} {:p}", "jump to".purple(), cp.get_cp_ptr::<Word>());
     self.ip = CodePtr::from_cp(cp);
@@ -327,7 +327,7 @@ impl Context {
     vm: &mut VM,
     curr_p: &mut Process,
     lr: &MFALookupResult,
-    args: &[LTerm],
+    args: &[Term],
     save_cp: bool,
   ) -> RtResult<()> {
     match lr {
@@ -361,7 +361,7 @@ impl Context {
   pub fn debug_trace_call(
     &self,
     description: &str,
-    _dst: LTerm,
+    _dst: Term,
     offset: usize,
     arity: usize,
   ) {

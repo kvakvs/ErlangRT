@@ -62,19 +62,19 @@ pub struct Scheduler {
   // This is the naive implementation of run queues.
   // A better approach would be to build an intrusive double linked list through
   // every process in the queue (as done by the original ERTS).
-  queue_low: VecDeque<LTerm>,
-  queue_normal: VecDeque<LTerm>,
-  queue_high: VecDeque<LTerm>,
+  queue_low: VecDeque<Term>,
+  queue_normal: VecDeque<Term>,
+  queue_high: VecDeque<Term>,
   /// Wait set for timed suspended processes (waiting for a timer)
-  timed_wait: HashMap<LTerm, ()>,
+  timed_wait: HashMap<Term, ()>,
   /// Wait set for infinitely suspended processes (in endless receive)
-  infinite_wait: HashMap<LTerm, ()>,
+  infinite_wait: HashMap<Term, ()>,
 
   /// A counter used to skip some schedulings for low processes
   advantage_count: Word,
 
   /// Currently selected process
-  current: Option<LTerm>,
+  current: Option<Term>,
 }
 
 /// Hint from the logic finalizing timeslice result from a running process.
@@ -101,7 +101,7 @@ impl Scheduler {
   }
 
   /// Queue a process by its pid.
-  pub fn enqueue(&mut self, proc_reg: &mut ProcessRegistry, pid: LTerm) {
+  pub fn enqueue(&mut self, proc_reg: &mut ProcessRegistry, pid: Term) {
     self.enqueue_opt(proc_reg, pid, false);
   }
 
@@ -112,7 +112,7 @@ impl Scheduler {
   pub fn enqueue_opt(
     &mut self,
     proc_reg: &mut ProcessRegistry,
-    pid: LTerm,
+    pid: Term,
     skip_queue_check: bool,
   ) {
     assert!(pid.is_local_pid());
@@ -140,7 +140,7 @@ impl Scheduler {
 
   /// Queue a process by its pid into either timed_wait or infinite_wait queue.
   #[inline]
-  pub fn enqueue_wait(&mut self, infinite: bool, pid: LTerm) {
+  pub fn enqueue_wait(&mut self, infinite: bool, pid: Term) {
     assert!(pid.is_local_pid());
 
     if infinite {
@@ -151,7 +151,7 @@ impl Scheduler {
   }
 
   #[inline]
-  fn log_next_process(maybe_pid: Option<LTerm>) {
+  fn log_next_process(maybe_pid: Option<Term>) {
     if cfg!(feature = "trace_opcode_execution") {
       if let Some(pid) = maybe_pid {
         println!(
@@ -170,7 +170,7 @@ impl Scheduler {
 
   /// Get another process from the run queue for this scheduler.
   /// Returns: `Option(pid)`
-  pub fn next_process(&mut self, proc_reg: &mut ProcessRegistry) -> Option<LTerm> {
+  pub fn next_process(&mut self, proc_reg: &mut ProcessRegistry) -> Option<Term> {
     if let Some(prev_pid) = self.current {
       let hint = self.next_process_finalize_previous(proc_reg, prev_pid);
       if hint == ScheduleHint::ContinueSameProcess {
@@ -198,7 +198,7 @@ impl Scheduler {
   /// Look through the queues and find some queue with highest priority where
   /// a process is waiting to be selected.
   /// Advantage counter allows running lower queues even if a higher is running.
-  fn next_process_pick_from_the_queues(&mut self) -> Option<LTerm> {
+  fn next_process_pick_from_the_queues(&mut self) -> Option<Term> {
     if !self.queue_high.is_empty() {
       return self.queue_high.pop_front();
     } else if self.advantage_count < NORMAL_ADVANTAGE {
@@ -225,7 +225,7 @@ impl Scheduler {
   fn next_process_finalize_previous(
     &mut self,
     proc_reg: &mut ProcessRegistry,
-    curr_pid: LTerm,
+    curr_pid: Term,
   ) -> ScheduleHint {
     // Extract the last running process from the process registry
     let curr_ptr = proc_reg.unsafe_lookup_pid_mut(curr_pid);
@@ -280,7 +280,7 @@ impl Scheduler {
     &mut self,
     proc_reg: &mut ProcessRegistry,
     proc_p: *mut Process,
-    proc_pid: LTerm,
+    proc_pid: Term,
   ) -> ScheduleHint {
     // Bypassing the borrow checker again
     let proc = unsafe { &mut (*proc_p) };
@@ -302,10 +302,10 @@ impl Scheduler {
     match unsafe { proc.heap.unroll_stack_until_catch() } {
       Some(next_catch) => {
         println!("Catch found: {:p}", next_catch.loc);
-        proc.context.set_x(0, LTerm::non_value());
+        proc.context.set_x(0, Term::non_value());
         proc.context.set_x(1, p_error.0.to_atom());
         proc.context.set_x(2, p_error.1);
-        proc.context.set_x(3, LTerm::nil()); // stacktrace object goes here
+        proc.context.set_x(3, Term::nil()); // stacktrace object goes here
         proc.context.jump_ptr(next_catch.loc);
         proc.context.clear_cp();
         proc.heap.drop_stack_words(next_catch.stack_drop);
@@ -338,8 +338,8 @@ impl Scheduler {
   pub fn terminate_process(
     &mut self,
     proc_reg: &mut ProcessRegistry,
-    pid: LTerm,
-    e: (ExceptionType, LTerm),
+    pid: Term,
+    e: (ExceptionType, Term),
   ) {
     // assert that process is not in any queue
     {

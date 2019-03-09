@@ -1,7 +1,7 @@
 use crate::{
   emulator::{atom, mfa::ModFunArity},
   native_fun::{erlang, erts_internal, lists, module::NativeModule, NativeFn},
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 use std::collections::HashMap;
 
@@ -9,7 +9,7 @@ use std::collections::HashMap;
 /// Native modules may overlap with Erlang modules, while providing implementations
 /// for selected functions.
 pub struct NativeFunRegistry {
-  modules: HashMap<LTerm, NativeModule>,
+  modules: HashMap<Term, NativeModule>,
 }
 
 impl NativeFunRegistry {

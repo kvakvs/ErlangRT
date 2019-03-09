@@ -35,7 +35,7 @@ impl MatchBuffer {
 }
 
 /// Matchstate is stored on heap as a heap object. Followed by 1 or more save
-/// offset `LTerm`s.
+/// offset `Term`s.
 /// TODO: Merge match_buffer with this struct, because reasons?
 pub struct BinaryMatchState {
   pub header: boxed::BoxHeader,

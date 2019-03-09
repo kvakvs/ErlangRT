@@ -4,7 +4,7 @@ pub mod create;
 use crate::{
   defs::{exc_type::ExceptionType, ByteSize},
   rt_util::bin_reader::{self, ReadError},
-  term::lterm::LTerm,
+  term::lterm::Term,
   beam::loader::CTError,
 };
 use std::convert::From;
@@ -37,7 +37,7 @@ pub enum RtErr {
   StackIndexRange(usize),
 
   //--- VM Checks --
-  Exception(ExceptionType, LTerm), // type, value
+  Exception(ExceptionType, Term), // type, value
   TermIsNotABoxed,
   // used by `helper_get_mut_from_boxed_term` when boxed tag is different from
   // what is expected

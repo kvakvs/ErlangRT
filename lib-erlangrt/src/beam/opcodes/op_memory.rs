@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 
 /// Shared code for stack checks and allocations with an optional heap check.
@@ -137,7 +137,7 @@ impl OpcodeTrim {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeInit, arity: 1,
   run: {
-    curr_p.heap.set_y(y.get_special_value(), LTerm::nil())?;
+    curr_p.heap.set_y(y.get_special_value(), Term::nil())?;
     Ok(DispatchResult::Normal)
   },
   args: yreg(y),

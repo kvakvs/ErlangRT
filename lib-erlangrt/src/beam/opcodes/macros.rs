@@ -66,7 +66,7 @@ macro_rules! define_opcode {
 ///   load_usize(n) - first load then treat it as a small unsigned
 ///   term(n) - take word as a term
 ///   load(n) - take word possibly register or stack cell, and load the value
-///   slice(ident,n) - `&[LTerm]` from arg position of length n
+///   slice(ident,n) - `&[Term]` from arg position of length n
 ///   literal_tuple(n) - the value is a tuple, which does not need to be
 ///       "loaded" from a register or stack
 ///   cp_or_nil(n) - take a term and assert it is either a CP, or a NIL
@@ -161,7 +161,7 @@ macro_rules! fetch_one_arg {
     cp_or_nil($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
-    debug_assert!($arg_ident.is_cp() || $arg_ident == LTerm::nil());
+    debug_assert!($arg_ident.is_cp() || $arg_ident == Term::nil());
   };
 
   // Take a term from IP, and assert it is a Y register

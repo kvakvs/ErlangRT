@@ -14,9 +14,9 @@ define_nativefun!(_vm, _proc, args,
 );
 
 #[inline]
-fn member_2(sample: LTerm, list: LTerm) -> RtResult<LTerm> {
-  if list == LTerm::nil() {
-    return Ok(LTerm::make_bool(false));
+fn member_2(sample: Term, list: Term) -> RtResult<Term> {
+  if list == Term::nil() {
+    return Ok(Term::make_bool(false));
   }
   let result = cons::any(list, |elem| {
     if let Ok(cmp_result) = compare::cmp_terms(sample, elem, true) {
@@ -25,7 +25,7 @@ fn member_2(sample: LTerm, list: LTerm) -> RtResult<LTerm> {
       return false;
     }
   });
-  return Ok(LTerm::make_bool(result));
+  return Ok(Term::make_bool(result));
 }
 
 /// Returns list `list` reversed with `tail` appended (any term).
@@ -36,7 +36,7 @@ define_nativefun!(_vm, proc, args,
 );
 
 #[inline]
-unsafe fn reverse_2(proc: &mut Process, list: LTerm, tail: LTerm) -> RtResult<LTerm> {
+unsafe fn reverse_2(proc: &mut Process, list: Term, tail: Term) -> RtResult<Term> {
   let mut lb = ListBuilder::new(&mut proc.heap)?;
   // Going forward the list, prepend values to the result
   cons::for_each(list, |elem| lb.prepend(elem))?;

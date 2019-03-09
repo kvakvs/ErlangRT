@@ -76,26 +76,26 @@ pub const SPECIALCONST_EMPTYBINARY: SpecialConst = SpecialConst(2);
 /// A low-level term is either a pointer to memory term or an Immediate with
 /// leading bits defining its type (see TAG_* consts below).
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
-pub struct LTerm {
+pub struct Term {
   value: Word, // Contains a pointer or an integer
 }
 
-impl Ord for LTerm {
-  fn cmp(&self, other: &LTerm) -> Ordering {
+impl Ord for Term {
+  fn cmp(&self, other: &Term) -> Ordering {
     self.value.cmp(&other.value)
   }
 }
 
-impl PartialOrd for LTerm {
-  fn partial_cmp(&self, other: &LTerm) -> Option<Ordering> {
+impl PartialOrd for Term {
+  fn partial_cmp(&self, other: &Term) -> Option<Ordering> {
     Some(self.value.cmp(&other.value))
   }
 }
 
 // TODO: Remove deadcode directive later and fix
 #[allow(dead_code)]
-impl LTerm {
-  /// Retrieve the raw value of a `LTerm` as Word, including tag bits
+impl Term {
+  /// Retrieve the raw value of a `Term` as Word, including tag bits
   /// and everything.
   #[inline]
   pub const fn raw(self) -> Word {
@@ -435,7 +435,7 @@ impl LTerm {
   #[inline]
   const fn assert_is_not_boxheader_guard_value(&self) {}
 
-  /// Create a LTerm from pointer to Cons cell. Pass a pointer to `LTerm` or
+  /// Create a Term from pointer to Cons cell. Pass a pointer to `Term` or
   /// a pointer to `boxed::Cons`. Attempting to create cons cell to Null pointer
   /// will create NIL (`[]`)
   #[inline]
@@ -747,7 +747,7 @@ impl LTerm {
 //  #[test]
 //  fn test_nil_is_not_atom() {
 //    // Some obscure bit mishandling made nil be recognized as atom
-//    let n = LTerm::nil();
+//    let n = Term::nil();
 //    assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
 //            n, n.raw(), immediate::get_imm2_prefix(n.raw()),
 //            immediate::IMM2_ATOM_PREFIX);
@@ -755,7 +755,7 @@ impl LTerm {
 //
 //  #[test]
 //  fn test_term_size() {
-//    assert_eq!(mem::size_of::<LTerm>(), WORD_BYTES);
+//    assert_eq!(mem::size_of::<Term>(), WORD_BYTES);
 //  }
 //
 //  #[test]
@@ -798,7 +798,7 @@ impl LTerm {
 //}
 
 pub unsafe fn helper_get_const_from_boxed_term<T>(
-  t: LTerm,
+  t: Term,
   box_type: BoxType,
   err: RtErr,
 ) -> RtResult<*const T> {
@@ -817,7 +817,7 @@ pub unsafe fn helper_get_const_from_boxed_term<T>(
 }
 
 pub unsafe fn helper_get_mut_from_boxed_term<T>(
-  t: LTerm,
+  t: Term,
   box_type: BoxType,
   _err: RtErr,
 ) -> RtResult<*mut T> {
@@ -833,7 +833,7 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
   Err(RtErr::BoxedTagCheckFailed)
 }
 
-impl fmt::Debug for LTerm {
+impl fmt::Debug for Term {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self)
   }

@@ -10,7 +10,7 @@ use crate::{
     vm::VM,
   },
   fail::{self, RtResult},
-  term::{boxed, lterm::LTerm},
+  term::{boxed, lterm::Term},
 };
 
 /// Create a closure from a lambda table item (loaded from a BEAM file).
@@ -27,7 +27,7 @@ impl OpcodeMakeFun2 {
   pub fn make_fun2(
     ctx: &mut Context,
     curr_p: &mut Process,
-    export: LTerm,
+    export: Term,
   ) -> RtResult<DispatchResult> {
     let fe = export.get_cp_ptr::<FunEntry>();
 

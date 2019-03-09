@@ -19,7 +19,7 @@ use crate::{
 };
 use num;
 
-/// Term Builder implementation for `LTerm` and ERT VM.
+/// Term Builder implementation for `Term` and ERT VM.
 pub struct TermBuilder {
   // because i can't into lifetimes :( but it lives short anyway
   heap: *mut Heap,
@@ -32,13 +32,13 @@ impl TermBuilder {
     }
   }
 
-  pub unsafe fn create_bignum(&self, n: num::BigInt) -> RtResult<LTerm> {
+  pub unsafe fn create_bignum(&self, n: num::BigInt) -> RtResult<Term> {
     let ref_heap = self.heap.as_mut().unwrap();
     let big_p = boxed::Bignum::create_into(ref_heap, n)?;
-    Ok(LTerm::make_boxed(big_p))
+    Ok(Term::make_boxed(big_p))
   }
 
-  pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<LTerm> {
+  pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<Term> {
     debug_assert!(!self.heap.is_null());
     let hp = self.heap.as_mut().unwrap();
     // Allocate uninitialized binary of some type
@@ -49,13 +49,13 @@ impl TermBuilder {
   }
 
   #[inline]
-  pub fn create_atom_str(&self, a: &str) -> LTerm {
+  pub fn create_atom_str(&self, a: &str) -> Term {
     atom::from_str(a)
   }
 
   #[inline]
-  pub fn create_small_s(&self, n: isize) -> LTerm {
-    LTerm::make_small_signed(n)
+  pub fn create_small_s(&self, n: isize) -> Term {
+    Term::make_small_signed(n)
   }
 
   pub fn create_tuple_builder(&mut self, sz: usize) -> RtResult<TupleBuilder> {

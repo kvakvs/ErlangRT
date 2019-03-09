@@ -3,13 +3,13 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
-  term::{boxed, lterm::lterm_impl::LTerm, term_builder::ListBuilder},
+  term::{boxed, lterm::lterm_impl::Term, term_builder::ListBuilder},
 };
 use crate::defs::sizes::ByteSize;
 
 // TODO: Rewrite this with for_each when i can think clear again
-pub fn list_length(val: LTerm) -> RtResult<usize> {
-  if val == LTerm::nil() {
+pub fn list_length(val: Term) -> RtResult<usize> {
+  if val == Term::nil() {
     return Ok(0);
   }
 
@@ -22,7 +22,7 @@ pub fn list_length(val: LTerm) -> RtResult<usize> {
       count += 1;
       cons_p = tl.get_cons_ptr();
     } else {
-      if tl != LTerm::nil() {
+      if tl != Term::nil() {
         return Err(RtErr::Exception(ExceptionType::Error, gen_atoms::BADARG));
       }
       return Ok(count);
@@ -36,9 +36,9 @@ pub fn list_length(val: LTerm) -> RtResult<usize> {
 /// the pointer to the last cell (second element).
 /// OBSERVE that the tail of the returned copy is uninitialized memory.
 pub unsafe fn copy_list_leave_tail(
-  src: LTerm,
+  src: Term,
   hp: &mut Heap,
-) -> RtResult<(LTerm, *mut boxed::Cons)> {
+) -> RtResult<(Term, *mut boxed::Cons)> {
   let mut lb = ListBuilder::new(hp)?;
 
   // Copy elements one by one
@@ -63,11 +63,11 @@ pub unsafe fn copy_list_leave_tail(
 
 /// For each list element run the function. Tail element (usually NIL) is ignored.
 /// Returns: Tail element (NIL for proper list) or `None` for empty list
-pub fn for_each<T>(lst: LTerm, mut func: T) -> RtResult<Option<LTerm>>
+pub fn for_each<T>(lst: Term, mut func: T) -> RtResult<Option<Term>>
 where
-  T: FnMut(LTerm) -> RtResult<()>,
+  T: FnMut(Term) -> RtResult<()>,
 {
-  if lst == LTerm::nil() {
+  if lst == Term::nil() {
     return Ok(None);
   }
   let mut p = lst.get_cons_ptr();
@@ -90,12 +90,12 @@ where
 /// For each list element run the predicate until it returns true, then the
 /// result becomes true. If predicate did not return true for any element,
 /// the result becomes false.
-pub fn any<T>(lst: LTerm, mut predicate: T) -> bool
+pub fn any<T>(lst: Term, mut predicate: T) -> bool
 where
-  T: FnMut(LTerm) -> bool,
+  T: FnMut(Term) -> bool,
 {
   // Not found
-  if lst == LTerm::nil() {
+  if lst == Term::nil() {
     return false;
   }
   let mut p = lst.get_cons_ptr();
@@ -118,12 +118,12 @@ where
 }
 
 /// Finds and returns first element of lst which satisfies `predicate`.
-pub fn find_first<T>(lst: LTerm, mut predicate: T) -> Option<*const boxed::Cons>
+pub fn find_first<T>(lst: Term, mut predicate: T) -> Option<*const boxed::Cons>
   where
-      T: FnMut(LTerm) -> bool,
+      T: FnMut(Term) -> bool,
 {
   // Not found
-  if lst == LTerm::nil() {
+  if lst == Term::nil() {
     return None;
   }
   let mut p = lst.get_cons_ptr();
@@ -147,17 +147,17 @@ pub fn find_first<T>(lst: LTerm, mut predicate: T) -> Option<*const boxed::Cons>
 
 /// Given Rust `String`, create list of characters on heap
 // TODO: Optimize by adding new string type which is not a list?
-pub unsafe fn rust_str_to_list(s: &String, hp: &mut Heap) -> RtResult<LTerm> {
+pub unsafe fn rust_str_to_list(s: &String, hp: &mut Heap) -> RtResult<Term> {
   let mut lb = ListBuilder::new(hp)?;
   for pos_char in s.char_indices() {
     let ch = pos_char.1 as usize;
-    lb.append(LTerm::make_small_unsigned(ch))?;
+    lb.append(Term::make_small_unsigned(ch))?;
   }
   Ok(lb.make_term())
 }
 
-/// Given an integer LTerm, convert it to a string with `base`.
-pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
+/// Given an integer Term, convert it to a string with `base`.
+pub unsafe fn integer_to_list(val: Term, hp: &mut Heap) -> RtResult<Term> {
   if val.is_big_int() {
     panic!("TODO: impl integer_to_list for bigint");
   }
@@ -174,11 +174,11 @@ pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   };
 
   if i_val == 0 {
-    lb.append(LTerm::make_char('0'))?;
+    lb.append(Term::make_char('0'))?;
   } else {
     loop {
       let digit = '0' as usize + (i_val % base) as usize;
-      let digit_term = LTerm::make_small_unsigned(digit);
+      let digit_term = Term::make_small_unsigned(digit);
       if i_val == 0 {
         break;
       }
@@ -187,14 +187,14 @@ pub unsafe fn integer_to_list(val: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
     } // loop
 
     if sign {
-      lb.prepend(LTerm::make_char('-'))?;
+      lb.prepend(Term::make_char('-'))?;
     }
   } // if not 0
 
   return Ok(lb.make_term());
 }
 
-pub fn get_iolist_size(list: LTerm) -> ByteSize {
+pub fn get_iolist_size(list: Term) -> ByteSize {
   let mut result = ByteSize::new(0);
   for_each(list, |elem| {
     if elem.is_small() {

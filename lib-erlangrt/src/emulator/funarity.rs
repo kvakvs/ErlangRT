@@ -6,7 +6,7 @@ use core::{cmp::Ordering, fmt};
 /// Reference to an internal function in some module.
 #[derive(Debug, Eq, Clone, Hash)]
 pub struct FunArity {
-  pub f: LTerm,
+  pub f: Term,
   pub arity: Arity,
 }
 
@@ -14,13 +14,13 @@ impl FunArity {
   //  /// Create an uninitialized function pointer for deferred initialization.
   //  pub fn new_uninit() -> FunArity {
   //    FunArity {
-  //      f: LTerm::non_value(),
+  //      f: Term::non_value(),
   //      arity: 0,
   //    }
   //  }
 
   /// Create from a function name and arity.
-  pub fn new(f: LTerm, arity: Arity) -> FunArity {
+  pub fn new(f: Term, arity: Arity) -> FunArity {
     FunArity { f, arity }
   }
 }

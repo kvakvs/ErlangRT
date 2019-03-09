@@ -18,7 +18,7 @@ pub fn apply(
   ctx: &mut Context,
   _curr_p: &mut Process,
   closure: *mut boxed::Closure,
-  args: &[LTerm],
+  args: &[Term],
 ) -> RtResult<DispatchResult> {
   let args_len = args.len();
 

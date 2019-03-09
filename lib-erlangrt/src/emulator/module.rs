@@ -11,7 +11,7 @@ use crate::{
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 use std::collections::BTreeMap;
 
@@ -20,12 +20,12 @@ pub type ModuleFunTable = BTreeMap<FunArity, usize>;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct VersionedModuleName {
-  pub module: LTerm,
+  pub module: Term,
   pub version: usize,
 }
 
 impl VersionedModuleName {
-  pub fn new(module: LTerm, version: usize) -> VersionedModuleName {
+  pub fn new(module: Term, version: usize) -> VersionedModuleName {
     VersionedModuleName { module, version }
   }
 }
@@ -60,7 +60,7 @@ impl Module {
   }
 
   /// Get module name field
-  pub fn name(&self) -> LTerm {
+  pub fn name(&self) -> Term {
     self.versioned_name.module
   }
 

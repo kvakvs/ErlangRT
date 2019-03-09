@@ -1,4 +1,4 @@
-//! Implement format trait (Display) for LTerm
+//! Implement format trait (Display) for Term
 // Printing low_level Terms as "{}"
 use crate::{
   defs::Word,
@@ -10,7 +10,7 @@ use crate::{
 };
 use core::fmt;
 
-impl fmt::Display for LTerm {
+impl fmt::Display for Term {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     if self.is_non_value() {
       return write!(f, "NON_VALUE");
@@ -121,16 +121,16 @@ unsafe fn format_box_contents(
 // Formatting helpers
 //
 
-fn format_special(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
+fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
   match term.get_special_tag() {
     SPECIALTAG_CONST => {
-      if term == LTerm::nil() {
+      if term == Term::nil() {
         return write!(f, "[]");
       } else if term.is_non_value() {
         return write!(f, "NON_VALUE");
-      } else if term == LTerm::empty_binary() {
+      } else if term == Term::empty_binary() {
         return write!(f, "<<>>");
-      } else if term == LTerm::empty_tuple() {
+      } else if term == Term::empty_tuple() {
         return write!(f, "{{}}");
       }
     }
@@ -149,7 +149,7 @@ fn format_special(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
   )
 }
 
-pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
+pub unsafe fn format_cons(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
   write!(f, "[")?;
   let mut first = true;
 
@@ -162,7 +162,7 @@ pub unsafe fn format_cons(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", elem).unwrap();
     Ok(())
   }) {
-    if tail != LTerm::nil() {
+    if tail != Term::nil() {
       // Improper list, show tail
       write!(f, "| {}", tail)?;
     }
@@ -191,7 +191,7 @@ fn print_closing_quote(f: &mut fmt::Formatter) -> fmt::Result {
   }
 }
 
-pub unsafe fn format_cons_ascii(term: LTerm, f: &mut fmt::Formatter) -> fmt::Result {
+pub unsafe fn format_cons_ascii(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
   print_opening_quote(f)?;
 
   if let Ok(Some(tail)) = cons::for_each(term, |elem| {
@@ -203,7 +203,7 @@ pub unsafe fn format_cons_ascii(term: LTerm, f: &mut fmt::Formatter) -> fmt::Res
     }
     Ok(())
   }) {
-    if tail != LTerm::nil() {
+    if tail != Term::nil() {
       panic!("Can't print improper list as ASCII, tail={}", tail)
     }
   }

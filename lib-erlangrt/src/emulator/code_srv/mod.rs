@@ -43,7 +43,7 @@ pub enum MFALookupResult {
 pub struct CodeServer {
   // Mapping {atom(): ModuleGenerations} where generations contains current
   // and previous mod versions
-  mods: BTreeMap<LTerm, ModuleGenerations>,
+  mods: BTreeMap<Term, ModuleGenerations>,
   search_path: Vec<String>,
   mod_version: usize,
 
@@ -193,7 +193,7 @@ impl CodeServer {
     None
   }
 
-  pub fn next_module_version(&mut self, _m: LTerm) -> usize {
+  pub fn next_module_version(&mut self, _m: Term) -> usize {
     let ver = self.mod_version;
     self.mod_version += 1;
     ver

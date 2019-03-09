@@ -22,7 +22,7 @@ pub fn apply(
   ctx: &mut Context,
   curr_p: &mut Process,
   export: *const boxed::Export,
-  args: &[LTerm],
+  args: &[Term],
   save_cp: bool,
 ) -> RtResult<DispatchResult> {
   // The `fobj` is a callable closure made with `fun() -> code end`
@@ -45,10 +45,10 @@ pub fn apply(
       vm,
       ctx,
       curr_p,
-      LTerm::nil(),
+      Term::nil(),
       CallBifTarget::MFArity(mfa),
       args,
-      LTerm::make_regx(0),
+      Term::make_regx(0),
       false,
     );
   } else {

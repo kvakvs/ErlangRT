@@ -1,13 +1,13 @@
 //use crate::{
 //  emulator::heap::Heap,
 //  fail::RtResult,
-//  term::{lterm::lterm_impl::LTerm, term_builder::TupleBuilder},
+//  term::{lterm::lterm_impl::Term, term_builder::TupleBuilder},
 //};
 
 // NOTE: Use Heap::tuple2 extension in TupleBuilder
 
 ///// Create a 2-tuple `{badmatch, Arg}`.
-//pub fn make_tuple2(elem1: LTerm, elem2: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
+//pub fn make_tuple2(elem1: Term, elem2: Term, hp: &mut Heap) -> RtResult<Term> {
 //  let tb = TupleBuilder::with_arity(2, hp)?;
 //  unsafe {
 //    tb.set_element_base0(0, elem1);

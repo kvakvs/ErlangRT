@@ -22,7 +22,7 @@ use crate::{
 //#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 // pub enum ProcessError {
 //  None,
-//  Exception(ExceptionType, LTerm),
+//  Exception(ExceptionType, Term),
 //}
 
 // impl fmt::Display for ProcessError {
@@ -40,7 +40,7 @@ use crate::{
 //}
 
 pub struct Process {
-  pub pid: LTerm,
+  pub pid: Term,
 
   // Scheduling and fail state
   /// Scheduling priority (selects the runqueue when this process is scheduled)
@@ -64,7 +64,7 @@ pub struct Process {
   pub timeslice_result: scheduler::SliceResult,
   /// Error field is set on exception when the execution loop is interrupted
   /// with `DispatchResult::Exception`
-  pub error: Option<(ExceptionType, LTerm)>,
+  pub error: Option<(ExceptionType, Term)>,
   /// How many catch frames are there on stack
   pub num_catches: isize,
 
@@ -75,14 +75,14 @@ impl Process {
   // Call this only from VM, the new process must be immediately registered
   // in proc registry for this VM
   pub fn new(
-    pid: LTerm,
-    _parent_pid: LTerm,
+    pid: Term,
+    _parent_pid: Term,
     mfarity: &ModFunArity,
     spawn_opts: &SpawnOptions,
     code_server: &mut CodeServer,
   ) -> RtResult<Process> {
     assert!(pid.is_local_pid());
-    assert!(_parent_pid.is_local_pid() || _parent_pid == LTerm::nil());
+    assert!(_parent_pid.is_local_pid() || _parent_pid == Term::nil());
 
     // Process must start with some code location
     match code_server.lookup_beam_code_and_load(mfarity) {
@@ -152,7 +152,7 @@ impl Process {
     }
   }
 
-  pub fn set_exception(&mut self, exc_type: ExceptionType, reason: LTerm) {
+  pub fn set_exception(&mut self, exc_type: ExceptionType, reason: Term) {
     // panic!("{}{} set_error {}", module(), self.pid, e);
     self.error = Some((exc_type, reason));
   }
@@ -165,7 +165,7 @@ impl Process {
   pub fn deliver_message(
     &mut self,
     proc_reg: &mut ProcessRegistry,
-    message: LTerm,
+    message: Term,
   ) -> RtResult<()> {
     let m1 = copy_term::copy_to(message, &mut self.heap)?;
     self.mailbox.put(m1);

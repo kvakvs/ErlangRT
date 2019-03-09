@@ -3,7 +3,7 @@ use crate::{
   defs,
   emulator::code::LabelId,
   fail::RtResult,
-  term::{boxed, lterm::LTerm},
+  term::{boxed, lterm::Term},
 };
 
 impl LoaderState {
@@ -16,7 +16,7 @@ impl LoaderState {
     for ploc in &repl {
       match *ploc {
         PatchLocation::PatchCodeOffset(cmd_offset) => {
-          let val = LTerm::from_raw(self.code[cmd_offset]);
+          let val = Term::from_raw(self.code[cmd_offset]);
           self.code[cmd_offset] = self.postprocess_fix_1_label(val)
         }
 
@@ -36,8 +36,8 @@ impl LoaderState {
   /// Helper for `postprocess_fix_label`, takes a word from code memory or from
   /// a jump table, resolves as if it was a label index, and returns a value
   /// to be put back into memory.
-  fn postprocess_fix_1_label(&self, val: LTerm) -> defs::Word {
-    // Convert from LTerm smallint to integer and then to labelid
+  fn postprocess_fix_1_label(&self, val: Term) -> defs::Word {
+    // Convert from Term smallint to integer and then to labelid
     let unfixed = val.get_small_signed() as defs::Word;
 
     // Zero label id means no location, so we will store NIL [] there
@@ -51,7 +51,7 @@ impl LoaderState {
       self.create_jump_destination(dst_offset)
     } else {
       // Update code cell with no-value
-      LTerm::nil().raw()
+      Term::nil().raw()
     }
   }
 }

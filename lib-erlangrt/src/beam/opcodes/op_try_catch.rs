@@ -3,7 +3,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 
 /// Set up a try-catch stack frame for possible stack unwinding. Label points
@@ -20,15 +20,15 @@ impl OpcodeTry {
   #[inline]
   pub fn try_opcode(
     curr_p: &mut Process,
-    yreg: LTerm,
-    catch_label: LTerm,
+    yreg: Term,
+    catch_label: Term,
   ) -> RtResult<DispatchResult> {
     curr_p.num_catches += 1;
 
     let hp = &mut curr_p.heap;
 
     // Write catch value into the given stack register
-    let catch_val = LTerm::make_catch(catch_label.get_cp_ptr());
+    let catch_val = Term::make_catch(catch_label.get_cp_ptr());
     hp.set_y(yreg.get_special_value(), catch_val)?;
     // curr_p.heap.print_stack();
 
@@ -49,12 +49,12 @@ impl OpcodeTryEnd {
   pub fn try_end(
     ctx: &mut Context,
     curr_p: &mut Process,
-    yreg: LTerm,
+    yreg: Term,
   ) -> RtResult<DispatchResult> {
     curr_p.num_catches -= 1;
 
     let hp = &mut curr_p.heap;
-    hp.set_y(yreg.get_special_value(), LTerm::nil())?;
+    hp.set_y(yreg.get_special_value(), Term::nil())?;
 
     // Not sure why this is happening here, copied from Erlang/OTP
     if ctx.get_x(0).is_non_value() {
@@ -83,12 +83,12 @@ impl OpcodeTryCase {
   pub fn try_case(
     ctx: &mut Context,
     curr_p: &mut Process,
-    yreg: LTerm,
+    yreg: Term,
   ) -> RtResult<DispatchResult> {
     curr_p.num_catches -= 1;
 
     let hp = &mut curr_p.heap;
-    hp.set_y(yreg.get_special_value(), LTerm::nil())?;
+    hp.set_y(yreg.get_special_value(), Term::nil())?;
 
     // Clear error and shift regs x1-x2-x3 to x0-x1-x2
     curr_p.clear_exception();
@@ -113,7 +113,7 @@ define_opcode!(_vm, ctx, curr_p,
 
 impl OpcodeRaise {
   #[inline]
-  pub fn raise(raise_trace: LTerm, raise_val: LTerm) -> RtResult<DispatchResult> {
+  pub fn raise(raise_trace: Term, raise_val: Term) -> RtResult<DispatchResult> {
     let exc_type = match get_trace_from_exc(raise_trace) {
       None => ExceptionType::Error,
       Some(et) => et,
@@ -128,8 +128,8 @@ impl OpcodeRaise {
 
 /// In BEAM this extracts pointer to StackTrace struct stored inside bignum on
 /// heap. Here for now we just assume it is always error.
-fn get_trace_from_exc(trace: LTerm) -> Option<ExceptionType> {
-  if trace == LTerm::nil() {
+fn get_trace_from_exc(trace: Term) -> Option<ExceptionType> {
+  if trace == Term::nil() {
     return None;
   }
   return Some(ExceptionType::Error);

@@ -116,21 +116,21 @@ lazy_static! {
 
 // Allocate new atom in the atom table or find existing. Pack the atom index
 // as an immediate2 Term
-pub fn from_str(val: &str) -> LTerm {
+pub fn from_str(val: &str) -> Term {
   let mut atoms = ATOMS.atoms_by_str.lock().unwrap();
 
   if atoms.contains_key(val) {
-    return LTerm::make_atom(atoms[val]);
+    return Term::make_atom(atoms[val]);
   }
 
   let mut atoms_r = ATOMS.atoms_by_index.lock().unwrap();
 
   let index = AtomStorage::register_atom(&mut atoms, &mut atoms_r, val);
 
-  LTerm::make_atom(index)
+  Term::make_atom(index)
 }
 
-pub fn to_str(a: LTerm) -> RtResult<String> {
+pub fn to_str(a: Term) -> RtResult<String> {
   assert!(a.is_atom());
   let p = lookup(a);
   if p.is_null() {
@@ -159,7 +159,7 @@ pub fn is_printable_atom(s: &str) -> bool {
   true
 }
 
-pub fn lookup(a: LTerm) -> *const Atom {
+pub fn lookup(a: Term) -> *const Atom {
   assert!(a.is_atom());
   let atoms_r = ATOMS.atoms_by_index.lock().unwrap();
   let index = a.atom_index();

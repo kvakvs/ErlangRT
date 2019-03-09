@@ -13,12 +13,12 @@ use core::slice;
 // Call Bif generic facilities
 //
 
-/// A Bif can be referenced by an import `LTerm`, an `MFArity`...
+/// A Bif can be referenced by an import `Term`, an `MFArity`...
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub enum CallBifTarget {
   /// A term containing pointer to a `boxed::Import`.
-  ImportTerm(LTerm),
+  ImportTerm(Term),
   /// A const pointer to an `import::Import`.
   ImportPointer(*const import::Import),
   /// An MFA reference which needs to be resolved.
@@ -42,10 +42,10 @@ pub fn find_and_call_native_fun(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
-  fail_label: LTerm,
+  fail_label: Term,
   target: CallBifTarget,
-  args: &[LTerm],
-  dst: LTerm,
+  args: &[Term],
+  dst: Term,
   _gc: bool,
 ) -> RtResult<DispatchResult> {
   // Try resolve BIF destination, which can be defined by an import, mfarity
@@ -106,7 +106,7 @@ pub fn find_and_call_native_fun(
       //    val
       //  );
       // if dst is not NIL, store the result in it
-      if dst != LTerm::nil() {
+      if dst != Term::nil() {
         ctx.store_value(val, dst, &mut curr_p.heap)?;
       }
       Ok(DispatchResult::Normal)
@@ -122,7 +122,7 @@ pub fn find_and_call_native_fun(
 #[allow(dead_code)]
 enum BifResolutionResult {
   FnPointer(NativeFn),
-  BadfunError(LTerm),
+  BadfunError(Term),
 }
 
 /// Given a term with import, resolve it to a native_fun function pointer or fail.
@@ -130,7 +130,7 @@ enum BifResolutionResult {
 /// Return: A native_fun function or an error
 fn callbif_resolve_import(
   code_srv: &CodeServer,
-  imp: LTerm,
+  imp: Term,
   check_arity: usize,
 ) -> RtResult<BifResolutionResult> {
   // Possibly a boxed::Import object on heap which contains m:f/arity
@@ -166,13 +166,13 @@ pub fn call_native_fun_fn(
   ctx: &mut Context,
   curr_p: &mut Process,
   func_pointer: NativeFn,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   let n_args = args.len();
 
   // Make a slice from the args. Bif arg count can go up to 3
   assert!(args.len() < 4);
-  let mut loaded_args = [LTerm::nil(); 4];
+  let mut loaded_args = [Term::nil(); 4];
 
   {
     let heap = &curr_p.heap;

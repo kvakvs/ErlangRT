@@ -5,7 +5,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::binary::{match_state::BinaryMatchState, slice::BinarySlice},
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 
@@ -25,13 +25,13 @@ impl OpcodeBsGetBinary2 {
   unsafe fn bs_get_binary2_7(
     runtime_ctx: &mut Context,
     proc: &mut Process,
-    _fail: LTerm,
+    _fail: Term,
     match_state: *mut BinaryMatchState,
     live: usize,
     size: usize,
     unit: usize,
-    flags: LTerm,
-    dst: LTerm,
+    flags: Term,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     println!(
       "bgb2: live={} size={} unit={} flags={}",
@@ -55,7 +55,7 @@ impl OpcodeBsGetBinary2 {
       // ignore error here, can't fail
       println!("bgb2: created empty <<>>");
       runtime_ctx
-        .store_value(LTerm::empty_binary(), dst, &mut proc.heap)
+        .store_value(Term::empty_binary(), dst, &mut proc.heap)
         .unwrap();
     }
 

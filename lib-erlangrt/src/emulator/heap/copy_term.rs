@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Copies term to another heap.
-pub fn copy_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
+pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
   match term.get_term_tag() {
     TERMTAG_BOXED => unsafe { copy_boxed_to(term, hp) },
     TERMTAG_HEADER => {
@@ -31,7 +31,7 @@ pub fn copy_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
 /// For each list element copy it to a new element in the destination heap.
 /// Also copy the tail element.
 /// Returns: `RtResult<copied_term>`
-unsafe fn copy_cons_to(lst: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
+unsafe fn copy_cons_to(lst: Term, hp: &mut Heap) -> RtResult<Term> {
   let mut lb = ListBuilder::new(hp)?;
 
   let tail_el_result = cons::for_each(lst, |el| {
@@ -47,7 +47,7 @@ unsafe fn copy_cons_to(lst: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
   Ok(lb.make_term())
 }
 
-unsafe fn copy_boxed_to(term: LTerm, hp: &mut Heap) -> RtResult<LTerm> {
+unsafe fn copy_boxed_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
   let header_ptr = term.get_box_ptr::<boxed::BoxHeader>();
   let trait_ptr = (*header_ptr).get_trait_ptr();
   let box_type = (*trait_ptr).get_type();

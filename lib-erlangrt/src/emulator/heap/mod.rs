@@ -127,7 +127,7 @@ impl Heap {
     }
 
     // Assume we can grow the data without reallocating
-    let raw_nil = LTerm::nil().raw();
+    let raw_nil = Term::nil().raw();
     let new_chunk =
       unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) as *mut Word };
 
@@ -177,7 +177,7 @@ impl Heap {
     self.stack_top -= need;
 
     // Clear the new cells
-    let raw_nil = LTerm::nil().raw();
+    let raw_nil = Term::nil().raw();
     unsafe {
       let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
 
@@ -214,9 +214,9 @@ impl Heap {
   //    self.data[self.stack_top] = val;
   //  }
 
-  /// Push a LTerm to stack without checking. Call `stack_have(1)` beforehand.
+  /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.
   #[inline]
-  pub fn stack_push_lterm_unchecked(&mut self, val: LTerm) {
+  pub fn stack_push_lterm_unchecked(&mut self, val: Term) {
     if cfg!(feature = "trace_stack_changes") {
       println!("{} {}", "push (unchecked)".green(), val);
     }
@@ -231,7 +231,7 @@ impl Heap {
   }
 
   /// Set stack value (`index`th from stack top) to `val`.
-  pub fn set_y(&mut self, index: Word, val: LTerm) -> RtResult<()> {
+  pub fn set_y(&mut self, index: Word, val: Term) -> RtResult<()> {
     debug_assert!(val.is_value(), "Should never set y[] to a NON_VALUE");
     if !self.stack_have_y(index) {
       return Err(RtErr::StackIndexRange(index));
@@ -243,7 +243,7 @@ impl Heap {
     Ok(())
   }
 
-  pub fn get_y(&self, index: Word) -> RtResult<LTerm> {
+  pub fn get_y(&self, index: Word) -> RtResult<Term> {
     if !self.stack_have_y(index) {
       println!(
         "Stack value requested y{}, depth={}",
@@ -253,16 +253,16 @@ impl Heap {
       return Err(RtErr::StackIndexRange(index));
     }
     let pos = index + self.stack_top + 1;
-    let result = LTerm::from_raw(self.data[pos]);
+    let result = Term::from_raw(self.data[pos]);
     debug_assert!(result.is_value(), "Should never get a NON_VALUE from y[]");
     Ok(result)
   }
 
   #[allow(dead_code)]
   #[inline]
-  pub fn get_y_unchecked(&self, index: Word) -> LTerm {
+  pub fn get_y_unchecked(&self, index: Word) -> Term {
     let pos = index + self.stack_top + 1;
-    LTerm::from_raw(self.data[pos])
+    Term::from_raw(self.data[pos])
   }
 
   pub fn stack_depth(&self) -> Word {
@@ -270,7 +270,7 @@ impl Heap {
   }
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
-  pub fn stack_deallocate(&mut self, n: Word) -> LTerm {
+  pub fn stack_deallocate(&mut self, n: Word) -> Term {
     assert!(
       self.stack_top + n < self.capacity,
       "Failed to dealloc {}+1 words (s_top {}, s_end {})",
@@ -278,7 +278,7 @@ impl Heap {
       self.stack_top,
       self.capacity
     );
-    let cp = LTerm::from_raw(self.data[self.stack_top]);
+    let cp = Term::from_raw(self.data[self.stack_top]);
     assert!(cp.is_cp());
     self.stack_top += n + 1;
     cp
@@ -298,7 +298,7 @@ impl Heap {
         return None;
       }
       // Hope we found a CP on stack (good!)
-      let term_at_ptr = LTerm::from_raw(core::ptr::read(ptr));
+      let term_at_ptr = Term::from_raw(core::ptr::read(ptr));
 
       if term_at_ptr.is_catch() {
         // Typical stack frame looks like:
@@ -351,6 +351,6 @@ pub fn allocate_cons(hp: &mut Heap) -> RtResult<*mut boxed::Cons> {
 /// This is used by heap walkers such as "dump.rs"
 pub unsafe fn heap_iter(hp: &Heap) -> iter::HeapIterator {
   let last = hp.heap_top as isize;
-  let begin = hp.get_heap_start_ptr() as *const LTerm;
+  let begin = hp.get_heap_start_ptr() as *const Term;
   iter::HeapIterator::new(begin, begin.offset(last))
 }

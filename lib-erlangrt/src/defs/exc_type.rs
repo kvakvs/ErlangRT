@@ -1,4 +1,4 @@
-use crate::{emulator::gen_atoms, term::lterm::LTerm};
+use crate::{emulator::gen_atoms, term::lterm::Term};
 use core::fmt;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -11,7 +11,7 @@ pub enum ExceptionType {
 }
 
 impl ExceptionType {
-  pub fn to_atom(self) -> LTerm {
+  pub fn to_atom(self) -> Term {
     match self {
       ExceptionType::Panic => gen_atoms::NIF_ERROR, // todo: populate panic atom
       ExceptionType::Throw => gen_atoms::THROW,

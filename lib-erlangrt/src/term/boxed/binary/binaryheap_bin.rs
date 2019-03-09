@@ -6,7 +6,7 @@ use crate::{
       binary::{trait_interface::TBinary, BinaryType},
       Binary,
     },
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 
@@ -64,7 +64,7 @@ impl TBinary for BinaryHeapBinary {
     Ok(())
   }
 
-  fn make_term(&self) -> LTerm {
-    LTerm::make_boxed((&self.bin_header) as *const Binary)
+  fn make_term(&self) -> Term {
+    Term::make_boxed((&self.bin_header) as *const Binary)
   }
 }

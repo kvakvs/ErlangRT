@@ -4,7 +4,7 @@
 use crate::{
   beam::gen_op,
   defs::Word,
-  term::lterm::{LTerm, SPECIALTAG_OPCODE},
+  term::lterm::{Term, SPECIALTAG_OPCODE},
 };
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.
@@ -25,7 +25,7 @@ impl RawOpcode {
 #[cfg(debug_assertions)]
 pub fn to_memory_word(raw: RawOpcode) -> Word {
   let RawOpcode(raw8) = raw;
-  LTerm::make_special(SPECIALTAG_OPCODE, raw8 as Word).raw()
+  Term::make_special(SPECIALTAG_OPCODE, raw8 as Word).raw()
 }
 
 #[inline]
@@ -38,7 +38,7 @@ pub fn to_memory_word(raw: RawOpcode) -> Word {
 /// decorated as Immediate3.
 #[cfg(debug_assertions)]
 pub fn from_memory_word(m: Word) -> RawOpcode {
-  let as_term = LTerm::from_raw(m);
+  let as_term = Term::from_raw(m);
   debug_assert_eq!(
     as_term.get_special_tag(),
     SPECIALTAG_OPCODE,
@@ -62,7 +62,7 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 #[cfg(debug_assertions)]
 pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
   let m = unsafe { *p };
-  let as_term = LTerm::from_raw(m);
+  let as_term = Term::from_raw(m);
   debug_assert!(
     as_term.is_special(),
     "Disasm: Opcode from memory {:p} must be tagged as Special",

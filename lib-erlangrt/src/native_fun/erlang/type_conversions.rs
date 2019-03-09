@@ -2,7 +2,7 @@ use crate::{
   emulator::{atom, process::Process},
   fail::{self, RtResult},
   term::{
-    lterm::{cons, LTerm},
+    lterm::{cons, Term},
     term_builder::BinaryBuilder,
   },
 };
@@ -15,7 +15,7 @@ define_nativefun!(_vm, proc, args,
 );
 
 #[inline]
-pub fn atom_to_list_1(proc: &mut Process, atom_val: LTerm) -> RtResult<LTerm> {
+pub fn atom_to_list_1(proc: &mut Process, atom_val: Term) -> RtResult<Term> {
   let atom_p = atom::lookup(atom_val);
   if atom_p.is_null() {
     return fail::create::badarg();
@@ -34,7 +34,7 @@ define_nativefun!(_vm, proc, args,
 );
 
 #[inline]
-pub fn integer_to_list_1(curr_p: &mut Process, val: LTerm) -> RtResult<LTerm> {
+pub fn integer_to_list_1(curr_p: &mut Process, val: Term) -> RtResult<Term> {
   if !val.is_integer() {
     return fail::create::badarg();
   }
@@ -49,10 +49,10 @@ define_nativefun!(_vm, proc, args,
 );
 
 #[inline]
-unsafe fn list_to_binary_1(proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
+unsafe fn list_to_binary_1(proc: &mut Process, list: Term) -> RtResult<Term> {
   let size = cons::get_iolist_size(list);
   if size.bytes() == 0 {
-    Ok(LTerm::empty_binary())
+    Ok(Term::empty_binary())
   } else {
     let mut bb = BinaryBuilder::with_size(size, &mut proc.heap)?;
     list_to_binary_1_recursive(&mut bb, list)?;
@@ -62,8 +62,8 @@ unsafe fn list_to_binary_1(proc: &mut Process, list: LTerm) -> RtResult<LTerm> {
 
 unsafe fn list_to_binary_1_recursive(
   bb: &mut BinaryBuilder,
-  list: LTerm,
-) -> RtResult<LTerm> {
+  list: Term,
+) -> RtResult<Term> {
   cons::for_each(list, |elem| {
     if elem.is_small() {
       // Any small integer even larger than 256 counts as 1 byte

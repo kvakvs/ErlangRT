@@ -36,8 +36,8 @@ macro_rules! define_nativefun {
       pub fn _f(
         $vmvar: &mut crate::emulator::vm::VM,
         $procvar: &mut crate::emulator::process::Process,
-        $argsvar: &[LTerm],
-      ) -> crate::fail::RtResult<LTerm> {
+        $argsvar: &[Term],
+      ) -> crate::fail::RtResult<Term> {
         crate::native_fun::assert_arity($namestr, $arity, $argsvar);
         define_multiple_args!(
           $namestr, $vmvar, $procvar, $argsvar, 0,

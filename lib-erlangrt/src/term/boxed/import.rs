@@ -38,7 +38,7 @@ impl Import {
     ByteSize::new(size_of::<Import>()).get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, mfarity: ModFunArity) -> RtResult<LTerm> {
+  pub unsafe fn create_into(hp: &mut Heap, mfarity: ModFunArity) -> RtResult<Term> {
     let n_words = Import::storage_size();
     let this = hp.alloc::<Import>(n_words, false)?;
 
@@ -50,7 +50,7 @@ impl Import {
         is_bif: None, // we don't know yet
       },
     );
-    Ok(LTerm::make_boxed(this))
+    Ok(Term::make_boxed(this))
   }
 
   pub fn get_is_bif(&mut self, code_srv: &CodeServer) -> bool {
@@ -65,7 +65,7 @@ impl Import {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Import> {
+  pub unsafe fn const_from_term(t: Term) -> RtResult<*const Import> {
     helper_get_const_from_boxed_term::<Import>(
       t,
       BOXTYPETAG_IMPORT,
@@ -74,7 +74,7 @@ impl Import {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Import> {
+  pub unsafe fn mut_from_term(t: Term) -> RtResult<*mut Import> {
     helper_get_mut_from_boxed_term::<Import>(
       t,
       BOXTYPETAG_IMPORT,

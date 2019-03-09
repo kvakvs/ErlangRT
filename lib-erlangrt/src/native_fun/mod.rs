@@ -1,7 +1,7 @@
 use crate::{
   emulator::{process::Process, vm::VM},
   fail::RtResult,
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 
 pub mod fn_entry;
@@ -18,14 +18,14 @@ pub mod erts_internal;
 pub mod lists;
 
 /// A BIF function which runs under some process, takes some args (encoded in
-/// its name and hardcoded in its code), and returns an `LTerm`.
+/// its name and hardcoded in its code), and returns an `Term`.
 /// In case of error the `NON_VALUE` should be returned and the process is
 /// informed about error situation (error reason and type are set etc).
 pub type NativeFn =
-  fn(vm: &mut VM, cur_proc: &mut Process, args: &[LTerm]) -> RtResult<LTerm>;
+  fn(vm: &mut VM, cur_proc: &mut Process, args: &[Term]) -> RtResult<Term>;
 
 #[inline]
-pub fn assert_arity(fn_name: &str, have_arity: usize, args: &[LTerm]) {
+pub fn assert_arity(fn_name: &str, have_arity: usize, args: &[Term]) {
   let have_args = args.len();
   debug_assert_eq!(
     have_arity, have_args,

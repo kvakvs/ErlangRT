@@ -54,7 +54,7 @@ impl OpcodeLoopRec {
   pub fn loop_rec(
     ctx: &mut Context,
     curr_p: &mut Process,
-    fail: LTerm,
+    fail: Term,
   ) -> RtResult<DispatchResult> {
     if let Some(msg) = curr_p.mailbox.get_current() {
       ctx.set_x(0, msg);
@@ -79,7 +79,7 @@ impl OpcodeLoopRecEnd {
   pub fn loop_rec_end(
     ctx: &mut Context,
     curr_p: &mut Process,
-    label: LTerm,
+    label: Term,
   ) -> RtResult<DispatchResult> {
     curr_p.mailbox.step_over();
     ctx.jump(label);
@@ -112,7 +112,7 @@ impl OpcodeWait {
   #[inline]
   pub fn wait(
     ctx: &mut Context,
-    label: LTerm,
+    label: Term,
   ) -> RtResult<DispatchResult> {
     ctx.jump(label);
     Ok(DispatchResult::Yield(YieldType::InfiniteWait))

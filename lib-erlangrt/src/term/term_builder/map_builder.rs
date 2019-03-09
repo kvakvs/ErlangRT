@@ -1,7 +1,7 @@
 use crate::{
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::LTerm},
+  term::{boxed, lterm::Term},
 };
 
 /// Map builder allocates necessary space on the given heap and allows
@@ -22,12 +22,12 @@ impl MapBuilder {
     Ok(Self { p })
   }
 
-  pub unsafe fn add(&mut self, key: LTerm, value: LTerm) -> RtResult<()> {
+  pub unsafe fn add(&mut self, key: Term, value: Term) -> RtResult<()> {
     boxed::Map::add(self.p, key, value)?;
     Ok(())
   }
 
-  pub fn make_term(&mut self) -> LTerm {
-    LTerm::make_boxed(self.p)
+  pub fn make_term(&mut self) -> Term {
+    Term::make_boxed(self.p)
   }
 }

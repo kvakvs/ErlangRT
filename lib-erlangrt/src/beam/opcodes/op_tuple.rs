@@ -3,7 +3,7 @@ use crate::{
   beam::{disp_result::DispatchResult, gen_op::OPCODE_PUT},
   emulator::{code::opcode, process::Process, runtime_ctx::Context},
   fail::{self, RtResult},
-  term::{boxed, lterm::LTerm},
+  term::{boxed, lterm::Term},
 };
 
 // fn module() -> &'static str {
@@ -25,7 +25,7 @@ impl OpcodePutTuple {
     ctx: &mut Context,
     curr_p: &mut Process,
     arity: usize,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     let tuple_p = boxed::Tuple::create_into(hp, arity)?;
@@ -45,7 +45,7 @@ impl OpcodePutTuple {
       }
     }
 
-    ctx.store_value(LTerm::make_boxed(tuple_p), dst, hp)?;
+    ctx.store_value(Term::make_boxed(tuple_p), dst, hp)?;
     Ok(DispatchResult::Normal)
   }
 }
@@ -63,8 +63,8 @@ impl OpcodeTestArity {
   #[inline]
   pub fn test_arity(
     ctx: &mut Context,
-    fail: LTerm,
-    value: LTerm,
+    fail: Term,
+    value: Term,
     arity: usize,
   ) -> RtResult<DispatchResult> {
     // Possibly even not a tuple
@@ -95,9 +95,9 @@ impl OpcodeGetTupleElement {
   pub fn get_tuple_element(
     ctx: &mut Context,
     curr_p: &mut Process,
-    src: LTerm,
+    src: Term,
     index: usize,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let tuple_p = src.get_tuple_ptr();
     let element = unsafe { (*tuple_p).get_element(index) };
@@ -118,8 +118,8 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeSetTupleElement {
   #[inline]
   pub fn set_tuple_element(
-    value: LTerm,
-    dst: LTerm,
+    value: Term,
+    dst: Term,
     index: usize,
   ) -> RtResult<DispatchResult> {
     if !dst.is_tuple() {
@@ -146,10 +146,10 @@ impl OpcodeIsTaggedTuple {
   #[inline]
   pub fn is_tagged_tuple(
     ctx: &mut Context,
-    label: LTerm,
-    value: LTerm,
+    label: Term,
+    value: Term,
     arity: usize,
-    atom: LTerm,
+    atom: Term,
   ) -> RtResult<DispatchResult> {
     if !value.is_tuple() {
       ctx.jump(label);

@@ -63,14 +63,14 @@ impl VM {
   /// stored into the registers.
   pub fn create_process(
     &mut self,
-    parent: LTerm,
+    parent: Term,
     mfargs: &ModFunArgs,
     spawn_opts: &SpawnOptions,
-  ) -> RtResult<LTerm> {
+  ) -> RtResult<Term> {
     let pid_c = self.pid_counter;
     self.pid_counter += 1;
 
-    let pid = LTerm::make_local_pid(pid_c);
+    let pid = Term::make_local_pid(pid_c);
     let mfarity = mfargs.get_mfarity()?;
     let cs = self.get_code_server_p();
     let mut p0 = Process::new(pid, parent, &mfarity, spawn_opts, unsafe { &mut (*cs) })?;
@@ -84,10 +84,10 @@ impl VM {
 
   pub fn spawn_system_process(
     &mut self,
-    parent: LTerm,
+    parent: Term,
     mfargs: &ModFunArgs,
     mut spawn_opts: SpawnOptions,
-  ) -> RtResult<LTerm> {
+  ) -> RtResult<Term> {
     let mfarity = mfargs.get_mfarity()?;
     // Fail if MFA not found, otherwise continue
     let _ = self.code_server.lookup_mfa(&mfarity, false)?;
@@ -95,7 +95,7 @@ impl VM {
     self.create_process(parent, mfargs, &spawn_opts)
   }
 
-  pub fn register_new_process(&mut self, pid: LTerm, mut proc: Process) {
+  pub fn register_new_process(&mut self, pid: Term, mut proc: Process) {
     proc.owned_by_scheduler = (&mut self.scheduler) as *mut Scheduler;
     self.processes.insert(pid, proc);
     self.scheduler.enqueue(&mut self.processes, pid);

@@ -2,7 +2,7 @@ use crate::{
   emulator::heap::Heap,
   fail::RtResult,
   term::{
-    lterm::LTerm,
+    lterm::Term,
     term_builder::{list_builder::build_erlstr_from_utf8, ListBuilder},
   },
 };
@@ -31,7 +31,7 @@ pub struct ErlStartArgs {
   /// Small heap only for storing command line available globally
   arg_heap: Heap,
   /// Command line is stored here when built, otherwise is a non value
-  args_term: LTerm,
+  args_term: Term,
 }
 
 impl ErlStartArgs {
@@ -43,7 +43,7 @@ impl ErlStartArgs {
       start: Vec::new(),
       search_path: vec![],
       arg_heap: Heap::new(1024),
-      args_term: LTerm::non_value(),
+      args_term: Term::non_value(),
     }
   }
 
@@ -102,7 +102,7 @@ impl ErlStartArgs {
 
   /// Using the local small heap build list of strings on it; Then return the
   /// list value, which also is cached in the args struct.
-  pub fn get_command_line_list(&mut self) -> RtResult<LTerm> {
+  pub fn get_command_line_list(&mut self) -> RtResult<Term> {
     if self.args_term.is_value() {
       return Ok(self.args_term);
     }

@@ -55,7 +55,7 @@ pub enum CTError {
 /// a tuple which represents a jump table (pairs value -> label)
 enum PatchLocation {
   PatchCodeOffset(Word),
-  PatchJtabElement(LTerm, Word),
+  PatchJtabElement(Term, Word),
 }
 
 /// BEAM loader state.
@@ -67,7 +67,7 @@ struct LoaderState {
   //--- Stage 2 structures filled later ---
   /// Atoms converted to VM terms. Remember to use from_loadtime_atom_index()
   /// which will deduce 1 from the index automatically
-  vm_atoms: Vec<LTerm>,
+  vm_atoms: Vec<Term>,
   // vm_funs: BTreeMap<FunArity, CodeOffset>,
 
   //--- Code postprocessing and creating a function object ---
@@ -85,12 +85,12 @@ struct LoaderState {
   funs: module::ModuleFunTable,
 
   /// Raw imports transformed into 3 tuples {M,Fun,Arity} and stored on lit heap
-  imports: Vec<LTerm>,
+  imports: Vec<Term>,
 
   lambdas: Vec<FunEntry>,
   /*  /// A map of F/Arity -> HOExport which uses literal heap but those created
    *  /// during runtime will be using process heap.
-   *  exports: BTreeMap<FunArity, LTerm> */
+   *  exports: BTreeMap<FunArity, Term> */
 }
 
 impl LoaderState {
@@ -114,14 +114,14 @@ impl LoaderState {
 
   /// With atom index loaded from BEAM query `self.vm_atoms` array. Takes into
   /// account special value 0 and offsets the index down by 1.
-  fn atom_from_loadtime_index(&self, n: usize) -> LTerm {
+  fn atom_from_loadtime_index(&self, n: usize) -> Term {
     if n == 0 {
-      return LTerm::nil();
+      return Term::nil();
     }
     self.vm_atoms[n as usize - 1]
   }
 
-  fn module_name(&self) -> LTerm {
+  fn module_name(&self) -> Term {
     match &self.name {
       Some(mod_id) => mod_id.module,
       None => panic!("{}mod_id must be set at this point", module()),
@@ -165,7 +165,7 @@ impl LoaderState {
   fn create_jump_destination(&self, dst_offset: CodeOffset) -> Word {
     let CodeOffset(offs) = dst_offset;
     let ptr = &self.code[offs] as *const Word;
-    LTerm::make_cp(ptr).raw()
+    Term::make_cp(ptr).raw()
   }
 
   /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
@@ -175,7 +175,7 @@ impl LoaderState {
       // A special value 0 means NIL []
       LtTerm::LoadtimeAtom(0) => Some(LtTerm::Nil),
 
-      // Repack load-time atom via an `LTerm` index into an `FTerm` atom
+      // Repack load-time atom via an `Term` index into an `FTerm` atom
       LtTerm::LoadtimeAtom(i) => {
         let aindex = self.atom_from_loadtime_index(i).atom_index();
         Some(LtTerm::Atom(aindex))

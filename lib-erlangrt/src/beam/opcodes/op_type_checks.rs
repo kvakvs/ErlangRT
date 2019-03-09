@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context},
   fail::{self, RtResult},
-  term::{boxed, lterm::LTerm},
+  term::{boxed, lterm::Term},
 };
 use num::Signed;
 
@@ -38,7 +38,7 @@ define_opcode!(_vm, ctx, curr_p,
 
 impl OpcodeIsFunction2 {
   #[inline]
-  fn fetch_arity(arity_t: LTerm) -> RtResult<usize> {
+  fn fetch_arity(arity_t: Term) -> RtResult<usize> {
     if arity_t.is_small() {
       Ok(arity_t.get_small_unsigned())
     } else {
@@ -57,9 +57,9 @@ impl OpcodeIsFunction2 {
   #[inline]
   pub fn is_function2(
     ctx: &mut Context,
-    fail_label: LTerm,
-    val: LTerm,
-    arity_as_term: LTerm,
+    fail_label: Term,
+    val: Term,
+    arity_as_term: Term,
   ) -> RtResult<DispatchResult> {
     let arity = Self::fetch_arity(arity_as_term)?;
     println!("is_function2? {}", val);
@@ -88,7 +88,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsTuple, arity: 2,
   run: {
-    if value != LTerm::empty_tuple() && !value.is_tuple() { ctx.jump(fail) }
+    if value != Term::empty_tuple() && !value.is_tuple() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
   args: cp_or_nil(fail), load(value),
@@ -99,7 +99,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsBinary, arity: 2,
   run: {
-    if value != LTerm::empty_binary() && !value.is_binary() { ctx.jump(fail) }
+    if value != Term::empty_binary() && !value.is_binary() { ctx.jump(fail) }
     Ok(DispatchResult::Normal)
   },
   args: cp_or_nil(fail), load(value),

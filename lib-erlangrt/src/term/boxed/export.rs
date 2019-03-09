@@ -45,16 +45,16 @@ impl Export {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn create_into(hp: &mut Heap, mfa: &ModFunArity) -> RtResult<LTerm> {
+  pub unsafe fn create_into(hp: &mut Heap, mfa: &ModFunArity) -> RtResult<Term> {
     let n_words = Export::storage_size();
     let this = hp.alloc::<Export>(n_words, false)?;
 
     ptr::write(this, Export::new(mfa));
-    Ok(LTerm::make_boxed(this))
+    Ok(Term::make_boxed(this))
   }
 
   #[allow(dead_code)]
-  pub unsafe fn const_from_term(t: LTerm) -> RtResult<*const Export> {
+  pub unsafe fn const_from_term(t: Term) -> RtResult<*const Export> {
     helper_get_const_from_boxed_term::<Export>(
       t,
       BOXTYPETAG_EXPORT,
@@ -63,7 +63,7 @@ impl Export {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: LTerm) -> RtResult<*mut Export> {
+  pub unsafe fn mut_from_term(t: Term) -> RtResult<*mut Export> {
     helper_get_mut_from_boxed_term::<Export>(
       t,
       BOXTYPETAG_EXPORT,

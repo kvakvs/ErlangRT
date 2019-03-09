@@ -18,9 +18,9 @@ use crate::{
 #[allow(dead_code)]
 enum ContinueCompare {
   // This begins the compare while not knowing types for `a` or `b`.
-  AnyType { a: LTerm, b: LTerm },
+  AnyType { a: Term, b: Term },
   // Resume comparing Cons cells, we just reenter `eq_terms_cons`.
-  Cons { a: LTerm, b: LTerm },
+  Cons { a: Term, b: Term },
 }
 
 #[allow(dead_code)]
@@ -32,15 +32,15 @@ enum EqResult {
   /// when a first element of a nested structure compares equal but some
   /// members remain to be checked recursively.
   CompareNested {
-    a: LTerm,
-    b: LTerm,
+    a: Term,
+    b: Term,
     state: ContinueCompare,
   },
 }
 
 /// Compare two terms for equality, fail if types are different even if
 /// coercion is otherwise possible.
-pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
+pub fn cmp_terms(a: Term, b: Term, exact: bool) -> RtResult<Ordering> {
   if a == b {
     return Ok(Ordering::Equal);
   }
@@ -48,7 +48,7 @@ pub fn cmp_terms(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
 }
 
 #[inline]
-fn cmp_terms_1(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
+fn cmp_terms_1(a: Term, b: Term, exact: bool) -> RtResult<Ordering> {
   // Comparison might want to recurse.
   // To avoid stack growth, do a switch here and continue comparing in a loop.
   // We grow `stack` vector instead of a CPU stack.
@@ -92,7 +92,7 @@ fn cmp_terms_1(a: LTerm, b: LTerm, exact: bool) -> RtResult<Ordering> {
 }
 
 /// Given a and b, terms, branch on their type and try do draw some conclusions.
-fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
+fn cmp_terms_any_type(a: Term, b: Term, exact: bool) -> RtResult<EqResult> {
   debug_assert!(a.is_value(), "compare_any_type, a NON_VALUE and a {}", b);
   debug_assert!(b.is_value(), "compare_any_type, a {} and a NON_VALUE", a);
 
@@ -132,7 +132,7 @@ fn cmp_terms_any_type(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
 }
 
 #[inline]
-fn cmp_floats(a: LTerm, b: LTerm) -> Ordering {
+fn cmp_floats(a: Term, b: Term) -> Ordering {
   // Assume we know both values are floats
   unsafe { cmp_f64_naive(a.get_f64_unsafe(), b.get_f64_unsafe()) }
 }
@@ -153,17 +153,17 @@ fn cmp_f64_naive(a: f64, b: f64) -> Ordering {
   Ordering::Equal
 }
 
-fn cmp_numbers_not_exact(_a: LTerm, _b: LTerm) -> Ordering {
+fn cmp_numbers_not_exact(_a: Term, _b: Term) -> Ordering {
   unimplemented!("eq_numbers_not_exact")
 }
 
 /// Compare two atoms for equality. Returns the ordering result.
-fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
-  assert_ne!(a, LTerm::nil());
+fn cmp_atoms(a: Term, b: Term) -> Ordering {
+  assert_ne!(a, Term::nil());
   let atomp_a = atom::lookup(a);
   debug_assert!(!atomp_a.is_null(), "cmp_atoms: atom lookup {} failed", a);
 
-  assert_ne!(b, LTerm::nil());
+  assert_ne!(b, Term::nil());
   let atomp_b = atom::lookup(b);
   debug_assert!(!atomp_b.is_null(), "cmp_atoms: atom lookup {} failed", b);
 
@@ -179,10 +179,10 @@ fn cmp_atoms(a: LTerm, b: LTerm) -> Ordering {
 }
 
 /// Compare order of two types without looking into their value.
-fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
-  if a.is_cons() && b == LTerm::nil()
-    || a.is_tuple() && b == LTerm::empty_tuple()
-    || a.is_binary() && b == LTerm::empty_binary()
+fn cmp_type_order(a: Term, b: Term) -> Ordering {
+  if a.is_cons() && b == Term::nil()
+    || a.is_tuple() && b == Term::empty_tuple()
+    || a.is_binary() && b == Term::empty_binary()
   {
     return Ordering::Greater;
   }
@@ -194,7 +194,7 @@ fn cmp_type_order(a: LTerm, b: LTerm) -> Ordering {
 
 /// Switch between comparisons for equality by primary tag (immediate or boxes
 /// or fail immediately for different primary tags).
-fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
+fn cmp_terms_primary(a: Term, b: Term, exact: bool) -> RtResult<EqResult> {
   let a_prim_tag = a.get_term_tag();
   let b_prim_tag = b.get_term_tag();
   // println!("cmp {} tag={:?} vs {} tag={:?}", a, a_prim_tag, b, b_prim_tag);
@@ -229,8 +229,8 @@ fn cmp_terms_primary(a: LTerm, b: LTerm, exact: bool) -> RtResult<EqResult> {
 }
 
 // TODO: Optimize by doing case on tag bits
-fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
-  if (a == LTerm::nil() || a == LTerm::empty_tuple() || a == LTerm::empty_binary())
+fn cmp_terms_immed(a: Term, b: Term, _exact: bool) -> RtResult<Ordering> {
+  if (a == Term::nil() || a == Term::empty_tuple() || a == Term::empty_binary())
     && (a.raw() == b.raw())
   {
     return Ok(Ordering::Equal);
@@ -280,7 +280,7 @@ fn cmp_terms_immed(a: LTerm, b: LTerm, _exact: bool) -> RtResult<Ordering> {
 
 // TODO: Optimize by doing case on tag bits
 #[inline]
-fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
+fn cmp_terms_immed_box(a: Term, b: Term) -> RtResult<Ordering> {
   if a.is_tuple() {
     if b.is_tuple() {
       unimplemented!("cmp tuple vs tuple")
@@ -401,7 +401,7 @@ fn cmp_terms_immed_box(a: LTerm, b: LTerm) -> RtResult<Ordering> {
 }
 
 #[inline]
-unsafe fn cmp_binary(a: LTerm, b: LTerm) -> RtResult<Ordering> {
+unsafe fn cmp_binary(a: Term, b: Term) -> RtResult<Ordering> {
   let a_trait = boxed::Binary::get_trait_from_term(a);
   let b_trait = boxed::Binary::get_trait_from_term(b);
   let a_size = (*a_trait).get_bit_size();
@@ -429,8 +429,8 @@ unsafe fn cmp_binary(a: LTerm, b: LTerm) -> RtResult<Ordering> {
 /// able to get a byte-reader for A arg, or a bit-reader. It will further branch
 /// by doing the same for B arg.
 unsafe fn cmp_reader_vs_binary<AReader>(
-  a: LTerm,
-  b: LTerm,
+  a: Term,
+  b: Term,
   a_reader: AReader,
   b_trait: *const TBinary,
 ) -> RtResult<Ordering>
@@ -449,8 +449,8 @@ where
 /// Now that we finally have two compatible readers, get some bytes and see
 /// how they compare until a first mismatch.
 unsafe fn cmp_reader_vs_reader<AReader, BReader>(
-  _a: LTerm,
-  _b: LTerm,
+  _a: Term,
+  _b: Term,
   a_reader: AReader,
   b_reader: BReader,
 ) -> RtResult<Ordering>
@@ -485,7 +485,7 @@ where
 }
 
 /// Deeper comparison of two values with different types
-fn cmp_mixed_types(a: LTerm, b: LTerm) -> RtResult<Ordering> {
+fn cmp_mixed_types(a: Term, b: Term) -> RtResult<Ordering> {
   unimplemented!("cmp_mixed_types {} vs {}", a, b)
 }
 
@@ -494,7 +494,7 @@ fn cmp_mixed_types(a: LTerm, b: LTerm) -> RtResult<Ordering> {
 /// we will store the position and return `EqResult::CompareNested`.
 /// This will be pushed to a helper stack by the caller (`cmp_terms()`).
 /// The function cannot fail.
-unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
+unsafe fn cmp_cons(a: Term, b: Term) -> EqResult {
   let mut a_ptr = a.get_cons_ptr();
   let mut b_ptr = b.get_cons_ptr();
 
@@ -503,7 +503,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     let a_head = (*a_ptr).hd();
     let b_head = (*b_ptr).hd();
 
-    if !LTerm::is_same(a_head, b_head) {
+    if !Term::is_same(a_head, b_head) {
       // Recurse into a.hd and b.hd, but push a.tl and b.tl to continue
       let continue_op = ContinueCompare::Cons {
         a: (*a_ptr).tl(),
@@ -520,7 +520,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
     let atl = (*a_ptr).tl();
     let btl = (*b_ptr).tl();
 
-    if LTerm::is_same(atl, btl) {
+    if Term::is_same(atl, btl) {
       return EqResult::Concluded(Ordering::Equal);
     }
     if !atl.is_list() || !btl.is_list() {
@@ -539,7 +539,7 @@ unsafe fn cmp_cons(a: LTerm, b: LTerm) -> EqResult {
   }
 }
 
-// fn cmp_terms_box(a: LTerm, b: LTerm) -> RtResult<EqResult> {
+// fn cmp_terms_box(a: Term, b: Term) -> RtResult<EqResult> {
 //  println!("Comparing {} vs. {}", a, b);
 //  let a_ptr = a.get_box_ptr::<boxed::BoxHeader>();
 //  let b_ptr = b.get_box_ptr::<boxed::BoxHeader>();

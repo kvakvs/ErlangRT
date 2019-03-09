@@ -22,13 +22,13 @@ impl TupleBuilder {
   }
 
   #[inline]
-  pub unsafe fn set_element(&self, i: usize, val: LTerm) {
+  pub unsafe fn set_element(&self, i: usize, val: Term) {
     (*self.tuple_ptr).set_element(i, val)
   }
 
   #[inline]
-  pub fn make_term(&self) -> LTerm {
-    LTerm::make_boxed(self.tuple_ptr)
+  pub fn make_term(&self) -> Term {
+    Term::make_boxed(self.tuple_ptr)
   }
 }
 
@@ -36,7 +36,7 @@ impl TupleBuilder {
 impl Heap {
   /// Create a 2-tuple.
   #[inline]
-  pub fn tuple2(&mut self, a: LTerm, b: LTerm) -> RtResult<LTerm> {
+  pub fn tuple2(&mut self, a: Term, b: Term) -> RtResult<Term> {
     let tb = TupleBuilder::with_arity(2, self)?;
     unsafe {
       tb.set_element(0, a);

@@ -32,7 +32,7 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeCall {
   #[inline]
-  pub fn call(ctx: &mut Context, arity: usize, dst: LTerm) -> RtResult<DispatchResult> {
+  pub fn call(ctx: &mut Context, arity: usize, dst: Term) -> RtResult<DispatchResult> {
     ctx.live = arity;
     debug_assert!(dst.is_boxed(), "Call location must be a box (have {})", dst);
 
@@ -59,7 +59,7 @@ impl OpcodeCallOnly {
   pub fn call_only(
     ctx: &mut Context,
     arity: usize,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     ctx.live = arity;
     ctx.debug_trace_call("opcode:call_only", dst, 0, arity);
@@ -83,7 +83,7 @@ impl OpcodeCallLast {
     ctx: &mut Context,
     curr_p: &mut Process,
     arity: usize,
-    dst: LTerm,
+    dst: Term,
     dealloc: usize,
   ) -> RtResult<DispatchResult> {
     ctx.live = arity;
@@ -112,11 +112,11 @@ impl OpcodeCallExtOnly {
     ctx: &mut Context,
     curr_p: &mut Process,
     arity: usize,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let args = ctx.registers_slice(0, arity);
     ctx.debug_trace_call("opcode:call_ext_only", dst, 0, arity);
-    generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
+    generic_call_ext(vm, ctx, curr_p, dst, Term::nil(), args, false)
   }
 }
 
@@ -137,11 +137,11 @@ impl OpcodeCallExt {
     ctx: &mut Context,
     curr_p: &mut Process,
     arity: usize,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let args = ctx.registers_slice(0, arity);
     ctx.debug_trace_call("opcode:call_ext", dst, 0, arity);
-    generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, true)
+    generic_call_ext(vm, ctx, curr_p, dst, Term::nil(), args, true)
   }
 }
 
@@ -160,14 +160,14 @@ impl OpcodeCallExtLast {
     ctx: &mut Context,
     curr_p: &mut Process,
     arity: usize,
-    dst: LTerm,
+    dst: Term,
     dealloc: usize,
   ) -> RtResult<DispatchResult> {
     let new_cp = curr_p.heap.stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
     let args = ctx.registers_slice(0, arity);
     ctx.debug_trace_call("opcode:call_ext_last", dst, 0, arity);
-    generic_call_ext(vm, ctx, curr_p, dst, LTerm::nil(), args, false)
+    generic_call_ext(vm, ctx, curr_p, dst, Term::nil(), args, false)
   }
 }
 
@@ -177,9 +177,9 @@ fn generic_call_ext(
   vm: &mut VM,
   ctx: &mut Context,
   proc: &mut Process,
-  dst_import: LTerm,
-  fail_label: LTerm,
-  args: &[LTerm],
+  dst_import: Term,
+  fail_label: Term,
+  args: &[Term],
   save_cp: bool,
 ) -> RtResult<DispatchResult> {
   ctx.live = args.len();
@@ -196,7 +196,7 @@ fn generic_call_ext(
           fail_label,
           cb_target,
           args,
-          LTerm::make_regx(0),
+          Term::make_regx(0),
           true,
         );
         if save_cp {
@@ -262,8 +262,8 @@ impl OpcodeFuncInfo {
   #[inline]
   pub fn func_info(
     proc: &Process,
-    m: LTerm,
-    f: LTerm,
+    m: Term,
+    f: Term,
     arity: usize,
   ) -> RtResult<DispatchResult> {
     if cfg!(debug_assertions) {
@@ -278,7 +278,7 @@ impl OpcodeFuncInfo {
 }
 
 /// Create an error:badmatch exception
-/// Structure: badmatch(LTerm)
+/// Structure: badmatch(Term)
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeBadmatch, arity: 1,
   run: { Self::badmatch(curr_p, val) },
@@ -287,7 +287,7 @@ define_opcode!(_vm, _ctx, curr_p,
 
 impl OpcodeBadmatch {
   #[inline]
-  pub fn badmatch(curr_p: &mut Process, val: LTerm) -> RtResult<DispatchResult> {
+  pub fn badmatch(curr_p: &mut Process, val: Term) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     fail::create::badmatch_val(val, hp)
   }
@@ -306,8 +306,8 @@ impl OpcodeSelectVal {
   #[inline]
   pub fn select_val(
     ctx: &mut Context,
-    val: LTerm,
-    fail: LTerm,
+    val: Term,
+    fail: Term,
     pairs: *const boxed::Tuple,
   ) -> RtResult<DispatchResult> {
     let pairs_count = unsafe { (*pairs).get_arity() / 2 };
@@ -337,7 +337,7 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeJump {
   #[inline]
-  pub fn jump(ctx: &mut Context, dst: LTerm) -> RtResult<DispatchResult> {
+  pub fn jump(ctx: &mut Context, dst: Term) -> RtResult<DispatchResult> {
     ctx.jump(dst);
     Ok(DispatchResult::Normal)
   }

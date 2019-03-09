@@ -12,7 +12,7 @@ use crate::{
     },
     classify,
     compare::cmp_terms,
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 
@@ -107,9 +107,9 @@ impl Map {
 
   /// Add a key/value pair to map (unsorted).
   /// Note: the flatmap must be sorted for use
-  pub unsafe fn add(this: *mut Map, key: LTerm, value: LTerm) -> RtResult<()> {
+  pub unsafe fn add(this: *mut Map, key: Term, value: Term) -> RtResult<()> {
     // Take this+1 to get pointer after the struct end
-    let p = this.add(1) as *mut LTerm;
+    let p = this.add(1) as *mut Term;
     let insert_pos = match Self::get_internal(this, key)? {
       MapGetResult::FoundAt(pos) => pos,
       MapGetResult::ClosestLarger(pos) => {
@@ -135,11 +135,11 @@ impl Map {
 
   /// Find key in map
   #[allow(dead_code)]
-  pub unsafe fn get(this: *const Map, key: LTerm) -> RtResult<Option<LTerm>> {
+  pub unsafe fn get(this: *const Map, key: Term) -> RtResult<Option<Term>> {
     // If found anything, return the value, otherwise not found
     match Self::get_internal(this, key)? {
       MapGetResult::FoundAt(i) => {
-        let p = this.add(1) as *const LTerm;
+        let p = this.add(1) as *const Term;
         Ok(Some(core::ptr::read(p.add(i * 2 + 1))))
       }
       _ => Ok(None),
@@ -147,15 +147,15 @@ impl Map {
   }
 
   #[inline]
-  unsafe fn get_internal(this: *const Map, key: LTerm) -> RtResult<MapGetResult> {
+  unsafe fn get_internal(this: *const Map, key: Term) -> RtResult<MapGetResult> {
     match (*this).map_type {
       MapType::FlatMap => Self::get_flatmap(this, key),
     }
   }
 
-  unsafe fn get_flatmap(this: *const Map, key: LTerm) -> RtResult<MapGetResult> {
+  unsafe fn get_flatmap(this: *const Map, key: Term) -> RtResult<MapGetResult> {
     // Take this+1 to get pointer after the struct end
-    let p = this.add(1) as *mut LTerm;
+    let p = this.add(1) as *mut Term;
     let count = (*this).get_count();
 
     // Binary search goes here

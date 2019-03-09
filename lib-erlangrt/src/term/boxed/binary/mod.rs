@@ -15,7 +15,7 @@ use crate::{
       BoxHeader,
     },
     classify,
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 use crate::defs::ByteSize;
@@ -155,7 +155,7 @@ impl Binary {
   }
 
   /// Convert a VM term representation into a dynamic dispatch Rust trait
-  pub unsafe fn get_trait_from_term(t: LTerm) -> *const TBinary {
+  pub unsafe fn get_trait_from_term(t: Term) -> *const TBinary {
     let bin_p = t.get_box_ptr::<Binary>();
     Self::generic_switch(
       bin_p,

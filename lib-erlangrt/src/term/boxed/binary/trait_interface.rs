@@ -3,7 +3,7 @@
 use crate::{
   defs::{data_reader::BitDataReader, BitSize, ByteDataReader, ByteSize},
   fail::RtResult,
-  term::{boxed::binary::BinaryType, lterm::LTerm},
+  term::{boxed::binary::BinaryType, lterm::Term},
 };
 
 /// Trait represents any type of binary with generic access functions.
@@ -27,5 +27,5 @@ pub trait TBinary {
   /// Write to the binary from position 0
   fn store(&mut self, data: &[u8]) -> RtResult<()>;
 
-  fn make_term(&self) -> LTerm;
+  fn make_term(&self) -> Term;
 }

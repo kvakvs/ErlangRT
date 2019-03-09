@@ -14,7 +14,7 @@ use crate::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
   },
-  term::{lterm::LTerm, term_builder::TermBuilder},
+  term::{lterm::Term, term_builder::TermBuilder},
 };
 use bytes::Bytes;
 use compress::zlib;
@@ -38,16 +38,16 @@ pub struct BeamFile {
   pub code: Vec<u8>,
 
   /// Literal table decoded into friendly terms (does not use process heap).
-  pub lit_tab: Vec<LTerm>,
+  pub lit_tab: Vec<Term>,
 
   /// A place to allocate larger lterms (literal heap)
   pub lit_heap: Heap,
 
   /// Proplist of module attributes as loaded from "Attr" section
-  mod_attrs: LTerm,
+  mod_attrs: Term,
 
   /// Compiler flags as loaded from "Attr" section
-  compiler_info: LTerm,
+  compiler_info: Term,
 }
 
 impl BeamFile {
@@ -62,8 +62,8 @@ impl BeamFile {
 
       lit_tab: Vec::new(),
       lit_heap: Heap::new(DEFAULT_LIT_HEAP),
-      mod_attrs: LTerm::nil(),
-      compiler_info: LTerm::nil(),
+      mod_attrs: Term::nil(),
+      compiler_info: Term::nil(),
     }
   }
 

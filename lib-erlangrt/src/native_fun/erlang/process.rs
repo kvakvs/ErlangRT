@@ -28,8 +28,8 @@ define_nativefun!(_vm, proc, _args,
 pub fn nativefun_make_fun_3(
   _vm: &mut VM,
   cur_proc: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_arity("erlang:make_fun", 3, args);
   if !args[0].is_atom() || !args[1].is_atom() || !args[2].is_small() {
     return Err(RtErr::Exception(ExceptionType::Error, gen_atoms::BADARG));
@@ -51,14 +51,14 @@ define_nativefun!(vm, _proc, _args,
   invoke: {
     let mfargs = ModFunArgs::with_args_list(m, f, args);
     let spawn_opts = SpawnOptions::default();
-    vm.create_process(LTerm::nil(), &mfargs, &spawn_opts)
+    vm.create_process(Term::nil(), &mfargs, &spawn_opts)
   },
   args: atom(m), atom(f), list(args),
 );
 
 define_nativefun!(vm, _proc, args,
   name: "erlang:is_process_alive/1", struct_name: NfErlangIsPAlive1, arity: 1,
-  invoke: { Ok(LTerm::make_bool(vm.processes.lookup_pid(pid).is_some())) },
+  invoke: { Ok(Term::make_bool(vm.processes.lookup_pid(pid).is_some())) },
   args: pid(pid),
 );
 
@@ -71,7 +71,7 @@ define_nativefun!(vm, _proc, _args,
   args: atom(name), pid_port(pid_or_port),
 );
 
-pub fn register_2(vm: &mut VM, name: LTerm, pid_or_port: LTerm) -> RtResult<LTerm> {
+pub fn register_2(vm: &mut VM, name: Term, pid_or_port: Term) -> RtResult<Term> {
   // The define_nativefun! macro will check that the arguments are atom and pid/port
   // but here we additionally check if the name is not `undefined` and does not exist
   if name == gen_atoms::UNDEFINED || vm.processes.find_registered(name).is_some() {
@@ -102,10 +102,10 @@ define_nativefun!(vm, _proc, args,
 
 pub fn process_flag_3(
   vm: &mut VM,
-  pid: LTerm,
-  flag: LTerm,
+  pid: Term,
+  flag: Term,
   value: bool,
-) -> RtResult<LTerm> {
+) -> RtResult<Term> {
   let proc_p = vm.processes.unsafe_lookup_pid_mut(pid);
   if proc_p.is_null() {
     return fail::create::badarg();
@@ -115,9 +115,9 @@ pub fn process_flag_3(
 }
 
 #[inline]
-fn do_erlang_process_flag(p: &mut Process, flag: LTerm, value: bool) -> RtResult<LTerm> {
+fn do_erlang_process_flag(p: &mut Process, flag: Term, value: bool) -> RtResult<Term> {
   match flag {
-    gen_atoms::TRAP_EXIT => Ok(LTerm::make_bool(
+    gen_atoms::TRAP_EXIT => Ok(Term::make_bool(
       p.process_flags
         .read_and_set(process_flags::TRAP_EXIT, value),
     )),

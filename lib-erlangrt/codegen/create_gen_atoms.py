@@ -40,7 +40,7 @@ use crate::term::lterm::*;
     i = 0
     for akey in atom_keys:
         a = tables.atom_dict[akey]
-        print("pub const {cname}: LTerm = LTerm::make_atom({index});"
+        print("pub const {cname}: Term = Term::make_atom({index});"
               "".format(cname=a.cname, index=i))
         i += 1
 

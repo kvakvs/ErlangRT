@@ -7,7 +7,7 @@ use crate::{
       self,
       binary::{match_state::BinaryMatchState, trait_interface::TBinary},
     },
-    lterm::LTerm,
+    lterm::Term,
   },
 };
 
@@ -34,10 +34,10 @@ impl OpcodeBsStartMatch3 {
   fn bs_start_match_3(
     runtime_ctx: &mut Context,
     proc: &mut Process,
-    fail: LTerm,
-    match_context: LTerm,
+    fail: Term,
+    match_context: Term,
     live: usize,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     println!(
       "bs_start_match3 {}, context={}, live={}, dst={}",
@@ -84,9 +84,9 @@ impl OpcodeBsStartMatch3 {
   fn start_with_new_binary(
     runtime_ctx: &mut Context,
     proc: &mut Process,
-    _fail: LTerm,
+    _fail: Term,
     bin_ptr: *const TBinary,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     // let _total_bin_size = unsafe { (*bin_ptr).get_byte_size() };
     // OTP has a guard for total_bin_size to fit in 2^(64-3)
@@ -105,7 +105,7 @@ impl OpcodeBsStartMatch3 {
     //      runtime_ctx.jump(fail);
     //      return Ok(DispatchResult::Normal);
     //    }
-    runtime_ctx.store_value(LTerm::make_boxed(new_match_state), dst, &mut proc.heap)?;
+    runtime_ctx.store_value(Term::make_boxed(new_match_state), dst, &mut proc.heap)?;
     Ok(DispatchResult::Normal)
   }
 
@@ -115,12 +115,12 @@ impl OpcodeBsStartMatch3 {
     runtime_ctx: &mut Context,
     proc: &mut Process,
     match_state: *mut BinaryMatchState,
-    dst: LTerm,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     // Here we continue, matchstate has already been created, in context
     // Reset the position to the beginning
     (*match_state).reset();
-    runtime_ctx.store_value(LTerm::make_boxed(match_state), dst, &mut proc.heap)?;
+    runtime_ctx.store_value(Term::make_boxed(match_state), dst, &mut proc.heap)?;
     Ok(DispatchResult::Normal)
   }
 }

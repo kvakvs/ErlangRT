@@ -27,13 +27,13 @@ impl OpcodeBif0 {
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
-    target: LTerm,
-    dst: LTerm,
+    target: Term,
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     // NOTE: bif0 cannot fail (fail_label=NIL)
     println!("bif0 t={} dst={}", target, dst);
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
-    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, LTerm::nil(), cb_target, &[], dst, false)
+    call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, Term::nil(), cb_target, &[], dst, false)
   }
 }
 
@@ -50,10 +50,10 @@ impl OpcodeBif1 {
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
-    fail: LTerm,
-    target: LTerm,
-    args: &[LTerm],
-    dst: LTerm,
+    fail: Term,
+    target: Term,
+    args: &[Term],
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
     call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, false)
@@ -73,10 +73,10 @@ impl OpcodeBif2 {
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
-    fail: LTerm,
-    target: LTerm,
-    args: &[LTerm],
-    dst: LTerm,
+    fail: Term,
+    target: Term,
+    args: &[Term],
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
     call_native_fun::find_and_call_native_fun(vm, ctx, curr_p, fail, cb_target, args, dst, false)
@@ -96,11 +96,11 @@ impl OpcodeGcBif1 {
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
-    fail: LTerm,
+    fail: Term,
     live: usize,
-    target: LTerm,
-    args: &[LTerm],
-    dst: LTerm,
+    target: Term,
+    args: &[Term],
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     ctx.live = live;
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
@@ -122,11 +122,11 @@ impl OpcodeGcBif2 {
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
-    fail: LTerm,
+    fail: Term,
     live: usize,
-    target: LTerm,
-    args: &[LTerm],
-    dst: LTerm,
+    target: Term,
+    args: &[Term],
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     ctx.live = live;
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
@@ -148,11 +148,11 @@ impl OpcodeGcBif3 {
     vm: &mut VM,
     ctx: &mut Context,
     curr_p: &mut Process,
-    fail: LTerm,
+    fail: Term,
     live: usize,
-    target: LTerm,
-    args: &[LTerm],
-    dst: LTerm,
+    target: Term,
+    args: &[Term],
+    dst: Term,
   ) -> RtResult<DispatchResult> {
     ctx.live = live;
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);

@@ -35,9 +35,9 @@ impl CodeIterator {
   //  }
 
   //  /// Read current value at the iterator location.
-  //  pub unsafe fn read_term(&self) -> LTerm {
+  //  pub unsafe fn read_term(&self) -> Term {
   //    let DataPtr::Ptr(p) = self.p;
-  //    LTerm::from_raw(*p)
+  //    Term::from_raw(*p)
   //  }
 }
 

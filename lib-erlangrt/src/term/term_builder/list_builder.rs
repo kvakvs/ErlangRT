@@ -39,7 +39,7 @@ impl ListBuilder {
   /// Build list forward: Set current tail to a newly allocated cons (next cell).
   /// New cell becomes the current.
   /// Remember to terminate with NIL.
-  pub unsafe fn append(&mut self, val: LTerm) -> RtResult<()> {
+  pub unsafe fn append(&mut self, val: Term) -> RtResult<()> {
     if self.head_p.is_null() {
       // First cell in the list, make it the only cell in list
       self.tail_p = self.make_cell()?;
@@ -47,7 +47,7 @@ impl ListBuilder {
     } else {
       // Link old tail to new cell
       let new_cell = self.make_cell()?;
-      (*self.tail_p).set_tl(LTerm::make_cons(new_cell));
+      (*self.tail_p).set_tl(Term::make_cons(new_cell));
       self.tail_p = new_cell;
     }
     (*self.tail_p).set_hd(val);
@@ -57,41 +57,41 @@ impl ListBuilder {
   /// Build list back: Create a new cons, where tail points to current.
   /// New previous cell becomes the current.
   /// Remember to terminate the first cell of the list with NIL.
-  pub unsafe fn prepend(&mut self, val: LTerm) -> RtResult<()> {
+  pub unsafe fn prepend(&mut self, val: Term) -> RtResult<()> {
     if self.head_p.is_null() {
       self.head_p = self.make_cell()?;
       self.tail_p = self.head_p;
     } else {
       let new_cell = self.make_cell()?;
-      (*new_cell).set_tl(LTerm::make_cons(self.head_p));
+      (*new_cell).set_tl(Term::make_cons(self.head_p));
       self.head_p = new_cell;
     }
     (*self.head_p).set_hd(val);
     Ok(())
   }
 
-  pub unsafe fn set_tail(&self, tl: LTerm) {
+  pub unsafe fn set_tail(&self, tl: Term) {
     (*self.tail_p).set_tl(tl)
   }
 
-  pub fn make_term(&self) -> LTerm {
-    LTerm::make_cons(self.head_p)
+  pub fn make_term(&self) -> Term {
+    Term::make_cons(self.head_p)
   }
 
-  pub unsafe fn make_term_with_tail(&self, tail: LTerm) -> LTerm {
+  pub unsafe fn make_term_with_tail(&self, tail: Term) -> Term {
     // Cannot set tail if no cells were allocated
     assert!(!self.head_p.is_null());
     self.set_tail(tail);
-    LTerm::make_cons(self.head_p)
+    Term::make_cons(self.head_p)
   }
 }
 
 /// A helper which takes a heap and a UTF-8 string, and creates Erlang string
 /// of integer unicode codepoints, one per character.
-pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut Heap) -> RtResult<LTerm> {
+pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut Heap) -> RtResult<Term> {
   let mut lb = ListBuilder::new(hp)?;
   for (_pos, ch) in s.char_indices() {
-    lb.append(LTerm::make_small_unsigned(ch as usize))?;
+    lb.append(Term::make_small_unsigned(ch as usize))?;
   }
   Ok(lb.make_term())
 }

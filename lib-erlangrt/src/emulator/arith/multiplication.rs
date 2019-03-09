@@ -11,15 +11,15 @@ fn module() -> &'static str {
   "arith.multiplication: "
 }
 
-pub fn multiply(hp: &mut Heap, x: LTerm, y: LTerm) -> RtResult<LTerm> {
+pub fn multiply(hp: &mut Heap, x: Term, y: Term) -> RtResult<Term> {
   if x.is_small() {
     if y.is_small() {
       // Both a and b are small, check how many bits will be there in result
-      if x == LTerm::small_0() || y == LTerm::small_0() {
-        return Ok(LTerm::small_0());
-      } else if x == LTerm::small_1() {
+      if x == Term::small_0() || y == Term::small_0() {
+        return Ok(Term::small_0());
+      } else if x == Term::small_1() {
         return Ok(y);
-      } else if y == LTerm::small_1() {
+      } else if y == Term::small_1() {
         return Ok(x);
       }
       let result = multiply_two_small(hp, x.get_small_signed(), y.get_small_signed())?;
@@ -33,18 +33,18 @@ pub fn multiply(hp: &mut Heap, x: LTerm, y: LTerm) -> RtResult<LTerm> {
 }
 
 /// Implement multiplication for two signed integers, possibly creating a bigint.
-pub fn multiply_two_small(hp: &mut Heap, x: SWord, y: SWord) -> RtResult<LTerm> {
+pub fn multiply_two_small(hp: &mut Heap, x: SWord, y: SWord) -> RtResult<Term> {
   let big_x = BigInt::from(x);
   let big_y = BigInt::from(y);
   let result = big_x.checked_mul(&big_y).unwrap();
 
   // If the result fits into smallint, return it as smallint
   if let Some(i) = result.to_isize() {
-    if LTerm::small_fits(i) {
-      return Ok(LTerm::make_small_signed(i));
+    if Term::small_fits(i) {
+      return Ok(Term::make_small_signed(i));
     }
   }
 
   let boxptr = unsafe { Bignum::create_into(hp, result) }?;
-  Ok(LTerm::make_boxed(boxptr))
+  Ok(Term::make_boxed(boxptr))
 }

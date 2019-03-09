@@ -8,8 +8,8 @@ use std::collections::BTreeMap;
 
 pub use crate::emulator::code::{opcode::*, pointer::*};
 
-/// Code array stores opcodes/jump table offsets and args encoded as `LTerm`
-// TODO: Make code vec of LTerm?
+/// Code array stores opcodes/jump table offsets and args encoded as `Term`
+// TODO: Make code vec of Term?
 pub type Code = Vec<Word>;
 
 /// A slice to a code array

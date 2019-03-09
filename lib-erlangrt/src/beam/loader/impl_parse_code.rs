@@ -12,7 +12,7 @@ use crate::{
   },
   fail::RtResult,
   rt_util::bin_reader::BinaryReader,
-  term::{boxed, lterm::LTerm},
+  term::{boxed, lterm::Term},
 };
 
 fn module() -> &'static str {
@@ -168,14 +168,14 @@ impl LoaderState {
           // Push a header word with length
           let heap_jtab =
             boxed::Tuple::create_into(&mut self.beam_file.lit_heap, jtab.len())?;
-          self.code.push(LTerm::make_boxed(heap_jtab).raw());
+          self.code.push(Term::make_boxed(heap_jtab).raw());
 
-          // Each value convert to LTerm and also push forming a tuple
+          // Each value convert to Term and also push forming a tuple
           for (index, t) in jtab.iter().enumerate() {
             let new_t = if let LtTerm::LoadtimeLabel(f) = *t {
               // Try to resolve labels and convert now, or postpone
               let ploc =
-                PatchLocation::PatchJtabElement(LTerm::make_boxed(heap_jtab), index);
+                PatchLocation::PatchJtabElement(Term::make_boxed(heap_jtab), index);
               self.maybe_convert_label(LabelId(f), ploc)
             } else {
               t.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab)
@@ -220,7 +220,7 @@ impl LoaderState {
       None => {
         self.replace_labels.push(patch_loc);
         let LabelId(label_id) = l;
-        LTerm::make_small_unsigned(label_id).raw()
+        Term::make_small_unsigned(label_id).raw()
       }
     }
   }

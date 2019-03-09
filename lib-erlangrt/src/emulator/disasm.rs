@@ -54,7 +54,7 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
 
 unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
   for arg_index in 0..n_args {
-    let arg = core::ptr::read(ip.add(arg_index) as *const LTerm);
+    let arg = core::ptr::read(ip.add(arg_index) as *const Term);
 
     print!("{}", arg);
     if arg_index < n_args - 1 {

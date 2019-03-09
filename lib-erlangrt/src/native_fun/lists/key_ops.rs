@@ -4,7 +4,7 @@ use crate::{
   fail::RtResult,
   term::{
     compare,
-    lterm::{cons, LTerm},
+    lterm::{cons, Term},
   },
 };
 use std::cmp::Ordering;
@@ -16,7 +16,7 @@ define_nativefun!(_vm, _proc, args,
 );
 
 #[inline]
-fn keyfind_3(sample: LTerm, pos: usize, list: LTerm) -> RtResult<LTerm> {
+fn keyfind_3(sample: Term, pos: usize, list: Term) -> RtResult<Term> {
   if let Some(first) = cons::find_first(list, |elem| {
     if !elem.is_tuple() {
       return false;
@@ -35,7 +35,7 @@ fn keyfind_3(sample: LTerm, pos: usize, list: LTerm) -> RtResult<LTerm> {
       return false;
     }
   }) {
-    Ok(LTerm::make_boxed(first))
+    Ok(Term::make_boxed(first))
   } else {
     Ok(gen_atoms::FALSE)
   }

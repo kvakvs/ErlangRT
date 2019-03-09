@@ -22,7 +22,7 @@ pub fn start_emulator(args: &mut ErlStartArgs) {
   let mfargs = ModFunArgs::with_args_list(
     atom::from_str("test2"),
     atom::from_str("test"),
-    LTerm::nil(),
+    Term::nil(),
   );
 //  let mfargs = ModFunArgs::with_args_list(
 //    atom::from_str("init"),
@@ -30,7 +30,7 @@ pub fn start_emulator(args: &mut ErlStartArgs) {
 //    args.get_command_line_list().unwrap(),
 //  );
   let _rootp = beam_vm
-    .create_process(LTerm::nil(), &mfargs, &SpawnOptions::default())
+    .create_process(Term::nil(), &mfargs, &SpawnOptions::default())
     .unwrap();
 
   println!("Process created. Entering main loop...");

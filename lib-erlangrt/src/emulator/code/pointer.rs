@@ -56,13 +56,13 @@ impl CodePtr {
   }
 
   #[inline]
-  pub fn from_cp(cp: LTerm) -> CodePtr {
+  pub fn from_cp(cp: Term) -> CodePtr {
     CodePtr::from_ptr(cp.get_cp_ptr())
   }
 
   #[inline]
   fn assert_location_is_opcode(p0: *const Word) {
-    let p = p0 as *const LTerm;
+    let p = p0 as *const Term;
     unsafe {
       // An extra unsafe safety check, this will fail if codeptr points to
       // a random garbage. Or may be a null.
@@ -90,8 +90,8 @@ impl CodePtr {
 
   /// Convert to tagged CP integer
   #[inline]
-  pub fn to_cp_term(self) -> LTerm {
-    LTerm::make_cp(self.p)
+  pub fn to_cp_term(self) -> Term {
+    Term::make_cp(self.p)
   }
 
   #[inline]

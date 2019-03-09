@@ -2,7 +2,7 @@ use crate::{
   emulator::{process::Process, vm::VM},
   fail::RtResult,
   native_fun::assert_arity,
-  term::lterm::LTerm,
+  term::lterm::Term,
 };
 
 #[allow(dead_code)]
@@ -14,8 +14,8 @@ fn module() -> &'static str {
 pub fn nativefun_is_boolean_1(
   _vm: &mut VM,
   _curr_p: &mut Process,
-  args: &[LTerm],
-) -> RtResult<LTerm> {
+  args: &[Term],
+) -> RtResult<Term> {
   assert_arity("erlang:is_boolean", 1, args);
-  Ok(LTerm::make_bool(args[0].is_bool()))
+  Ok(Term::make_bool(args[0].is_bool()))
 }

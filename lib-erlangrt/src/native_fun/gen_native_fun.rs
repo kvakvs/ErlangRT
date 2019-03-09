@@ -6,8 +6,8 @@
 use crate::{native_fun, defs::Arity, term::lterm::*};
 
 pub struct BifTabItem {
-    pub m: LTerm, 
-    pub f: LTerm, 
+    pub m: Term, 
+    pub f: Term, 
     pub arity: Arity, 
     pub func: native_fun::NativeFn
 }
