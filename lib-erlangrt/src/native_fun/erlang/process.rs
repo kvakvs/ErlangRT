@@ -2,7 +2,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
-    mfa::{MFArity, ModFunArgs},
+    mfa::{ModFunArity, ModFunArgs},
     process::Process,
     process_flags,
     spawn_options::SpawnOptions,
@@ -36,7 +36,7 @@ pub fn nativefun_make_fun_3(
   }
 
   let hp = &mut cur_proc.heap;
-  let mfa = MFArity::from_slice(&args[0..3]);
+  let mfa = ModFunArity::from_slice(&args[0..3]);
 
   // Create an export on heap and return it
   let expt = unsafe { boxed::Export::create_into(hp, &mfa)? };

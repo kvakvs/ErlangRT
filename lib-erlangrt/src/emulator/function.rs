@@ -1,9 +1,9 @@
-use crate::emulator::mfa::MFArity;
+use crate::emulator::mfa::ModFunArity;
 
 /// Result of Lambda Table loading prepared for use in the runtime.
 #[derive(Debug)]
 pub struct FunEntry {
-  pub mfa: MFArity,
+  pub mfa: ModFunArity,
   //  code_pos: usize,
   //  index: usize,
   pub nfrozen: usize,
@@ -11,7 +11,7 @@ pub struct FunEntry {
 }
 
 impl FunEntry {
-  pub fn new(mfa: MFArity, nfrozen: usize) -> FunEntry {
+  pub fn new(mfa: ModFunArity, nfrozen: usize) -> FunEntry {
     FunEntry { mfa, nfrozen }
   }
 }

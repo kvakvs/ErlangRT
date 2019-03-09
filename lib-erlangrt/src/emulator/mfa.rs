@@ -29,8 +29,8 @@ impl<'a> ModFunArgs<'a> {
     }
   }
 
-  pub fn get_mfarity(&self) -> RtResult<MFArity> {
-    Ok(MFArity {
+  pub fn get_mfarity(&self) -> RtResult<ModFunArity> {
+    Ok(ModFunArity {
       m: self.m,
       f: self.f,
       arity: self.get_arity()?,
@@ -69,27 +69,27 @@ impl<'a> ModFunArgs<'a> {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct MFArity {
+pub struct ModFunArity {
   pub m: LTerm,
   pub f: LTerm,
   pub arity: Arity,
 }
 
-impl MFArity {
-  pub fn new(m: LTerm, f: LTerm, arity: Arity) -> MFArity {
-    MFArity { m, f, arity }
+impl ModFunArity {
+  pub fn new(m: LTerm, f: LTerm, arity: Arity) -> ModFunArity {
+    ModFunArity { m, f, arity }
   }
 
-  pub fn from_slice(lterms: &[LTerm]) -> MFArity {
-    MFArity {
+  pub fn from_slice(lterms: &[LTerm]) -> ModFunArity {
+    ModFunArity {
       m: lterms[0],
       f: lterms[1],
       arity: lterms[2].get_small_unsigned(),
     }
   }
 
-  pub fn new_from_funarity(m: LTerm, fa: &FunArity) -> MFArity {
-    MFArity {
+  pub fn new_from_funarity(m: LTerm, fa: &FunArity) -> ModFunArity {
+    ModFunArity {
       m,
       f: fa.f,
       arity: fa.arity,
@@ -101,7 +101,7 @@ impl MFArity {
   }
 }
 
-impl fmt::Display for MFArity {
+impl fmt::Display for ModFunArity {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}:{}/{}", self.m, self.f, self.arity)
   }

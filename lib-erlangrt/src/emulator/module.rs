@@ -8,7 +8,7 @@ use crate::{
     function::FunEntry,
     gen_atoms,
     heap::Heap,
-    mfa::MFArity,
+    mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
   term::lterm::LTerm,
@@ -66,7 +66,7 @@ impl Module {
 
   /// Find a `m:f/arity` in the functions table, `m` is checked to be equal to
   /// this module's name.
-  pub fn lookup(&self, mfa: &MFArity) -> RtResult<CodePtr> {
+  pub fn lookup(&self, mfa: &ModFunArity) -> RtResult<CodePtr> {
     assert_eq!(self.name(), mfa.m);
 
     let fa = mfa.get_funarity();
@@ -94,7 +94,7 @@ impl Module {
   /// Check whether IP belongs to this module's code range, and if so, try and
   /// find the MFA for the code location.
   // TODO: Use some smart range tree or binary search or something
-  pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<MFArity> {
+  pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<ModFunArity> {
     if !ip.belongs_to(&self.code) {
       return None;
     }
@@ -121,7 +121,7 @@ impl Module {
       }
     }
 
-    let mfa = MFArity::new_from_funarity(self.versioned_name.module, &fa);
+    let mfa = ModFunArity::new_from_funarity(self.versioned_name.module, &fa);
     Some(mfa)
   }
 }

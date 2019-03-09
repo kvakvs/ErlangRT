@@ -5,7 +5,7 @@ use crate::{
     code_srv::CodeServer,
     function::FunEntry,
     heap::Heap,
-    mfa::MFArity,
+    mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
   term::{
@@ -29,7 +29,7 @@ const fn module() -> &'static str {
 pub struct Closure {
   pub header: BoxHeader,
 
-  pub mfa: MFArity,
+  pub mfa: ModFunArity,
   pub dst: Option<VersionedCodePtr>,
   // Frozen value count, values follow in memory after the Closure struct
   // must be word size to avoid alignment of the following data
@@ -54,7 +54,7 @@ impl Closure {
       .add(nfrozen)
   }
 
-  fn new(mfa: MFArity, nfrozen: usize) -> Closure {
+  fn new(mfa: ModFunArity, nfrozen: usize) -> Closure {
     let arity = Closure::storage_size(nfrozen).words() - 1;
     Closure {
       header: BoxHeader::new::<Closure>(arity),

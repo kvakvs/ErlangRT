@@ -4,7 +4,7 @@ use crate::{
   emulator::{
     function::FunEntry,
     gen_atoms,
-    mfa::MFArity,
+    mfa::ModFunArity,
     process::Process,
     runtime_ctx::{self, Context},
     vm::VM,
@@ -94,7 +94,7 @@ impl OpcodeApply {
     curr_p: &mut Process,
     arity: usize,
   ) -> RtResult<DispatchResult> {
-    let mfa = MFArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
+    let mfa = ModFunArity::new(ctx.get_x(arity), ctx.get_x(arity + 1), arity);
     ctx.live = arity + 2;
     fixed_apply(vm, ctx, curr_p, &mfa, 0)?;
     Ok(DispatchResult::Normal)
@@ -130,7 +130,7 @@ impl OpcodeApplyLast {
 
     ctx.live = arity + 2;
 
-    let mfa = MFArity::new(module, function, arity);
+    let mfa = ModFunArity::new(module, function, arity);
     fixed_apply(vm, ctx, curr_p, &mfa, dealloc)?;
     Ok(DispatchResult::Normal)
   }
@@ -142,7 +142,7 @@ fn fixed_apply(
   vm: &mut VM,
   ctx: &mut Context,
   curr_p: &mut Process,
-  mfa: &MFArity,
+  mfa: &ModFunArity,
   dealloc: usize,
 ) -> RtResult<()> {
   if mfa.m == gen_atoms::ERLANG && mfa.f == gen_atoms::APPLY && mfa.arity == 3 {

@@ -12,6 +12,7 @@ edition = "2018"
 #    reading strings with quotes such as JSON.
 # Add "trace_comparisons" to log failed comparisons with args involved
 # Add "trace_calls" to see native and BEAM function calls logged
+# Add "trace_beam_loader" to print code loading debugging info
 [features]
 default = [
     "r22",
@@ -19,6 +20,7 @@ default = [
     "trace_opcode_execution",
     "trace_register_changes",
     "trace_stack_changes",
+    "trace_beam_loader",
 #    "trace_comparisons",
 #   "trace_calls",
 ]
@@ -29,6 +31,7 @@ trace_stack_changes = []
 trace_comparisons = []
 trace_calls = []
 fancy_string_quotes = []
+trace_beam_loader = []
 
 [dependencies]
 bit_field = "0.7.0"

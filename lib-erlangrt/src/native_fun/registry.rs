@@ -1,5 +1,5 @@
 use crate::{
-  emulator::{atom, mfa::MFArity},
+  emulator::{atom, mfa::ModFunArity},
   native_fun::{erlang, erts_internal, lists, module::NativeModule, NativeFn},
   term::lterm::LTerm,
 };
@@ -33,7 +33,7 @@ impl NativeFunRegistry {
   }
 
   /// Check whether an MFA is loaded as a native function.
-  pub fn mfa_exists(&self, mfa: &MFArity) -> bool {
+  pub fn mfa_exists(&self, mfa: &ModFunArity) -> bool {
     if let Some(module_def) = self.modules.get(&mfa.m) {
       if let Some(_fn_def) = module_def.functions.get(&mfa.get_funarity()) {
         return true;
@@ -42,7 +42,7 @@ impl NativeFunRegistry {
     false
   }
 
-  pub fn find_mfa(&self, mfa: &MFArity) -> Option<NativeFn> {
+  pub fn find_mfa(&self, mfa: &ModFunArity) -> Option<NativeFn> {
     if let Some(module_def) = self.modules.get(&mfa.m) {
       if let Some(fn_ptr) = module_def.functions.get(&mfa.get_funarity()) {
         return Some(*fn_ptr);

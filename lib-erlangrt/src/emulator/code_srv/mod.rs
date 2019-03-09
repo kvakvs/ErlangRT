@@ -7,7 +7,7 @@ use crate::{
   emulator::{
     atom,
     code::{pointer::VersionedCodePtr, CodePtr},
-    mfa::MFArity,
+    mfa::ModFunArity,
     module::{Module, VersionedModuleName},
   },
   fail::{RtErr, RtResult},
@@ -65,7 +65,7 @@ impl CodeServer {
   /// Arg: `allow_load` allows loading another BEAM file as needed
   pub fn lookup_mfa(
     &mut self,
-    mfa: &MFArity,
+    mfa: &ModFunArity,
     allow_load: bool,
   ) -> RtResult<MFALookupResult> {
     // It could be a BIF
@@ -88,7 +88,7 @@ impl CodeServer {
   /// Returns: Versioned pointer to code, suitable for storing
   pub fn lookup_beam_code_versioned(
     &self,
-    mfarity: &MFArity,
+    mfarity: &ModFunArity,
   ) -> RtResult<VersionedCodePtr> {
     let m = mfarity.m;
     match self.mods.get(&m) {
@@ -106,7 +106,7 @@ impl CodeServer {
 
   /// Find module:function/arity in BEAM code (i.e. exported by some module)
   /// Returns: Memory pointer to code, not versioned (do not store)
-  pub fn lookup_beam_code(&self, mfarity: &MFArity) -> RtResult<CodePtr> {
+  pub fn lookup_beam_code(&self, mfarity: &ModFunArity) -> RtResult<CodePtr> {
     let m = mfarity.m;
     match self.mods.get(&m) {
       None => {
@@ -141,7 +141,7 @@ impl CodeServer {
 
   /// Lookup, which will attempt to load a missing module if lookup fails
   /// on the first attempt.
-  pub fn lookup_beam_code_and_load(&mut self, mfarity: &MFArity) -> RtResult<CodePtr> {
+  pub fn lookup_beam_code_and_load(&mut self, mfarity: &ModFunArity) -> RtResult<CodePtr> {
     // Try lookup once, then load if not found
     match self.lookup_beam_code(mfarity) {
       Ok(ip) => return Ok(ip),
@@ -180,7 +180,7 @@ impl CodeServer {
 
   /// Given a code address try find a module and function where this belongs.
   // TODO: Optimize search by giving a module name hint and using a range tree
-  pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<MFArity> {
+  pub fn code_reverse_lookup(&self, ip: CodePtr) -> Option<ModFunArity> {
     for val in self.mods.values() {
       let modp = &val.curr_modp;
       let lresult = modp.code_reverse_lookup(ip);

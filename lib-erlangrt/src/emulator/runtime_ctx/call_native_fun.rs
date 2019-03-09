@@ -1,7 +1,7 @@
 use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{code_srv::CodeServer, mfa::MFArity, process::Process, vm::VM},
+  emulator::{code_srv::CodeServer, mfa::ModFunArity, process::Process, vm::VM},
   fail::{self, RtErr, RtResult},
   native_fun::NativeFn,
   term::{boxed::import, lterm::*},
@@ -22,7 +22,7 @@ pub enum CallBifTarget {
   /// A const pointer to an `import::Import`.
   ImportPointer(*const import::Import),
   /// An MFA reference which needs to be resolved.
-  MFArity(MFArity),
+  MFArity(ModFunArity),
   /// A resolved pointer to a `BifFn`.
   BifFnPointer(NativeFn),
 }
@@ -150,7 +150,7 @@ fn callbif_resolve_import(
 #[inline]
 fn callbif_resolve_mfa(
   code_srv: &CodeServer,
-  mfa: &MFArity,
+  mfa: &ModFunArity,
 ) -> RtResult<BifResolutionResult> {
   if let Some(fn_ptr) = code_srv.native_functions.find_mfa(&mfa) {
     return Ok(BifResolutionResult::FnPointer(fn_ptr));

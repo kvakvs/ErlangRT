@@ -1,15 +1,13 @@
 //! Generic errors used everywhere in the ErlangRT runtime.
-//!
 pub mod create;
 
 use crate::{
-  beam::compact_term::CTError,
-  defs::exc_type::ExceptionType,
+  defs::{exc_type::ExceptionType, ByteSize},
   rt_util::bin_reader::{self, ReadError},
   term::lterm::LTerm,
+  beam::loader::CTError,
 };
 use std::convert::From;
-use crate::defs::ByteSize;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -53,9 +51,9 @@ pub enum RtErr {
 
   //--- Binary ---
   CreatingZeroSizedBinary, // can't create 0-sized bin on heap, use immediate {} instead
-  CreatingZeroSizedSlice, // can't create 0-sized slice, use immediate {} instead
-  CannotCopyIntoRefbin, // To copy into binary, resolve ref into heapbin
-  CannotCopyIntoBinSlice, // Can not copy into binary slice, it is const
+  CreatingZeroSizedSlice,  // can't create 0-sized slice, use immediate {} instead
+  CannotCopyIntoRefbin,    // To copy into binary, resolve ref into heapbin
+  CannotCopyIntoBinSlice,  // Can not copy into binary slice, it is const
   HeapBinTooSmall(usize, ByteSize), // want bytes, have bytes
   ProcBinTooSmall(usize, ByteSize), // want bytes, have bytes
 }

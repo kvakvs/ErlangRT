@@ -2,10 +2,11 @@
 //! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
 use crate::{
+  beam::loader::{fterm::FTerm, CTError},
   defs::{SWord, Word},
   fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
-  term::{fterm::FTerm, integral::Integral},
+  term::integral::Integral,
 };
 use num::{bigint, ToPrimitive};
 
@@ -41,22 +42,8 @@ enum CTEExtTag {
   Literal = 0b0100_0111,
 }
 
-/// Errors created when parsing compact term format. They are delivered to the
-/// end caller wrapped in `fail::Error:CodeLoadingCompactTerm(x)`
-#[derive(Debug)]
-pub enum CTError {
-  BadLiteralTag,
-  BadAtomTag,
-  BadXRegTag,
-  BadYRegTag,
-  BadLabelTag,
-  BadCharacterTag,
-  BadIntegerTag,
-  BadExtendedTag(String),
-}
-
 fn module() -> &'static str {
-  "compact_term reader: "
+  "compact_term: "
 }
 
 #[inline]
@@ -119,7 +106,10 @@ pub fn read(r: &mut BinaryReader) -> RtResult<FTerm> {
         return Ok(FTerm::from_word(s));
       }
       if cfg!(debug_assertions) {
-        println!("bad integer tag when parsing compact term format: {:?}", bword);
+        println!(
+          "bad integer tag when parsing compact term format: {:?}",
+          bword
+        );
       }
       make_err(CTError::BadIntegerTag)
     }

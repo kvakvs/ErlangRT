@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::MFArity},
+  emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::ModFunArity},
   fail::{RtErr, RtResult},
   native_fun::NativeFn,
   term::{
@@ -18,7 +18,7 @@ use core::{mem::size_of, ptr};
 #[allow(dead_code)]
 pub struct Import {
   header: BoxHeader,
-  pub mfarity: MFArity,
+  pub mfarity: ModFunArity,
   /// Whether import points to a native fun or to BEAM fun, or we don't know yet
   is_bif: Option<bool>,
 }
@@ -38,7 +38,7 @@ impl Import {
     ByteSize::new(size_of::<Import>()).get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, mfarity: MFArity) -> RtResult<LTerm> {
+  pub unsafe fn create_into(hp: &mut Heap, mfarity: ModFunArity) -> RtResult<LTerm> {
     let n_words = Import::storage_size();
     let this = hp.alloc::<Import>(n_words, false)?;
 

@@ -7,7 +7,7 @@ use crate::{
     code_srv::CodeServer,
     heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
     mailbox::ProcessMailbox,
-    mfa::{MFArity, ModFunArgs},
+    mfa::{ModFunArity, ModFunArgs},
     process_flags::ProcessFlags,
     process_registry::ProcessRegistry,
     runtime_ctx,
@@ -77,7 +77,7 @@ impl Process {
   pub fn new(
     pid: LTerm,
     _parent_pid: LTerm,
-    mfarity: &MFArity,
+    mfarity: &ModFunArity,
     spawn_opts: &SpawnOptions,
     code_server: &mut CodeServer,
   ) -> RtResult<Process> {
@@ -139,7 +139,7 @@ impl Process {
   #[allow(dead_code)]
   pub fn jump(
     &mut self,
-    mfarity: &MFArity,
+    mfarity: &ModFunArity,
     code_server: &mut CodeServer,
   ) -> RtResult<()> {
     // TODO: Find mfa in code server and set IP to it
