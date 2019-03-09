@@ -54,7 +54,7 @@ macro_rules! define_nativefun {
 /// which will capture each arg from the `ip[$arg_pos]`.
 ///
 /// Arguments can be comma-separated many of:
-///   unused(n) - do nothing
+///   IGNORE(n) - do nothing
 ///   usize(n) - take term then unsigned small from it, else return badarg
 ///   term(n) - take word as a term
 ///   tuple(n) - the value is a tuple, otherwise badarg
@@ -67,7 +67,7 @@ macro_rules! define_nativefun {
 ///
 /// Example:
 /// ```define_nativefun_args!(vm, curr_p, args, 0,
-///   unused(arg1), usize(arg2), term(arg3), list(listarg))```
+///   IGNORE(arg1), usize(arg2), term(arg3), list(listarg))```
 /// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
 macro_rules! define_multiple_args {
   // Empty args are handled here
@@ -86,7 +86,7 @@ macro_rules! define_multiple_args {
 macro_rules! define_one_arg {
   // UNUSED args are do-nothing
   ( $fn_name:expr, $vmvar:ident, $procvar:ident, $argsvar:ident, $arg_pos:expr,
-    unused($arg_ident:ident)
+    IGNORE($arg_ident:ident)
   ) => {
     // unused $type $arg_ident
   };

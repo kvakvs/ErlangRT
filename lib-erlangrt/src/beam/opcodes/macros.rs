@@ -23,7 +23,7 @@
 ///   run: {
 ///     Self::bs_start_match_2(ctx, fail, context)
 ///   },
-///   args: cp_or_nil(fail), load(context), unused(usize_live), unused(term_src),
+///   args: cp_or_nil(fail), load(context), IGNORE(usize_live), IGNORE(term_src),
 ///         slice(args, 1), load(term_ctxr));
 /// ```
 
@@ -42,7 +42,7 @@ macro_rules! define_opcode {
 
       #[inline]
       pub fn __run(
-        $vmarg: &mut VM,
+        $vmarg: &mut crate::emulator::vm::VM,
         $ctxarg: &mut Context,
         $procarg: &mut Process
       ) -> RtResult<DispatchResult> {
@@ -61,7 +61,7 @@ macro_rules! define_opcode {
 /// which will capture each arg from the `ip[$arg_pos]`.
 ///
 /// Arguments can be comma-separated many of:
-///   unused(n) - do nothing
+///   IGNORE(n) - do nothing
 ///   usize(n) - take term then unsigned small from it, debug type check
 ///   load_usize(n) - first load then treat it as a small unsigned
 ///   term(n) - take word as a term
@@ -75,7 +75,7 @@ macro_rules! define_opcode {
 ///
 /// Example:
 /// ```define_opcode_args!(vm, ctx, curr_p, 0,
-///   unused(arg1), usize(arg2), term(arg3), slice(args,7))```
+///   IGNORE(arg1), usize(arg2), term(arg3), slice(args,7))```
 /// Argument 0 (arg_pos) is auto-increment position counter, should start from 0
 macro_rules! fetch_multiple_args {
   // Empty args are handled here
@@ -105,7 +105,7 @@ macro_rules! fetch_multiple_args {
 macro_rules! fetch_one_arg {
   // UNUSED args are do-nothing
   ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    unused($arg_ident:ident)
+    IGNORE($arg_ident:ident)
   ) => {
     // unused $type $arg_ident
   };

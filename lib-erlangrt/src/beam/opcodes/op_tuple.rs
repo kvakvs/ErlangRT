@@ -1,7 +1,7 @@
 //! Module implements opcodes related to tuple creation and manipulation.
 use crate::{
   beam::{disp_result::DispatchResult, gen_op::OPCODE_PUT},
-  emulator::{code::opcode, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{code::opcode, process::Process, runtime_ctx::Context},
   fail::{self, RtResult},
   term::{boxed, lterm::LTerm},
 };

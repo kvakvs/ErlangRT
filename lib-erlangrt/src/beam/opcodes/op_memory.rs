@@ -1,6 +1,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
   term::lterm::LTerm,
 };
@@ -97,16 +97,13 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
   run: { Self::test_heap(curr_p, heap_need) },
-  args: usize(heap_need), unused(live),
+  args: usize(heap_need), IGNORE(live),
 );
 // unsigned small 'live' will be used for gc
 
 impl OpcodeTestHeap {
   #[inline]
-  pub fn test_heap(
-    curr_p: &mut Process,
-    heap_need: usize,
-  ) -> RtResult<DispatchResult> {
+  pub fn test_heap(curr_p: &mut Process, heap_need: usize) -> RtResult<DispatchResult> {
     if !curr_p.heap.heap_has_available(heap_need) {
       // Heap has not enough, invoke GC and possibly fail
       return Err(RtErr::HeapIsFull);
@@ -121,15 +118,12 @@ impl OpcodeTestHeap {
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeTrim, arity: 2,
   run: { Self::trim(curr_p, n_trim) },
-  args: usize(n_trim), unused(remaining),
+  args: usize(n_trim), IGNORE(remaining),
 );
 
 impl OpcodeTrim {
   #[inline]
-  pub fn trim(
-    curr_p: &mut Process,
-    n_trim: usize
-  ) -> RtResult<DispatchResult> {
+  pub fn trim(curr_p: &mut Process, n_trim: usize) -> RtResult<DispatchResult> {
     let hp = &mut curr_p.heap;
     let tmp_cp = hp.stack_deallocate(n_trim);
     // assume that after trimming the cp will fit back on stack just fine

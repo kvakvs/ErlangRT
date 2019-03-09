@@ -19,8 +19,8 @@ default = [
     "trace_opcode_execution",
     "trace_register_changes",
     "trace_stack_changes",
-    "trace_comparisons",
-    "trace_calls",
+#    "trace_comparisons",
+#   "trace_calls",
 ]
 r22 = []
 trace_opcode_execution = []

@@ -1,6 +1,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context},
   fail::{self, RtResult},
   term::{boxed, lterm::LTerm},
 };
@@ -38,9 +38,7 @@ define_opcode!(_vm, ctx, curr_p,
 
 impl OpcodeIsFunction2 {
   #[inline]
-  fn fetch_arity(
-    arity_t: LTerm,
-  ) -> RtResult<usize> {
+  fn fetch_arity(arity_t: LTerm) -> RtResult<usize> {
     if arity_t.is_small() {
       Ok(arity_t.get_small_unsigned())
     } else {
@@ -173,4 +171,3 @@ define_opcode!(_vm, ctx, curr_p,
   },
   args: cp_or_nil(fail), load(value),
 );
-

@@ -2,7 +2,7 @@
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context, },
   fail::RtResult,
 };
 

@@ -4,7 +4,7 @@ use colored::Colorize;
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context},
   fail::RtResult,
   term::{compare, lterm::LTerm},
 };
@@ -97,9 +97,16 @@ fn generic_comparison(
   // Not flag is xor-ed with result =/= desired
   if (result != desired_result) ^ (invert == CmpInvert::Not) {
     if cfg!(feature = "trace_comparisons") {
-      println!("Comparison {} {:?} {} ? {} => {:?} (desired {:?} {:?})",
-               "failed".red(),
-               exact, a, b, result, invert, desired_result);
+      println!(
+        "Comparison {} {:?} {} ? {} => {:?} (desired {:?} {:?})",
+        "failed".red(),
+        exact,
+        a,
+        b,
+        result,
+        invert,
+        desired_result
+      );
     }
     ctx.jump(fail_label)
   }

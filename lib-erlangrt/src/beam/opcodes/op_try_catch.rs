@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::exc_type::ExceptionType,
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
   term::lterm::LTerm,
 };
@@ -113,10 +113,7 @@ define_opcode!(_vm, ctx, curr_p,
 
 impl OpcodeRaise {
   #[inline]
-  pub fn raise(
-    raise_trace: LTerm,
-    raise_val: LTerm,
-  ) -> RtResult<DispatchResult> {
+  pub fn raise(raise_trace: LTerm, raise_val: LTerm) -> RtResult<DispatchResult> {
     let exc_type = match get_trace_from_exc(raise_trace) {
       None => ExceptionType::Error,
       Some(et) => et,
