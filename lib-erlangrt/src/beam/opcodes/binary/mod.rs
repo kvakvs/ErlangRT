@@ -14,6 +14,22 @@ use crate::{
   term::{boxed::binary::match_state::BinaryMatchState, lterm::*},
 };
 
+// Values used in bs_* opcodes for flags
+// pub const BSF_ALIGNED: usize = 1;
+// pub const BSF_LITTLE: usize = 2; )
+// pub const BSF_SIGNED: usize = 4;
+// pub const BSF_EXACT: usize = 8;
+// pub const BSF_NATIVE: usize = 16;
+bitflags! {
+    pub struct BsFlags: usize {
+        const ALIGNED = 0b00000001; // Field is guaranteed to be byte-aligned
+        const LITTLE  = 0b00000010; // Field is little-endian (otherwise big)
+        const SIGNED  = 0b00000100; // Field is signed (otherwise unsigned)
+        const EXACT   = 0b00001000; // Size in bs_init is exact
+        const NATIVE  = 0b00010000; // Native endian
+    }
+}
+
 /// Having started binary matching, check that the match state has so many `Bits`
 /// remaining otherwise will jump to the `Fail` label.
 /// Structure: bs_test_tail2(Fail, MatchState, Bits)

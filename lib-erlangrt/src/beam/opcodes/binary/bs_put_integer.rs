@@ -24,7 +24,7 @@ impl OpcodeBsPutInteger {
     _fail: Term,
     arg_sz: usize,
     _unit: usize,
-    _flags: usize,
+    flags: usize,
     src: Term,
   ) -> RtResult<DispatchResult> {
     assert!(
@@ -34,7 +34,12 @@ impl OpcodeBsPutInteger {
     let dst_binary = ctx.current_bin.dst.unwrap();
     let sz = BitSize::with_bits(arg_sz);
     unsafe {
-      (*dst_binary).put_integer(src, sz, ctx.current_bin.offset);
+      (*dst_binary).put_integer(
+        src,
+        sz,
+        ctx.current_bin.offset,
+        crate::beam::opcodes::BsFlags::from_bits_truncate(flags),
+      )?;
     }
     ctx.current_bin.offset = ctx.current_bin.offset + sz;
     Ok(DispatchResult::Normal)

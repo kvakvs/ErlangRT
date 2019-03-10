@@ -25,7 +25,7 @@ pub mod procheap_bin;
 pub mod refc_bin;
 pub mod slice;
 pub mod trait_interface;
-pub mod writing;
+pub mod bit_writer;
 
 // pub use self::{match_state::*, bitsize::*, slice::*, trait_interface::*};
 

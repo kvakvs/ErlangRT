@@ -34,14 +34,15 @@ fancy_string_quotes = []
 trace_beam_loader = []
 
 [dependencies]
-bit_field = "0.7.0"
+# bit_field = "0.7.0"
+# paste = "0.1"
+bitflags = "1.0.4"
 bytes = "0.4.5"
 clippy = {version = "*", optional = true}
+colored = "1.6" # console colors (TTY systems)
 compress = "0.1.2"
 lazy_static = "0.2"
 num = "0.1.40"
-colored = "1.6" # console colors (TTY systems)
-paste = "0.1"
 
 [profile.dev]
 panic = "unwind"

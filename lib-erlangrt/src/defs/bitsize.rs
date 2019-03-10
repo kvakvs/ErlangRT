@@ -22,6 +22,9 @@ impl fmt::Debug for BitSize {
 
 impl BitSize {
   #[inline]
+  pub const fn is_empty(self) -> bool { self.bit_count == 0 }
+
+  #[inline]
   pub const fn with_bits(bit_count: usize) -> Self {
     Self { bit_count }
   }
@@ -61,7 +64,6 @@ impl BitSize {
     }
   }
 
-  #[allow(dead_code)]
   #[inline]
   pub const fn get_last_byte_bits(&self) -> usize {
     self.bit_count & (defs::BYTE_BITS - 1)
@@ -70,6 +72,11 @@ impl BitSize {
   #[inline]
   pub const fn get_byte_size_rounded_down(&self) -> ByteSize {
     ByteSize::new(self.bit_count >> defs::BYTE_POF2_BITS)
+  }
+
+  #[inline]
+  pub const fn get_bytes_rounded_down(&self) -> usize {
+    self.bit_count >> defs::BYTE_POF2_BITS
   }
 
   pub const fn get_byte_size_rounded_up(self) -> ByteSize {

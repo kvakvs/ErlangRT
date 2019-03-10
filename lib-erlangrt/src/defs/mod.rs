@@ -20,7 +20,6 @@ pub type Arity = usize;
 
 /// How many bits have to shift right or left, to lose the 8 multiplier of a byte
 pub const BYTE_POF2_BITS: usize = 3;
-
 /// Like there were many other byte-sizes in Erlang VMs ever before.
 pub const BYTE_BITS: usize = 1usize << BYTE_POF2_BITS;
 

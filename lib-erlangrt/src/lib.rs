@@ -6,8 +6,8 @@
 #![feature(raw)]
 
 #[macro_use] extern crate lazy_static;
-
-extern crate paste;
+#[macro_use] extern crate bitflags;
+// extern crate paste;
 
 mod beam;
 mod native_fun;

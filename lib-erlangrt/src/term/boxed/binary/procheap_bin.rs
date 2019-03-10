@@ -5,7 +5,7 @@ use crate::{
   term::{
     boxed::{
       self,
-      binary::{trait_interface::TBinary, writing, BinaryType},
+      binary::{bit_writer::BitWriter, trait_interface::TBinary, BinaryType},
       Binary,
     },
     lterm::Term,
@@ -75,9 +75,10 @@ impl TBinary for ProcessHeapBinary {
     val: Term,
     size: BitSize,
     offset: BitSize,
+    flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()> {
     let data = self.get_data_mut();
-    writing::put_integer(val, size, data, offset)
+    BitWriter::put_integer(val, size, data, offset, flags)
   }
 }
 
