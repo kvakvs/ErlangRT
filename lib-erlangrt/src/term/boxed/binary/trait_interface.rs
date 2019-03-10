@@ -28,4 +28,12 @@ pub trait TBinary {
   fn store(&mut self, data: &[u8]) -> RtResult<()>;
 
   fn make_term(&self) -> Term;
+
+  //
+  // Writing support
+  //
+
+  /// Writes integer `val` (small or big) of `size`, the offset has to be increased
+  /// by `size` by the caller.
+  unsafe fn put_integer(&mut self, val: Term, size: BitSize, offset: BitSize) -> RtResult<()>;
 }

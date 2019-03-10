@@ -1,14 +1,11 @@
 //! Module implements binary/bit syntax matching and data creation & extraction
 //! opcodes for binaries.
-pub mod bs_init;
-
-pub use bs_init::*;
-
-pub mod bs_start_match;
-pub use bs_start_match::*;
-
 pub mod bs_get_binary;
-pub use bs_get_binary::*;
+pub mod bs_init;
+pub mod bs_put_integer;
+pub mod bs_start_match;
+
+pub use super::{bs_get_binary::*, bs_init::*, bs_put_integer::*, bs_start_match::*};
 
 use crate::{
   beam::disp_result::DispatchResult,

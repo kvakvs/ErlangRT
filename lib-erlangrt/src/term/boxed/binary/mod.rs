@@ -25,6 +25,7 @@ pub mod procheap_bin;
 pub mod refc_bin;
 pub mod slice;
 pub mod trait_interface;
+pub mod writing;
 
 // pub use self::{match_state::*, bitsize::*, slice::*, trait_interface::*};
 
@@ -178,6 +179,18 @@ impl Binary {
       |refb_ptr| refb_ptr as *const TBinary,
       |bhb_ptr| bhb_ptr as *const TBinary,
       |slice_ptr| slice_ptr as *const TBinary,
+    )
+  }
+
+  /// Convert a VM term representation into a dynamic dispatch Rust trait
+  pub unsafe fn get_trait_mut_from_term(t: Term) -> *mut TBinary {
+    let bin_p = t.get_box_ptr_mut::<Binary>();
+    Self::generic_switch_mut(
+      bin_p,
+      |phb_ptr| phb_ptr as *mut TBinary,
+      |refb_ptr| refb_ptr as *mut TBinary,
+      |bhb_ptr| bhb_ptr as *mut TBinary,
+      |slice_ptr| slice_ptr as *mut TBinary,
     )
   }
 

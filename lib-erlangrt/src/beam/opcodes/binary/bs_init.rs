@@ -33,8 +33,8 @@ impl OpcodeBsInit2 {
     fail: Term,
     sz: usize,
     words: usize,
-    regs: usize,
-    flags: usize,
+    _regs: usize,
+    _flags: usize,
     dst: Term,
   ) -> RtResult<DispatchResult> {
     if fail != Term::nil() && boxed::Binary::is_size_too_big(ByteSize::new(sz)) {
@@ -58,6 +58,7 @@ impl OpcodeBsInit2 {
     let bin = unsafe { boxed::Binary::create_into(binary_size, &mut proc.heap)? };
 
     let bin_term = unsafe { (*bin).make_term() };
+    runtime_ctx.current_bin.reset(bin_term);
     runtime_ctx.store_value(bin_term, dst, &mut proc.heap)?;
     Ok(DispatchResult::Normal)
   }

@@ -9,11 +9,10 @@ use crate::{
   defs::*,
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
-  term::boxed::{self, BoxHeader, BoxType},
+  term::boxed::{self, box_header, BoxHeader, BoxType},
 };
 use core::{cmp::Ordering, isize};
 use std::fmt;
-use crate::term::boxed::box_header;
 
 // Structure of term:
 // [ Value or a pointer ] [ TAG_* value 3 bits ]
@@ -518,13 +517,22 @@ impl Term {
 
   #[inline]
   pub fn get_small_signed(self) -> SWord {
-    debug_assert!(self.is_small(), "Small is expected, got raw=0x{:x}", self.value);
+    debug_assert!(
+      self.is_small(),
+      "Small is expected, got raw=0x{:x}",
+      self.value
+    );
     (self.value as SWord) >> TERM_TAG_BITS
   }
 
   #[inline]
   pub fn get_small_unsigned(self) -> Word {
     debug_assert!(self.is_small());
+    debug_assert!(
+      (self.value as SWord) >= 0,
+      "term::small_unsigned is negative {}",
+      self
+    );
     self.get_term_val_without_tag()
   }
 

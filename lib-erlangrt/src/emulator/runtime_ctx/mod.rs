@@ -1,9 +1,5 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
-use core::{fmt, slice};
-
-use colored::Colorize;
-
 use crate::{
   beam::gen_op,
   defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
@@ -16,17 +12,20 @@ use crate::{
   },
   fail::RtResult,
   term::lterm::{
-    Term, SpecialTag, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY,
-    TERMTAG_SPECIAL,
+    SpecialTag, Term, SPECIALTAG_REGFP, SPECIALTAG_REGX, SPECIALTAG_REGY, TERMTAG_SPECIAL,
   },
 };
+use colored::Colorize;
+use core::{fmt, slice};
+use crate::emulator::runtime_ctx::current_binary::CurrentBinaryState;
 
 pub mod call_closure;
 pub mod call_export;
 pub mod call_native_fun;
+pub mod current_binary;
 
 fn module() -> &'static str {
-  "runtime_ctx: "
+  "rt_ctx: "
 }
 
 /// Structure represents the runtime state of a VM process. It is "swapped in"
@@ -52,6 +51,9 @@ pub struct Context {
 
   /// Current state of Y registers.
   pub fpregs: [f64; MAX_FPREGS],
+
+  /// Binary building shenanigans store state here
+  pub current_bin: CurrentBinaryState,
 }
 
 /// Returned from return function, it can either be performed on an empty stack
@@ -74,6 +76,7 @@ impl Context {
       regs: [Term::non_value(); MAX_XREGS],
       live: 0,
       reductions: 0,
+      current_bin: CurrentBinaryState::new(),
     }
   }
 
@@ -188,11 +191,7 @@ impl Context {
 
   /// Returns mutable slice of registers `offset` to `sz`, bypassing the borrow checker
   /// It is the caller responsibility to forget the registers slice ASAP.
-  pub fn registers_slice_mut(
-    &mut self,
-    offset: usize,
-    sz: usize,
-  ) -> &'static mut [Term] {
+  pub fn registers_slice_mut(&mut self, offset: usize, sz: usize) -> &'static mut [Term] {
     unsafe { slice::from_raw_parts_mut(self.regs.as_mut_ptr().add(offset), sz) }
   }
 

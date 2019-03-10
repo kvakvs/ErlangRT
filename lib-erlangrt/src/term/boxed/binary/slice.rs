@@ -106,4 +106,8 @@ impl TBinary for BinarySlice {
   fn make_term(&self) -> Term {
     Term::make_boxed(&self.bin_header)
   }
+
+  unsafe fn put_integer(&mut self, val: Term, size: BitSize, offset: BitSize) -> Result<(), RtErr> {
+    unimplemented!("Can't put_integer into a binary slice")
+  }
 }

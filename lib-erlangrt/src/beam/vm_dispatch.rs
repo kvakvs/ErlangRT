@@ -272,6 +272,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeCallExtOnly::__run(vm, ctx, curr_p);
     },
 
+    OPCODE_BS_PUT_INTEGER => {
+      assert_arity(OPCODE_BS_PUT_INTEGER, OpcodeBsPutInteger::ARITY);
+      return OpcodeBsPutInteger::__run(vm, ctx, curr_p);
+    },
+
     OPCODE_MAKE_FUN2 => {
       assert_arity(OPCODE_MAKE_FUN2, OpcodeMakeFun2::ARITY);
       return OpcodeMakeFun2::__run(vm, ctx, curr_p);

@@ -104,31 +104,32 @@ macro_rules! fetch_multiple_args {
 
 macro_rules! fetch_one_arg {
   // UNUSED args are do-nothing
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    IGNORE($arg_ident:ident)
+  (
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,IGNORE($arg_ident:ident)
   ) => {
     // unused $type $arg_ident
   };
 
   // Term args are just taken as is from memory
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    term($arg_ident:ident)
-  ) => {
+  ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,term($arg_ident:ident)) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
   };
 
   // Literal Tuple args are ready to use pointers to a tuple, no extra "load"
   // step is required. Only debug check is performed whether the value is
   // a tuple, there will be no check in release.
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    literal_tuple($arg_ident:ident)
+  (
+    $vmarg:ident,
+    $ctxarg:ident,
+    $procarg:ident,
+    $arg_pos:expr,literal_tuple($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos).get_tuple_ptr();
   };
 
   // Usize args are decoded from term a small unsigned
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    usize($arg_ident:ident)
+  (
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_read_term_at($arg_pos);
@@ -138,8 +139,11 @@ macro_rules! fetch_one_arg {
   };
 
   // Load_usize args are first loaded then decoded from term a small unsigned
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    load_usize($arg_ident:ident)
+  (
+    $vmarg:ident,
+    $ctxarg:ident,
+    $procarg:ident,
+    $arg_pos:expr,load_usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
@@ -150,36 +154,45 @@ macro_rules! fetch_one_arg {
 
   // Load args are terms which may point to a register or a stack cell
   // and should be loaded before use.
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    load($arg_ident:ident)
-  ) => {
+  ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,load($arg_ident:ident)) => {
     let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
   };
 
   // Take a term from IP, and assert it is a CP or a NIL
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    cp_or_nil($arg_ident:ident)
+  (
+    $vmarg:ident,
+    $ctxarg:ident,
+    $procarg:ident,
+    $arg_pos:expr,cp_or_nil($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!($arg_ident.is_cp() || $arg_ident == Term::nil());
   };
 
   // Take a term from IP, and assert it is a Y register
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    yreg($arg_ident:ident)
-  ) => {
+  ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,yreg($arg_ident:ident)) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
-    debug_assert!($arg_ident.is_regy(), "Expected an Y register, got {}", $arg_ident);
+    debug_assert!(
+      $arg_ident.is_regy(),
+      "Expected an Y register, got {}",
+      $arg_ident
+    );
   };
 
   // Take a term from IP, and assert it is a binary match state
-  ( $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
-    binary_match_state($arg_ident:ident)
+  (
+    $vmarg:ident,
+    $ctxarg:ident,
+    $procarg:ident,
+    $arg_pos:expr,binary_match_state($arg_ident:ident)
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
-      debug_assert!(tmp.is_boxed_of_type(crate::term::boxed::BOXTYPETAG_BINARY_MATCH_STATE),
-        "Expected a binary match state, got {}", tmp);
+      debug_assert!(
+        tmp.is_boxed_of_type(crate::term::boxed::BOXTYPETAG_BINARY_MATCH_STATE),
+        "Expected a binary match state, got {}",
+        tmp
+      );
       tmp.get_box_ptr_mut::<crate::term::boxed::binary::match_state::BinaryMatchState>()
     };
   };

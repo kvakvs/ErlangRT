@@ -3,7 +3,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{trait_interface::TBinary, BinaryType},
+      binary::{trait_interface::TBinary, writing, BinaryType},
       Binary,
     },
     lterm::Term,
@@ -74,5 +74,15 @@ impl TBinary for BinaryHeapBinary {
 
   fn make_term(&self) -> Term {
     Term::make_boxed((&self.bin_header) as *const Binary)
+  }
+
+  unsafe fn put_integer(
+    &mut self,
+    val: Term,
+    size: BitSize,
+    offset: BitSize,
+  ) -> RtResult<()> {
+    let data = self.get_data_mut();
+    writing::put_integer(val, size, data, offset)
   }
 }

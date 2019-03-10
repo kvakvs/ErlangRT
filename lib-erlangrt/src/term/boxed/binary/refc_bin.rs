@@ -67,4 +67,14 @@ impl TBinary for ReferenceToBinary {
   fn make_term(&self) -> Term {
     Term::make_boxed((&self.bin_header) as *const Binary)
   }
+
+  unsafe fn put_integer(
+    &mut self,
+    val: Term,
+    size: BitSize,
+    offset: BitSize,
+  ) -> RtResult<()> {
+    let p = self.pointer as *mut TBinary;
+    (*p).put_integer(val, size, offset)
+  }
 }
