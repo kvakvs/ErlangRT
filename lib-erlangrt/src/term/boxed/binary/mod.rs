@@ -1,8 +1,8 @@
 use core::fmt;
 
 use crate::{
-  defs::{self, data_reader::TDataReader, BitSize, WordSize},
-  emulator::heap::Heap,
+  defs::{self, data_reader::TDataReader, BitSize, ByteSize, WordSize},
+  emulator::{heap::Heap, vm::VM},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -18,7 +18,6 @@ use crate::{
     lterm::Term,
   },
 };
-use crate::defs::ByteSize;
 
 pub mod binaryheap_bin;
 pub mod match_state;
@@ -67,6 +66,22 @@ impl TBoxed for Binary {
 }
 
 impl Binary {
+  /// For binary of given size ensure that the heap has enough space on it,
+  /// and if a large binary is to be created, also check the binary heap capacity.
+  pub fn ensure_memory_for_binary(
+    vm: &mut VM,
+    hp: &mut Heap,
+    size: BitSize,
+    extra_memory: WordSize,
+  ) -> RtResult<()> {
+    if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
+      return hp.ensure_size(ProcessHeapBinary::storage_size(size) + extra_memory);
+    }
+    vm.binary_heap
+      .ensure_size(BinaryHeapBinary::storage_size(size))?;
+    return hp.ensure_size(ReferenceToBinary::storage_size() + extra_memory);
+  }
+
   fn get_binary_type_for_creation(size: BitSize) -> BinaryType {
     if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
       return BinaryType::ProcessHeap;

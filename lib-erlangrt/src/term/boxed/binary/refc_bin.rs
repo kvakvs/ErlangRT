@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, Word},
+  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, Word, WordSize},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -20,6 +20,11 @@ pub struct ReferenceToBinary {
 }
 
 impl ReferenceToBinary {
+  pub fn storage_size() -> WordSize {
+    let header_size = ByteSize::new(std::mem::size_of::<Self>());
+    header_size.get_words_rounded_up()
+  }
+
   #[allow(dead_code)]
   pub unsafe fn on_destroy(this: *mut ReferenceToBinary) {
     if (*this).refc > 0 {

@@ -154,13 +154,22 @@ impl Heap {
   //  }
 
   #[inline]
-  pub fn heap_has_available(&self, need: usize) -> bool {
-    self.heap_top + need <= self.stack_top
+  pub fn heap_has_available(&self, need: WordSize) -> bool {
+    self.heap_top + need.words() <= self.stack_top
+  }
+
+  /// Check that the heap has size needed, otherwise GC is triggered.
+  /// To expand heap without calling GC, a heap fragment can be attempted.
+  pub fn ensure_size(&mut self, size: WordSize) -> RtResult<()> {
+    if self.heap_has_available(size) {
+      return Ok(())
+    }
+    Err(RtErr::HeapIsFull("heap::ensure_size"))
   }
 
   #[inline]
-  pub fn stack_have(&self, need: usize) -> bool {
-    self.heap_top + need <= self.stack_top
+  pub fn stack_have(&self, need: WordSize) -> bool {
+    self.heap_top + need.words() <= self.stack_top
   }
 
   //  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
@@ -173,8 +182,11 @@ impl Heap {
   //  }
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  pub fn stack_alloc_unchecked(&mut self, need: Word, fill_nil: bool) {
-    self.stack_top -= need;
+  pub fn stack_alloc_unchecked(&mut self, need: WordSize, fill_nil: bool) {
+    if need.words() == 0 {
+      return;
+    }
+    self.stack_top -= need.words();
 
     // Clear the new cells
     let raw_nil = Term::nil().raw();
@@ -182,7 +194,7 @@ impl Heap {
       let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
 
       if fill_nil {
-        for y in 0..need {
+        for y in 0..need.words() {
           core::ptr::write(p.add(y), raw_nil)
         }
       }

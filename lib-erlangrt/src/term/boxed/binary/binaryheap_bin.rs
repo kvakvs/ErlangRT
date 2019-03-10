@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize},
+  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, WordSize},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -16,6 +16,14 @@ pub struct BinaryHeapBinary {
   pub bin_header: Binary,
   pub size: BitSize,
   pub data: usize, // first 8 (or 4) bytes of data begin here
+}
+
+impl BinaryHeapBinary {
+  pub fn storage_size(size: BitSize) -> WordSize {
+    let header_size = ByteSize::new(std::mem::size_of::<Self>());
+    // The size is `BinaryHeapBinary` in words rounded up + storage bytes rounded up
+    header_size.get_words_rounded_up() + size.get_words_rounded_up()
+  }
 }
 
 impl TBinary for BinaryHeapBinary {

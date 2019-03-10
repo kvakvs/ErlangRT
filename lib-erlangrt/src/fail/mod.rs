@@ -32,7 +32,7 @@ pub enum RtErr {
   // /// Very bad, no more memory to grow.
   // OutOfMemory,
   /// No space left in heap. GC requested.
-  HeapIsFull,
+  HeapIsFull(&'static str),
   /// Attempt to index outside of the current stack.
   StackIndexRange(usize),
 

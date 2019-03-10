@@ -4,14 +4,15 @@ use crate::{
   fail::{RtErr, RtResult},
   term::lterm::Term,
 };
+use crate::defs::sizes::WordSize;
 
 /// Shared code for stack checks and allocations with an optional heap check.
 #[inline]
-fn shared_allocate(
+fn gen_alloc(
   ctx: &mut Context,
   curr_p: &mut Process,
-  stack_need: usize,
-  heap_need: usize,
+  stack_need: WordSize,
+  heap_need: WordSize,
   live: usize,
   zero: bool,
 ) -> RtResult<()> {
@@ -20,18 +21,18 @@ fn shared_allocate(
   let hp = &mut curr_p.heap;
 
   if !hp.heap_has_available(heap_need) {
-    return Err(RtErr::HeapIsFull);
+    return Err(RtErr::HeapIsFull("heap::gen_alloc"));
   }
 
-  if hp.stack_have(stack_need + 1) {
+  if hp.stack_have(stack_need + WordSize::new(1)) {
     // Stack has enough words, we can allocate unchecked
-    if stack_need > 0 {
+    if stack_need.words() > 0 {
       hp.stack_alloc_unchecked(stack_need, zero);
     }
     hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
   } else {
     // Stack has not enough, invoke GC and possibly fail
-    return Err(RtErr::HeapIsFull);
+    return Err(RtErr::HeapIsFull("heap::gen_alloc/stack"));
   }
   Ok(())
 }
@@ -41,7 +42,7 @@ fn shared_allocate(
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateZero, arity: 2,
   run: {
-    shared_allocate(ctx, curr_p, stack_need, 0, live, true)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live, true)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(live),
@@ -51,7 +52,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocate, arity: 2,
   run: {
-    shared_allocate(ctx, curr_p, stack_need, 0, live, false)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live, false)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(live),
@@ -63,7 +64,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateHeapZero, arity: 3,
   run: {
-    shared_allocate(ctx, curr_p, stack_need, heap_need, live, true)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need), live, true)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(heap_need), usize(live),
@@ -73,7 +74,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateHeap, arity: 3,
   run: {
-    shared_allocate(ctx, curr_p, stack_need, heap_need, live, false)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need), live, false)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(heap_need), usize(live),
@@ -104,9 +105,9 @@ define_opcode!(_vm, _ctx, curr_p,
 impl OpcodeTestHeap {
   #[inline]
   pub fn test_heap(curr_p: &mut Process, heap_need: usize) -> RtResult<DispatchResult> {
-    if !curr_p.heap.heap_has_available(heap_need) {
+    if !curr_p.heap.heap_has_available(WordSize::new(heap_need)) {
       // Heap has not enough, invoke GC and possibly fail
-      return Err(RtErr::HeapIsFull);
+      return Err(RtErr::HeapIsFull("op::test_heap"));
     }
     Ok(DispatchResult::Normal)
   }

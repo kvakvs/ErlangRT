@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  defs::{BitSize, ByteSize},
-  emulator::{process::Process, runtime_ctx::Context},
+  defs::{BitSize, ByteSize, WordSize},
+  emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::{self, RtResult},
   term::{boxed, lterm::Term},
 };
@@ -18,8 +18,8 @@ use crate::{
 /// bs_init2 Fail Sz Words Regs Flags Dst =>   i_bs_init_fail_heap Sz Words Fail Regs Dst
 // Example  bs_init2 [], X1, 0, 2, 0, X1
 define_opcode!(
-  _vm, rt_ctx, proc, name: OpcodeBsInit2, arity: 6,
-  run: { Self::bs_init2(rt_ctx, proc, fail, sz, words, regs, flags, dst) },
+  vm, rt_ctx, proc, name: OpcodeBsInit2, arity: 6,
+  run: { Self::bs_init2(vm, rt_ctx, proc, fail, sz, words, regs, flags, dst) },
   args: cp_or_nil(fail), load_usize(sz), usize(words), usize(regs),
         usize(flags), term(dst),
 );
@@ -27,6 +27,7 @@ define_opcode!(
 impl OpcodeBsInit2 {
   #[inline]
   fn bs_init2(
+    vm: &mut VM,
     runtime_ctx: &mut Context,
     proc: &mut Process,
     fail: Term,
@@ -41,14 +42,22 @@ impl OpcodeBsInit2 {
     }
     if sz == 0 {
       // TODO: Check GC for extra words on heap
-      runtime_ctx.store_value(Term::empty_binary(), dst, &mut proc.heap);
+      runtime_ctx.store_value(Term::empty_binary(), dst, &mut proc.heap)?;
       return Ok(DispatchResult::Normal);
     }
+
+    boxed::Binary::ensure_memory_for_binary(
+      vm,
+      &mut proc.heap,
+      BitSize::with_bytes(sz),
+      WordSize::new(words),
+    )?;
+
     let binary_size = BitSize::with_bytes(sz);
     let bin = unsafe { boxed::Binary::create_into(binary_size, &mut proc.heap)? };
 
     let bin_term = unsafe { (*bin).make_term() };
-    runtime_ctx.store_value(bin_term, dst, &mut proc.heap);
+    runtime_ctx.store_value(bin_term, dst, &mut proc.heap)?;
     Ok(DispatchResult::Normal)
   }
 }

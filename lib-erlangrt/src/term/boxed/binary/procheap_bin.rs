@@ -77,9 +77,7 @@ impl ProcessHeapBinary {
   pub fn storage_size(size: BitSize) -> WordSize {
     let header_size = ByteSize::new(std::mem::size_of::<Self>());
     // The size is `ProcessHeapBinary` in words rounded up + storage bytes rounded up
-    WordSize::new(
-      header_size.get_words_rounded_up().words() + size.get_words_rounded_up().words(),
-    )
+    header_size.get_words_rounded_up() + size.get_words_rounded_up()
   }
 
   pub unsafe fn create_into(size: BitSize, hp: &mut Heap) -> RtResult<*mut TBinary> {

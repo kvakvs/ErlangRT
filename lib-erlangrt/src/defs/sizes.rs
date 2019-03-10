@@ -1,6 +1,7 @@
 use crate::defs;
 use core::fmt;
 use crate::defs::BitSize;
+use std::ops::Add;
 
 #[derive(Copy, Clone)]
 pub struct WordSize(usize);
@@ -24,6 +25,14 @@ impl WordSize {
   #[inline]
   pub const fn bytes(self) -> usize {
     self.0 * defs::WORD_BYTES
+  }
+}
+
+impl Add for WordSize {
+  type Output = Self;
+
+  fn add(self, other: Self) -> Self {
+    Self(self.0 + other.0)
   }
 }
 
