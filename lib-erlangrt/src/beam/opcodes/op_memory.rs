@@ -94,24 +94,16 @@ define_opcode!(_vm, ctx, curr_p,
 
 /// Check that there are `heap_need` words available on heap, otherwise run the
 /// GC using `live` amount of registers as a part of root set.
+/// Arg 'live' will be used for gc.
 /// Structure: test_heap(heap_need:int, live:int)
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
-  run: { Self::test_heap(curr_p, heap_need) },
+  run: {
+    curr_p.heap.ensure_size(WordSize::new(heap_need))?;
+    Ok(DispatchResult::Normal)
+  },
   args: usize(heap_need), IGNORE(live),
 );
-// unsigned small 'live' will be used for gc
-
-impl OpcodeTestHeap {
-  #[inline]
-  pub fn test_heap(curr_p: &mut Process, heap_need: usize) -> RtResult<DispatchResult> {
-    if !curr_p.heap.heap_has_available(WordSize::new(heap_need)) {
-      // Heap has not enough, invoke GC and possibly fail
-      return Err(RtErr::HeapIsFull("op::test_heap"));
-    }
-    Ok(DispatchResult::Normal)
-  }
-}
 
 /// Reduce the stack usage by N words, keeping CP on top of the stack.
 /// Remaining value is used for?

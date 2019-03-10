@@ -46,6 +46,7 @@ impl OpcodeBsInit2 {
       return Ok(DispatchResult::Normal);
     }
 
+    // Show intent to allocate memory; TODO: add GC related args, like live/regs
     boxed::Binary::ensure_memory_for_binary(
       vm,
       &mut proc.heap,

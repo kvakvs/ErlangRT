@@ -1,6 +1,5 @@
-use crate::defs;
+use crate::defs::{self, BitSize};
 use core::fmt;
-use crate::defs::BitSize;
 use std::ops::Add;
 
 #[derive(Copy, Clone)]
