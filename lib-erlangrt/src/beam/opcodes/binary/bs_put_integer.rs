@@ -6,9 +6,9 @@ use crate::{
   term::lterm::Term,
 };
 
-/// Store `src` into ??? context with unit size
-/// Erlang/OTP rewrites to:
-/// bs_put_integer Fail=j Sz=sq Unit=u Flags=u Src=s => gen_put_integer(Fail, Sz, Unit, Flags, Src)
+// Store `src` into ??? context with unit size
+// Erlang/OTP rewrites to:
+// bs_put_integer Fail=j Sz=sq Unit=u Flags=u Src=s => gen_put_integer(Fail, Sz, Unit, Flags, Src)
 define_opcode!(
   vm, rt_ctx, proc, name: OpcodeBsPutInteger, arity: 5,
   run: { Self::bs_put_integer(vm, rt_ctx, proc, fail, sz, unit, flags, src) },

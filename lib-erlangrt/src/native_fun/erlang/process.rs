@@ -43,9 +43,9 @@ pub fn nativefun_make_fun_3(
   Ok(expt)
 }
 
-/// Creates a new process specified by `module:function/arity` with `args`
-/// (args are passed as list), `arity` is length of args list.
-/// Spec: erlang:spawn(mod, fun, args:list)
+// Creates a new process specified by `module:function/arity` with `args`
+// (args are passed as list), `arity` is length of args list.
+// Spec: erlang:spawn(mod, fun, args:list)
 define_nativefun!(vm, _proc, _args,
   name: "erlang:spawn/3", struct_name: NfErlangSpawn3, arity: 3,
   invoke: {
@@ -62,7 +62,7 @@ define_nativefun!(vm, _proc, args,
   args: pid(pid),
 );
 
-/// erlang:register(RegName :: atom(), Pid_or_Port)
+// erlang:register(RegName :: atom(), Pid_or_Port)
 define_nativefun!(vm, _proc, _args,
   name: "erlang:register/2", struct_name: NfErlangRegister2, arity: 2,
   invoke: {
@@ -93,7 +93,7 @@ define_nativefun!(_vm, proc, args,
   args: atom(flag), bool(value),
 );
 
-/// Set a supported process flag for some other process.
+// Set a supported process flag for some other process.
 define_nativefun!(vm, _proc, args,
   name: "erlang:process_flag/3", struct_name: NfErlangProcFlag3, arity: 3,
   invoke: { process_flag_3(vm, pid, flag, value) },

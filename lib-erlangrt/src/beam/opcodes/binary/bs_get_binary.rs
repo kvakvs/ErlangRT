@@ -9,8 +9,8 @@ use crate::{
   },
 };
 
-/// Having started binary matching, retrieve a binary piece.
-/// Structure: bs_get_binary(Fail, MatchState, Live, Size, Unit, Flags, Dst)
+// Having started binary matching, retrieve a binary piece.
+// Structure: bs_get_binary(Fail, MatchState, Live, Size, Unit, Flags, Dst)
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsGetBinary2, arity: 7,
   run: {unsafe {

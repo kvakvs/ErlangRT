@@ -6,10 +6,10 @@ use crate::{
   term::lterm::Term,
 };
 
-/// Set up a try-catch stack frame for possible stack unwinding. Label points
-/// at a `try_case` opcode where the error will be investigated.
-/// We just write the cp given to the given Y register as a catch-value.
-/// Structure: try(reg:regy, label:cp)
+// Set up a try-catch stack frame for possible stack unwinding. Label points
+// at a `try_case` opcode where the error will be investigated.
+// We just write the cp given to the given Y register as a catch-value.
+// Structure: try(reg:regy, label:cp)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTry, arity: 2,
   run: { Self::try_opcode(curr_p, yreg, catch_label) },
@@ -36,8 +36,8 @@ impl OpcodeTry {
   }
 }
 
-/// End try-catch by clearing the catch value on stack
-/// Structure: try_end(reg:regy)
+// End try-catch by clearing the catch value on stack
+// Structure: try_end(reg:regy)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTryEnd, arity: 1,
   run: { Self::try_end(ctx, curr_p, y) },
@@ -69,9 +69,9 @@ impl OpcodeTryEnd {
   }
 }
 
-/// Concludes the catch, removes catch value from stack and shifts registers
-/// contents to prepare for exception checking.
-/// Structure: try_case(reg:regy)
+// Concludes the catch, removes catch value from stack and shifts registers
+// contents to prepare for exception checking.
+// Structure: try_case(reg:regy)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTryCase, arity: 1,
   run: { Self::try_case(ctx, curr_p, y) },
@@ -100,11 +100,11 @@ impl OpcodeTryCase {
   }
 }
 
-/// Raises the exception. The instruction is encumbered by backward
-/// compatibility. Arg0 is a stack trace and Arg1 is the value accompanying
-/// the exception. The reason of the raised exception is dug up from the stack
-/// trace. Fixed by `raw_raise` in otp21.
-/// Structure: raise(stacktrace:term, exc_value:term)
+// Raises the exception. The instruction is encumbered by backward
+// compatibility. Arg0 is a stack trace and Arg1 is the value accompanying
+// the exception. The reason of the raised exception is dug up from the stack
+// trace. Fixed by `raw_raise` in otp21.
+// Structure: raise(stacktrace:term, exc_value:term)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeRaise, arity: 2,
   run: { Self::raise(stacktrace, exc_value) },

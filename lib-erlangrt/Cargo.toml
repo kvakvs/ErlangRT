@@ -42,7 +42,7 @@ clippy = {version = "*", optional = true}
 colored = "1.6" # console colors (TTY systems)
 compress = "0.1.2"
 lazy_static = "0.2"
-num = "0.1.40"
+# num = "0.1.41"
 
 [profile.dev]
 panic = "unwind"

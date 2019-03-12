@@ -21,9 +21,9 @@ fn module() -> &'static str {
   "opcodes::op_execution: "
 }
 
-/// Perform a call to a `location` in code, storing address of the next opcode
-/// in `ctx.cp`.
-/// Structure: call(arity:int, loc:CP)
+// Perform a call to a `location` in code, storing address of the next opcode
+// in `ctx.cp`.
+// Structure: call(arity:int, loc:CP)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeCall, arity: 2,
   run: { Self::call(ctx, arity, dst) },
@@ -45,9 +45,9 @@ impl OpcodeCall {
   }
 }
 
-/// Perform a call to a `location` in code, the `ctx.cp` is not updated.
-/// Behaves like a jump?
-/// Structure: call_only(arity:int, dst:cp)
+// Perform a call to a `location` in code, the `ctx.cp` is not updated.
+// Behaves like a jump?
+// Structure: call_only(arity:int, dst:cp)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeCallOnly, arity: 2,
   run: { Self::call_only(ctx, arity, dst) },
@@ -68,9 +68,9 @@ impl OpcodeCallOnly {
   }
 }
 
-/// Deallocates stack, and performs a tail-recursive call (jump) to a `location`
-/// in code.
-/// Structure: call_last(arity:smallint, dst:cp, dealloc:smallint)
+// Deallocates stack, and performs a tail-recursive call (jump) to a `location`
+// in code.
+// Structure: call_last(arity:smallint, dst:cp, dealloc:smallint)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeCallLast, arity: 3,
   run: { Self::call_last(ctx, curr_p, arity, dst, dealloc) },
@@ -95,10 +95,10 @@ impl OpcodeCallLast {
   }
 }
 
-/// Performs a tail recursive call to a Destination mfarity (an `Import`
-/// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
-/// point to an external BEAM fn or a native fn. Does not update the `ctx.cp`.
-/// Structure: call_ext_only(arity:int, import:boxed)
+// Performs a tail recursive call to a Destination mfarity (an `Import`
+// object on the heap which contains `Mod`, `Fun`, and  `Arity`) which can
+// point to an external BEAM fn or a native fn. Does not update the `ctx.cp`.
+// Structure: call_ext_only(arity:int, import:boxed)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExtOnly, arity: 2,
   run: { Self::call_ext_only(vm, ctx, curr_p, arity, dst) },
@@ -120,10 +120,10 @@ impl OpcodeCallExtOnly {
   }
 }
 
-/// Performs a call to a Destination mfarity (an `Import` object on the heap
-/// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
-/// function or a BIF. Updates the `ctx.cp` with return IP.
-/// Structure: call_ext(arity:int, destination:boxed)
+// Performs a call to a Destination mfarity (an `Import` object on the heap
+// which contains `Mod`, `Fun`, and  `Arity`) which can point to an external
+// function or a BIF. Updates the `ctx.cp` with return IP.
+// Structure: call_ext(arity:int, destination:boxed)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExt, arity: 2,
   run: { Self::call_ext(vm, ctx, curr_p, arity, dst) },
@@ -145,8 +145,8 @@ impl OpcodeCallExt {
   }
 }
 
-/// Deallocates stack and performs a tail call to destination.
-/// Structure: call_ext_last(arity:int, destination:boxed, dealloc:smallint)
+// Deallocates stack and performs a tail call to destination.
+// Structure: call_ext_last(arity:int, destination:boxed, dealloc:smallint)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallExtLast, arity: 3,
   run: { Self::call_ext_last(vm, ctx, curr_p, arity, dst, dealloc) },
@@ -230,9 +230,9 @@ fn generic_call_ext(
   }
 }
 
-/// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
-/// the process has no more code to execute and will end with reason `normal`.
-/// Structure: return()
+// Jump to the value in `ctx.cp`, set `ctx.cp` to NULL. Empty stack means that
+// the process has no more code to execute and will end with reason `normal`.
+// Structure: return()
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeReturn, arity: 0,
   run: { Self::return_opcode(ctx, curr_p) },
@@ -277,8 +277,8 @@ impl OpcodeFuncInfo {
   }
 }
 
-/// Create an error:badmatch exception
-/// Structure: badmatch(Term)
+// Create an error:badmatch exception
+// Structure: badmatch(Term)
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeBadmatch, arity: 1,
   run: { Self::badmatch(curr_p, val) },
@@ -293,9 +293,9 @@ impl OpcodeBadmatch {
   }
 }
 
-/// Compares Arg with tuple of pairs {Value1, Label1, ...} and jumps to Label
-/// if it is equal. If none compared, will jump to FailLabel
-/// Structure: select_val(val:src, on_fail:label, tuple_pairs:src)
+// Compares Arg with tuple of pairs {Value1, Label1, ...} and jumps to Label
+// if it is equal. If none compared, will jump to FailLabel
+// Structure: select_val(val:src, on_fail:label, tuple_pairs:src)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeSelectVal, arity: 3,
   run: { Self::select_val(ctx, val, fail, pairs) },
@@ -327,8 +327,8 @@ impl OpcodeSelectVal {
   }
 }
 
-/// Jumps to label.
-/// Structure: jump(dst:label)
+// Jumps to label.
+// Structure: jump(dst:label)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeJump, arity: 1,
   run: { Self::jump(ctx, dst) },

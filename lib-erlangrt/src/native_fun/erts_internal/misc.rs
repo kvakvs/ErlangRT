@@ -3,8 +3,8 @@ use crate::{
   term::lterm::Term,
 };
 
-/// Spawns special system process
-/// Usage: erts_internal:spawn_system_process(Mod, Fun, Args)
+// Spawns special system process
+// Usage: erts_internal:spawn_system_process(Mod, Fun, Args)
 define_nativefun!(vm, proc, args,
   name: "erts_internal:spawn_system_process/3",
   struct_name: NfErtsiSpawnSysProc3, arity: 3,

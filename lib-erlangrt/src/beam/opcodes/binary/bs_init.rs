@@ -6,16 +6,16 @@ use crate::{
   term::{boxed, lterm::Term},
 };
 
-/// Create a binary on proc heap or binary heap with GC if required.
-/// Sz - size of the binary, Words - some extra size to reserve on heap
-///
-/// Spec:
-/// bs_init2 Fail Sz Words Regs Flags Dst | binary_too_big(Sz) => system_limit Fail
-/// bs_init2 Fail Sz Words Regs Flags Dst=y =>    bs_init2 Fail Sz Words Regs Flags x | move x Dst
-/// bs_init2 Fail Sz=u Words=u==0 Regs Flags Dst => i_bs_init Sz Regs Dst
-/// bs_init2 Fail Sz=u Words Regs Flags Dst =>    i_bs_init_heap Sz Words Regs Dst
-/// bs_init2 Fail Sz Words=u==0 Regs Flags Dst =>   i_bs_init_fail Sz Fail Regs Dst
-/// bs_init2 Fail Sz Words Regs Flags Dst =>   i_bs_init_fail_heap Sz Words Fail Regs Dst
+// Create a binary on proc heap or binary heap with GC if required.
+// Sz - size of the binary, Words - some extra size to reserve on heap
+//
+// Spec:
+// bs_init2 Fail Sz Words Regs Flags Dst | binary_too_big(Sz) => system_limit Fail
+// bs_init2 Fail Sz Words Regs Flags Dst=y =>    bs_init2 Fail Sz Words Regs Flags x | move x Dst
+// bs_init2 Fail Sz=u Words=u==0 Regs Flags Dst => i_bs_init Sz Regs Dst
+// bs_init2 Fail Sz=u Words Regs Flags Dst =>    i_bs_init_heap Sz Words Regs Dst
+// bs_init2 Fail Sz Words=u==0 Regs Flags Dst =>   i_bs_init_fail Sz Fail Regs Dst
+// bs_init2 Fail Sz Words Regs Flags Dst =>   i_bs_init_fail_heap Sz Words Fail Regs Dst
 // Example  bs_init2 [], X1, 0, 2, 0, X1
 define_opcode!(
   vm, rt_ctx, proc, name: OpcodeBsInit2, arity: 6,

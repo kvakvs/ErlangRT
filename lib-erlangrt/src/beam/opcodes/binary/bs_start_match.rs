@@ -11,13 +11,13 @@ use crate::{
   },
 };
 
-/// Begin binary matching (version 2 used from OTP R11 to OTP 21 inclusive,
-/// version 3 is OTP 22). Starts a binary match sequence.
-///
-/// Deprecated: bs_start_match2(fail, context:x|y, live:uint, {src,slots}, ctxr)
-/// Structure: bs_start_match3(Fail Bin Live Dst)
-
+// Begin binary matching (version 2 used from OTP R11 to OTP 21 inclusive,
+// version 3 is OTP 22). Starts a binary match sequence.
+//
+// Deprecated: bs_start_match2(fail, context:x|y, live:uint, {src,slots}, ctxr)
+// Structure: bs_start_match3(Fail Bin Live Dst)
 // Erlang/OTP uses following rewrite rules
+
 // bs_start_match3 Fail Bin Live Ctx | bs_get_position Ctx Pos=x Ignored
 //    => i_bs_start_match3_gp Bin Live Fail Ctx Pos
 // bs_start_match3 Fail=f ica Live Dst => jump Fail

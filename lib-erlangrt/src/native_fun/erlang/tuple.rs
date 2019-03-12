@@ -3,7 +3,7 @@ use crate::{
   term::{boxed, lterm::Term},
 };
 
-/// Return size of a tuple or a binary object.
+// Return size of a tuple or a binary object.
 define_nativefun!(_vm, _proc, args,
   name: "erlang:size/1", struct_name: NfErlangSize1, arity: 1,
   invoke: { size_1(t) },

@@ -6,9 +6,9 @@ use crate::{
 };
 use crate::beam::disp_result::YieldType;
 
-/// Sends to x0 value x1, x1 is moved to x0 as result of the operation.
-/// If process with pid x0 does not exist, no error is raised.
-/// Structure: send()
+// Sends to x0 value x1, x1 is moved to x0 as result of the operation.
+// If process with pid x0 does not exist, no error is raised.
+// Structure: send()
 define_opcode!(vm, ctx, _curr_p,
   name: OpcodeSend, arity: 0,
   run: { Self::send(vm, ctx) },
@@ -39,10 +39,10 @@ impl OpcodeSend {
   }
 }
 
-/// Picks up next message in the message queue and places it into `x0`.
-/// If there is no next message, jumps to `fail` label which points to a `wait`
-/// or `wait_timeout` instruction.
-/// Structure: loop_rec(fail:cp, _source)
+// Picks up next message in the message queue and places it into `x0`.
+// If there is no next message, jumps to `fail` label which points to a `wait`
+// or `wait_timeout` instruction.
+// Structure: loop_rec(fail:cp, _source)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeLoopRec, arity: 2,
   run: { Self::loop_rec(ctx, curr_p, fail) },
@@ -65,9 +65,9 @@ impl OpcodeLoopRec {
   }
 }
 
-/// Advances message receive pointer to the next message then jumps to label
-/// which points to a `loop_rec` instruction.
-/// Structure: loop_rec_end(label:cp)
+// Advances message receive pointer to the next message then jumps to label
+// which points to a `loop_rec` instruction.
+// Structure: loop_rec_end(label:cp)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeLoopRecEnd, arity: 1,
   run: { Self::loop_rec_end(ctx, curr_p, label) },
@@ -87,8 +87,8 @@ impl OpcodeLoopRecEnd {
   }
 }
 
-/// Removes the current message in the process message list and moves it to `x0`
-/// Structure: remove_message()
+// Removes the current message in the process message list and moves it to `x0`
+// Structure: remove_message()
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeRemoveMessage, arity: 0,
   run: {
@@ -99,9 +99,9 @@ define_opcode!(_vm, ctx, curr_p,
   args:
 );
 
-/// Suspends the current process and sets the ip to the label (beginning of the
-/// receive loop).
-/// Structure: wait(label:cp)
+// Suspends the current process and sets the ip to the label (beginning of the
+// receive loop).
+// Structure: wait(label:cp)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeWait, arity: 1,
   run: { Self::wait(ctx, label) },

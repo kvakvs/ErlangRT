@@ -28,7 +28,7 @@ fn member_2(sample: Term, list: Term) -> RtResult<Term> {
   return Ok(Term::make_bool(result));
 }
 
-/// Returns list `list` reversed with `tail` appended (any term).
+// Returns list `list` reversed with `tail` appended (any term).
 define_nativefun!(_vm, proc, args,
   name: "lists:reverse/2", struct_name: NfListsReverse2, arity: 2,
   invoke: { unsafe { reverse_2(proc, list, tail) } },

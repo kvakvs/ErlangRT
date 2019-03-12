@@ -9,8 +9,8 @@ use crate::{
   term::{compare, lterm::Term},
 };
 
-/// Checks exact equality between arg1 and arg2, on false jump to arg0
-/// Structure: is_eq_exact(on_false:CP, a:src, b:src)
+// Checks exact equality between arg1 and arg2, on false jump to arg0
+// Structure: is_eq_exact(on_false:CP, a:src, b:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsEqExact, arity: 3,
   run: {
@@ -21,8 +21,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(a), load(b),
 );
 
-/// Checks exact inequality between arg1 and arg2, on false jump to arg0
-/// Structure: is_ne_exact(on_false:CP, a:src, b:src)
+// Checks exact inequality between arg1 and arg2, on false jump to arg0
+// Structure: is_ne_exact(on_false:CP, a:src, b:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsNeExact, arity: 3,
   run: {
@@ -33,8 +33,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(a), load(b),
 );
 
-/// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
-/// Structure: is_lt(on_false:CP, a:src, b:src)
+// Checks relation, that arg1 IS LESS than arg2, jump to arg0 otherwise.
+// Structure: is_lt(on_false:CP, a:src, b:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsLt, arity: 3,
   run: {
@@ -45,8 +45,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(a), load(b),
 );
 
-/// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
-/// Structure: is_eq(on_false:CP, a:src, b:src)
+// Checks relation, that arg1 IS EQUAL(soft) to arg2, jump to arg0 otherwise.
+// Structure: is_eq(on_false:CP, a:src, b:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsEq, arity: 3,
   run: {
@@ -57,8 +57,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(a), load(b),
 );
 
-/// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
-/// Structure: is_ge(on_false:CP, a:src, b:src)
+// Checks relation, that arg1 IS NO LESS than arg2, jump to arg0 otherwise.
+// Structure: is_ge(on_false:CP, a:src, b:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsGe, arity: 3,
   run: {

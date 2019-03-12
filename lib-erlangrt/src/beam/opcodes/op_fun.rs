@@ -13,9 +13,9 @@ use crate::{
   term::{boxed, lterm::Term},
 };
 
-/// Create a closure from a lambda table item (loaded from a BEAM file).
-/// Structure: make_fun2(lambda_index:uint)
-/// on load the argument is rewritten with a CP pointer to the funentry
+// Create a closure from a lambda table item (loaded from a BEAM file).
+// Structure: make_fun2(lambda_index:uint)
+// on load the argument is rewritten with a CP pointer to the funentry
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeMakeFun2, arity: 1,
   run: { Self::make_fun2(ctx, curr_p, export) },
@@ -42,8 +42,8 @@ impl OpcodeMakeFun2 {
   }
 }
 
-/// Structure: call_fun(arity:uint)
-/// Expects: x[0..arity-1] = args. x[arity] = fun object
+// Structure: call_fun(arity:uint)
+// Expects: x[0..arity-1] = args. x[arity] = fun object
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeCallFun, arity: 1,
   run: { Self::call_fun(vm, ctx, curr_p, arity) },
@@ -76,10 +76,10 @@ impl OpcodeCallFun {
   }
 }
 
-/// Applies args in `x[0..arity]` to module specified by an atom or a tuple in
-/// `x[arity]` and function specified by an atom in `x[arity+1]`.
-/// Structure: apply(arity:uint)
-/// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
+// Applies args in `x[0..arity]` to module specified by an atom or a tuple in
+// `x[arity]` and function specified by an atom in `x[arity+1]`.
+// Structure: apply(arity:uint)
+// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeApply, arity: 1,
   run: { Self::apply(vm, ctx, curr_p, arity) },
@@ -101,12 +101,12 @@ impl OpcodeApply {
   }
 }
 
-/// Applies args in `x[0..arity]` to module specified by an atom or a tuple in
-/// `x[arity]` and function specified by an atom in `x[arity+1]`. The call is
-/// tail recursive, and `dealloc` words are removed from stack preserving the
-/// CP on stack top.
-/// Structure: apply_last(arity:smallint, dealloc:smallint)
-/// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
+// Applies args in `x[0..arity]` to module specified by an atom or a tuple in
+// `x[arity]` and function specified by an atom in `x[arity+1]`. The call is
+// tail recursive, and `dealloc` words are removed from stack preserving the
+// CP on stack top.
+// Structure: apply_last(arity:smallint, dealloc:smallint)
+// Expects: `x[0..arity-1]` args, `x[arity]` = module, `x[arity+1]` = function
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeApplyLast, arity: 2,
   run: { Self::apply_last(vm, ctx, curr_p, arity, dealloc) },

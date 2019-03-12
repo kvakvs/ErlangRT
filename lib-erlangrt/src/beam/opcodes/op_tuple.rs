@@ -10,9 +10,9 @@ use crate::{
 //  "opcodes::op_tuple: "
 //}
 
-/// Creates an empty tuple of `arity` and places the pointer to it into `dst`.
-/// Followed by multiple `put` instructions which will set tuple elements.
-/// Structure: put_tuple(arity:smallint, dst)
+// Creates an empty tuple of `arity` and places the pointer to it into `dst`.
+// Followed by multiple `put` instructions which will set tuple elements.
+// Structure: put_tuple(arity:smallint, dst)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodePutTuple, arity: 2,
   run: { Self::put_tuple(ctx, curr_p, arity, dst) },
@@ -51,8 +51,8 @@ impl OpcodePutTuple {
 }
 
 
-/// Checks that tuple in argument1 has arity `arity` otherwise jumps to fail.
-/// Structure: test_arity(on_false:label, value:tuple, arity:int)
+// Checks that tuple in argument1 has arity `arity` otherwise jumps to fail.
+// Structure: test_arity(on_false:label, value:tuple, arity:int)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTestArity, arity: 3,
   run: { Self::test_arity(ctx, fail, value, arity) },
@@ -82,8 +82,8 @@ impl OpcodeTestArity {
 }
 
 
-/// From `src` get `index`th element and store it in `dst`.
-/// Structure: get_tuple_element(src:src, index:smallint, dst:dst)
+// From `src` get `index`th element and store it in `dst`.
+// Structure: get_tuple_element(src:src, index:smallint, dst:dst)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetTupleElement, arity: 3,
   run: { Self::get_tuple_element(ctx, curr_p, src, index, dst) },
@@ -107,8 +107,8 @@ impl OpcodeGetTupleElement {
 }
 
 
-/// From `src` get `index`th element and store it in `dst`.
-/// Structure: set_tuple_element(val:src, dst:dst, index:smallint)
+// From `src` get `index`th element and store it in `dst`.
+// Structure: set_tuple_element(val:src, dst:dst, index:smallint)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeSetTupleElement, arity: 3,
   run: { Self::set_tuple_element(val, dst, index) },
@@ -132,10 +132,10 @@ impl OpcodeSetTupleElement {
 }
 
 
-/// Test the type of Value, and jump to label if it is not a tuple.
-/// Test the arity of tuple and jump to label if it is not Arity.
-/// Test the first element of the tuple and jump to label if it is not atom.
-/// Structure: is_tagged_tuple(label:cp, value, arity:smallint, atom:atom)
+// Test the type of Value, and jump to label if it is not a tuple.
+// Test the arity of tuple and jump to label if it is not Arity.
+// Test the first element of the tuple and jump to label if it is not atom.
+// Structure: is_tagged_tuple(label:cp, value, arity:smallint, atom:atom)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsTaggedTuple, arity: 4,
   run: { Self::is_tagged_tuple(ctx, label, value, arity, atom) },

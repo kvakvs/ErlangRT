@@ -3,7 +3,7 @@ use crate::{
   term::{boxed, lterm::Term},
 };
 
-/// Return byte size of a binary, rounded up.
+// Return byte size of a binary, rounded up.
 define_nativefun!(_vm, _proc, args,
   name: "erlang:byte_size/1", struct_name: NfErlangByteSize1, arity: 1,
   invoke: { byte_size_1(t) },
@@ -21,7 +21,7 @@ fn byte_size_1(t: Term) -> RtResult<Term> {
   Ok(Term::make_small_unsigned(bin_size.bytes()))
 }
 
-/// Return bit size of a binary.
+// Return bit size of a binary.
 define_nativefun!(_vm, _proc, args,
   name: "erlang:bit_size/1", struct_name: NfErlangBitSize1, arity: 1,
   invoke: { bit_size_1(t) },

@@ -7,9 +7,9 @@ use crate::{
   term::lterm::Term,
 };
 
-/// Read the source `value` and check whether it is a list and not NIL. On
-/// false jump to the label `fail`.
-/// Structure: is_nonempty_list(fail:cp, value:src)
+// Read the source `value` and check whether it is a list and not NIL. On
+// false jump to the label `fail`.
+// Structure: is_nonempty_list(fail:cp, value:src)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeIsNonemptyList, arity: 2,
   run: { Self::is_nonempty_list(ctx, fail, value) },
@@ -31,9 +31,9 @@ impl OpcodeIsNonemptyList {
   }
 }
 
-/// Check whether the value `value` is an empty list, jump to the `fail` label
-/// if it is not NIL.
-/// Structure: is_nil(fail:CP, value:src)
+// Check whether the value `value` is an empty list, jump to the `fail` label
+// if it is not NIL.
+// Structure: is_nil(fail:CP, value:src)
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeIsNil, arity: 2,
   run: { Self::is_nil(ctx, fail, value) },
@@ -55,9 +55,9 @@ impl OpcodeIsNil {
   }
 }
 
-/// Take a list `value` and split it into a head and tail, they are stored in
-/// `hd` and `tl` destinations respectively.
-/// Structure: get_list(value:src, hd:dst, tl:dst)
+// Take a list `value` and split it into a head and tail, they are stored in
+// `hd` and `tl` destinations respectively.
+// Structure: get_list(value:src, hd:dst, tl:dst)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetList, arity: 3,
   run: { Self::decons(ctx, curr_p, src, dst_hd, dst_tl) },
@@ -93,9 +93,9 @@ impl OpcodeGetList {
   }
 }
 
-/// Given head and tail sources, `hd` and `tl`, read them and compose into a
-/// new list cell which is stored into `dst`.
-/// Structure: put_list(hd:src, tl:src, dst:dst)
+// Given head and tail sources, `hd` and `tl`, read them and compose into a
+// new list cell which is stored into `dst`.
+// Structure: put_list(hd:src, tl:src, dst:dst)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodePutList, arity: 3,
   run: { Self::cons(ctx, curr_p, src_hd, src_tl, dst) },
@@ -124,8 +124,8 @@ impl OpcodePutList {
   }
 }
 
-/// Retrieve head of a cons cell.
-/// Structure: get_hd(cons:src, dst:dst)
+// Retrieve head of a cons cell.
+// Structure: get_hd(cons:src, dst:dst)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetHd, arity: 2,
   run: { Self::hd(ctx, curr_p, cons, dst) },
@@ -147,8 +147,8 @@ impl OpcodeGetHd {
   }
 }
 
-/// Retrieve tail of a cons cell.
-/// Structure: get_tl(cons:src, dst:dst)
+// Retrieve tail of a cons cell.
+// Structure: get_tl(cons:src, dst:dst)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeGetTl, arity: 2,
   run: { Self::tl(ctx, curr_p, cons, dst) },

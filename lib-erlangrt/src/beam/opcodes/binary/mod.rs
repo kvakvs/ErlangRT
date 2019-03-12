@@ -30,9 +30,9 @@ bitflags! {
     }
 }
 
-/// Having started binary matching, check that the match state has so many `Bits`
-/// remaining otherwise will jump to the `Fail` label.
-/// Structure: bs_test_tail2(Fail, MatchState, Bits)
+// Having started binary matching, check that the match state has so many `Bits`
+// remaining otherwise will jump to the `Fail` label.
+// Structure: bs_test_tail2(Fail, MatchState, Bits)
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsTestTail2, arity: 3,
   run: { Self::bs_test_tail2(rt_ctx, proc, fail, match_state, bits) },
@@ -57,8 +57,8 @@ impl OpcodeBsTestTail2 {
   }
 }
 
-/// This instruction is rewritten on Erlang/OTP to `move S2, Dst`
-/// Structure: bs_add(Fail, S1_ignored, S2, Unit, Dst)
+// This instruction is rewritten on Erlang/OTP to `move S2, Dst`
+// Structure: bs_add(Fail, S1_ignored, S2, Unit, Dst)
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsAdd, arity: 5,
   run: {

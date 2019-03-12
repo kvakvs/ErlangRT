@@ -6,8 +6,8 @@ use crate::{
 };
 use num::Signed;
 
-/// Checks that argument is an atom, otherwise jumps to label.
-/// Structure: is_atom(on_false:label, val:src)
+// Checks that argument is an atom, otherwise jumps to label.
+// Structure: is_atom(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsAtom, arity: 2,
   run: {
@@ -17,8 +17,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is a function or closure otherwise jumps to label.
-/// Structure: is_function(on_false:label, arg:src)
+// Checks that argument is a function or closure otherwise jumps to label.
+// Structure: is_function(on_false:label, arg:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsFunction, arity: 2,
   run: {
@@ -28,8 +28,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is a function or closure otherwise jumps to label.
-/// Structure: is_function2(on_false:label, value:src, arity:smalluint)
+// Checks that argument is a function or closure otherwise jumps to label.
+// Structure: is_function2(on_false:label, value:src, arity:smalluint)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsFunction2, arity: 3,
   run: { Self::is_function2(ctx, fail, value, arity) },
@@ -71,9 +71,9 @@ impl OpcodeIsFunction2 {
 }
 
 
-/// Checks that argument is a small integer or a boxed big integer,
-/// otherwise jumps to fail label.
-/// Structure: is_integer(on_false:label, val:src)
+// Checks that argument is a small integer or a boxed big integer,
+// otherwise jumps to fail label.
+// Structure: is_integer(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsInteger, arity: 2,
   run: {
@@ -83,8 +83,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is a boxed tuple or an empty tuple.
-/// Structure: is_tuple(on_false:label, val:src)
+// Checks that argument is a boxed tuple or an empty tuple.
+// Structure: is_tuple(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsTuple, arity: 2,
   run: {
@@ -94,8 +94,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is a boxed binary or an empty binary.
-/// Structure: is_binary(on_false:label, val:src)
+// Checks that argument is a boxed binary or an empty binary.
+// Structure: is_binary(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsBinary, arity: 2,
   run: {
@@ -105,8 +105,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is a boxed containing a floating point number.
-/// Structure: is_float(on_false:label, val:src)
+// Checks that argument is a boxed containing a floating point number.
+// Structure: is_float(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsFloat, arity: 2,
   run: {
@@ -116,8 +116,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is either a smallint, a bigint or a float.
-/// Structure: is_number(on_false:label, val:src)
+// Checks that argument is either a smallint, a bigint or a float.
+// Structure: is_number(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsNumber, arity: 2,
   run: {
@@ -127,8 +127,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is local or remote pid.
-/// Structure: is_pid(on_false:label, val:src)
+// Checks that argument is local or remote pid.
+// Structure: is_pid(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsPid, arity: 2,
   run: {
@@ -139,8 +139,8 @@ define_opcode!(_vm, ctx, curr_p,
 );
 
 
-/// Checks that argument is either a local or remote reference.
-/// Structure: is_reference(on_false:label, val:src)
+// Checks that argument is either a local or remote reference.
+// Structure: is_reference(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsReference, arity: 2,
   run: {
@@ -150,8 +150,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is either a local or remote port.
-/// Structure: is_port(on_false:label, val:src)
+// Checks that argument is either a local or remote port.
+// Structure: is_port(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsPort, arity: 2,
   run: {
@@ -161,8 +161,8 @@ define_opcode!(_vm, ctx, curr_p,
   args: cp_or_nil(fail), load(value),
 );
 
-/// Checks that argument is a NIL or a cons pointer, otherwise jumps to label.
-/// Structure: is_list(on_false:label, val:src)
+// Checks that argument is a NIL or a cons pointer, otherwise jumps to label.
+// Structure: is_list(on_false:label, val:src)
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeIsList, arity: 2,
   run: {
