@@ -18,9 +18,9 @@ use core::fmt;
 /// process heap.
 pub struct Tuple {
   header: BoxHeader,
-//  /// First data word is stored here. If a tuple is 0 elements, it cannot be
-//  /// created and an immediate `Term::empty_tuple()` should be used instead.
-//  data0: Term,
+  /*  /// First data word is stored here. If a tuple is 0 elements, it cannot be
+   *  /// created and an immediate `Term::empty_tuple()` should be used instead.
+   *  data0: Term, */
 }
 
 impl TBoxed for Tuple {

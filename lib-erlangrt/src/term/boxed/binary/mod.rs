@@ -20,12 +20,12 @@ use crate::{
 };
 
 pub mod binaryheap_bin;
+pub mod bit_writer;
 pub mod match_state;
 pub mod procheap_bin;
 pub mod refc_bin;
 pub mod slice;
 pub mod trait_interface;
-pub mod bit_writer;
 
 // pub use self::{match_state::*, bitsize::*, slice::*, trait_interface::*};
 

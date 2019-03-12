@@ -4,7 +4,6 @@ use crate::{
     loader::{
       compact_term,
       load_time_structs::{LtExport, LtFun, LtImport},
-      load_time_term::LtTerm,
     },
   },
   defs,
@@ -252,17 +251,13 @@ impl BeamFile {
     let mut _fname_index = 0u32;
 
     for _i in 0..n_line_refs {
-      match compact_term::read(r)? {
-        LtTerm::SmallInt(_w) => {
+      let val = compact_term::read(r)?;
+      if val.is_small() {
           // self.linerefs.push((_fname_index, w));
-        }
-        LtTerm::Atom(a) => _fname_index = a as u32,
-        LtTerm::LoadtimeAtom(a) => _fname_index = a as u32,
-        other => panic!(
-          "{}Unexpected data in line info section: {:?}",
-          module(),
-          other
-        ),
+      } else if val.is_atom() {
+        // _fname_index = a as u32
+      } else {
+        panic!("{}Unexpected data in line info section: {:?}", module(), other)
       }
     }
 

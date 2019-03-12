@@ -1,6 +1,8 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::{code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::ModFunArity},
+  emulator::{
+    code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::ModFunArity,
+  },
   fail::{RtErr, RtResult},
   native_fun::NativeFn,
   term::{

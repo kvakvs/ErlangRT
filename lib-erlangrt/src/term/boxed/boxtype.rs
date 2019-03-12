@@ -28,12 +28,12 @@ pub const BOXTYPETAG_MAP: BoxType = BoxType(100);
 
 pub const BOXTYPETAG_BINARY: BoxType = BoxType(110);
 pub const BOXTYPETAG_BINARY_MATCH_STATE: BoxType = BoxType(120);
-// unused 12
+pub const BOXTYPETAG_JUMP_TABLE: BoxType = BoxType(130);
 // unused 13
 // unused 14
 // unused 15 => max 15 (1 << BOXTYPE_TAG_BITS)
 
-//pub const BOXTYPE_TAG_BITS: usize = 4;
+// pub const BOXTYPE_TAG_BITS: usize = 4;
 
 //#[allow(dead_code)]
-//pub const BOXTYPE_TAG_MASK: usize = (1 << BOXTYPE_TAG_BITS) - 1;
+// pub const BOXTYPE_TAG_MASK: usize = (1 << BOXTYPE_TAG_BITS) - 1;

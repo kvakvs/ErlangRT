@@ -1,5 +1,4 @@
-use crate::term::classify::TermClass;
-use crate::term::boxed::boxtype::BoxType;
+use crate::term::{boxed::boxtype::BoxType, classify::TermClass};
 
 pub trait TBoxed {
   fn get_class(&self) -> TermClass;

@@ -1,41 +1,23 @@
 //! Boxed package contains modules which represent different types of
 //! terms in memory.
 
-pub mod float;
-pub use self::float::Float;
-
-pub mod pid;
-pub use self::pid::ExternalPid;
-
-pub mod closure;
-pub use self::closure::Closure;
-
 pub mod bignum;
-pub use self::bignum::Bignum;
-
-pub mod import;
-pub use self::import::Import;
-
-pub mod export;
-pub use self::export::Export;
-
 pub mod binary;
-pub use self::binary::Binary;
-
-pub mod tuple;
-pub use self::tuple::Tuple;
-
-pub mod cons;
-pub use self::cons::Cons;
-
 pub mod box_header;
-pub use self::box_header::*;
-
-pub mod map;
-pub use self::map::*;
-
-pub mod trait_interface;
-pub use trait_interface::*;
-
 pub mod boxtype;
-pub use boxtype::*;
+pub mod closure;
+pub mod cons;
+pub mod export;
+pub mod float;
+pub mod import;
+pub mod jump_table;
+pub mod map;
+pub mod pid;
+pub mod trait_interface;
+pub mod tuple;
+
+pub use self::{
+  bignum::Bignum, binary::Binary, box_header::*, boxtype::*, closure::Closure,
+  cons::Cons, export::Export, float::Float, import::Import, jump_table::*, map::*,
+  pid::ExternalPid, trait_interface::*, tuple::Tuple,
+};

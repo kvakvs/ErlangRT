@@ -3,14 +3,16 @@ use crate::{
   emulator::heap::Heap,
   fail::RtResult,
   term::{
-    boxed::{BoxHeader, boxtype},
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader,
+    },
+    classify,
     lterm::Term,
   },
 };
 use core::{mem::size_of, ptr};
-use crate::term::boxed::trait_interface::TBoxed;
-use crate::term::classify;
-use crate::term::boxed::boxtype::BoxType;
 
 /// Represents Pid box on heap.
 pub struct ExternalPid {

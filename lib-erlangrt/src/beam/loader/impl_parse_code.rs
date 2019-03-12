@@ -1,19 +1,20 @@
 use crate::{
   beam::{
     gen_op,
-    loader::{
-      compact_term, load_time_term::LtTerm, op_badarg_panic, LoaderState, PatchLocation,
-    },
+    loader::{compact_term, LoaderState, op_badarg_panic, PatchLocation},
   },
   defs::{Arity, Word},
   emulator::{
-    code::{opcode, CodeOffset, LabelId, RawOpcode},
+    code::{CodeOffset, LabelId, opcode, RawOpcode},
     funarity::FunArity,
   },
   fail::RtResult,
   rt_util::bin_reader::BinaryReader,
   term::{boxed, lterm::Term},
 };
+use crate::emulator::gen_atoms;
+use crate::term::boxed::boxtype::BOXTYPETAG_JUMP_TABLE;
+use crate::term::lterm::SPECIAL_LT_LITERAL;
 
 fn module() -> &'static str {
   "beam/loader/parsecode: "
@@ -27,7 +28,7 @@ fn module() -> &'static str {
 #[derive(Clone)]
 pub struct LtInstruction {
   pub opcode: RawOpcode,
-  pub args: Vec<LtTerm>,
+  pub args: Vec<Term>,
 }
 
 impl LtInstruction {
@@ -106,10 +107,11 @@ impl LoaderState {
       match next_instr.opcode {
         // add nothing for label, but record its location
         gen_op::OPCODE_LABEL => {
-          if let LtTerm::SmallInt(f) = next_instr.args[0] {
+          let f = next_instr.args[0];
+          if f.is_small() {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
-            self.labels.insert(LabelId(f as Word), CodeOffset(floc));
+            self.labels.insert(LabelId(f.get_small_unsigned()), CodeOffset(floc));
           } else {
             op_badarg_panic(next_instr.opcode, &next_instr.args, 0);
           }
@@ -160,31 +162,40 @@ impl LoaderState {
   /// into the `self.code` array. `LoadtimeExtList` get special treatment as a
   /// container of terms. `LoadtimeLabel` get special treatment as we try to
   /// resolve them into an offset.
-  fn store_opcode_args(&mut self, args: &[LtTerm]) -> RtResult<()> {
+  fn store_opcode_args(&mut self, args: &[Term]) -> RtResult<()> {
     for a in args {
-      match *a {
-        // Ext list is special so we convert it and its contents to lterm
-        LtTerm::LoadtimeExtlist(ref jtab) => {
-          // Push a header word with length
-          let heap_jtab =
-            boxed::Tuple::create_into(&mut self.beam_file.lit_heap, jtab.len())?;
-          self.code.push(Term::make_boxed(heap_jtab).raw());
+      // Ext list is special so we convert it and its contents to lterm
+      // Load time extlists are stored as tuples
+      if a.is_boxed_of_type(BOXTYPETAG_JUMP_TABLE) {
+        // Push a header word with length
+        self.code.push(a);
 
-          // Each value convert to Term and also push forming a tuple
-          for (index, t) in jtab.iter().enumerate() {
-            let new_t = if let LtTerm::LoadtimeLabel(f) = *t {
-              // Try to resolve labels and convert now, or postpone
-              let ploc =
-                PatchLocation::PatchJtabElement(Term::make_boxed(heap_jtab), index);
-              self.maybe_convert_label(LabelId(f), ploc)
-            } else {
-              t.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab)
-                .raw()
-            };
+        // Process the elements in the jump table, replacing literal indices with
+        // values from the literal table, and replacing label indices with code
+        // locations (fill patch locations and process them later).
+        let jt = a.get_box_ptr_mut::<boxed::JumpTable>();
 
-            unsafe { (*heap_jtab).set_element_raw(index, new_t) }
+        // Convert jump labels to Term
+        let n_pairs = unsafe { (*jt).get_count() };
+        for pair in 0..n_pairs {
+          let (val, location) = unsafe { (*jt).get_pair(pair) };
+
+          // Do the literal or value
+          if val.is_loadtime() && val.get_loadtime_tag() == SPECIAL_LT_LITERAL {
+            let val1 = self.beam_file.lit_tab[val.get_loadtime_val()];
+            unimplemented!("update");
           }
+
+          // Do the label
+          let label = unsafe { (*jt).get_element(2 + pair * 2) };
+          debug_assert!(label.is_loadtime());
+          unimplemented!("update");
+
+          // Try to resolve labels and convert now, or postpone
+          let patch_loc = PatchLocation::PatchJtabElement(*a, 2 + pair * 2);
+          self.maybe_convert_label(LabelId(f), patch_loc);
         }
+      }
 
         // Label value is special, we want to remember where it was
         // to convert it to an offset
@@ -204,7 +215,6 @@ impl LoaderState {
           let a_term = a.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab);
           self.code.push(a_term.raw())
         }
-      }
     } // for a in args
     Ok(())
   }

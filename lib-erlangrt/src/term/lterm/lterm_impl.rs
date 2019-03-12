@@ -59,19 +59,44 @@ pub struct SpecialTag(pub usize);
 
 // special constants such as NIL, empty tuple, binary etc
 pub const SPECIALTAG_CONST: SpecialTag = SpecialTag(0);
-pub const SPECIALTAG_REGX: SpecialTag = SpecialTag(1);
-pub const SPECIALTAG_REGY: SpecialTag = SpecialTag(2);
-pub const SPECIALTAG_REGFP: SpecialTag = SpecialTag(3);
-/// Contains index in the catch table of the current module
-pub const SPECIALTAG_CATCH: SpecialTag = SpecialTag(4);
+pub const SPECIALTAG_REG: SpecialTag = SpecialTag(1);
+/// Catch tag contains index in the catch table of the current module
+pub const SPECIALTAG_CATCH: SpecialTag = SpecialTag(2);
 // decorates opcodes for easier code walking
-pub const SPECIALTAG_OPCODE: SpecialTag = SpecialTag(5);
+pub const SPECIALTAG_OPCODE: SpecialTag = SpecialTag(3);
+pub const SPECIALTAG_LOADTIME: SpecialTag = SpecialTag(4);
+// unused 5
+// unused 6
+// unused 7
+//-- End of 3-bit space for special tags
 
 pub struct SpecialConst(pub usize);
 
 pub const SPECIALCONST_EMPTYTUPLE: SpecialConst = SpecialConst(0);
 pub const SPECIALCONST_EMPTYLIST: SpecialConst = SpecialConst(1);
 pub const SPECIALCONST_EMPTYBINARY: SpecialConst = SpecialConst(2);
+
+/// Used as prefix for special value in register index
+pub struct SpecialReg(pub usize);
+
+pub const SPECIAL_REG_TAG_BITS: usize = 2;
+/// How many bits are remaining in the machine word after taking away the prefix bits
+pub const SPECIAL_REG_RESERVED_BITS: usize = SPECIAL_REG_TAG_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS;
+
+pub const SPECIALREG_X: SpecialReg = SpecialReg(0); // register x
+pub const SPECIALREG_Y: SpecialReg = SpecialReg(1); // register y
+pub const SPECIALREG_FP: SpecialReg = SpecialReg(2); // float register
+
+/// Used as prefix for special value in loadtime index
+/// Loadtime value contains loadtime tag + loadtime value following after it
+pub struct SpecialLoadTime(pub usize);
+
+pub const SPECIAL_LT_TAG_BITS: usize = 2;
+/// How many bits are remaining in the machine word after taking away the prefix bits
+pub const SPECIAL_LT_RESERVED_BITS: usize = SPECIAL_LT_TAG_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS;
+pub const SPECIAL_LT_ATOM: SpecialLoadTime = SpecialLoadTime(0); // atom table index
+pub const SPECIAL_LT_LABEL: SpecialLoadTime = SpecialLoadTime(1); // label table index
+pub const SPECIAL_LT_LITERAL: SpecialLoadTime = SpecialLoadTime(2); // literal table index
 
 /// A low-level term is either a pointer to memory term or an Immediate with
 /// leading bits defining its type (see TAG_* consts below).
@@ -546,7 +571,7 @@ impl Term {
     self.is_boxed_of_type(boxed::BOXTYPETAG_BIGINTEGER)
   }
 
-  // === === Atoms === ===
+  // === === ATOMS === ===
   //
 
   pub fn atom_index(self) -> usize {
@@ -739,72 +764,35 @@ impl Term {
     let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
     val as *const usize
   }
+
+  //
+  // === === SPECIAL - Load Time ATOM, LABEL, LITERAL indices === ===
+  // These exist only during loading time and then must be converted to real
+  // values using the lookup tables included in the BEAM file.
+  //
+  #[inline]
+  pub fn make_loadtime(tag: SpecialLoadTime, n: usize) -> Self {
+    debug_assert!(n < (1usize << (defs::WORD_BITS - SPECIAL_LT_RESERVED_BITS)));
+    Self::make_special(SPECIALTAG_LOADTIME, n << SPECIAL_LT_TAG_BITS | tag.0)
+  }
+
+  #[inline]
+  pub fn is_loadtime(self) -> bool {
+    self.is_special_of_type(SPECIALTAG_LOADTIME)
+  }
+
+  #[inline]
+  pub fn get_loadtime_val(self) -> usize {
+    debug_assert!(self.is_loadtime(), "Must be a loadtime value, got {}", self);
+    self.get_special_value() >> SPECIAL_LT_TAG_BITS
+  }
+
+  #[inline]
+  pub fn get_loadtime_tag(self) -> SpecialLoadTime {
+    debug_assert!(self.is_loadtime(), "Must be a loadtime value, got {}", self);
+    SpecialLoadTime(self.get_special_value() & (1 << SPECIAL_LT_TAG_BITS - 1))
+  }
 }
-
-// Testing section
-//
-
-//#[cfg(test)]
-// mod tests {
-//  use core::ptr;
-//  use std::mem;
-//
-//  use defs::*;
-//  use super::*;
-//  use term::lterm::aspect_smallint::*;
-//
-//  #[test]
-//  fn test_nil_is_not_atom() {
-//    // Some obscure bit mishandling made nil be recognized as atom
-//    let n = Term::nil();
-//    assert!(!n.is_atom(), "must not be an atom {} 0x{:x} imm2_pfx 0x{:x}, imm2atompfx 0x{:x}",
-//            n, n.raw(), immediate::get_imm2_prefix(n.raw()),
-//            immediate::IMM2_ATOM_PREFIX);
-//  }
-//
-//  #[test]
-//  fn test_term_size() {
-//    assert_eq!(mem::size_of::<Term>(), WORD_BYTES);
-//  }
-//
-//  #[test]
-//  fn test_small_unsigned() {
-//    let s1 = make_small_u(1);
-//    assert_eq!(1, s1.get_small_unsigned());
-//
-//    let s2 = make_small_u(MAX_UNSIGNED_SMALL);
-//    assert_eq!(MAX_UNSIGNED_SMALL, s2.get_small_unsigned());
-//  }
-//
-//
-//  #[test]
-//  fn test_small_signed_1() {
-//    let s2 = make_small_s(1);
-//    let s2_out = s2.get_small_signed();
-//    assert_eq!(1, s2_out, "Expect 1, have 0x{:x}", s2_out);
-//
-//    let s1 = make_small_s(-1);
-//    let s1_out = s1.get_small_signed();
-//    assert_eq!(-1, s1_out, "Expect -1, have 0x{:x}", s1_out);
-//  }
-//
-//
-//  #[test]
-//  fn test_small_signed_limits() {
-//    let s2 = make_small_s(MAX_POS_SMALL);
-//    assert_eq!(MAX_POS_SMALL, s2.get_small_signed());
-//
-//    let s3 = make_small_s(MIN_NEG_SMALL);
-//    assert_eq!(MIN_NEG_SMALL, s3.get_small_signed());
-//  }
-//
-//
-//  #[test]
-//  fn test_cp() {
-//    let s1 = make_cp(ptr::null());
-//    assert_eq!(s1.cp_get_ptr(), ptr::null());
-//  }
-//}
 
 pub unsafe fn helper_get_const_from_boxed_term<T>(
   t: Term,

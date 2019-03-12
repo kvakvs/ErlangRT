@@ -2,9 +2,10 @@
 //! <http://beam-wisdoms.clau.se/en/latest/indepth-beam-file.html#beam-compact-term-encoding>
 
 use crate::{
-  beam::loader::{load_time_term::LtTerm, CTError},
+  beam::loader::CompactTermError,
   big,
   defs::{SWord, Word},
+  emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
   term::{
@@ -12,7 +13,8 @@ use crate::{
       self,
       bignum::{Endianness, Sign},
     },
-    integral::LtIntegral,
+    lterm::Term,
+    term_builder::{ListBuilder, TupleBuilder},
   },
 };
 
@@ -53,77 +55,72 @@ fn module() -> &'static str {
 }
 
 #[inline]
-fn make_err(e: CTError) -> RtResult<LtTerm> {
+fn make_err(e: CompactTermError) -> RtResult<LtTerm> {
   Err(RtErr::CodeLoadingCompactTerm(e))
 }
 
-// fn word_to_u32(w: Word) -> u32 {
-//  assert!(w < std::u32::MAX as usize);
-//  w as u32
-//}
-
-pub fn read(r: &mut BinaryReader) -> RtResult<LtTerm> {
+pub fn read(r: &mut BinaryReader) -> RtResult<Term> {
   let b = r.read_u8();
   let tag = b & 0b111;
-  // let err_msg: &'static str = "Failed to parse beam compact term";
 
   let bword = if tag < CTETag::Extended as u8 {
     read_word(b, r)
   } else {
-    LtIntegral::Small(0)
+    Term::make_small_unsigned(0)
   };
 
   match tag {
     x if x == CTETag::LiteralInt as u8 => {
-      if let LtIntegral::Small(index) = bword {
-        return Ok(LtTerm::SmallInt(index));
+      if bword.is_small() {
+        return Ok(bword);
       }
-      make_err(CTError::BadLiteralTag)
+      make_err(CompactTermError::BadLiteralTag)
     }
     x if x == CTETag::Atom as u8 => {
-      if let LtIntegral::Small(index) = bword {
+      if bword.is_small() {
+        let index = bword.get_small_unsigned();
         if index == 0 {
-          return Ok(LtTerm::Nil);
+          return Ok(Term::nil());
         }
-        return Ok(LtTerm::LoadtimeAtom(index as usize));
+        return Ok(Term::make_ltatom(index));
       }
-      make_err(CTError::BadAtomTag)
+      make_err(CompactTermError::BadAtomTag)
     }
     x if x == CTETag::XReg as u8 => {
-      if let LtIntegral::Small(index) = bword {
-        return Ok(LtTerm::XRegister(index as Word));
+      if bword.is_small() {
+        return Ok(Term::make_regx(bword.get_small_unsigned()));
       }
-      make_err(CTError::BadXRegTag)
+      make_err(CompactTermError::BadXRegTag)
     }
     x if x == CTETag::YReg as u8 => {
-      if let LtIntegral::Small(index) = bword {
-        return Ok(LtTerm::YRegister(index as Word));
+      if bword.is_small() {
+        return Ok(Term::make_regy(bword.get_small_unsigned()));
       }
-      make_err(CTError::BadYRegTag)
+      make_err(CompactTermError::BadYRegTag)
     }
     x if x == CTETag::Label as u8 => {
-      if let LtIntegral::Small(index) = bword {
-        return Ok(LtTerm::LoadtimeLabel(index as Word));
+      if bword.is_small() {
+        return Ok(Term::make_ltlabel(index as Word));
       }
-      make_err(CTError::BadLabelTag)
+      make_err(CompactTermError::BadLabelTag)
     }
     x if x == CTETag::Integer as u8 => {
-      if let LtIntegral::Small(s) = bword {
-        return Ok(LtTerm::from_word(s));
+      if bword.is_small() {
+        return Ok(bword);
       }
       if cfg!(debug_assertions) {
         println!(
-          "bad integer tag when parsing compact term format: {:?}",
+          "bad integer tag when parsing compact term format: {}",
           bword
         );
       }
-      make_err(CTError::BadIntegerTag)
+      make_err(CompactTermError::BadIntegerTag)
     }
     x if x == CTETag::Character as u8 => {
-      if let LtIntegral::Small(s) = bword {
-        return Ok(LtTerm::from_word(s));
+      if bword.is_small() {
+        return Ok(bword);
       }
-      make_err(CTError::BadCharacterTag)
+      make_err(CompactTermError::BadCharacterTag)
     }
     // Extended tag (lower 3 bits = 0b111)
     _ => parse_ext_tag(b, r),
@@ -143,7 +140,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
     }
     other => {
       let msg = format!("Ext tag {} unknown", other);
-      make_err(CTError::BadExtendedTag(msg))
+      make_err(CompactTermError::BadExtendedTag(msg))
     }
   }
 }
@@ -160,7 +157,7 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
     x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
     other => {
       let msg = format!("Ext tag {} unknown", other);
-      make_err(CTError::BadExtendedTag(msg))
+      make_err(CompactTermError::BadExtendedTag(msg))
     }
   }
 }
@@ -175,34 +172,39 @@ fn parse_ext_float(r: &mut BinaryReader) -> RtResult<LtTerm> {
 
 fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<LtTerm> {
   let b = r.read_u8();
-  if let LtIntegral::Small(reg) = read_word(b, r) {
-    return Ok(LtTerm::FloatRegister(reg as Word));
+  let reg = read_word(b, r);
+  if reg.is_small() {
+    return Ok(Term::make_regfp(reg.get_small_unsigned()));
   }
   let msg = "Ext tag FPReg value too big".to_string();
-  make_err(CTError::BadExtendedTag(msg))
+  make_err(CompactTermError::BadExtendedTag(msg))
 }
 
 fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<LtTerm> {
   let b = r.read_u8();
-  if let LtIntegral::Small(reg) = read_word(b, r) {
-    return Ok(LtTerm::LoadtimeLiteral(reg as Word));
+  let reg = read_word(b, r);
+  if reg.is_small() {
+    return Ok(Term::LoadtimeLiteral(reg as Word));
   }
   let msg = "toExt tag Literal value too big".to_string();
-  make_err(CTError::BadExtendedTag(msg))
+  make_err(CompactTermError::BadExtendedTag(msg))
 }
 
-fn parse_ext_list(r: &mut BinaryReader) -> RtResult<LtTerm> {
+/// Parses a list, places on the provided heap
+fn parse_ext_list(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
   // The stream now contains a smallint size, then size/2 pairs of values
-  let n_elts = read_int(r);
-  let mut el: Vec<LtTerm> = Vec::new();
-  el.reserve(n_elts as usize);
+  let n_pairs = read_int(r) / 2;
+  let mut jt = boxed::JumpTable::create_into(hp, n_pairs)?;
 
-  for _i in 0..n_elts {
+  for i in 0..n_pairs {
     let value = read(r)?;
-    el.push(value);
+    let loc = read(r)?;
+    unsafe {
+      jt.set_pair(i, value, loc);
+    }
   }
 
-  Ok(LtTerm::LoadtimeExtlist(el))
+  Ok(Term::make_boxed(jt))
 }
 
 /// Assume that the stream contains a tagged small integer (check the tag!)
@@ -210,25 +212,26 @@ fn parse_ext_list(r: &mut BinaryReader) -> RtResult<LtTerm> {
 fn read_int(r: &mut BinaryReader) -> SWord {
   let b = r.read_u8();
   assert_eq!(b & 0b111, CTETag::LiteralInt as u8);
-  match read_word(b, r) {
-    LtIntegral::Small(w) => w,
-    LtIntegral::Big(big) => big.to_isize().unwrap(),
+  let val = read_word(b, r);
+  if val.is_small() {
+    return val.get_small_signed();
   }
+  unimplemented!("unwrap bigint from term or return an error")
 }
 
 /// Given the first byte, parse an integer encoded after the 3-bit tag,
 /// read more bytes from stream if needed.
-fn read_word(b: u8, r: &mut BinaryReader) -> LtIntegral {
+fn read_word(b: u8, r: &mut BinaryReader) -> Term {
   if 0 == (b & 0b1000) {
     // Bit 3 is 0 marks that 4 following bits contain the value
-    return LtIntegral::Small((b as SWord) >> 4);
+    return Term::make_small_signed((b as SWord) >> 4);
   }
   // Bit 3 is 1, but...
   if 0 == (b & 0b1_0000) {
     // Bit 4 is 0, marks that the following 3 bits (most significant) and
     // the following byte (least significant) will contain the 11-bit value
     let r = ((b as Word) & 0b1110_0000) << 3 | (r.read_u8() as Word);
-    LtIntegral::Small(r as SWord)
+    Term::make_small_signed(r as SWord)
   } else {
     // Bit 4 is 1 means that bits 5-6-7 contain amount of bytes+2 to store
     // the value
@@ -238,8 +241,9 @@ fn read_word(b: u8, r: &mut BinaryReader) -> LtIntegral {
       // which means that following nested tagged value encodes size,
       // followed by the bytes (Size+9)
       let bnext = r.read_u8();
-      if let LtIntegral::Small(tmp) = read_word(bnext, r) {
-        n_bytes = tmp as Word + 9;
+      let tmp = read_word(bnext, r);
+      if tmp.is_small() {
+        n_bytes = tmp.get_small_unsigned() + 9;
       } else {
         panic!("{}read word encountered a wrong byte length", module())
       }
@@ -255,14 +259,14 @@ fn read_word(b: u8, r: &mut BinaryReader) -> LtIntegral {
 
     let r =
       unsafe { boxed::Bignum::create_into(hp, sign, Endianness::Big, &long_bytes)? };
-    LtIntegral::Big(r)
+    Term::make_boxed(r)
   } // if larger than 11 bits
 }
 
 //// Testing section
 ////
 //#[cfg(test)]
-//mod tests {
+// mod tests {
 //  use super::*;
 //
 //  fn try_parse(inp: Vec<u8>, expect: LtTerm) {

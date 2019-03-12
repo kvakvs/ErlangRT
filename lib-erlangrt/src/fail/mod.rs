@@ -5,7 +5,7 @@ use crate::{
   defs::{exc_type::ExceptionType, ByteSize},
   rt_util::bin_reader::{self, ReadError},
   term::lterm::Term,
-  beam::loader::CTError,
+  beam::loader::CompactTermError,
 };
 use std::convert::From;
 
@@ -18,7 +18,7 @@ pub enum RtErr {
 
   //--- Code loading ---
   CodeLoadingFailed(String),
-  CodeLoadingCompactTerm(CTError),
+  CodeLoadingCompactTerm(CompactTermError),
   // PrematureEOF,
 
   //--- Code server, lookups ---

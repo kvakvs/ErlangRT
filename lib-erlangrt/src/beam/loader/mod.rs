@@ -15,7 +15,7 @@ mod load_time_structs;
 mod load_time_term;
 
 use crate::{
-  beam::loader::{beam_file::BeamFile, load_time_term::LtTerm},
+  beam::loader::beam_file::BeamFile,
   defs::Word,
   emulator::{
     code::{opcode::RawOpcode, Code, CodeOffset, LabelId},
@@ -40,7 +40,7 @@ fn module() -> &'static str {
 /// Errors created when parsing compact term format. They are delivered to the
 /// end caller wrapped in `fail::Error:CodeLoadingCompactTerm(x)`
 #[derive(Debug)]
-pub enum CTError {
+pub enum CompactTermError {
   BadLiteralTag,
   BadAtomTag,
   BadXRegTag,
@@ -54,8 +54,8 @@ pub enum CTError {
 /// Represents an instruction to patch either a code location or an index in
 /// a tuple which represents a jump table (pairs value -> label)
 enum PatchLocation {
-  PatchCodeOffset(Word),
-  PatchJtabElement(Term, Word),
+  PatchCodeOffset(usize),
+  PatchJtabElement(Term, usize),
 }
 
 /// BEAM loader state.
