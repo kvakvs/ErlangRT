@@ -10,11 +10,12 @@
 // extern crate paste;
 
 mod beam;
-mod native_fun;
-pub mod command_line_args;
+mod big;
 mod defs;
 mod emulator;
 mod fail;
-pub mod lib_main;
+mod native_fun;
 mod rt_util;
 mod term;
+pub mod command_line_args;
+pub mod lib_main;

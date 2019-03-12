@@ -3,12 +3,12 @@
 
 use crate::{
   beam::loader::{load_time_term::LtTerm, CTError},
+  big,
   defs::{SWord, Word},
   fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
   term::integral::Integral,
 };
-use num::{bigint, ToPrimitive};
 
 #[repr(u8)]
 enum CTETag {
@@ -241,11 +241,11 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Integral {
     // Read the remaining big endian bytes and convert to int
     let long_bytes = r.read_bytes(n_bytes).unwrap();
     let sign = if long_bytes[0] & 0x80 == 0x80 {
-      bigint::Sign::Minus
+      big::Sign::Negative
     } else {
-      bigint::Sign::Plus
+      big::Sign::Positive
     };
-    let r = bigint::BigInt::from_bytes_be(sign, &long_bytes);
+    let r = big::Big::from_bytes_be(sign, &long_bytes);
     Integral::from_big(r)
   } // if larger than 11 bits
 }
@@ -270,7 +270,7 @@ mod tests {
   #[test]
   fn test_bigint_create() {
     let inp = vec![255u8, 1];
-    let r = bigint::BigUint::from_bytes_be(inp.as_slice());
+    let r = big::Big::from_bytes_be(big::Sign::Positive, inp.as_slice());
     assert_eq!(r.to_usize().unwrap(), (255 * 256 + 1) as usize);
   }
 

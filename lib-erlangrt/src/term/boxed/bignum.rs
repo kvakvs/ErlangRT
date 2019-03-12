@@ -1,5 +1,6 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  big,
+  defs::{BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -12,21 +13,19 @@ use crate::{
     lterm::*,
   },
 };
-use core::{mem::size_of, ptr};
-use num::bigint::BigInt;
+use core::mem::size_of;
 
 #[allow(dead_code)]
 pub struct Bignum {
   header: BoxHeader,
 
-  /// The actual value. NOTE: Here we trust the storage class (BigInt)
-  /// to manage the memory for its digits on the general application heap.
-  /// This impl stores bignum in dynamic heap with the num library
-  // TODO: Not nice! Manage own data for Bignum.
-  pub value: BigInt,
+  /// Contains same data as `big::Big` but the digits are stored in process
+  /// heap memory following the `Bignum` header, starting at `digits` field.
+  pub size: BitSize,
+  pub digits: usize,
 }
 
-impl TBoxed for BigInt {
+impl TBoxed for Bignum {
   fn get_class(&self) -> classify::TermClass {
     classify::CLASS_NUMBER
   }
@@ -42,20 +41,14 @@ impl Bignum {
     ByteSize::new(size_of::<Bignum>()).get_words_rounded_up()
   }
 
-  fn new(bignum_size: WordSize, value: BigInt) -> Bignum {
-    Bignum {
-      header: BoxHeader::new::<BigInt>(bignum_size.words()),
-      value,
-    }
-  }
-
-  pub unsafe fn create_into(hp: &mut Heap, value: BigInt) -> RtResult<*mut Bignum> {
-    let n_words = Bignum::storage_size();
-    let this = hp.alloc::<Bignum>(n_words, false)?;
-
-    ptr::write(this, Bignum::new(n_words, value));
-
-    Ok(this)
+  pub unsafe fn create_into(hp: &mut Heap, value: big::Big) -> RtResult<*mut Bignum> {
+    unimplemented!("bignum::create_into")
+    //    let n_words = Bignum::storage_size();
+    //    let this = hp.alloc::<Bignum>(n_words, false)?;
+    //
+    //    ptr::write(this, Bignum::new(n_words, value));
+    //
+    //    Ok(this)
   }
 
   #[allow(dead_code)]
@@ -74,5 +67,9 @@ impl Bignum {
       BOXTYPETAG_BIGINTEGER,
       RtErr::BoxedIsNotABigint,
     )
+  }
+
+  pub fn is_negative(&self) -> bool {
+    unimplemented!("is_negative")
   }
 }

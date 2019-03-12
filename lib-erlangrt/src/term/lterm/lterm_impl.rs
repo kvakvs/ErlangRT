@@ -6,7 +6,7 @@
 //! Do not import this file directly, use `use term::lterm::*;` instead.
 
 use crate::{
-  defs::*,
+  defs::{self, ByteSize},
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
   term::boxed::{self, box_header, BoxHeader, BoxType},
@@ -18,13 +18,14 @@ use std::fmt;
 // [ Value or a pointer ] [ TAG_* value 3 bits ]
 //
 
-pub const TERM_TAG_BITS: Word = 3;
-pub const TERM_TAG_MASK: Word = (1 << TERM_TAG_BITS) - 1;
+pub const TERM_TAG_BITS: usize = 3;
+pub const TERM_TAG_MASK: usize = (1 << TERM_TAG_BITS) - 1;
 
 /// Max value for a positive small integer packed into immediate2 low level
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
-pub const SMALLEST_SMALL: SWord = isize::MIN >> TERM_TAG_BITS;
-pub const LARGEST_SMALL: SWord = isize::MAX >> TERM_TAG_BITS;
+pub const SMALLEST_SMALL: isize = isize::MIN >> TERM_TAG_BITS;
+pub const LARGEST_SMALL: isize = isize::MAX >> TERM_TAG_BITS;
+pub const SMALL_SIGNED_BITS: usize = defs::WORD_BITS - TERM_TAG_BITS - 1;
 
 #[derive(Eq, PartialEq, Debug, Ord, PartialOrd)]
 pub struct TermTag(usize);
@@ -50,11 +51,11 @@ pub const TERMTAG_SPECIAL: TermTag = TermTag(7);
 // they are plethora of term types requiring fewer bits or useful in other ways
 // [ special value ] [ VAL_SPECIAL_... 3 bits ] [ TAG_SPECIAL 3 bits ]
 //
-pub const TERM_SPECIAL_TAG_BITS: Word = 3;
-pub const TERM_SPECIAL_TAG_MASK: Word = (1 << TERM_SPECIAL_TAG_BITS) - 1;
+pub const TERM_SPECIAL_TAG_BITS: usize = 3;
+pub const TERM_SPECIAL_TAG_MASK: usize = (1 << TERM_SPECIAL_TAG_BITS) - 1;
 
 #[derive(Eq, PartialEq, Debug)]
-pub struct SpecialTag(pub Word);
+pub struct SpecialTag(pub usize);
 
 // special constants such as NIL, empty tuple, binary etc
 pub const SPECIALTAG_CONST: SpecialTag = SpecialTag(0);
@@ -66,7 +67,7 @@ pub const SPECIALTAG_CATCH: SpecialTag = SpecialTag(4);
 // decorates opcodes for easier code walking
 pub const SPECIALTAG_OPCODE: SpecialTag = SpecialTag(5);
 
-pub struct SpecialConst(pub Word);
+pub struct SpecialConst(pub usize);
 
 pub const SPECIALCONST_EMPTYTUPLE: SpecialConst = SpecialConst(0);
 pub const SPECIALCONST_EMPTYLIST: SpecialConst = SpecialConst(1);
@@ -76,7 +77,7 @@ pub const SPECIALCONST_EMPTYBINARY: SpecialConst = SpecialConst(2);
 /// leading bits defining its type (see TAG_* consts below).
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Term {
-  value: Word, // Contains a pointer or an integer
+  value: usize, // Contains a pointer or an integer
 }
 
 impl Ord for Term {
@@ -94,15 +95,15 @@ impl PartialOrd for Term {
 // TODO: Remove deadcode directive later and fix
 #[allow(dead_code)]
 impl Term {
-  /// Retrieve the raw value of a `Term` as Word, including tag bits
+  /// Retrieve the raw value of a `Term` as usize, including tag bits
   /// and everything.
   #[inline]
-  pub const fn raw(self) -> Word {
+  pub const fn raw(self) -> usize {
     self.value
   }
 
   #[inline]
-  pub const fn make_atom(id: Word) -> Self {
+  pub const fn make_atom(id: usize) -> Self {
     Self::make_from_tag_and_value(TERMTAG_ATOM, id)
   }
 
@@ -116,12 +117,12 @@ impl Term {
     Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYLIST.0)
   }
 
-  pub const fn make_from_tag_and_value(t: TermTag, v: Word) -> Self {
+  pub const fn make_from_tag_and_value(t: TermTag, v: usize) -> Self {
     Self::from_raw(v << TERM_TAG_BITS | t.0)
   }
 
-  pub const fn make_from_tag_and_signed_value(t: TermTag, v: SWord) -> Self {
-    Self::from_raw((v << TERM_TAG_BITS | (t.0 as SWord)) as Word)
+  pub const fn make_from_tag_and_signed_value(t: TermTag, v: isize) -> Self {
+    Self::from_raw((v << TERM_TAG_BITS | (t.0 as isize)) as usize)
   }
 
   /// Create a NON_VALUE.
@@ -151,7 +152,7 @@ impl Term {
   // TODO: Some safety checks maybe? But oh well
   #[inline]
   pub fn make_boxed<T>(p: *const T) -> Self {
-    Self { value: p as Word }
+    Self { value: p as usize }
   }
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
@@ -264,7 +265,7 @@ impl Term {
 
   /// For non-pointer Term types get the encoded integer without tag bits
   #[inline]
-  pub fn get_term_val_without_tag(self) -> Word {
+  pub fn get_term_val_without_tag(self) -> usize {
     debug_assert!(
       self.get_term_tag() != TERMTAG_BOXED && self.get_term_tag() != TERMTAG_CONS
     );
@@ -275,15 +276,15 @@ impl Term {
   //
 
   /// Any raw word becomes a term, possibly invalid
-  pub const fn from_raw(w: Word) -> Self {
+  pub const fn from_raw(w: usize) -> Self {
     Self { value: w }
   }
 
-  pub fn make_local_pid(pindex: Word) -> Self {
+  pub fn make_local_pid(pindex: usize) -> Self {
     Self::make_from_tag_and_value(TERMTAG_LOCALPID, pindex)
   }
 
-  pub fn make_remote_pid(hp: &mut Heap, node: Self, pindex: Word) -> RtResult<Self> {
+  pub fn make_remote_pid(hp: &mut Heap, node: Self, pindex: usize) -> RtResult<Self> {
     let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
     Ok(Self::make_boxed(rpid_ptr))
   }
@@ -296,19 +297,19 @@ impl Term {
   }
 
   /// From a special-tagged term extract its value
-  pub fn get_special_value(self) -> Word {
+  pub fn get_special_value(self) -> usize {
     debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
     // cut away term tag bits and special tag, extract the remaining value bits
     self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
   }
 
   #[inline]
-  pub fn special_value_fits(n: Word) -> bool {
-    let max = 1 << (WORD_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS);
+  pub fn special_value_fits(n: usize) -> bool {
+    let max = 1 << (defs::WORD_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS);
     max > n
   }
 
-  pub const fn make_special(special_t: SpecialTag, val: Word) -> Self {
+  pub const fn make_special(special_t: SpecialTag, val: usize) -> Self {
     Self::make_from_tag_and_value(
       TERMTAG_SPECIAL,
       val << TERM_SPECIAL_TAG_BITS | special_t.0,
@@ -325,7 +326,7 @@ impl Term {
     self.is_special() && self.get_special_tag() == t
   }
 
-  pub fn make_regx(n: Word) -> Self {
+  pub fn make_regx(n: usize) -> Self {
     Self::make_special(SPECIALTAG_REGX, n)
   }
 
@@ -333,7 +334,7 @@ impl Term {
     self.is_special_of_type(SPECIALTAG_REGX)
   }
 
-  pub fn make_regy(n: Word) -> Self {
+  pub fn make_regy(n: usize) -> Self {
     Self::make_special(SPECIALTAG_REGY, n)
   }
 
@@ -341,7 +342,7 @@ impl Term {
     self.is_special_of_type(SPECIALTAG_REGY)
   }
 
-  pub fn make_regfp(n: Word) -> Self {
+  pub fn make_regfp(n: usize) -> Self {
     Self::make_special(SPECIALTAG_REGFP, n)
   }
 
@@ -355,8 +356,8 @@ impl Term {
   // XXX: Can shift value right by 3 bits (WORD_ALIGN_SHIFT)
   #[inline]
   pub fn make_cp<T>(p: *const T) -> Self {
-    assert_eq!(p as Word & TERM_TAG_MASK, 0); // must be aligned to 8
-    let tagged_p = (p as Word) | HIGHEST_BIT_CP;
+    assert_eq!(p as usize & TERM_TAG_MASK, 0); // must be aligned to 8
+    let tagged_p = (p as usize) | defs::HIGHEST_BIT_CP;
     Self::from_raw(tagged_p)
   }
 
@@ -365,12 +366,12 @@ impl Term {
     if !self.is_boxed() {
       return false;
     }
-    self.value & HIGHEST_BIT_CP == HIGHEST_BIT_CP
+    self.value & defs::HIGHEST_BIT_CP == defs::HIGHEST_BIT_CP
   }
 
   pub fn get_cp_ptr<T>(self) -> *const T {
-    debug_assert_eq!(self.value & HIGHEST_BIT_CP, HIGHEST_BIT_CP);
-    (self.value & (HIGHEST_BIT_CP - 1)) as *const T
+    debug_assert_eq!(self.value & defs::HIGHEST_BIT_CP, defs::HIGHEST_BIT_CP);
+    (self.value & (defs::HIGHEST_BIT_CP - 1)) as *const T
   }
 
   // === === TUPLES === === ===
@@ -443,7 +444,7 @@ impl Term {
       value: if p.is_null() {
         return Self::nil();
       } else {
-        (p as Word) | TERMTAG_CONS.0
+        (p as usize) | TERMTAG_CONS.0
       },
     }
   }
@@ -493,7 +494,7 @@ impl Term {
   }
 
   #[inline]
-  pub const fn make_small_unsigned(val: Word) -> Self {
+  pub const fn make_small_unsigned(val: usize) -> Self {
     Self::make_from_tag_and_value(TERMTAG_SMALL, val)
   }
 
@@ -505,7 +506,7 @@ impl Term {
     Self::make_from_tag_and_value(TERMTAG_SMALL, 1)
   }
 
-  pub const fn make_small_signed(val: SWord) -> Self {
+  pub const fn make_small_signed(val: isize) -> Self {
     Self::make_from_tag_and_signed_value(TERMTAG_SMALL, val)
   }
 
@@ -516,20 +517,20 @@ impl Term {
   }
 
   #[inline]
-  pub fn get_small_signed(self) -> SWord {
+  pub fn get_small_signed(self) -> isize {
     debug_assert!(
       self.is_small(),
       "Small is expected, got raw=0x{:x}",
       self.value
     );
-    (self.value as SWord) >> TERM_TAG_BITS
+    (self.value as isize) >> TERM_TAG_BITS
   }
 
   #[inline]
-  pub fn get_small_unsigned(self) -> Word {
+  pub fn get_small_unsigned(self) -> usize {
     debug_assert!(self.is_small());
     debug_assert!(
-      (self.value as SWord) >= 0,
+      (self.value as isize) >= 0,
       "term::small_unsigned is negative {}",
       self
     );
@@ -548,7 +549,7 @@ impl Term {
   // === === Atoms === ===
   //
 
-  pub fn atom_index(self) -> Word {
+  pub fn atom_index(self) -> usize {
     debug_assert!(self.is_atom());
     self.get_term_val_without_tag()
   }
@@ -720,8 +721,8 @@ impl Term {
 
   /// Create a catch marker on stack
   #[inline]
-  pub fn make_catch(p: *const Word) -> Self {
-    let catch_index = (p as Word) >> WORD_ALIGN_SHIFT;
+  pub fn make_catch(p: *const usize) -> Self {
+    let catch_index = (p as usize) >> defs::WORD_ALIGN_SHIFT;
     assert!(Self::special_value_fits(catch_index));
     // TODO: Use some smart solution for handling code reloading
     Self::make_special(SPECIALTAG_CATCH, catch_index)
@@ -733,10 +734,10 @@ impl Term {
   }
 
   #[inline]
-  pub fn get_catch_ptr(self) -> *const Word {
+  pub fn get_catch_ptr(self) -> *const usize {
     assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
-    let val = self.get_special_value() << WORD_ALIGN_SHIFT;
-    val as *const Word
+    let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
+    val as *const usize
   }
 }
 

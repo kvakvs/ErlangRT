@@ -1,10 +1,13 @@
 use super::bin_reader::BinaryReader;
 use crate::{
-  defs::{self, SWord, Word},
+  big,
+  defs::{SWord, Word},
   fail::{RtErr, RtResult},
-  term::{lterm::Term, term_builder::TermBuilder},
+  term::{
+    lterm::{Term, SMALL_SIGNED_BITS},
+    term_builder::TermBuilder,
+  },
 };
-use num::{self, ToPrimitive};
 
 ///// Errors indicating a problem with External Term Format parser.
 //#[derive(Debug)]
@@ -121,15 +124,15 @@ pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<Term
 /// Given `size`, read digits for a bigint.
 fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResult<Term> {
   let sign = if r.read_u8() == 0 {
-    num::bigint::Sign::Plus
+    big::Sign::Positive
   } else {
-    num::bigint::Sign::Minus
+    big::Sign::Negative
   };
   let digits = r.read_bytes(size)?;
-  let big = num::BigInt::from_bytes_le(sign, &digits);
+  let big = big::Big::from_bytes_le(sign, &digits);
 
   // Assert that the number fits into small
-  if big.bits() < defs::WORD_BITS - 4 {
+  if big.get_size().bit_count < SMALL_SIGNED_BITS {
     let b_signed = big.to_isize().unwrap();
     return Ok(tb.create_small_s(b_signed));
   }
@@ -163,11 +166,7 @@ fn decode_tuple(
 }
 
 /// Given size, create a map of given size and read `size` pairs.
-fn decode_map(
-  r: &mut BinaryReader,
-  size: usize,
-  tb: &mut TermBuilder,
-) -> RtResult<Term> {
+fn decode_map(r: &mut BinaryReader, size: usize, tb: &mut TermBuilder) -> RtResult<Term> {
   let mut mapb = tb.create_map_builder(size)?;
   for _i in 0..size {
     let key = decode_naked(r, tb)?;

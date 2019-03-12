@@ -16,4 +16,4 @@ pub mod integral; // integral value (small or bignum) for fterms
 pub mod term_builder; // implements ITermBuilder for RT VM // term in memory (dynamic runtime dispatch)
 
 pub mod lterm; // low level packed term
-pub use lterm::Term;
+pub use lterm::{Term, SMALL_SIGNED_BITS};

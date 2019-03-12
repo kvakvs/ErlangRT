@@ -25,11 +25,13 @@ pub const BYTE_BITS: usize = 1usize << BYTE_POF2_BITS;
 
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: usize = 32;
+/// How many bits you can reuse in a pointer if the pointer is guaranteed to be aligned
 #[cfg(target_pointer_width = "32")]
 pub const WORD_ALIGN_SHIFT: usize = 2;
 
 #[cfg(target_pointer_width = "64")]
 pub const WORD_BITS: usize = 64;
+/// How many bits you can reuse in a pointer if the pointer is guaranteed to be aligned
 #[cfg(target_pointer_width = "64")]
 pub const WORD_ALIGN_SHIFT: usize = 3;
 

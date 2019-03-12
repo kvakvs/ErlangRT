@@ -12,12 +12,12 @@ pub use self::{
 };
 
 use crate::{
+  big,
   defs::BitSize,
   emulator::{atom, heap::Heap},
   fail::RtResult,
   term::{boxed, lterm::*},
 };
-use num;
 
 /// Term Builder implementation for `Term` and ERT VM.
 pub struct TermBuilder {
@@ -32,7 +32,7 @@ impl TermBuilder {
     }
   }
 
-  pub unsafe fn create_bignum(&self, n: num::BigInt) -> RtResult<Term> {
+  pub unsafe fn create_bignum(&self, n: big::Big) -> RtResult<Term> {
     let ref_heap = self.heap.as_mut().unwrap();
     let big_p = boxed::Bignum::create_into(ref_heap, n)?;
     Ok(Term::make_boxed(big_p))

@@ -3,13 +3,12 @@
 //! there's an memory cost, but we don't care yet. This is only used at the
 //! loading time, not for internal VM logic. VM uses its own `Term` which is
 //! a memory efficient representation.
-//!
 use crate::{
+  big,
   defs::{SWord, Word},
   emulator::heap::Heap,
   term::lterm::*,
 };
-use num::{bigint::BigInt, FromPrimitive};
 
 fn module() -> &'static str {
   "loader/lt_term: "
@@ -25,7 +24,7 @@ pub enum LtTerm {
   /// Runtime atom index in the VM atom table
   Atom(Word),
   SmallInt(SWord),
-  BigInt(Box<BigInt>),
+  BigInt(big::Big),
   /// A regular cons cell with a head and a tail
   Cons(Box<[LtTerm]>),
   /// NIL [] - an empty list
@@ -65,7 +64,7 @@ impl LtTerm {
     if Term::small_fits(s) {
       return LtTerm::SmallInt(s as SWord);
     }
-    LtTerm::BigInt(Box::new(BigInt::from_isize(s).unwrap()))
+    LtTerm::BigInt(big::Big::from_isize(s))
   }
 
   /// Parse self as Int_ (load-time integer) and return the contained value.

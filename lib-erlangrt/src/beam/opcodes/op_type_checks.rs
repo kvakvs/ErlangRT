@@ -4,7 +4,6 @@ use crate::{
   fail::{self, RtResult},
   term::{boxed, lterm::Term},
 };
-use num::Signed;
 
 // Checks that argument is an atom, otherwise jumps to label.
 // Structure: is_atom(on_false:label, val:src)
@@ -45,7 +44,7 @@ impl OpcodeIsFunction2 {
       unsafe {
         let big_p = boxed::Bignum::const_from_term(arity_t)?;
         // negative arity bignum is not ok
-        if (*big_p).value.is_negative() {
+        if (*big_p).is_negative() {
           return fail::create::badarg();
         }
         // positive arity bignum is ok but can't possibly match
