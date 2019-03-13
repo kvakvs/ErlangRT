@@ -1,6 +1,9 @@
+pub mod endianness;
+pub mod sign;
+
+use self::{endianness::*, sign::*};
 use crate::{
-  big,
-  defs::{BitSize, ByteSize, WordSize},
+  defs::{self, BitSize, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -35,22 +38,19 @@ impl TBoxed for Bignum {
   }
 }
 
-#[derive(Debug, Clone)]
-pub enum Sign {
-  Positive,
-  Negative,
-}
-
-#[derive(Debug, Clone)]
-pub enum Endianness {
-  Big,
-  Little,
-}
-
 impl Bignum {
   const fn storage_size() -> WordSize {
     // This impl stores bignum in dynamic heap with the num library
     ByteSize::new(size_of::<Bignum>()).get_words_rounded_up()
+  }
+
+  pub fn with_isize(hp: &mut Heap, val: isize) -> RtResult<*mut Bignum> {
+    let sign = Sign::new(val);
+    let endianness = Endianness::new();
+    let val_slice = unsafe {
+      core::slice::from_raw_parts(&val as *const u8, defs::WORD_BITS / defs::BYTE_BITS);
+    };
+    unsafe { Self::create_into(hp, sign, endianness, val_slice) }
   }
 
   /// Consume bytes as either big- or little-endian stream, and build a big

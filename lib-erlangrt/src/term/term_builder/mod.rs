@@ -12,11 +12,13 @@ pub use self::{
 };
 
 use crate::{
-  big,
   defs::BitSize,
   emulator::{atom, heap::Heap},
   fail::RtResult,
-  term::{boxed, lterm::*},
+  term::{
+    boxed::{self, bignum, endianness::Endianness},
+    lterm::*,
+  },
 };
 
 /// Term Builder implementation for `Term` and ERT VM.
@@ -32,10 +34,16 @@ impl TermBuilder {
     }
   }
 
-  pub unsafe fn create_bignum(&self, n: big::Big) -> RtResult<Term> {
+  /// Given an array of bytes with little-endian order, create a bignum on the
+  /// provided heap, or fail.
+  pub unsafe fn create_bignum_le(
+    &self,
+    sign: bignum::sign::Sign,
+    digits: &[u8],
+  ) -> RtResult<Term> {
     let ref_heap = self.heap.as_mut().unwrap();
-    let big_p = boxed::Bignum::create_into(ref_heap, n)?;
-    Ok(Term::make_boxed(big_p))
+    let p = boxed::Bignum::create_into(ref_heap, sign, Endianness::Little, digits)?;
+    Ok(Term::make_boxed(p))
   }
 
   pub unsafe fn create_binary(&mut self, data: &[u8]) -> RtResult<Term> {

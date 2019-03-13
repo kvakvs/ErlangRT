@@ -134,7 +134,7 @@ fn cmp_terms_any_type(a: Term, b: Term, exact: bool) -> RtResult<EqResult> {
 #[inline]
 fn cmp_floats(a: Term, b: Term) -> Ordering {
   // Assume we know both values are floats
-  unsafe { cmp_f64_naive(a.get_f64_unsafe(), b.get_f64_unsafe()) }
+  unsafe { cmp_f64_naive(a.get_float_unchecked(), b.get_float_unchecked()) }
 }
 
 /// Naive f64 comparison, which does not work with NaN and Infinities
@@ -325,8 +325,8 @@ fn cmp_terms_immed_box(a: Term, b: Term) -> RtResult<Ordering> {
       // TODO: If b is integer and we don't do exact comparison?
       return cmp_mixed_types(a, b);
     } else {
-      let a_float = a.get_f64()?;
-      let b_float = b.get_f64()?;
+      let a_float = a.get_float()?;
+      let b_float = b.get_float()?;
       return Ok(a_float.partial_cmp(&b_float).unwrap());
     }
   } else if a.is_big_int() {

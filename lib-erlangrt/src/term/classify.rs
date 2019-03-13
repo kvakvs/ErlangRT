@@ -77,7 +77,7 @@ fn classify_special(val: Term) -> TermClass {
         CLASS_SPECIAL
       }
     }
-    SPECIALTAG_REGX | SPECIALTAG_REGY | SPECIALTAG_REGFP => CLASS_SPECIAL,
+    SPECIALTAG_REG | SPECIALTAG_LOADTIME => CLASS_SPECIAL,
     SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk),
   }
 }

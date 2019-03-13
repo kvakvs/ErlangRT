@@ -352,27 +352,35 @@ impl Term {
   }
 
   pub fn make_regx(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REGX, n)
+    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_X)
   }
 
   pub fn is_regx(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_REGX)
+    self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_X
   }
 
   pub fn make_regy(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REGY, n)
+    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_Y)
   }
 
   pub fn is_regy(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_REGY)
+    self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_Y
   }
 
   pub fn make_regfp(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REGFP, n)
+    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_FP)
   }
 
   pub fn is_regfp(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_REGFP)
+    self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_FP
+  }
+
+  pub fn get_reg_tag(self) -> SpecialReg {
+    SpecialReg(self.get_special_value() & (1 << SPECIAL_REG_TAG_BITS - 1))
+  }
+
+  pub fn get_reg_value(self) -> usize {
+    self.get_special_value() >> SPECIAL_REG_TAG_BITS
   }
 
   // === === Code Pointer (Continuation Pointer) === ===
@@ -590,13 +598,20 @@ impl Term {
       })
   }
 
+  /// Constructor to create a float on heap. May fail if the heap is full or
+  /// something else might happen.
+  pub fn make_float(hp: &mut Heap, val: f64) -> RtResult<Self> {
+    let pf = unsafe { boxed::Float::create_into(hp, val)? };
+    Ok(Self::make_boxed(pf))
+  }
+
   /// Check whether a lterm is boxed and then whether it points to a word of
   /// memory tagged as float
   pub fn is_float(self) -> bool {
     self.is_boxed_of_type(boxed::BOXTYPETAG_FLOAT)
   }
 
-  pub fn get_f64(self) -> RtResult<f64> {
+  pub fn get_float(self) -> RtResult<f64> {
     if !self.is_boxed() {
       return Err(RtErr::TermIsNotABoxed);
     }
@@ -607,7 +622,7 @@ impl Term {
   /// Returns float value, performs no extra checks. The caller is responsible
   /// for the value being a boxed float.
   #[inline]
-  pub unsafe fn get_f64_unsafe(self) -> f64 {
+  pub unsafe fn get_float_unchecked(self) -> f64 {
     let p = self.get_box_ptr::<boxed::Float>();
     (*p).value
   }

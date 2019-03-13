@@ -12,7 +12,7 @@ use crate::{
   },
   fail::RtResult,
   term::lterm::{
-    SpecialTag, Term, SPECIALTAG_REG, TERMTAG_SPECIAL,
+    SpecialTag, Term, TERMTAG_SPECIAL,
   },
 };
 use colored::Colorize;

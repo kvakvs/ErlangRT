@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, Word, WordSize},
+  defs::{ByteSize, WordSize},
   emulator::heap::Heap,
   fail::RtResult,
   term::{
@@ -69,9 +69,26 @@ impl JumpTable {
     self.header.ensure_valid();
     debug_assert!(index < self.get_arity());
 
-    // Take i-th word after the tuple header
     let data = &self.val0 as *mut Term;
-    core::ptr::write(data.add(index), val)
+    core::ptr::write(data.add(index * 2), val)
+  }
+
+  // Write value component in the i-th pair (base 0)
+  pub unsafe fn set_value(&mut self, index: usize, val: Term) {
+    self.header.ensure_valid();
+    debug_assert!(index < self.get_arity());
+
+    let data = &self.val0 as *mut Term;
+    core::ptr::write(data.add(index * 2), val)
+  }
+
+  // Write location component in the i-th pair (base 0)
+  pub unsafe fn set_location(&mut self, index: usize, val: Term) {
+    self.header.ensure_valid();
+    debug_assert!(index < self.get_arity());
+
+    let data = &self.val0 as *mut Term;
+    core::ptr::write(data.add(index * 2 + 1), val)
   }
 
   // Read tuple's i-th element (base 0)
@@ -80,8 +97,8 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &self.val0 as *const Term;
-    let val = core::ptr::read(data.add(index));
-    let location = core::ptr::read(data.add(index));
+    let val = core::ptr::read(data.add(index * 2));
+    let location = core::ptr::read(data.add(index * 2 + 1));
     (val, location)
   }
 

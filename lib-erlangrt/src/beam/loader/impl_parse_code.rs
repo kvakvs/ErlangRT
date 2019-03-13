@@ -1,20 +1,20 @@
 use crate::{
   beam::{
     gen_op,
-    loader::{compact_term, LoaderState, op_badarg_panic, PatchLocation},
+    loader::{compact_term, op_badarg_panic, LoaderState, PatchLocation},
   },
   defs::{Arity, Word},
   emulator::{
-    code::{CodeOffset, LabelId, opcode, RawOpcode},
+    code::{opcode, CodeOffset, LabelId, RawOpcode},
     funarity::FunArity,
   },
   fail::RtResult,
   rt_util::bin_reader::BinaryReader,
-  term::{boxed, lterm::Term},
+  term::{
+    boxed::{self, boxtype::BOXTYPETAG_JUMP_TABLE},
+    lterm::{Term, SPECIAL_LT_LABEL, SPECIAL_LT_LITERAL},
+  },
 };
-use crate::emulator::gen_atoms;
-use crate::term::boxed::boxtype::BOXTYPETAG_JUMP_TABLE;
-use crate::term::lterm::SPECIAL_LT_LITERAL;
 
 fn module() -> &'static str {
   "beam/loader/parsecode: "
@@ -95,13 +95,8 @@ impl LoaderState {
       // Read `arity` args, and convert them to reasonable runtime values
       let arity = gen_op::opcode_arity(next_instr.opcode) as usize;
       for _i in 0..arity {
-        let arg0 = compact_term::read(&mut r).unwrap();
-        // Atom_ args now can be converted to Atom (VM atoms)
-        let arg1 = match self.resolve_loadtime_values(&arg0) {
-          Some(tmp) => tmp,
-          None => arg0,
-        };
-        next_instr.args.push(arg1);
+        let arg = compact_term::read(&mut r).unwrap();
+        next_instr.args.push(self.resolve_value(arg));
       }
 
       match next_instr.opcode {
@@ -111,7 +106,9 @@ impl LoaderState {
           if f.is_small() {
             // Store weak ptr to function and code offset to this label
             let floc = self.code.len();
-            self.labels.insert(LabelId(f.get_small_unsigned()), CodeOffset(floc));
+            self
+              .labels
+              .insert(LabelId(f.get_small_unsigned()), CodeOffset(floc));
           } else {
             op_badarg_panic(next_instr.opcode, &next_instr.args, 0);
           }
@@ -175,46 +172,46 @@ impl LoaderState {
         // locations (fill patch locations and process them later).
         let jt = a.get_box_ptr_mut::<boxed::JumpTable>();
 
-        // Convert jump labels to Term
+        // For each val/location pair - convert jump label indexes to code addrs
         let n_pairs = unsafe { (*jt).get_count() };
         for pair in 0..n_pairs {
-          let (val, location) = unsafe { (*jt).get_pair(pair) };
+          let (val, label_index) = unsafe { (*jt).get_pair(pair) };
 
-          // Do the literal or value
+          // If value is a loadtime literal index - resolve to the real value
           if val.is_loadtime() && val.get_loadtime_tag() == SPECIAL_LT_LITERAL {
             let val1 = self.beam_file.lit_tab[val.get_loadtime_val()];
-            unimplemented!("update");
+            unsafe {
+              (*jt).set_value(pair, val1);
+            }
           }
 
-          // Do the label
-          let label = unsafe { (*jt).get_element(2 + pair * 2) };
-          debug_assert!(label.is_loadtime());
-          unimplemented!("update");
-
-          // Try to resolve labels and convert now, or postpone
-          let patch_loc = PatchLocation::PatchJtabElement(*a, 2 + pair * 2);
-          self.maybe_convert_label(LabelId(f), patch_loc);
+          // Label definitely is a loadtime index, resolve it to the location
+          // The resolution will happen later when code writing has completed,
+          // for now just store the location to patch in the patch table
+          debug_assert!(label_index.is_loadtime());
         }
-      }
 
-        // Label value is special, we want to remember where it was
-        // to convert it to an offset
-        LtTerm::LoadtimeLabel(f) => {
+        // Store it in the patch table
+        let patch_loc = PatchLocation::PatchJumpTable(*a);
+        self.replace_labels.push(patch_loc);
+      } else if a.is_loadtime() {
+        let lt_tag = a.get_loadtime_tag();
+        let f = a.get_loadtime_val();
+        if lt_tag == SPECIAL_LT_LABEL {
+          // Label value is special, we want to remember where it was
+          // to convert it to an offset
           let ploc = PatchLocation::PatchCodeOffset(self.code.len());
           let new_t = self.maybe_convert_label(LabelId(f), ploc);
           self.code.push(new_t)
+        } else if lt_tag == SPECIAL_LT_LITERAL {
+          // Load-time literals are already loaded on `self.lit_heap`
+          self.code.push(self.beam_file.lit_tab[f].raw())
         }
-
-        // Load-time literals are already loaded on `self.lit_heap`
-        LtTerm::LoadtimeLiteral(lit_index) => {
-          self.code.push(self.beam_file.lit_tab[lit_index].raw())
-        }
-
+      } else {
         // Otherwise convert via a simple method
-        _ => {
-          let a_term = a.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab);
-          self.code.push(a_term.raw())
-        }
+        let a_term = a.to_lterm(&mut self.beam_file.lit_heap, &self.beam_file.lit_tab);
+        self.code.push(a_term.raw())
+      }
     } // for a in args
     Ok(())
   }

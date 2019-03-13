@@ -12,7 +12,6 @@ mod impl_parse_code;
 mod impl_setup_imports;
 mod impl_stage2;
 mod load_time_structs;
-mod load_time_term;
 
 use crate::{
   beam::loader::beam_file::BeamFile,
@@ -28,6 +27,8 @@ use crate::{
 };
 use core::mem;
 use std::{collections::BTreeMap, path::PathBuf};
+use crate::term::boxed::boxtype::BOXTYPETAG_JUMP_TABLE;
+use crate::term::boxed;
 
 // macro_rules! rt_debug {
 //    ($($arg:tt)*) => (if cfg!(trace_beam_loader) { println!($($arg)*); })
@@ -55,7 +56,7 @@ pub enum CompactTermError {
 /// a tuple which represents a jump table (pairs value -> label)
 enum PatchLocation {
   PatchCodeOffset(usize),
-  PatchJtabElement(Term, usize),
+  PatchJumpTable(Term),
 }
 
 /// BEAM loader state.
@@ -168,40 +169,36 @@ impl LoaderState {
     Term::make_cp(ptr).raw()
   }
 
-  /// Given a load-time `Atom_` or a structure possibly containing `Atom_`s,
-  /// resolve it to a runtime atom index using a lookup table.
-  pub fn resolve_loadtime_values(&self, arg: &LtTerm) -> Option<LtTerm> {
-    match *arg {
-      // A special value 0 means NIL []
-      LtTerm::LoadtimeAtom(0) => Some(LtTerm::Nil),
+  /// Given a value, possibly a load-time value or a structure possibly
+  /// containing nested load-time values, resolve it using lookup tables.
+  pub fn resolve_value(&self, arg: Term) -> Term {
+    if arg.is_loadtime() {
+      let lt_tag = arg.get_loadtime_tag();
+      let lt_val = arg.get_loadtime_val();
 
-      // Repack load-time atom via an `Term` index into an `FTerm` atom
-      LtTerm::LoadtimeAtom(i) => {
-        let aindex = self.atom_from_loadtime_index(i).atom_index();
-        Some(LtTerm::Atom(aindex))
+      if lt_tag == SPECIAL_LT_ATOM {
+        // A special value 0 means NIL []
+        if lt_val == 0 { return Term::nil(); }
+
+        // Repack load-time atom via an `Term` index into an `FTerm` atom
+        self.atom_from_loadtime_index(lt_val)
       }
-
+    } else if arg.is_boxed_of_type(BOXTYPETAG_JUMP_TABLE) {
+      // TODO: Generic iteration through any container boxed?
       // ExtList_ can contain Atom_ - convert them to runtime Atoms
-      LtTerm::LoadtimeExtlist(ref lst) => {
-        let mut result: Vec<LtTerm> = Vec::new();
-        result.reserve(lst.len());
-        for x in lst.iter() {
-          match self.resolve_loadtime_values(x) {
-            Some(tmp) => result.push(tmp),
-            None => result.push(x.clone()),
-          }
-        }
-        Some(LtTerm::LoadtimeExtlist(result))
-      }
+      let lst = arg.get_box_ptr_mut::<boxed::JumpTable>();
+
+      arg
+    } else {
       // Otherwise no changes
-      _ => None,
+      arg
     }
   }
 }
 
 /// Report a bad opcode arg
 // TODO: Use this more, than just label opcode
-fn op_badarg_panic(op: RawOpcode, args: &[LtTerm], argi: Word) {
+fn op_badarg_panic(op: RawOpcode, args: &[Term], argi: Word) {
   panic!(
     "{}Opcode {} the arg #{} in {:?} is bad",
     module(),

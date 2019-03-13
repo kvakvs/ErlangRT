@@ -17,7 +17,7 @@ pub mod trait_interface;
 pub mod tuple;
 
 pub use self::{
-  bignum::Bignum, binary::Binary, box_header::*, boxtype::*, closure::Closure,
+  bignum::*, binary::Binary, box_header::*, boxtype::*, closure::Closure,
   cons::Cons, export::Export, float::Float, import::Import, jump_table::*, map::*,
   pid::ExternalPid, trait_interface::*, tuple::Tuple,
 };

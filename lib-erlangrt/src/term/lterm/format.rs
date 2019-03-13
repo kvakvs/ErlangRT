@@ -134,9 +134,16 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "{{}}");
       }
     }
-    SPECIALTAG_REGX => return write!(f, "X{}", term.get_special_value()),
-    SPECIALTAG_REGY => return write!(f, "Y{}", term.get_special_value()),
-    SPECIALTAG_REGFP => return write!(f, "F{}", term.get_special_value()),
+    SPECIALTAG_REG => {
+      let rtag = term.get_reg_tag();
+      if rtag == SPECIALREG_X {
+      return write!(f, "X{}", term.get_reg_value()); } else if rtag == SPECIALREG_Y {
+      return write!(f, "Y{}", term.get_reg_value()); } else if rtag == SPECIALREG_FP {
+        return write!(f, "F{}", term.get_reg_value());
+      } else {
+        panic!("Unknown special reg tag")
+      }
+    },
     SPECIALTAG_OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
     SPECIALTAG_CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
     _ => {}

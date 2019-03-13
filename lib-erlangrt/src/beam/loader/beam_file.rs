@@ -257,7 +257,7 @@ impl BeamFile {
       } else if val.is_atom() {
         // _fname_index = a as u32
       } else {
-        panic!("{}Unexpected data in line info section: {:?}", module(), other)
+        panic!("{}Unexpected data in line info section: {}", module(), val)
       }
     }
 

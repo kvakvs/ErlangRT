@@ -1,12 +1,8 @@
 use super::bin_reader::BinaryReader;
 use crate::{
-  big,
   defs::{SWord, Word},
   fail::{RtErr, RtResult},
-  term::{
-    lterm::{Term, SMALL_SIGNED_BITS},
-    term_builder::TermBuilder,
-  },
+  term::{boxed::bignum::sign::Sign, lterm::Term, term_builder::TermBuilder},
 };
 
 ///// Errors indicating a problem with External Term Format parser.
@@ -124,21 +120,14 @@ pub fn decode_naked(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<Term
 /// Given `size`, read digits for a bigint.
 fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResult<Term> {
   let sign = if r.read_u8() == 0 {
-    big::Sign::Positive
+    Sign::Positive
   } else {
-    big::Sign::Negative
+    Sign::Negative
   };
   let digits = r.read_bytes(size)?;
-  let big = big::Big::from_bytes_le(sign, &digits);
-
-  // Assert that the number fits into small
-  if big.get_size().bit_count < SMALL_SIGNED_BITS {
-    let b_signed = big.to_isize().unwrap();
-    return Ok(tb.create_small_s(b_signed));
-  }
 
   // Determine storage size in words
-  unsafe { Ok(tb.create_bignum(big)?) }
+  unsafe { Ok(tb.create_bignum_le(sign, &digits)?) }
 }
 
 fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<Term> {

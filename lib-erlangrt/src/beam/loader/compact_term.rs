@@ -3,18 +3,13 @@
 
 use crate::{
   beam::loader::CompactTermError,
-  big,
   defs::{SWord, Word},
-  emulator::{gen_atoms, heap::Heap},
+  emulator::heap::Heap,
   fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
   term::{
-    boxed::{
-      self,
-      bignum::{Endianness, Sign},
-    },
-    lterm::Term,
-    term_builder::{ListBuilder, TupleBuilder},
+    boxed::{self, bignum, endianness::Endianness},
+    lterm::{Term, SPECIAL_LT_LITERAL},
   },
 };
 
@@ -55,7 +50,7 @@ fn module() -> &'static str {
 }
 
 #[inline]
-fn make_err(e: CompactTermError) -> RtResult<LtTerm> {
+fn make_err<T>(e: CompactTermError) -> RtResult<T> {
   Err(RtErr::CodeLoadingCompactTerm(e))
 }
 
@@ -100,7 +95,7 @@ pub fn read(r: &mut BinaryReader) -> RtResult<Term> {
     }
     x if x == CTETag::Label as u8 => {
       if bword.is_small() {
-        return Ok(Term::make_ltlabel(index as Word));
+        return Ok(Term::make_ltlabel(bword.get_small_unsigned()));
       }
       make_err(CompactTermError::BadLabelTag)
     }
@@ -129,10 +124,10 @@ pub fn read(r: &mut BinaryReader) -> RtResult<Term> {
 }
 
 #[cfg(feature = "r19")]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
+fn parse_ext_tag(hp: &mut Heap, b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
   match b {
-    x if x == CTEExtTag::Float as u8 => parse_ext_float(r),
-    x if x == CTEExtTag::List as u8 => parse_ext_list(r),
+    x if x == CTEExtTag::List as u8 => parse_ext_list(hp, r),
+    x if x == CTEExtTag::Float as u8 => parse_ext_float(hp, r),
     x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(r),
     x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
     x if x == CTEExtTag::AllocList as u8 => {
@@ -146,9 +141,10 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
 }
 
 #[cfg(not(feature = "r19"))]
-fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
+fn parse_ext_tag(hp: &mut Heap, b: u8, r: &mut BinaryReader) -> RtResult<Term> {
   match b {
-    x if x == CTEExtTag::List as u8 => parse_ext_list(r),
+    x if x == CTEExtTag::List as u8 => parse_ext_list(hp, r),
+    x if x == CTEExtTag::Float as u8 => parse_ext_float(hp, r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
       // Ok(FTerm::AllocList_)
@@ -162,15 +158,14 @@ fn parse_ext_tag(b: u8, r: &mut BinaryReader) -> RtResult<LtTerm> {
   }
 }
 
-#[cfg(feature = "r19")]
-fn parse_ext_float(r: &mut BinaryReader) -> RtResult<LtTerm> {
+fn parse_ext_float(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
   // floats are always stored as f64
   let fp_bytes = r.read_u64be();
   let fp: f64 = unsafe { std::mem::transmute::<u64, f64>(fp_bytes) };
-  Ok(LtTerm::Float(fp as defs::Float))
+  Term::make_float(hp, fp)
 }
 
-fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<LtTerm> {
+fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<Term> {
   let b = r.read_u8();
   let reg = read_word(b, r);
   if reg.is_small() {
@@ -180,13 +175,16 @@ fn parse_ext_fpreg(r: &mut BinaryReader) -> RtResult<LtTerm> {
   make_err(CompactTermError::BadExtendedTag(msg))
 }
 
-fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<LtTerm> {
+fn parse_ext_literal(r: &mut BinaryReader) -> RtResult<Term> {
   let b = r.read_u8();
   let reg = read_word(b, r);
   if reg.is_small() {
-    return Ok(Term::LoadtimeLiteral(reg as Word));
+    return Ok(Term::make_loadtime(
+      SPECIAL_LT_LITERAL,
+      reg.get_small_unsigned(),
+    ));
   }
-  let msg = "toExt tag Literal value too big".to_string();
+  let msg = "compact_term: loadtime Literal index too big".to_string();
   make_err(CompactTermError::BadExtendedTag(msg))
 }
 
@@ -221,7 +219,7 @@ fn read_int(r: &mut BinaryReader) -> SWord {
 
 /// Given the first byte, parse an integer encoded after the 3-bit tag,
 /// read more bytes from stream if needed.
-fn read_word(b: u8, r: &mut BinaryReader) -> Term {
+fn read_word(hp: &mut Heap, b: u8, r: &mut BinaryReader) -> Term {
   if 0 == (b & 0b1000) {
     // Bit 3 is 0 marks that 4 following bits contain the value
     return Term::make_small_signed((b as SWord) >> 4);
@@ -252,9 +250,9 @@ fn read_word(b: u8, r: &mut BinaryReader) -> Term {
     // Read the remaining big endian bytes and convert to int
     let long_bytes = r.read_bytes(n_bytes).unwrap();
     let sign = if long_bytes[0] & 0x80 == 0x80 {
-      Sign::Negative
+      bignum::sign::Sign::Negative
     } else {
-      Sign::Positive
+      bignum::sign::Sign::Positive
     };
 
     let r =

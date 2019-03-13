@@ -2,7 +2,7 @@ use crate::{
   big,
   emulator::{arith::multiplication, process::Process, vm::VM},
   fail::RtResult,
-  term::{boxed, lterm::*},
+  term::lterm::*,
 };
 
 fn module() -> &'static str {
@@ -94,11 +94,8 @@ pub fn nativefun_multiply_2(
 // TODO: shorten, use only heap of the process, inline, move to a lib module in arith
 fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<Term> {
   // We're out of luck - the result is not a small, but we have BigInt!
-  let big_val = big::Big::from_isize(iresult);
-  // Place a new BigInt on heap
-  // TODO: Make a tool function for this, also ext_term_format:decode_big
-  let heap = &mut cur_proc.heap;
-  let rbig_result = unsafe { boxed::Bignum::create_into(heap, big_val)? };
-
-  Ok(Term::make_boxed(rbig_result))
+  Ok(Term::make_boxed(big::from_isize(
+    &mut cur_proc.heap,
+    iresult,
+  )))
 }
