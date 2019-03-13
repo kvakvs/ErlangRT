@@ -35,13 +35,32 @@ impl TBoxed for Bignum {
   }
 }
 
+#[derive(Debug, Clone)]
+pub enum Sign {
+  Positive,
+  Negative,
+}
+
+#[derive(Debug, Clone)]
+pub enum Endianness {
+  Big,
+  Little,
+}
+
 impl Bignum {
   const fn storage_size() -> WordSize {
     // This impl stores bignum in dynamic heap with the num library
     ByteSize::new(size_of::<Bignum>()).get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, value: big::Big) -> RtResult<*mut Bignum> {
+  /// Consume bytes as either big- or little-endian stream, and build a big
+  /// integer on heap.
+  pub unsafe fn create_into(
+    hp: &mut Heap,
+    sign: Sign,
+    endianness: Endianness,
+    bytes: &[u8],
+  ) -> RtResult<*mut Bignum> {
     unimplemented!("bignum::create_into")
     //    let n_words = Bignum::storage_size();
     //    let this = hp.alloc::<Bignum>(n_words, false)?;
