@@ -256,22 +256,22 @@ impl Context {
     hp: &mut heap::Heap,
   ) -> RtResult<()> {
     debug_assert!(
-      !val.is_regx(),
+      !val.is_register_x(),
       "ctx.store value must not be a X reg, have {}",
       val
     );
     debug_assert!(
-      !val.is_regy(),
+      !val.is_register_y(),
       "ctx.store value must not be a Y reg, have {}",
       val
     );
     debug_assert!(
-      !val.is_regfp(),
+      !val.is_register_float(),
       "ctx.store value must not be a FP reg, have {}",
       val
     );
     debug_assert!(
-      dst.is_regx() || dst.is_regy() || dst.is_regfp(),
+      dst.is_register_x() || dst.is_register_y() || dst.is_register_float(),
       "ctx.store destination must be a X, Y or FP register"
     );
     if dst.get_term_tag() == value::TERMTAG_SPECIAL {

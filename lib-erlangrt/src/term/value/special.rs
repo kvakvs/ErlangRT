@@ -36,7 +36,9 @@ pub const SPECIALCONST_EMPTYBINARY: SpecialConst = SpecialConst(2);
 #[derive(Eq, PartialEq, Debug)]
 pub struct SpecialReg(pub usize);
 
-pub const SPECIAL_REG_TAG_BITS: usize = 2;
+/// How many bits are reserved in special value, if the special is a register index
+const SPECIAL_REG_TAG_BITS: usize = 2;
+
 /// How many bits are remaining in the machine word after taking away the prefix bits
 #[allow(dead_code)]
 pub const SPECIAL_REG_RESERVED_BITS: usize =
@@ -60,34 +62,36 @@ pub const SPECIAL_LT_LABEL: SpecialLoadTime = SpecialLoadTime(1); // label table
 pub const SPECIAL_LT_LITERAL: SpecialLoadTime = SpecialLoadTime(2); // literal table index
 
 impl Term {
-  pub fn make_regx(n: usize) -> Self {
+  pub fn make_register_x(n: usize) -> Self {
     Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_X.0)
   }
 
-  pub fn is_regx(self) -> bool {
+  pub fn is_register_x(self) -> bool {
     self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_X
   }
 
-  pub fn make_regy(n: usize) -> Self {
+  pub fn make_register_y(n: usize) -> Self {
     Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_Y.0)
   }
 
-  pub fn is_regy(self) -> bool {
+  pub fn is_register_y(self) -> bool {
     self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_Y
   }
 
-  pub fn make_regfp(n: usize) -> Self {
+  pub fn make_register_float(n: usize) -> Self {
     Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_FP.0)
   }
 
-  pub fn is_regfp(self) -> bool {
+  pub fn is_register_float(self) -> bool {
     self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_FP
   }
 
+  /// For register special, retrieve tag bits which are stored in the special value
   pub fn get_reg_tag(self) -> SpecialReg {
     SpecialReg(self.get_special_value() & (1 << SPECIAL_REG_TAG_BITS - 1))
   }
 
+  /// For register special, retrieve value bits which are stored in the special value
   pub fn get_reg_value(self) -> usize {
     self.get_special_value() >> SPECIAL_REG_TAG_BITS
   }
@@ -134,9 +138,24 @@ impl Term {
   // values using the lookup tables included in the BEAM file.
   //
   #[inline]
-  pub fn make_loadtime(tag: SpecialLoadTime, n: usize) -> Self {
+  fn make_loadtime(tag: SpecialLoadTime, n: usize) -> Self {
     debug_assert!(n < (1usize << (defs::WORD_BITS - SPECIAL_LT_RESERVED_BITS)));
     Self::make_special(SPECIALTAG_LOADTIME, n << SPECIAL_LT_TAG_BITS | tag.0)
+  }
+
+  #[inline]
+  pub fn make_loadtime_atom(n: usize) -> Self {
+    Self::make_loadtime(SPECIAL_LT_ATOM, n)
+  }
+
+  #[inline]
+  pub fn make_loadtime_label(n: usize) -> Self {
+    Self::make_loadtime(SPECIAL_LT_LABEL, n)
+  }
+
+  #[inline]
+  pub fn make_loadtime_literal(n: usize) -> Self {
+    Self::make_loadtime(SPECIAL_LT_LITERAL, n)
   }
 
   #[inline]

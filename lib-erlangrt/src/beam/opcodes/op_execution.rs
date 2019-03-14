@@ -196,7 +196,7 @@ fn generic_call_ext(
           fail_label,
           cb_target,
           args,
-          Term::make_regx(0),
+          Term::make_register_x(0),
           true,
         );
         if save_cp {

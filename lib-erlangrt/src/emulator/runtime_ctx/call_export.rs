@@ -48,7 +48,7 @@ pub fn apply(
       Term::nil(),
       CallBifTarget::MFArity(mfa),
       args,
-      Term::make_regx(0),
+      Term::make_register_x(0),
       false,
     );
   } else {

@@ -173,7 +173,7 @@ macro_rules! fetch_one_arg {
   ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,yreg($arg_ident:ident)) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!(
-      $arg_ident.is_regy(),
+      $arg_ident.is_register_y(),
       "Expected an Y register, got {}",
       $arg_ident
     );

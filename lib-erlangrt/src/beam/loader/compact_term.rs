@@ -10,7 +10,7 @@ use crate::{
   rt_util::bin_reader::BinaryReader,
   term::{
     boxed::{self, bignum, endianness::Endianness},
-    value::{self, Term},
+    value::Term,
   },
 };
 
@@ -78,28 +78,25 @@ pub fn read(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
         if index == 0 {
           return Ok(Term::nil());
         }
-        return Ok(Term::make_loadtime(value::SPECIAL_LT_ATOM, index));
+        return Ok(Term::make_loadtime_atom(index));
       }
       make_err(CompactTermError::BadAtomTag)
     }
     x if x == CTETag::XReg as u8 => {
       if bword.is_small() {
-        return Ok(Term::make_regx(bword.get_small_unsigned()));
+        return Ok(Term::make_register_x(bword.get_small_unsigned()));
       }
       make_err(CompactTermError::BadXRegTag)
     }
     x if x == CTETag::YReg as u8 => {
       if bword.is_small() {
-        return Ok(Term::make_regy(bword.get_small_unsigned()));
+        return Ok(Term::make_register_y(bword.get_small_unsigned()));
       }
       make_err(CompactTermError::BadYRegTag)
     }
     x if x == CTETag::Label as u8 => {
       if bword.is_small() {
-        return Ok(Term::make_loadtime(
-          value::SPECIAL_LT_LABEL,
-          bword.get_small_unsigned(),
-        ));
+        return Ok(Term::make_loadtime_label(bword.get_small_unsigned()));
       }
       make_err(CompactTermError::BadLabelTag)
     }
@@ -177,7 +174,7 @@ fn parse_ext_fpreg(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
   let b = r.read_u8();
   let reg = read_word(hp, b, r)?;
   if reg.is_small() {
-    return Ok(Term::make_regfp(reg.get_small_unsigned()));
+    return Ok(Term::make_register_float(reg.get_small_unsigned()));
   }
   let msg = "Ext tag FPReg value too big".to_string();
   make_err(CompactTermError::BadExtendedTag(msg))
@@ -187,10 +184,7 @@ fn parse_ext_literal(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
   let b = r.read_u8();
   let reg = read_word(hp, b, r)?;
   if reg.is_small() {
-    return Ok(Term::make_loadtime(
-      value::SPECIAL_LT_LITERAL,
-      reg.get_small_unsigned(),
-    ));
+    return Ok(Term::make_loadtime_literal(reg.get_small_unsigned()));
   }
   let msg = "compact_term: loadtime Literal index too big".to_string();
   make_err(CompactTermError::BadExtendedTag(msg))

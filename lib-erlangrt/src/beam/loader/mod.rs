@@ -31,11 +31,15 @@ use crate::{
 use core::mem;
 use std::{collections::BTreeMap, path::PathBuf};
 
-// macro_rules! rt_debug {
-//    ($($arg:tt)*) => (if cfg!(trace_beam_loader) { println!($($arg)*); })
-//}
+macro_rules! dbg {
+  ($($arg:tt)*) => (if cfg!(trace_beam_loader) {
+    print!("{}", module());
+    println!($($arg)*);
+  })
+}
 
-fn module() -> &'static str {
+#[inline]
+const fn module() -> &'static str {
   "beam/loader: "
 }
 
@@ -70,7 +74,6 @@ struct LoaderState {
   /// Atoms converted to VM terms. Remember to use from_loadtime_atom_index()
   /// which will deduce 1 from the index automatically
   vm_atoms: Vec<Term>,
-  // vm_funs: BTreeMap<FunArity, CodeOffset>,
 
   //--- Code postprocessing and creating a function object ---
   /// Accumulate code for the current function here then move it when done.
@@ -90,9 +93,6 @@ struct LoaderState {
   imports: Vec<Term>,
 
   lambdas: Vec<FunEntry>,
-  /*  /// A map of F/Arity -> HOExport which uses literal heap but those created
-   *  /// during runtime will be using process heap.
-   *  exports: BTreeMap<FunArity, Term> */
 }
 
 impl LoaderState {
@@ -218,7 +218,7 @@ pub fn load_module(
   code_srv: &mut CodeServer,
   mod_file_path: &PathBuf,
 ) -> RtResult<Box<Module>> {
-  println!("BEAM loader: from {}", mod_file_path.to_str().unwrap());
+  dbg!("BEAM loader: from {}", mod_file_path.to_str().unwrap());
 
   // Preload data structures
   // located in impl_read_chunks.rs
