@@ -90,9 +90,9 @@ impl Binary {
     BinaryType::BinaryHeap
   }
 
-  fn new(bin_type: BinaryType, arity: WordSize) -> Binary {
+  fn new(bin_type: BinaryType, storage_size: WordSize) -> Binary {
     Binary {
-      header: BoxHeader::new::<Binary>(arity.words()),
+      header: BoxHeader::new::<Binary>(storage_size),
       bin_type,
     }
   }

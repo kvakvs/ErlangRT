@@ -4,7 +4,8 @@
 #![crate_type = "lib"]
 #![crate_name = "erlangrt"]
 #![feature(raw)]
-#![feature(ptr_internals)] // for std/core::ptr::Unique
+// #![feature(ptr_internals)] // for std/core::ptr::Unique
+#![feature(maybe_uninit)]
 
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;

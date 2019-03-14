@@ -3,6 +3,7 @@
 
 use crate::{
   beam::loader::CompactTermError,
+  big,
   defs::Word,
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
@@ -262,8 +263,8 @@ fn read_word(hp: &mut Heap, b: u8, r: &mut BinaryReader) -> RtResult<Term> {
       bignum::sign::Sign::Positive
     };
 
-    let r =
-      unsafe { boxed::Bignum::create_into(hp, sign, Endianness::Big, &long_bytes)? };
+    let limbs = big::make_limbs_from_bytes(Endianness::Little, long_bytes);
+    let r = unsafe { boxed::Bignum::create_into(hp, sign, &limbs)? };
     Ok(Term::make_boxed(r))
   } // if larger than 11 bits
 }

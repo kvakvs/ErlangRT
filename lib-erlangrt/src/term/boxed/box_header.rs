@@ -28,10 +28,11 @@ pub struct BoxHeader {
 pub const GUARD_WORD_VALUE: usize = 0x1111beefface2222;
 
 impl BoxHeader {
-  pub fn new<TraitType>(arity: Word) -> BoxHeader
+  pub fn new<TraitType>(storage_size: WordSize) -> BoxHeader
   where
     TraitType: TBoxed,
   {
+    let arity = storage_size.words();
     let header_word = (arity << TERM_TAG_BITS) | TERMTAG_HEADER.get();
 
     // Extract and store vtable pointer from the TBoxed trait object

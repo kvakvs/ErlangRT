@@ -183,7 +183,7 @@ impl LoaderState {
           return Term::nil();
         }
 
-        // Repack load-time atom via an `Term` index into an `FTerm` atom
+        // Convert loadtime atom into VM atom using the lookup table
         self.atom_from_loadtime_index(lt_val)
       } else {
         arg // no change

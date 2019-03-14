@@ -33,29 +33,29 @@ impl TBoxed for Export {
 impl Export {
   #[inline]
   fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<Export>()).get_words_rounded_up()
+    ByteSize::new(size_of::<Self>()).get_words_rounded_up()
   }
 
-  fn new(mfa: &ModFunArity) -> Export {
-    let n_words = Export::storage_size();
-    Export {
-      header: BoxHeader::new::<Export>(n_words.words()),
+  fn new(mfa: &ModFunArity) -> Self {
+    let storage_size = Export::storage_size();
+    Self {
+      header: BoxHeader::new::<Self>(storage_size),
       exp: export::Export::new(*mfa),
     }
   }
 
   #[allow(dead_code)]
   pub unsafe fn create_into(hp: &mut Heap, mfa: &ModFunArity) -> RtResult<Term> {
-    let n_words = Export::storage_size();
-    let this = hp.alloc::<Export>(n_words, false)?;
+    let n_words = Self::storage_size();
+    let this = hp.alloc::<Self>(n_words, false)?;
 
-    ptr::write(this, Export::new(mfa));
+    ptr::write(this, Self::new(mfa));
     Ok(Term::make_boxed(this))
   }
 
   #[allow(dead_code)]
-  pub unsafe fn const_from_term(t: Term) -> RtResult<*const Export> {
-    helper_get_const_from_boxed_term::<Export>(
+  pub unsafe fn const_from_term(t: Term) -> RtResult<*const Self> {
+    helper_get_const_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_EXPORT,
       RtErr::BoxedIsNotAnExport,
@@ -63,8 +63,8 @@ impl Export {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn mut_from_term(t: Term) -> RtResult<*mut Export> {
-    helper_get_mut_from_boxed_term::<Export>(
+  pub unsafe fn mut_from_term(t: Term) -> RtResult<*mut Self> {
+    helper_get_mut_from_boxed_term::<Self>(
       t,
       BOXTYPETAG_EXPORT,
       RtErr::BoxedIsNotAnExport,

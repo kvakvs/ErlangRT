@@ -24,7 +24,7 @@ fn gen_alloc(
     return Err(RtErr::HeapIsFull("heap::gen_alloc"));
   }
 
-  if hp.stack_have(stack_need + WordSize::new(1)) {
+  if hp.stack_have(stack_need + WordSize::one()) {
     // Stack has enough words, we can allocate unchecked
     if stack_need.words() > 0 {
       hp.stack_alloc_unchecked(stack_need, zero);

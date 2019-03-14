@@ -32,24 +32,24 @@ impl TBoxed for Float {
 impl Float {
   #[allow(dead_code)]
   const fn storage_size() -> WordSize {
-    ByteSize::new(core::mem::size_of::<Float>()).get_words_rounded_up()
+    ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up()
   }
 
   #[allow(dead_code)]
-  fn new(value: f64) -> Float {
-    let storage_size = ByteSize::new(size_of::<Float>()).get_words_rounded_up();
-    Float {
-      header: BoxHeader::new::<Float>(storage_size.words()),
+  fn new(value: f64) -> Self {
+    let storage_size = ByteSize::new(size_of::<Self>()).get_words_rounded_up();
+    Self {
+      header: BoxHeader::new::<Self>(storage_size),
       value,
     }
   }
 
   #[allow(dead_code)]
-  pub unsafe fn create_into(hp: &mut Heap, value: f64) -> RtResult<*mut Float> {
-    let n_words = Float::storage_size();
-    let this = hp.alloc::<Float>(n_words, false)?;
+  pub unsafe fn create_into(hp: &mut Heap, value: f64) -> RtResult<*mut Self> {
+    let n_words = Self::storage_size();
+    let this = hp.alloc::<Self>(n_words, false)?;
 
-    ptr::write(this, Float::new(value));
+    ptr::write(this, Self::new(value));
 
     Ok(this)
   }

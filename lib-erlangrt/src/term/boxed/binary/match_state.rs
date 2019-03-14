@@ -64,9 +64,9 @@ impl BinaryMatchState {
 
   /// Create a new matchstate for the initial binary match step.
   fn new(bin_ptr: *const TBinary) -> Self {
-    let arity = Self::storage_size();
+    let storage_size = Self::storage_size();
     let mut self_ = Self {
-      header: boxed::BoxHeader::new::<BinaryMatchState>(arity.words()),
+      header: boxed::BoxHeader::new::<BinaryMatchState>(storage_size),
       match_buffer: MatchBuffer::new(bin_ptr),
     };
     self_.reset();

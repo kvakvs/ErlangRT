@@ -12,6 +12,7 @@ pub use self::{
 };
 
 use crate::{
+  big,
   defs::BitSize,
   emulator::{atom, heap::Heap},
   fail::RtResult,
@@ -39,10 +40,11 @@ impl TermBuilder {
   pub unsafe fn create_bignum_le(
     &self,
     sign: bignum::sign::Sign,
-    digits: &[u8],
+    digits: Vec<u8>,
   ) -> RtResult<Term> {
     let ref_heap = self.heap.as_mut().unwrap();
-    let p = boxed::Bignum::create_into(ref_heap, sign, Endianness::Little, digits)?;
+    let limbs = big::make_limbs_from_bytes(Endianness::Little, digits);
+    let p = boxed::Bignum::create_into(ref_heap, sign, &limbs)?;
     Ok(Term::make_boxed(p))
   }
 

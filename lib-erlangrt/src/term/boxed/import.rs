@@ -37,17 +37,17 @@ impl TBoxed for Import {
 
 impl Import {
   const fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<Import>()).get_words_rounded_up()
+    ByteSize::new(size_of::<Self>()).get_words_rounded_up()
   }
 
   pub unsafe fn create_into(hp: &mut Heap, mfarity: ModFunArity) -> RtResult<Term> {
-    let n_words = Import::storage_size();
-    let this = hp.alloc::<Import>(n_words, false)?;
+    let storage_size = Self::storage_size();
+    let this = hp.alloc::<Self>(storage_size, false)?;
 
     ptr::write(
       this,
-      Import {
-        header: BoxHeader::new::<Import>(n_words.words()),
+      Self {
+        header: BoxHeader::new::<Self>(storage_size),
         mfarity,
         is_bif: None, // we don't know yet
       },

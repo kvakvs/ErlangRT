@@ -59,7 +59,7 @@ impl JumpTable {
   fn new(n_pairs: usize) -> JumpTable {
     assert_ne!(n_pairs, 0, "Can't create an empty jump table");
     Self {
-      header: BoxHeader::new::<Self>(Self::storage_size(n_pairs).words()),
+      header: BoxHeader::new::<Self>(Self::storage_size(n_pairs)),
       val0: Term::non_value(),
     }
   }

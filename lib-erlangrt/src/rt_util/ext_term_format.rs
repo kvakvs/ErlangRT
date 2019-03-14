@@ -125,9 +125,8 @@ fn decode_big(r: &mut BinaryReader, size: Word, tb: &mut TermBuilder) -> RtResul
     Sign::Negative
   };
   let digits = r.read_bytes(size)?;
-
   // Determine storage size in words
-  unsafe { Ok(tb.create_bignum_le(sign, &digits)?) }
+  unsafe { Ok(tb.create_bignum_le(sign, digits)?) }
 }
 
 fn decode_binary(r: &mut BinaryReader, tb: &mut TermBuilder) -> RtResult<Term> {

@@ -81,6 +81,7 @@ name = "erlangrt"
 version = "0.1.0"
 dependencies = [
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.302 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",

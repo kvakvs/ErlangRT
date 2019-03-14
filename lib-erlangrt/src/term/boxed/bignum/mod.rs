@@ -1,9 +1,9 @@
 pub mod endianness;
 pub mod sign;
 
-use self::{endianness::*, sign::*};
+use self::sign::*;
 use crate::{
-  defs::{self, BitSize, ByteSize, WordSize},
+  defs::{ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
@@ -22,10 +22,10 @@ use core::mem::size_of;
 pub struct Bignum {
   header: BoxHeader,
 
-  /// Contains same data as `big::Big` but the digits are stored in process
-  /// heap memory following the `Bignum` header, starting at `digits` field.
-  pub size: BitSize,
-  pub digits: usize,
+  /// Negative size points that the number is negative.
+  pub size: isize,
+  /// First limb of digits is here, remaining digits follow in the memory after
+  pub digits: core::mem::MaybeUninit<usize>,
 }
 
 impl TBoxed for Bignum {
@@ -44,31 +44,47 @@ impl Bignum {
     ByteSize::new(size_of::<Bignum>()).get_words_rounded_up()
   }
 
+  /// Create bignum for one isize
   pub fn with_isize(hp: &mut Heap, val: isize) -> RtResult<*mut Bignum> {
-    let sign = Sign::new(val);
-    let endianness = Endianness::new();
-    let val_slice = unsafe {
-      let data = &val as *const isize as *const u8;
-      core::slice::from_raw_parts(data, defs::WORD_BITS / defs::BYTE_BITS)
+    let (sign, positive_val) = Sign::split(val);
+
+    // Create slice of one limb
+    let limbs = unsafe {
+      let data = &positive_val as *const usize;
+      core::slice::from_raw_parts(data, 1)
     };
-    unsafe { Self::create_into(hp, sign, endianness, val_slice) }
+    unsafe { Self::create_into(hp, sign, limbs) }
   }
 
   /// Consume bytes as either big- or little-endian stream, and build a big
   /// integer on heap.
   pub unsafe fn create_into(
-    _hp: &mut Heap,
-    _sign: Sign,
-    _endianness: Endianness,
-    _bytes: &[u8],
-  ) -> RtResult<*mut Bignum> {
-    unimplemented!("bignum::create_into")
-    //    let n_words = Bignum::storage_size();
-    //    let this = hp.alloc::<Bignum>(n_words, false)?;
-    //
-    //    ptr::write(this, Bignum::new(n_words, value));
-    //
-    //    Ok(this)
+    hp: &mut Heap,
+    sign: Sign,
+    limbs: &[usize],
+  ) -> RtResult<*mut Self> {
+    let n_words = Self::storage_size();
+    let this = hp.alloc::<Self>(n_words, false)?;
+
+    core::ptr::write(
+      this,
+      Self {
+        header: BoxHeader::new::<Self>(n_words),
+        size: if sign == Sign::Negative {
+          -(limbs.len() as isize)
+        } else {
+          limbs.len() as isize
+        },
+        digits: core::mem::MaybeUninit::uninitialized(),
+      },
+    );
+    core::ptr::copy_nonoverlapping(
+      limbs.as_ptr(),
+      &mut (*this).digits as *mut core::mem::MaybeUninit<usize> as *mut usize,
+      limbs.len(),
+    );
+
+    Ok(this)
   }
 
   #[allow(dead_code)]

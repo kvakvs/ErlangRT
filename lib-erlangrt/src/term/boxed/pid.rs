@@ -37,9 +37,9 @@ impl ExternalPid {
   }
 
   fn new(node: Term, id: Word) -> ExternalPid {
-    let arity = ExternalPid::storage_size().words() - 1;
+    let storage_size = ExternalPid::storage_size() - WordSize::one();
     ExternalPid {
-      header: BoxHeader::new::<ExternalPid>(arity),
+      header: BoxHeader::new::<ExternalPid>(storage_size),
       node,
       id,
     }

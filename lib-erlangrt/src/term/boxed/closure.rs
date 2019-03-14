@@ -57,15 +57,15 @@ impl TBoxed for Closure {
 impl Closure {
   #[inline]
   const fn storage_size(nfrozen: Word) -> WordSize {
-    ByteSize::new(size_of::<Closure>())
+    ByteSize::new(size_of::<Self>())
       .get_words_rounded_up()
       .add(nfrozen)
   }
 
-  fn new(mfa: ModFunArity, nfrozen: usize) -> Closure {
-    let arity = Closure::storage_size(nfrozen).words() - 1;
-    Closure {
-      header: BoxHeader::new::<Closure>(arity),
+  fn new(mfa: ModFunArity, nfrozen: usize) -> Self {
+    let storage_size = Self::storage_size(nfrozen) - WordSize::one();
+    Self {
+      header: BoxHeader::new::<Self>(storage_size),
       mfa,
       dst: None,
       nfrozen: nfrozen as Arity,
@@ -77,8 +77,8 @@ impl Closure {
     fe: &FunEntry,
     frozen: &[Term],
   ) -> RtResult<Term> {
-    let n_words = Closure::storage_size(fe.nfrozen);
-    let this = hp.alloc::<Closure>(n_words, false)?;
+    let n_words = Self::storage_size(fe.nfrozen);
+    let this = hp.alloc::<Self>(n_words, false)?;
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     println!(
@@ -89,7 +89,7 @@ impl Closure {
       fe.nfrozen
     );
 
-    core::ptr::write(this, Closure::new(fe.mfa, fe.nfrozen));
+    core::ptr::write(this, Self::new(fe.mfa, fe.nfrozen));
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     // step 1 closure forward, which will point exactly at the frozen location
@@ -132,7 +132,7 @@ impl Closure {
   #[inline]
   pub unsafe fn get_frozen(&self) -> &'static [Term] {
     let nfrozen = self.nfrozen;
-    let frozen_ptr = (self as *const Closure).add(1) as *const Term;
+    let frozen_ptr = (self as *const Self).add(1) as *const Term;
     core::slice::from_raw_parts(frozen_ptr, nfrozen)
   }
 
@@ -142,7 +142,7 @@ impl Closure {
   #[inline]
   pub unsafe fn get_frozen_mut(&mut self) -> &'static mut [Term] {
     let nfrozen = self.nfrozen;
-    let frozen_ptr = (self as *mut Closure).add(1) as *mut Term;
+    let frozen_ptr = (self as *mut Self).add(1) as *mut Term;
     core::slice::from_raw_parts_mut(frozen_ptr, nfrozen)
   }
 }

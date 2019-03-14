@@ -51,15 +51,16 @@ impl TBoxed for Map {
 impl Map {
   /// Size of a tuple in memory with the header word (used for allocations)
   #[inline]
-  pub const fn storage_size(arity: Word) -> WordSize {
-    WordSize::new(2 * arity + BoxHeader::storage_size().words())
+  pub fn storage_size(num_pairs: Word) -> WordSize {
+    WordSize::new(2 * num_pairs) + BoxHeader::storage_size()
   }
 
   /// Capacity is how many extra words been allocated
   /// TODO: capacity is not words count on heap, but the count of k/v pairs
-  fn new(capacity: usize) -> Self {
+  fn new(num_pairs: usize) -> Self {
+    let storage_size = Self::storage_size(num_pairs);
     Self {
-      header: BoxHeader::new::<Map>(capacity),
+      header: BoxHeader::new::<Map>(storage_size),
       map_type: MapType::FlatMap,
       count: 0,
     }
@@ -76,11 +77,11 @@ impl Map {
   }
 
   /// Allocate `size+n` cells and form a Map in memory, return the pointer.
-  pub fn create_into(hp: &mut Heap, arity: Word) -> RtResult<*mut Map> {
-    let n = Self::storage_size(arity);
+  pub fn create_into(hp: &mut Heap, num_pairs: Word) -> RtResult<*mut Map> {
+    let n = Self::storage_size(num_pairs);
     let p = hp.alloc::<Map>(n, false)?;
     unsafe {
-      core::ptr::write(p, Map::new(arity));
+      core::ptr::write(p, Map::new(num_pairs));
     }
     Ok(p)
   }

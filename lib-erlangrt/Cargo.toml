@@ -41,6 +41,7 @@ colored = "1.6" # console colors (TTY systems)
 compress = "0.1.2" # depends on `num`; TODO: use libflate
 lazy_static = "0.2"
 ramp = "0.5.1" # Rust multiprecision arithmetics
+byteorder = "*"
 
 [profile.dev]
 panic = "unwind"
