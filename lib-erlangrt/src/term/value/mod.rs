@@ -5,13 +5,21 @@
 
 pub mod cons;
 mod format;
-pub mod tag_special;
-pub mod tag_term;
+mod impl_binary;
+mod impl_boxed;
+mod impl_cons;
+mod impl_number;
+mod impl_tuple;
+mod special;
+mod tag_term;
 pub mod tuple;
 
-pub use self::{tag_special::*, tag_term::*};
+pub use self::{
+  impl_binary::*, impl_boxed::*, impl_cons::*, impl_number::*, impl_tuple::*, special::*,
+  tag_term::*,
+};
 use crate::{
-  defs::{self, ByteSize},
+  defs,
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
   term::boxed::{self, box_header, BoxHeader, BoxType},
@@ -23,6 +31,7 @@ use std::fmt;
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
 pub const SMALLEST_SMALL: isize = isize::MIN >> TERM_TAG_BITS;
 pub const LARGEST_SMALL: isize = isize::MAX >> TERM_TAG_BITS;
+#[allow(dead_code)]
 pub const SMALL_SIGNED_BITS: usize = defs::WORD_BITS - TERM_TAG_BITS - 1;
 
 /// A low-level term is either a pointer to memory term or an Immediate with
@@ -98,87 +107,6 @@ impl Term {
     TermTag(self.raw() & TERM_TAG_MASK)
   }
 
-  // === === BOXED === === ===
-  //
-
-  // TODO: Some safety checks maybe? But oh well
-  #[inline]
-  pub fn make_boxed<T>(p: *const T) -> Self {
-    Self { value: p as usize }
-  }
-
-  /// Check whether tag bits of a value equal to TAG_BOXED=0
-  #[inline]
-  pub fn is_boxed(self) -> bool {
-    self.get_term_tag() == TERMTAG_BOXED
-  }
-
-  #[inline]
-  pub fn get_box_ptr<T>(self) -> *const T {
-    assert!(self.is_boxed());
-    self.value as *const T
-  }
-
-  #[inline]
-  pub fn get_box_ptr_mut<T>(self) -> *mut T {
-    assert!(self.is_boxed());
-    self.value as *mut T
-  }
-
-  pub fn get_box_ptr_safe<T>(self) -> RtResult<*const T> {
-    if !self.is_boxed() {
-      return Err(RtErr::TermIsNotABoxed);
-    }
-    Ok(self.value as *const T)
-  }
-
-  pub fn get_box_ptr_safe_mut<T>(self) -> RtResult<*mut T> {
-    if !self.is_boxed() {
-      return Err(RtErr::TermIsNotABoxed);
-    }
-    Ok(self.value as *mut T)
-  }
-
-  /// Checks boxed tag to be equal to t, also returns false if not a boxed.
-  #[inline]
-  pub fn is_boxed_of_type(self, t: BoxType) -> bool {
-    self.is_boxed_of_(|boxtag| boxtag == t)
-  }
-
-  /// Extracts boxed tag and runs an inline predicate on its boxed tag, allows
-  /// for checking multiple boxed tag values. Returns false if not a boxed.
-  #[inline]
-  fn is_boxed_of_<F>(self, pred: F) -> bool
-  where
-    F: Fn(BoxType) -> bool,
-  {
-    if !self.is_boxed() {
-      return false;
-    }
-    let box_ptr = self.get_box_ptr::<BoxHeader>();
-    let trait_ptr = unsafe { (*box_ptr).get_trait_ptr() };
-    let tag = unsafe { (*trait_ptr).get_type() };
-    pred(tag)
-  }
-
-  // === === Binary === ===
-  //
-
-  #[inline]
-  pub const fn empty_binary() -> Self {
-    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYBINARY.0)
-  }
-
-  #[inline]
-  pub fn is_binary(self) -> bool {
-    self == Self::empty_binary() || self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
-  }
-
-  pub unsafe fn binary_byte_size(self) -> ByteSize {
-    let binp = boxed::Binary::get_trait_from_term(self);
-    (*binp).get_byte_size()
-  }
-
   //
 
   #[inline]
@@ -241,75 +169,6 @@ impl Term {
     Ok(Self::make_boxed(rpid_ptr))
   }
 
-  /// For a special-tagged term extract its special tag
-  pub fn get_special_tag(self) -> SpecialTag {
-    debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
-    // cut away term tag bits and extract special tag
-    SpecialTag((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK)
-  }
-
-  /// From a special-tagged term extract its value
-  pub fn get_special_value(self) -> usize {
-    debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
-    // cut away term tag bits and special tag, extract the remaining value bits
-    self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
-  }
-
-  #[inline]
-  pub fn special_value_fits(n: usize) -> bool {
-    let max = 1 << (defs::WORD_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS);
-    max > n
-  }
-
-  pub const fn make_special(special_t: SpecialTag, val: usize) -> Self {
-    Self::make_from_tag_and_value(
-      TERMTAG_SPECIAL,
-      val << TERM_SPECIAL_TAG_BITS | special_t.0,
-    )
-  }
-
-  #[inline]
-  pub fn is_special(self) -> bool {
-    self.get_term_tag() == TERMTAG_SPECIAL
-  }
-
-  #[inline]
-  pub fn is_special_of_type(self, t: SpecialTag) -> bool {
-    self.is_special() && self.get_special_tag() == t
-  }
-
-  pub fn make_regx(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_X.0)
-  }
-
-  pub fn is_regx(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_X
-  }
-
-  pub fn make_regy(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_Y.0)
-  }
-
-  pub fn is_regy(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_Y
-  }
-
-  pub fn make_regfp(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_FP.0)
-  }
-
-  pub fn is_regfp(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_REG) && self.get_reg_tag() == SPECIALREG_FP
-  }
-
-  pub fn get_reg_tag(self) -> SpecialReg {
-    SpecialReg(self.get_special_value() & (1 << SPECIAL_REG_TAG_BITS - 1))
-  }
-
-  pub fn get_reg_value(self) -> usize {
-    self.get_special_value() >> SPECIAL_REG_TAG_BITS
-  }
-
   // === === Code Pointer (Continuation Pointer) === ===
   //
 
@@ -334,55 +193,6 @@ impl Term {
     (self.value & (defs::HIGHEST_BIT_CP - 1)) as *const T
   }
 
-  // === === TUPLES === === ===
-  //
-
-  pub fn is_tuple(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_TUPLE)
-  }
-
-  // This function only has debug check, in release it will not do any checking
-  #[inline]
-  pub fn get_tuple_ptr(self) -> *const boxed::Tuple {
-    debug_assert!(self.is_tuple(), "Value is not a tuple: {}", self);
-    (self.value & (!TERM_TAG_MASK)) as *const boxed::Tuple
-  }
-
-  // This function only has debug check, in release it will not do any checking
-  #[inline]
-  pub fn get_tuple_ptr_mut(self) -> *mut boxed::Tuple {
-    debug_assert!(self.is_tuple(), "Value is not a tuple: {}", self);
-    (self.value & (!TERM_TAG_MASK)) as *mut boxed::Tuple
-  }
-
-  // === === LISTS/CONS CELLS === === ===
-  //
-
-  #[inline]
-  pub fn is_list(self) -> bool {
-    self == Self::nil() || self.is_cons()
-  }
-
-  /// Check whether the value is a CONS pointer
-  #[inline]
-  pub fn is_cons(self) -> bool {
-    self.get_term_tag() == TERMTAG_CONS
-  }
-
-  #[inline]
-  pub fn get_cons_ptr(self) -> *const boxed::Cons {
-    self.assert_is_not_boxheader_guard_value();
-    debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
-    (self.value & (!TERM_TAG_MASK)) as *const boxed::Cons
-  }
-
-  #[inline]
-  pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
-    self.assert_is_not_boxheader_guard_value();
-    debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
-    (self.value & (!TERM_TAG_MASK)) as *mut boxed::Cons
-  }
-
   /// When a box header guard value is interpreted as a term, it will be caught here
   #[cfg(debug_assertions)]
   #[inline]
@@ -394,117 +204,6 @@ impl Term {
   #[cfg(not(debug_assertions))]
   #[inline]
   const fn assert_is_not_boxheader_guard_value(&self) {}
-
-  /// Create a Term from pointer to Cons cell. Pass a pointer to `Term` or
-  /// a pointer to `boxed::Cons`. Attempting to create cons cell to Null pointer
-  /// will create NIL (`[]`)
-  #[inline]
-  pub fn make_cons<T>(p: *const T) -> Self {
-    Self {
-      value: if p.is_null() {
-        return Self::nil();
-      } else {
-        (p as usize) | TERMTAG_CONS.0
-      },
-    }
-  }
-
-  pub unsafe fn cons_is_ascii_string(self) -> bool {
-    debug_assert!(self.is_cons());
-
-    // TODO: List iterator
-    let mut cons_p = self.get_cons_ptr();
-    loop {
-      let hd = (*cons_p).hd();
-      if !hd.is_small() {
-        return false;
-      }
-
-      let hd_value = hd.get_small_signed();
-      if hd_value < 32 || hd_value >= 127 {
-        return false;
-      }
-
-      let tl = (*cons_p).tl();
-      if !tl.is_cons() {
-        // NIL [] tail is required for a true string
-        return tl == Self::nil();
-      }
-      cons_p = tl.get_cons_ptr();
-    }
-  }
-
-  // === === SMALL INTEGERS === === ===
-  //
-
-  #[inline]
-  pub fn is_integer(self) -> bool {
-    self.is_small() || self.is_big_int()
-  }
-
-  /// Check whether the value is a small integer
-  #[inline]
-  pub fn is_small(self) -> bool {
-    self.get_term_tag() == TERMTAG_SMALL
-  }
-
-  #[inline]
-  pub const fn make_char(c: char) -> Self {
-    Self::make_small_unsigned(c as usize)
-  }
-
-  #[inline]
-  pub const fn make_small_unsigned(val: usize) -> Self {
-    Self::make_from_tag_and_value(TERMTAG_SMALL, val)
-  }
-
-  pub const fn small_0() -> Self {
-    Self::make_from_tag_and_value(TERMTAG_SMALL, 0)
-  }
-
-  pub const fn small_1() -> Self {
-    Self::make_from_tag_and_value(TERMTAG_SMALL, 1)
-  }
-
-  pub const fn make_small_signed(val: isize) -> Self {
-    Self::make_from_tag_and_signed_value(TERMTAG_SMALL, val)
-  }
-
-  /// Check whether a signed isize fits into small integer range
-  #[inline]
-  pub fn small_fits(val: isize) -> bool {
-    val >= SMALLEST_SMALL && val <= LARGEST_SMALL
-  }
-
-  #[inline]
-  pub fn get_small_signed(self) -> isize {
-    debug_assert!(
-      self.is_small(),
-      "Small is expected, got raw=0x{:x}",
-      self.value
-    );
-    (self.value as isize) >> TERM_TAG_BITS
-  }
-
-  #[inline]
-  pub fn get_small_unsigned(self) -> usize {
-    debug_assert!(self.is_small());
-    debug_assert!(
-      (self.value as isize) >= 0,
-      "term::small_unsigned is negative {}",
-      self
-    );
-    self.get_term_val_without_tag()
-  }
-
-  // === === BIG INTEGERS === ===
-  //
-
-  /// Check whether a term is boxed and then whether it points to a word of
-  /// memory tagged as float
-  pub fn is_big_int(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_BIGINTEGER)
-  }
 
   // === === ATOMS === ===
   //
@@ -705,33 +404,6 @@ impl Term {
     assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
     let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
     val as *const usize
-  }
-
-  // === === SPECIAL - Load Time ATOM, LABEL, LITERAL indices === ===
-  // These exist only during loading time and then must be converted to real
-  // values using the lookup tables included in the BEAM file.
-  //
-  #[inline]
-  pub fn make_loadtime(tag: SpecialLoadTime, n: usize) -> Self {
-    debug_assert!(n < (1usize << (defs::WORD_BITS - SPECIAL_LT_RESERVED_BITS)));
-    Self::make_special(SPECIALTAG_LOADTIME, n << SPECIAL_LT_TAG_BITS | tag.0)
-  }
-
-  #[inline]
-  pub fn is_loadtime(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_LOADTIME)
-  }
-
-  #[inline]
-  pub fn get_loadtime_val(self) -> usize {
-    debug_assert!(self.is_loadtime(), "Must be a loadtime value, got {}", self);
-    self.get_special_value() >> SPECIAL_LT_TAG_BITS
-  }
-
-  #[inline]
-  pub fn get_loadtime_tag(self) -> SpecialLoadTime {
-    debug_assert!(self.is_loadtime(), "Must be a loadtime value, got {}", self);
-    SpecialLoadTime(self.get_special_value() & (1 << SPECIAL_LT_TAG_BITS - 1))
   }
 }
 

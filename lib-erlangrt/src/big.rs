@@ -21,6 +21,7 @@ pub fn mul(_hp: &mut Heap, a: Term, b: Term) -> RtResult<Term> {
   unimplemented!("mul big a, b")
 }
 
+#[allow(dead_code)]
 pub fn isize_from(val: Term) -> Option<isize> {
   if val.is_small() {
     return Some(val.get_small_signed());

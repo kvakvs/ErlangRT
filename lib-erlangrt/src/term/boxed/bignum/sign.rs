@@ -6,6 +6,7 @@ pub enum Sign {
 }
 
 impl Sign {
+  #[allow(dead_code)]
   pub fn new(val: isize) -> Self {
     if val == 0 {
       Sign::Zero
