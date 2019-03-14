@@ -251,9 +251,9 @@ impl BeamFile {
     let mut _fname_index = 0u32;
 
     for _i in 0..n_line_refs {
-      let val = compact_term::read(r)?;
+      let val = compact_term::read(&mut self.lit_heap, r)?;
       if val.is_small() {
-          // self.linerefs.push((_fname_index, w));
+        // self.linerefs.push((_fname_index, w));
       } else if val.is_atom() {
         // _fname_index = a as u32
       } else {

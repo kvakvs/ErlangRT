@@ -18,9 +18,9 @@ use core::fmt;
 /// process heap.
 pub struct Tuple {
   header: BoxHeader,
-  /*  /// First data word is stored here. If a tuple is 0 elements, it cannot be
-   *  /// created and an immediate `Term::empty_tuple()` should be used instead.
-   *  data0: Term, */
+  /// First data word is stored here. If a tuple is 0 elements, it cannot be
+  /// created and an immediate `Term::empty_tuple()` should be used instead.
+  pub data0: Term,
 }
 
 impl TBoxed for Tuple {
@@ -31,6 +31,20 @@ impl TBoxed for Tuple {
   fn get_type(&self) -> BoxType {
     boxtype::BOXTYPETAG_TUPLE
   }
+
+//  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
+//    let this_p = self as *mut Tuple;
+//
+//    unsafe {
+//      let count = (*this_p).get_arity();
+//      let data = &mut (*this_p).data0 as *mut Term;
+//
+//      for i in 0..count {
+//        let val = core::ptr::read(data.add(i));
+//        core::ptr::write(data.add(i), mapfn(this_p as *mut BoxHeader, val));
+//      }
+//    }
+//  }
 }
 
 impl Tuple {
@@ -39,14 +53,14 @@ impl Tuple {
   const fn storage_size(arity: usize) -> WordSize {
     // Minus one because data0 in tuple already consumes one word
     let self_size = ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up();
-    WordSize::new(self_size.words() + arity)
+    WordSize::new(self_size.words() + arity - 1)
   }
 
   fn new(arity: usize) -> Tuple {
     assert_ne!(arity, 0, "Can't create tuple of arity 0 on heap");
     Tuple {
       header: BoxHeader::new::<Tuple>(Self::storage_size(arity).words()),
-      // data0: Term::non_value(),
+      data0: Term::non_value(),
     }
   }
 
@@ -70,7 +84,7 @@ impl Tuple {
     self.header.ensure_valid();
     debug_assert!(index < self.get_arity());
 
-    let data = (self as *mut Self).add(1) as *mut Term as *mut Word;
+    let data = &mut self.data0 as *mut Term as *mut Word;
     core::ptr::write(data.add(index), val)
   }
 
@@ -80,7 +94,7 @@ impl Tuple {
     debug_assert!(index < self.get_arity());
 
     // Take i-th word after the tuple header
-    let data = (self as *mut Self).add(1) as *mut Term;
+    let data = &mut self.data0 as *mut Term;
     core::ptr::write(data.add(index), val)
   }
 
@@ -89,7 +103,7 @@ impl Tuple {
     self.header.ensure_valid();
     debug_assert!(index < self.get_arity());
 
-    let data = (self as *const Self).add(1) as *const Term;
+    let data = &self.data0 as *const Term;
     core::ptr::read(data.add(index))
   }
 

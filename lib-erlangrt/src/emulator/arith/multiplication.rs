@@ -1,9 +1,4 @@
-use crate::{
-  big,
-  emulator::heap::Heap,
-  fail::RtResult,
-  term::{boxed::bignum::Bignum, lterm::*},
-};
+use crate::{big, emulator::heap::Heap, fail::RtResult, term::lterm::*};
 
 #[allow(dead_code)]
 fn module() -> &'static str {
@@ -33,17 +28,7 @@ pub fn multiply(hp: &mut Heap, x: Term, y: Term) -> RtResult<Term> {
 
 /// Implement multiplication for two signed integers, possibly creating a bigint.
 pub fn multiply_two_small(hp: &mut Heap, x: isize, y: isize) -> RtResult<Term> {
-  let big_x = big::from_isize(hp, x);
-  let big_y = big::from_isize(hp, y);
-  let result = big_x.checked_mul(&big_y).unwrap();
-
-  // If the result fits into smallint, return it as smallint
-  if let Some(i) = result.to_isize() {
-    if Term::small_fits(i) {
-      return Ok(Term::make_small_signed(i));
-    }
-  }
-
-  let boxptr = unsafe { Bignum::create_into(hp, result) }?;
-  Ok(Term::make_boxed(boxptr))
+  let big_x = big::from_isize(hp, x)?;
+  let big_y = big::from_isize(hp, y)?;
+  big::mul(hp, big_x, big_y)
 }

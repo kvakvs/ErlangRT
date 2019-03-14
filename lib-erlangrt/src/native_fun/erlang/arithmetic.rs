@@ -94,8 +94,6 @@ pub fn nativefun_multiply_2(
 // TODO: shorten, use only heap of the process, inline, move to a lib module in arith
 fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<Term> {
   // We're out of luck - the result is not a small, but we have BigInt!
-  Ok(Term::make_boxed(big::from_isize(
-    &mut cur_proc.heap,
-    iresult,
-  )))
+  let p = big::from_isize(&mut cur_proc.heap, iresult)?;
+  Ok(p)
 }

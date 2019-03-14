@@ -85,26 +85,6 @@ impl Map {
     Ok(p)
   }
 
-  //  /// Convert any p into *const Map + checking the header word to be Map
-  //  #[allow(dead_code)]
-  //  pub unsafe fn from_pointer<T>(p: *const T) -> RtResult<*const Map> {
-  //    let mp = p as *const Map;
-  //    if (*mp).header.get_tag() != BOXTYPETAG_MAP {
-  //      return Err(RtErr::BoxedIsNotAMap);
-  //    }
-  //    Ok(mp)
-  //  }
-
-  //  /// Convert any p into *mut Map + checking the header word to be Map
-  //  #[allow(dead_code)]
-  //  pub unsafe fn from_pointer_mut<T>(p: *mut T) -> RtResult<*mut Map> {
-  //    let mp = p as *mut Map;
-  //    if (*mp).header.get_tag() != BOXTYPETAG_MAP {
-  //      return Err(RtErr::BoxedIsNotAMap);
-  //    }
-  //    Ok(mp)
-  //  }
-
   /// Add a key/value pair to map (unsorted).
   /// Note: the flatmap must be sorted for use
   pub unsafe fn add(this: *mut Map, key: Term, value: Term) -> RtResult<()> {

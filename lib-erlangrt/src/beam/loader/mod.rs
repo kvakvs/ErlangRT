@@ -17,18 +17,19 @@ use crate::{
   beam::loader::beam_file::BeamFile,
   defs::Word,
   emulator::{
-    code::{opcode::RawOpcode, Code, CodeOffset, LabelId},
+    code::{opcode::RawOpcode, Code, CodeOffset},
     code_srv::CodeServer,
     function::FunEntry,
     module::{self, Module, VersionedModuleName},
   },
   fail::RtResult,
-  term::lterm::*,
+  term::{
+    boxed::{self, boxtype::BOXTYPETAG_JUMP_TABLE},
+    lterm::*,
+  },
 };
 use core::mem;
 use std::{collections::BTreeMap, path::PathBuf};
-use crate::term::boxed::boxtype::BOXTYPETAG_JUMP_TABLE;
-use crate::term::boxed;
 
 // macro_rules! rt_debug {
 //    ($($arg:tt)*) => (if cfg!(trace_beam_loader) { println!($($arg)*); })
@@ -76,8 +77,8 @@ struct LoaderState {
   code: Code,
 
   /// Labels are stored here while loading, for later resolve.
-  /// Type:: map<Label, Offset>
-  labels: BTreeMap<LabelId, CodeOffset>,
+  /// Type:: map<Label_id: usize, Offset>
+  labels: BTreeMap<usize, CodeOffset>,
 
   /// Locations of label values are collected and at a later pass replaced
   /// with their word values or function pointer (if the label points outside)
@@ -163,10 +164,10 @@ impl LoaderState {
 
   /// Given label destination and `self.code` length calculate a relative
   /// signed jump offset for it.
-  fn create_jump_destination(&self, dst_offset: CodeOffset) -> Word {
+  fn create_jump_destination(&self, dst_offset: CodeOffset) -> Term {
     let CodeOffset(offs) = dst_offset;
     let ptr = &self.code[offs] as *const Word;
-    Term::make_cp(ptr).raw()
+    Term::make_cp(ptr)
   }
 
   /// Given a value, possibly a load-time value or a structure possibly
@@ -178,16 +179,21 @@ impl LoaderState {
 
       if lt_tag == SPECIAL_LT_ATOM {
         // A special value 0 means NIL []
-        if lt_val == 0 { return Term::nil(); }
+        if lt_val == 0 {
+          return Term::nil();
+        }
 
         // Repack load-time atom via an `Term` index into an `FTerm` atom
         self.atom_from_loadtime_index(lt_val)
+      } else {
+        arg // no change
       }
     } else if arg.is_boxed_of_type(BOXTYPETAG_JUMP_TABLE) {
       // TODO: Generic iteration through any container boxed?
-      // ExtList_ can contain Atom_ - convert them to runtime Atoms
       let lst = arg.get_box_ptr_mut::<boxed::JumpTable>();
-
+      unsafe {
+        (*lst).inplace_map_t(|_, val| self.resolve_value(val));
+      }
       arg
     } else {
       // Otherwise no changes

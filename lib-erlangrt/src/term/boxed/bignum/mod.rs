@@ -48,7 +48,8 @@ impl Bignum {
     let sign = Sign::new(val);
     let endianness = Endianness::new();
     let val_slice = unsafe {
-      core::slice::from_raw_parts(&val as *const u8, defs::WORD_BITS / defs::BYTE_BITS);
+      let data = &val as *const isize as *const u8;
+      core::slice::from_raw_parts(data, defs::WORD_BITS / defs::BYTE_BITS)
     };
     unsafe { Self::create_into(hp, sign, endianness, val_slice) }
   }
@@ -56,10 +57,10 @@ impl Bignum {
   /// Consume bytes as either big- or little-endian stream, and build a big
   /// integer on heap.
   pub unsafe fn create_into(
-    hp: &mut Heap,
-    sign: Sign,
-    endianness: Endianness,
-    bytes: &[u8],
+    _hp: &mut Heap,
+    _sign: Sign,
+    _endianness: Endianness,
+    _bytes: &[u8],
   ) -> RtResult<*mut Bignum> {
     unimplemented!("bignum::create_into")
     //    let n_words = Bignum::storage_size();

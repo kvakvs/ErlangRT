@@ -1,5 +1,9 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
+use core::{fmt, slice};
+
+use colored::Colorize;
+
 use crate::{
   beam::gen_op,
   defs::{Reductions, Word, MAX_FPREGS, MAX_XREGS},
@@ -8,16 +12,14 @@ use crate::{
     code_srv::MFALookupResult,
     heap,
     process::Process,
+    runtime_ctx::current_binary::CurrentBinaryState,
     vm::VM,
   },
   fail::RtResult,
   term::lterm::{
-    SpecialTag, Term, TERMTAG_SPECIAL,
+    Term, SPECIALREG_FP, SPECIALREG_X, SPECIALREG_Y, SPECIALTAG_REG, TERMTAG_SPECIAL,
   },
 };
-use colored::Colorize;
-use core::{fmt, slice};
-use crate::emulator::runtime_ctx::current_binary::CurrentBinaryState;
 
 pub mod call_closure;
 pub mod call_export;
@@ -213,15 +215,19 @@ impl Context {
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: Term, hp: &heap::Heap) -> Term {
     if src.is_special() {
-      match src.get_special_tag() {
-        SPECIALTAG_REGX => return self.get_x(src.get_special_value()),
-        SPECIALTAG_REGY => {
+      if src.get_special_tag() == SPECIALTAG_REG {
+        let r_tag = src.get_reg_tag();
+        if r_tag == SPECIALREG_X {
+          return self.get_x(src.get_special_value());
+        } else if r_tag == SPECIALREG_Y {
           let y_index = src.get_special_value();
           let y_result = hp.get_y(y_index);
           return y_result.unwrap();
+        } else if r_tag == SPECIALREG_FP {
+          panic!("todo fpreg load")
+        } else {
+          panic!("special tag not supported")
         }
-        SPECIALTAG_REGFP => panic!("todo fpreg load"),
-        _ => return src,
       }
     }
     // Otherwise return unchanged
@@ -271,17 +277,19 @@ impl Context {
       "ctx.store destination must be a X, Y or FP register"
     );
     if dst.get_term_tag() == TERMTAG_SPECIAL {
-      match dst.get_special_tag() {
-        SPECIALTAG_REGX => {
+      if dst.get_special_tag() == SPECIALTAG_REG {
+        let r_tag = dst.get_reg_tag();
+        if r_tag == SPECIALREG_X {
           self.set_x(dst.get_special_value(), val);
           return Ok(());
-        }
-        SPECIALTAG_REGY => {
+        } else if r_tag == SPECIALREG_Y {
           let y = dst.get_special_value();
           return hp.set_y(y, val);
+        } else if r_tag == SPECIALREG_FP {
+          panic!("todo fpreg store");
+        } else {
+          panic!("store: specialtag {:?} not supported", r_tag);
         }
-        SPECIALTAG_REGFP => panic!("todo fpreg store"),
-        SpecialTag(st) => panic!("store: specialtag {} not supported", st),
       }
     }
     panic!(

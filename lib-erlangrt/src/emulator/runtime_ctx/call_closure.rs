@@ -29,7 +29,7 @@ pub fn apply(
   let actual_call_arity = closure_nfrozen + args_len;
 
   unsafe {
-    let frozen = boxed::Closure::get_frozen(closure);
+    let frozen = (*closure).get_frozen();
     // copy frozen values into registers after the arity
     ctx
       .registers_slice_mut(args_len, closure_nfrozen)

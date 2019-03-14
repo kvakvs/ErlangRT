@@ -1,9 +1,10 @@
 use crate::{
   beam::loader::{LoaderState, PatchLocation},
-  defs,
-  emulator::code::LabelId,
   fail::RtResult,
-  term::{boxed, lterm::Term},
+  term::{
+    boxed,
+    lterm::{Term, SPECIAL_LT_LABEL},
+  },
 };
 
 impl LoaderState {
@@ -17,14 +18,18 @@ impl LoaderState {
       match *ploc {
         PatchLocation::PatchCodeOffset(cmd_offset) => {
           let val = Term::from_raw(self.code[cmd_offset]);
-          self.code[cmd_offset] = self.postprocess_fix_1_label(val)
+          self.code[cmd_offset] = self.resolve_loadtime_label(val).raw()
         }
 
-        PatchLocation::PatchJtabElement(jtab, index) => {
-          let jtab_ptr = jtab.get_box_ptr_mut::<boxed::Tuple>();
+        PatchLocation::PatchJumpTable(jtab) => {
+          let jtab = jtab.get_box_ptr_mut::<boxed::JumpTable>();
           unsafe {
-            let val = (*jtab_ptr).get_element(index);
-            (*jtab_ptr).set_element_raw(index, self.postprocess_fix_1_label(val))
+            let count = (*jtab).get_count();
+            for i in 0..count {
+              // update every location
+              let val = (*jtab).get_location(i);
+              (*jtab).set_location(i, self.resolve_loadtime_label(val))
+            }
           }
         }
       } // match
@@ -36,22 +41,22 @@ impl LoaderState {
   /// Helper for `postprocess_fix_label`, takes a word from code memory or from
   /// a jump table, resolves as if it was a label index, and returns a value
   /// to be put back into memory.
-  fn postprocess_fix_1_label(&self, val: Term) -> defs::Word {
+  fn resolve_loadtime_label(&self, val: Term) -> Term {
+    assert!(val.is_loadtime() && val.get_loadtime_tag() == SPECIAL_LT_LABEL);
+
     // Convert from Term smallint to integer and then to labelid
-    let unfixed = val.get_small_signed() as defs::Word;
+    let unfixed = val.get_loadtime_val();
 
     // Zero label id means no location, so we will store NIL [] there
     if unfixed > 0 {
-      let unfixed_l = LabelId(unfixed);
-
       // Lookup the label. Crash here if bad label.
-      let dst_offset = self.labels[&unfixed_l];
+      let dst_offset = self.labels[&unfixed];
 
       // Update code cell with special label value
       self.create_jump_destination(dst_offset)
     } else {
       // Update code cell with no-value
-      Term::nil().raw()
+      Term::nil()
     }
   }
 }

@@ -77,11 +77,13 @@ pub const SPECIALCONST_EMPTYLIST: SpecialConst = SpecialConst(1);
 pub const SPECIALCONST_EMPTYBINARY: SpecialConst = SpecialConst(2);
 
 /// Used as prefix for special value in register index
+#[derive(Eq, PartialEq, Debug)]
 pub struct SpecialReg(pub usize);
 
 pub const SPECIAL_REG_TAG_BITS: usize = 2;
 /// How many bits are remaining in the machine word after taking away the prefix bits
-pub const SPECIAL_REG_RESERVED_BITS: usize = SPECIAL_REG_TAG_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS;
+pub const SPECIAL_REG_RESERVED_BITS: usize =
+  SPECIAL_REG_TAG_BITS + TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS;
 
 pub const SPECIALREG_X: SpecialReg = SpecialReg(0); // register x
 pub const SPECIALREG_Y: SpecialReg = SpecialReg(1); // register y
@@ -89,11 +91,13 @@ pub const SPECIALREG_FP: SpecialReg = SpecialReg(2); // float register
 
 /// Used as prefix for special value in loadtime index
 /// Loadtime value contains loadtime tag + loadtime value following after it
+#[derive(Eq, PartialEq, Debug)]
 pub struct SpecialLoadTime(pub usize);
 
 pub const SPECIAL_LT_TAG_BITS: usize = 2;
 /// How many bits are remaining in the machine word after taking away the prefix bits
-pub const SPECIAL_LT_RESERVED_BITS: usize = SPECIAL_LT_TAG_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS;
+pub const SPECIAL_LT_RESERVED_BITS: usize =
+  SPECIAL_LT_TAG_BITS + TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS;
 pub const SPECIAL_LT_ATOM: SpecialLoadTime = SpecialLoadTime(0); // atom table index
 pub const SPECIAL_LT_LABEL: SpecialLoadTime = SpecialLoadTime(1); // label table index
 pub const SPECIAL_LT_LITERAL: SpecialLoadTime = SpecialLoadTime(2); // literal table index
@@ -352,7 +356,7 @@ impl Term {
   }
 
   pub fn make_regx(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_X)
+    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_X.0)
   }
 
   pub fn is_regx(self) -> bool {
@@ -360,7 +364,7 @@ impl Term {
   }
 
   pub fn make_regy(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_Y)
+    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_Y.0)
   }
 
   pub fn is_regy(self) -> bool {
@@ -368,7 +372,7 @@ impl Term {
   }
 
   pub fn make_regfp(n: usize) -> Self {
-    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_FP)
+    Self::make_special(SPECIALTAG_REG, n << SPECIAL_REG_TAG_BITS | SPECIALREG_FP.0)
   }
 
   pub fn is_regfp(self) -> bool {
@@ -780,7 +784,6 @@ impl Term {
     val as *const usize
   }
 
-  //
   // === === SPECIAL - Load Time ATOM, LABEL, LITERAL indices === ===
   // These exist only during loading time and then must be converted to real
   // values using the lookup tables included in the BEAM file.

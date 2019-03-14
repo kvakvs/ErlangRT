@@ -44,6 +44,14 @@ impl TBoxed for Closure {
   fn get_type(&self) -> BoxType {
     boxtype::BOXTYPETAG_CLOSURE
   }
+
+//  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
+//    let this_p = self as *mut Closure;
+//    let frozen = unsafe { (*this_p).get_frozen_mut() };
+//    for i in 0..frozen.len() {
+//      frozen[i] = mapfn(this_p as *mut BoxHeader, frozen[i]);
+//    }
+//  }
 }
 
 impl Closure {
@@ -85,7 +93,7 @@ impl Closure {
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     // step 1 closure forward, which will point exactly at the frozen location
-    let dst = Self::get_frozen_mut(this);
+    let dst = (*this).get_frozen_mut();
     dst.copy_from_slice(frozen);
 
     Ok(Term::make_boxed(this))
@@ -122,9 +130,9 @@ impl Closure {
   /// can access frozen values (read only).
   /// It is responsibility of the caller to forget the slice as soon as possible.
   #[inline]
-  pub unsafe fn get_frozen(this: *const Closure) -> &'static [Term] {
-    let nfrozen = (*this).nfrozen;
-    let frozen_ptr = this.add(1) as *const Term;
+  pub unsafe fn get_frozen(&self) -> &'static [Term] {
+    let nfrozen = self.nfrozen;
+    let frozen_ptr = (self as *const Closure).add(1) as *const Term;
     core::slice::from_raw_parts(frozen_ptr, nfrozen)
   }
 
@@ -132,9 +140,9 @@ impl Closure {
   /// can access frozen values (read/write).
   /// It is responsibility of the caller to forget the slice as soon as possible.
   #[inline]
-  pub unsafe fn get_frozen_mut(this: *mut Closure) -> &'static mut [Term] {
-    let nfrozen = (*this).nfrozen;
-    let frozen_ptr = this.add(1) as *mut Term;
+  pub unsafe fn get_frozen_mut(&mut self) -> &'static mut [Term] {
+    let nfrozen = self.nfrozen;
+    let frozen_ptr = (self as *mut Closure).add(1) as *mut Term;
     core::slice::from_raw_parts_mut(frozen_ptr, nfrozen)
   }
 }

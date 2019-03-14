@@ -4,6 +4,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{
+      self,
       boxtype::{self, BoxType},
       trait_interface::TBoxed,
       BoxHeader,
@@ -29,6 +30,21 @@ impl TBoxed for JumpTable {
   fn get_type(&self) -> BoxType {
     boxtype::BOXTYPETAG_JUMP_TABLE
   }
+
+//  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
+//    let this_p = self as *mut JumpTable;
+//    unsafe {
+//      let count = (*this_p).get_count();
+//      for i in 0..count {
+//        let (val, loc) = (*this_p).get_pair(i);
+//        (*this_p).set_pair(
+//          i,
+//          mapfn(this_p as *mut BoxHeader, val),
+//          mapfn(this_p as *mut BoxHeader, loc),
+//        );
+//      }
+//    }
+//  }
 }
 
 impl JumpTable {
@@ -36,9 +52,8 @@ impl JumpTable {
   #[inline]
   const fn storage_size(n_pairs: usize) -> WordSize {
     // Minus one because data0 in tuple already consumes one word
-    let self_size =
-      ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up() - 1;
-    WordSize::new(self_size.words() + n_pairs * 2)
+    let self_size = ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up();
+    WordSize::new(self_size.words() - 1 + n_pairs * 2)
   }
 
   fn new(n_pairs: usize) -> JumpTable {
@@ -67,27 +82,28 @@ impl JumpTable {
   // Write i-th pair (base 0)
   pub unsafe fn set_pair(&mut self, index: usize, val: Term, location: Term) {
     self.header.ensure_valid();
-    debug_assert!(index < self.get_arity());
+    debug_assert!(index < self.get_count());
 
-    let data = &self.val0 as *mut Term;
-    core::ptr::write(data.add(index * 2), val)
+    let data = &mut self.val0 as *mut Term;
+    core::ptr::write(data.add(index * 2), val);
+    core::ptr::write(data.add(index * 2 + 1), location);
   }
 
   // Write value component in the i-th pair (base 0)
   pub unsafe fn set_value(&mut self, index: usize, val: Term) {
     self.header.ensure_valid();
-    debug_assert!(index < self.get_arity());
+    debug_assert!(index < self.get_count());
 
-    let data = &self.val0 as *mut Term;
+    let data = &mut self.val0 as *mut Term;
     core::ptr::write(data.add(index * 2), val)
   }
 
   // Write location component in the i-th pair (base 0)
   pub unsafe fn set_location(&mut self, index: usize, val: Term) {
     self.header.ensure_valid();
-    debug_assert!(index < self.get_arity());
+    debug_assert!(index < self.get_count());
 
-    let data = &self.val0 as *mut Term;
+    let data = &mut self.val0 as *mut Term;
     core::ptr::write(data.add(index * 2 + 1), val)
   }
 
@@ -100,6 +116,15 @@ impl JumpTable {
     let val = core::ptr::read(data.add(index * 2));
     let location = core::ptr::read(data.add(index * 2 + 1));
     (val, location)
+  }
+
+  // Read tuple's i-th element location (base 0)
+  pub unsafe fn get_location(&self, index: usize) -> Term {
+    self.header.ensure_valid();
+    debug_assert!(index < self.get_count());
+
+    let data = &self.val0 as *const Term;
+    core::ptr::read(data.add(index * 2 + 1))
   }
 
   /// Format jump table contents
@@ -116,5 +141,19 @@ impl JumpTable {
       write!(f, "{} -> {}", val, loc)?;
     }
     write!(f, "}}")
+  }
+
+  pub fn inplace_map_t<T>(&mut self, mut mapfn: T)
+  where
+    T: FnMut(*mut boxed::JumpTable, Term) -> Term,
+  {
+    let this_p = self as *mut JumpTable;
+    unsafe {
+      let count = (*this_p).get_count();
+      for i in 0..count {
+        let (val, loc) = (*this_p).get_pair(i);
+        (*this_p).set_pair(i, mapfn(this_p, val), mapfn(this_p, loc));
+      }
+    }
   }
 }

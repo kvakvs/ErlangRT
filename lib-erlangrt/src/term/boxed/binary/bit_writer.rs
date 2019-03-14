@@ -78,7 +78,7 @@ impl BitWriter {
     write_size: BitSize,
     rbits: usize,
     iptr: *mut u8,
-    dst_offset: BitSize,
+    _dst_offset: BitSize,
     flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()> {
     // Big-endian, more than one byte, but not aligned on a byte boundary.
@@ -132,18 +132,18 @@ impl BitWriter {
 
   unsafe fn put_bits_unaligned() -> RtResult<()> {
     unimplemented!("put_bits_unaligned");
-    Ok(())
+    //    Ok(())
   }
 
   /// Writes bits of an integer.
   /// Assumes destination has enough space in it.
   unsafe fn fmt_int(
-    write_val: Term,
-    write_size: BitSize,
-    dst: *mut u8,
-    flags: crate::beam::opcodes::BsFlags,
+    _write_val: Term,
+    _write_size: BitSize,
+    _dst: *mut u8,
+    _flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()> {
     unimplemented!("fmt_int");
-    Ok(())
+    //    Ok(())
   }
 }
