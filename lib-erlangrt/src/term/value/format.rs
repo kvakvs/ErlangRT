@@ -5,7 +5,7 @@ use crate::{
   emulator::atom,
   term::{
     boxed::{self, box_header::BoxHeader, boxtype},
-    value::{cons, *},
+    value::{self, cons, Term},
   },
 };
 use core::fmt;
@@ -16,7 +16,7 @@ impl fmt::Display for Term {
       return write!(f, "NON_VALUE");
     }
     match self.get_term_tag() {
-      TERMTAG_BOXED => unsafe {
+      value::TERMTAG_BOXED => unsafe {
         if self.is_cp() {
           write!(f, "CP({:p})", self.get_cp_ptr::<Word>())
         } else {
@@ -26,7 +26,7 @@ impl fmt::Display for Term {
         }
       },
 
-      TERMTAG_CONS => unsafe {
+      value::TERMTAG_CONS => unsafe {
         if self.cons_is_ascii_string() {
           format_cons_ascii(*self, f)
         } else {
@@ -34,15 +34,15 @@ impl fmt::Display for Term {
         }
       },
 
-      TERMTAG_SMALL => write!(f, "{}", self.get_small_signed()),
+      value::TERMTAG_SMALL => write!(f, "{}", self.get_small_signed()),
 
-      TERMTAG_SPECIAL => format_special(*self, f),
+      value::TERMTAG_SPECIAL => format_special(*self, f),
 
-      TERMTAG_LOCALPID => write!(f, "Pid<{}>", self.get_term_val_without_tag()),
+      value::TERMTAG_LOCALPID => write!(f, "Pid<{}>", self.get_term_val_without_tag()),
 
-      TERMTAG_LOCALPORT => write!(f, "Port<{}>", self.get_term_val_without_tag()),
+      value::TERMTAG_LOCALPORT => write!(f, "Port<{}>", self.get_term_val_without_tag()),
 
-      TERMTAG_ATOM => match atom::to_str(*self) {
+      value::TERMTAG_ATOM => match atom::to_str(*self) {
         Ok(s) => {
           if atom::is_printable_atom(&s) {
             write!(f, "{}", s)
@@ -53,7 +53,7 @@ impl fmt::Display for Term {
         Err(e) => write!(f, "Atom<printing failed {:?}>", e),
       },
 
-      TERMTAG_HEADER => {
+      value::TERMTAG_HEADER => {
         return write!(f, "Header({})", boxed::headerword_to_arity(self.raw()));
         // format_box_contents(*self, ptr::null(), f)?;
         // write!(f, ")")
@@ -113,7 +113,10 @@ unsafe fn format_box_contents(
       write!(f, "Export<{}>", (*eptr).exp.mfa)
     }
     boxtype::BOXTYPETAG_BINARY_MATCH_STATE => write!(f, "BinaryMatchState<>"),
-
+    boxtype::BOXTYPETAG_JUMP_TABLE => {
+      let jptr = trait_ptr as *const boxed::JumpTable;
+      (*jptr).format(f)
+    }
     _ => panic!("Unexpected header tag {:?}", box_type),
   }
 }
@@ -123,7 +126,7 @@ unsafe fn format_box_contents(
 
 fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
   match term.get_special_tag() {
-    SPECIALTAG_CONST => {
+    value::SPECIALTAG_CONST => {
       if term == Term::nil() {
         return write!(f, "[]");
       } else if term.is_non_value() {
@@ -134,25 +137,39 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "{{}}");
       }
     }
-    SPECIALTAG_REG => {
-      let rtag = term.get_reg_tag();
-      if rtag == SPECIALREG_X {
-        return write!(f, "X{}", term.get_reg_value());
-      } else if rtag == SPECIALREG_Y {
-        return write!(f, "Y{}", term.get_reg_value());
-      } else if rtag == SPECIALREG_FP {
-        return write!(f, "F{}", term.get_reg_value());
+    value::SPECIALTAG_REG => {
+      let r_tag = term.get_reg_tag();
+      let r_val = term.get_reg_value();
+      if r_tag == value::SPECIALREG_X {
+        return write!(f, "#X<{}>", r_val);
+      } else if r_tag == value::SPECIALREG_Y {
+        return write!(f, "#y<{}>", r_val);
+      } else if r_tag == value::SPECIALREG_FLOAT {
+        return write!(f, "#f<{}>", r_val);
       } else {
-        panic!("Unknown special reg tag")
+        panic!("Unknown special reg tag {:?}", r_tag)
       }
     }
-    SPECIALTAG_OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
-    SPECIALTAG_CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
+    value::SPECIALTAG_OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
+    value::SPECIALTAG_CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
+    value::SPECIALTAG_LOADTIME => {
+      let lt_tag = term.get_loadtime_tag();
+      let lt_val = term.get_loadtime_val();
+      if lt_tag == value::SPECIAL_LT_ATOM {
+        return write!(f, "LtAtom({})", lt_val);
+      } else if lt_tag == value::SPECIAL_LT_LABEL {
+        return write!(f, "LtLabel({})", lt_val);
+      } else if lt_tag == value::SPECIAL_LT_LITERAL {
+        return write!(f, "LtLit({})", lt_val);
+      } else {
+        panic!("Unknown special loadtime tag {:?}", lt_tag)
+      }
+    }
     _ => {}
   }
   write!(
     f,
-    "Special(0x{:x}; 0x{:x})",
+    "Special({}; 0x{:x})",
     term.get_special_tag().0,
     term.get_special_value()
   )

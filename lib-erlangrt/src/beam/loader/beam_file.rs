@@ -13,7 +13,7 @@ use crate::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
   },
-  term::{value::Term, term_builder::TermBuilder},
+  term::{term_builder::TermBuilder, value::Term},
 };
 use bytes::Bytes;
 use compress::zlib;

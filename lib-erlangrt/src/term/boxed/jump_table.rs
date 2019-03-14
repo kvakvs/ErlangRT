@@ -71,8 +71,8 @@ impl JumpTable {
 
   /// Allocate `n_pairs`*2 cells and form a tuple-like structure
   pub fn create_into(hp: &mut Heap, n_pairs: usize) -> RtResult<*mut Self> {
-    let n = Self::storage_size(n_pairs);
-    let p = hp.alloc::<Self>(n, false)?;
+    let storage_size = Self::storage_size(n_pairs);
+    let p = hp.alloc::<Self>(storage_size, false)?;
     unsafe {
       core::ptr::write(p, Self::new(n_pairs));
     }
@@ -128,10 +128,9 @@ impl JumpTable {
   }
 
   /// Format jump table contents
-  #[allow(dead_code)]
   pub unsafe fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
     self.header.ensure_valid();
-    write!(f, "{{")?;
+    write!(f, "#JumpTab<")?;
 
     let count = self.get_count();
     for i in 0..count {
@@ -141,7 +140,7 @@ impl JumpTable {
       let (val, loc) = self.get_pair(i);
       write!(f, "{} -> {}", val, loc)?;
     }
-    write!(f, "}}")
+    write!(f, ">")
   }
 
   pub fn inplace_map_t<T>(&mut self, mut mapfn: T)

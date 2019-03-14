@@ -8,6 +8,8 @@ mod format;
 mod impl_binary;
 mod impl_boxed;
 mod impl_cons;
+mod impl_fun;
+mod impl_map;
 mod impl_number;
 mod impl_tuple;
 mod special;
@@ -15,8 +17,8 @@ mod tag_term;
 pub mod tuple;
 
 pub use self::{
-  impl_binary::*, impl_boxed::*, impl_cons::*, impl_number::*, impl_tuple::*, special::*,
-  tag_term::*,
+  impl_binary::*, impl_boxed::*, impl_cons::*, impl_fun::*, impl_map::*, impl_number::*,
+  impl_tuple::*, special::*, tag_term::*,
 };
 use crate::{
   defs,
@@ -272,71 +274,6 @@ impl Term {
 
   pub fn is_external_port(self) -> bool {
     false
-  }
-
-  // === === MAP === ===
-  //
-
-  /// Check whether a value is a map.
-  pub fn is_map(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_MAP)
-  }
-
-  /// Check whether a value is a small map < 32 elements (Flat). Does NOT check
-  /// that the value is a map (assert!) assuming that the caller has checked
-  /// it by now.
-  pub fn is_flat_map(self) -> bool {
-    false
-  }
-
-  /// Check whether a value is a hash map >= 32 elements (HAMT). Does NOT check
-  /// that the value is a map (assert!) assuming that the caller has checked
-  /// it by now.
-  pub fn is_hash_map(self) -> bool {
-    false
-  }
-
-  pub fn map_size(self) -> usize {
-    0
-  }
-
-  // === === EXPORT === ===
-  //
-
-  /// Check whether a value is a boxed export (M:F/Arity triple).
-  pub fn is_export(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_EXPORT)
-  }
-
-  // === === FUN / CLOSURE === ===
-  //
-
-  /// Check whether a value is a boxed fun (a closure or export).
-  pub fn is_fun(self) -> bool {
-    self.is_boxed_of_(|t| t == boxed::BOXTYPETAG_CLOSURE || t == boxed::BOXTYPETAG_EXPORT)
-  }
-
-  /// Check whether a value is a boxed fun (a closure or export).
-  pub fn is_fun_of_arity(self, a: usize) -> bool {
-    if !self.is_boxed() {
-      return false;
-    }
-
-    let box_ptr = self.get_box_ptr::<BoxHeader>();
-    let trait_ptr = unsafe { (*box_ptr).get_trait_ptr() };
-    let box_type = unsafe { (*trait_ptr).get_type() };
-
-    match box_type {
-      boxed::BOXTYPETAG_CLOSURE => {
-        let closure_p = box_ptr as *const boxed::Closure;
-        unsafe { (*closure_p).mfa.arity - (*closure_p).nfrozen == a }
-      }
-      boxed::BOXTYPETAG_EXPORT => {
-        let expt_p = box_ptr as *const boxed::Export;
-        unsafe { (*expt_p).exp.mfa.arity == a }
-      }
-      _ => false,
-    }
   }
 
   // === === REFERENCES === ===

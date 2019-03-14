@@ -221,7 +221,7 @@ impl Context {
           let y_index = src.get_special_value();
           let y_result = hp.get_y(y_index);
           return y_result.unwrap();
-        } else if r_tag == value::SPECIALREG_FP {
+        } else if r_tag == value::SPECIALREG_FLOAT {
           panic!("todo fpreg load")
         } else {
           panic!("special tag not supported")
@@ -283,7 +283,7 @@ impl Context {
         } else if r_tag == value::SPECIALREG_Y {
           let y = dst.get_special_value();
           return hp.set_y(y, val);
-        } else if r_tag == value::SPECIALREG_FP {
+        } else if r_tag == value::SPECIALREG_FLOAT {
           panic!("todo fpreg store");
         } else {
           panic!("store: specialtag {:?} not supported", r_tag);

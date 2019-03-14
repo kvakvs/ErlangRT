@@ -17,7 +17,7 @@ use crate::{
 };
 
 fn module() -> &'static str {
-  "beam/loader/parsecode: "
+  "loader/code: "
 }
 
 // const MAX_LTOP_ARGS: usize = 16;
@@ -57,23 +57,23 @@ impl LoaderState {
     // Estimate code size and preallocate the code storage
     // TODO: This step is not efficient and does double parse of all args
     //
-    let mut r = BinaryReader::from_bytes(raw_code);
+    let mut reader = BinaryReader::from_bytes(raw_code);
 
     // TODO: Get rid of this, smarter code-loading memory management
     let code_size = {
       let mut s = 0usize;
-      while !r.eof() {
-        let op = RawOpcode(r.read_u8());
+      while !reader.eof() {
+        let op = RawOpcode(reader.read_u8());
         let arity = gen_op::opcode_arity(op) as usize;
         for _i in 0..arity {
-          compact_term::read(&mut self.beam_file.lit_heap, &mut r)?;
+          compact_term::read(&mut self.beam_file.lit_heap, &mut reader)?;
         }
         s += arity + 1;
       }
       s
     };
     self.code.reserve(code_size);
-    r.reset();
+    reader.reset();
 
     let debug_code_start = self.code.as_ptr();
 
@@ -86,16 +86,18 @@ impl LoaderState {
     // let code_queue = Vec::<LtInstruction>::with_capacity(3);
     let mut next_instr = LtInstruction::new();
 
-    while !r.eof() {
+    while !reader.eof() {
       // Read the opcode from the code section
       // let op = opcode::RawOpcode(r.read_u8());
       // let mut args: Vec<FTerm> = Vec::new();
-      next_instr.next(r.read_u8());
+      next_instr.next(reader.read_u8());
+      rtdbg!("opcode {:?} {}", next_instr.opcode, gen_op::opcode_name(next_instr.opcode));
 
       // Read `arity` args, and convert them to reasonable runtime values
       let arity = gen_op::opcode_arity(next_instr.opcode) as usize;
       for _i in 0..arity {
-        let arg = compact_term::read(&mut self.beam_file.lit_heap, &mut r)?;
+        let arg = compact_term::read(&mut self.beam_file.lit_heap, &mut reader)?;
+        rtdbg!("arg {}", arg);
         next_instr.args.push(self.resolve_value(arg));
       }
 
@@ -185,7 +187,11 @@ impl LoaderState {
           // Label definitely is a loadtime index, resolve it to the location
           // The resolution will happen later when code writing has completed,
           // for now just store the location to patch in the patch table
-          debug_assert!(label_index.is_loadtime());
+          debug_assert!(
+            label_index.is_loadtime(),
+            "Expected load time, got {}",
+            label_index
+          );
         }
 
         // Store it in the patch table

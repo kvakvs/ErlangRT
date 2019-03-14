@@ -90,6 +90,7 @@ pub fn read(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
     }
     x if x == CTETag::YReg as u8 => {
       if bword.is_small() {
+        rtdbg!("y {}", bword);
         return Ok(Term::make_register_y(bword.get_small_unsigned()));
       }
       make_err(CompactTermError::BadYRegTag)
@@ -103,12 +104,6 @@ pub fn read(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
     x if x == CTETag::Integer as u8 => {
       if bword.is_small() {
         return Ok(bword);
-      }
-      if cfg!(debug_assertions) {
-        println!(
-          "bad integer tag when parsing compact term format: {}",
-          bword
-        );
       }
       make_err(CompactTermError::BadIntegerTag)
     }
@@ -150,7 +145,6 @@ fn parse_ext_tag(hp: &mut Heap, b: u8, r: &mut BinaryReader) -> RtResult<Term> {
     // x if x == CTEExtTag::Float as u8 => parse_ext_float(hp, r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist");
-      // Ok(FTerm::AllocList_)
     }
     x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(hp, r),
     x if x == CTEExtTag::Literal as u8 => parse_ext_literal(hp, r),
@@ -193,7 +187,10 @@ fn parse_ext_literal(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
 /// Parses a list, places on the provided heap
 fn parse_ext_list(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
   // The stream now contains a smallint size, then size/2 pairs of values
-  let n_pairs = (read_int(hp, r)? / 2) as usize;
+  let mut n_pairs = read_int(hp, r)? as usize;
+  rtdbg!("Ext list len={}", n_pairs);
+  n_pairs /= 2;
+
   let jt = boxed::JumpTable::create_into(hp, n_pairs)?;
 
   for i in 0..n_pairs {

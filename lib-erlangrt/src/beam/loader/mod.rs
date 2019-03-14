@@ -5,6 +5,9 @@
 //!
 //! Call `let l = Loader::new()`, then `l.load(filename)`, then
 //! `l.load_stage2(&mut vm)` and finally `let modp = l.load_finalize()`
+#[macro_use]
+mod macros;
+
 mod beam_file;
 mod compact_term;
 mod impl_fix_labels;
@@ -25,22 +28,15 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{self, boxtype::BOXTYPETAG_JUMP_TABLE},
-    value::*,
+    value::{self, *},
   },
 };
 use core::mem;
 use std::{collections::BTreeMap, path::PathBuf};
 
-macro_rules! dbg {
-  ($($arg:tt)*) => (if cfg!(trace_beam_loader) {
-    print!("{}", module());
-    println!($($arg)*);
-  })
-}
-
 #[inline]
 const fn module() -> &'static str {
-  "beam/loader: "
+  "loader: "
 }
 
 /// Errors created when parsing compact term format. They are delivered to the
@@ -177,7 +173,7 @@ impl LoaderState {
       let lt_tag = arg.get_loadtime_tag();
       let lt_val = arg.get_loadtime_val();
 
-      if lt_tag == SPECIAL_LT_ATOM {
+      if lt_tag == value::SPECIAL_LT_ATOM {
         // A special value 0 means NIL []
         if lt_val == 0 {
           return Term::nil();
@@ -218,7 +214,7 @@ pub fn load_module(
   code_srv: &mut CodeServer,
   mod_file_path: &PathBuf,
 ) -> RtResult<Box<Module>> {
-  dbg!("BEAM loader: from {}", mod_file_path.to_str().unwrap());
+  rtdbg!("BEAM loader: from {}", mod_file_path.to_str().unwrap());
 
   // Preload data structures
   // located in impl_read_chunks.rs
