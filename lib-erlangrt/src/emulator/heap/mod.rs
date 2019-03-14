@@ -5,7 +5,7 @@ pub mod iter;
 use crate::{
   defs::{Word, WordSize},
   fail::{RtErr, RtResult},
-  term::{boxed, lterm::*},
+  term::{boxed, value::*},
 };
 use colored::Colorize;
 use core::fmt;

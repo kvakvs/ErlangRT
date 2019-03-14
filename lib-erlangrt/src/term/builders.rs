@@ -1,7 +1,7 @@
 use crate::{
   emulator::{gen_atoms, heap::Heap},
   fail::RtResult,
-  term::{lterm::Term, term_builder::TermBuilder},
+  term::{value::Term, term_builder::TermBuilder},
 };
 use std::slice;
 

@@ -2,7 +2,7 @@ use crate::{
   defs::sizes::WordSize,
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::*},
+  term::{boxed, value::*},
 };
 
 /// Helper which allows building lists forward or backwards.

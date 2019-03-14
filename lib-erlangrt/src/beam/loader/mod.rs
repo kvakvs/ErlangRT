@@ -25,7 +25,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{self, boxtype::BOXTYPETAG_JUMP_TABLE},
-    lterm::*,
+    value::*,
   },
 };
 use core::mem;

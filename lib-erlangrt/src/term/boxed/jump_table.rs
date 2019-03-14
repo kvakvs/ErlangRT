@@ -10,7 +10,7 @@ use crate::{
       BoxHeader,
     },
     classify,
-    lterm::Term,
+    value::Term,
   },
 };
 use core::fmt;
@@ -31,20 +31,20 @@ impl TBoxed for JumpTable {
     boxtype::BOXTYPETAG_JUMP_TABLE
   }
 
-//  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
-//    let this_p = self as *mut JumpTable;
-//    unsafe {
-//      let count = (*this_p).get_count();
-//      for i in 0..count {
-//        let (val, loc) = (*this_p).get_pair(i);
-//        (*this_p).set_pair(
-//          i,
-//          mapfn(this_p as *mut BoxHeader, val),
-//          mapfn(this_p as *mut BoxHeader, loc),
-//        );
-//      }
-//    }
-//  }
+  //  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
+  //    let this_p = self as *mut JumpTable;
+  //    unsafe {
+  //      let count = (*this_p).get_count();
+  //      for i in 0..count {
+  //        let (val, loc) = (*this_p).get_pair(i);
+  //        (*this_p).set_pair(
+  //          i,
+  //          mapfn(this_p as *mut BoxHeader, val),
+  //          mapfn(this_p as *mut BoxHeader, loc),
+  //        );
+  //      }
+  //    }
+  //  }
 }
 
 impl JumpTable {
@@ -128,6 +128,7 @@ impl JumpTable {
   }
 
   /// Format jump table contents
+  #[allow(dead_code)]
   pub unsafe fn format(&self, f: &mut fmt::Formatter) -> fmt::Result {
     self.header.ensure_valid();
     write!(f, "{{")?;

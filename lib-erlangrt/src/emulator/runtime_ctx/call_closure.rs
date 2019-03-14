@@ -4,7 +4,7 @@ use crate::{
   defs::Arity,
   emulator::{process::Process, vm::VM},
   fail::{self, RtResult},
-  term::{boxed, lterm::*},
+  term::{boxed, value::*},
 };
 
 fn module() -> &'static str {

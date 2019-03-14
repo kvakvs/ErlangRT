@@ -11,7 +11,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context},
   fail::RtResult,
-  term::{boxed::binary::match_state::BinaryMatchState, lterm::*},
+  term::{boxed::binary::match_state::BinaryMatchState, value::*},
 };
 
 // Values used in bs_* opcodes for flags

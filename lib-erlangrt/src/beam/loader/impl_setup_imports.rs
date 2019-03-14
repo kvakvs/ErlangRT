@@ -6,7 +6,7 @@ use crate::{
     mfa::ModFunArity,
   },
   fail::RtResult,
-  term::{boxed, lterm::Term},
+  term::{boxed, value::Term},
 };
 
 impl LoaderState {

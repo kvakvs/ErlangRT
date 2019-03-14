@@ -1,7 +1,7 @@
 use crate::{
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::*},
+  term::{boxed, value::*},
 };
 
 /// Helper allows allocating a tuple and setting its elements.

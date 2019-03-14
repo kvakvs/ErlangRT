@@ -2,7 +2,7 @@ use crate::{
   emulator::heap::Heap,
   fail::RtResult,
   term::{
-    lterm::Term,
+    value::Term,
     term_builder::{list_builder::build_erlstr_from_utf8, ListBuilder},
   },
 };

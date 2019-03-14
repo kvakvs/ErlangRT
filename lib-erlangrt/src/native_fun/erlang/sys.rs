@@ -2,7 +2,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, process::Process},
   fail::{RtErr, RtResult},
-  term::{builders::make_badfun_n, lterm::Term},
+  term::{builders::make_badfun_n, value::Term},
 };
 
 #[allow(dead_code)]

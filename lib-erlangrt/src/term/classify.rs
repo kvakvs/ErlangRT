@@ -1,6 +1,6 @@
 //! Term ordering and classification.
 
-use crate::term::{boxed::BoxHeader, lterm::*};
+use crate::term::{boxed::BoxHeader, value::{self, Term}};
 
 fn module() -> &'static str {
   "classify: "
@@ -46,27 +46,27 @@ pub const CLASS_SPECIAL: TermClass = TermClass(500);
 pub fn classify_term(t: Term) -> TermClass {
   // let _v = t.raw();
   match t.get_term_tag() {
-    TERMTAG_BOXED => {
+    value::TERMTAG_BOXED => {
       if t.is_cp() {
         CLASS_SPECIAL
       } else {
         unsafe { classify_boxed(t) }
       }
     }
-    TERMTAG_CONS => CLASS_LIST,
-    TERMTAG_SMALL => CLASS_NUMBER,
-    TERMTAG_HEADER => CLASS_SPECIAL, // won't look into the header
-    TERMTAG_ATOM => CLASS_ATOM,
-    TERMTAG_LOCALPID => CLASS_PID,
-    TERMTAG_LOCALPORT => CLASS_PORT,
-    TERMTAG_SPECIAL => classify_special(t),
+    value::TERMTAG_CONS => CLASS_LIST,
+    value::TERMTAG_SMALL => CLASS_NUMBER,
+    value::TERMTAG_HEADER => CLASS_SPECIAL, // won't look into the header
+    value::TERMTAG_ATOM => CLASS_ATOM,
+    value::TERMTAG_LOCALPID => CLASS_PID,
+    value::TERMTAG_LOCALPORT => CLASS_PORT,
+    value::TERMTAG_SPECIAL => classify_special(t),
     _ => panic!("{}Invalid primary tag {:?}", module(), t.get_term_tag()),
   }
 }
 
 fn classify_special(val: Term) -> TermClass {
   match val.get_special_tag() {
-    SPECIALTAG_CONST => {
+    value::SPECIALTAG_CONST => {
       if val == Term::nil() {
         CLASS_LIST
       } else if val == Term::empty_binary() {
@@ -77,8 +77,8 @@ fn classify_special(val: Term) -> TermClass {
         CLASS_SPECIAL
       }
     }
-    SPECIALTAG_REG | SPECIALTAG_LOADTIME => CLASS_SPECIAL,
-    SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk),
+    value::SPECIALTAG_REG | value::SPECIALTAG_LOADTIME => CLASS_SPECIAL,
+    value::SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk),
   }
 }
 

@@ -6,7 +6,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context},
   fail::RtResult,
-  term::{compare, lterm::Term},
+  term::{compare, value::Term},
 };
 
 // Checks exact equality between arg1 and arg2, on false jump to arg0

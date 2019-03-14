@@ -1,6 +1,6 @@
 //! Implement Fun/Arity pair, printing, ordering etc
 //!
-use crate::{defs::Arity, term::lterm::*};
+use crate::{defs::Arity, term::value::*};
 use core::{cmp::Ordering, fmt};
 
 /// Reference to an internal function in some module.

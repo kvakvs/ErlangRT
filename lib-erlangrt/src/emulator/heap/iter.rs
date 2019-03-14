@@ -1,7 +1,7 @@
 //! Define `HeapIterator` which can step over the heap
 use crate::term::{
   boxed,
-  lterm::{Term, TERMTAG_HEADER},
+  value::{Term, TERMTAG_HEADER},
 };
 
 // This is used by heap walkers such as "dump.rs"

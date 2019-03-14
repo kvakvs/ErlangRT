@@ -4,7 +4,7 @@ pub mod create;
 use crate::{
   defs::{exc_type::ExceptionType, ByteSize},
   rt_util::bin_reader::{self, ReadError},
-  term::lterm::Term,
+  term::value::Term,
   beam::loader::CompactTermError,
 };
 use std::convert::From;

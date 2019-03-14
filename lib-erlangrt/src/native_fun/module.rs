@@ -1,7 +1,7 @@
 use crate::{
   emulator::funarity::FunArity,
   native_fun::{fn_entry::NativeFnEntry, NativeFn},
-  term::lterm::Term,
+  term::value::Term,
 };
 use std::collections::hash_map::HashMap;
 

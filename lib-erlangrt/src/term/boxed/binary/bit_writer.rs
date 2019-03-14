@@ -4,7 +4,7 @@ use crate::{
   beam::opcodes::binary::BsFlags,
   defs::{self, BitSize},
   fail::RtResult,
-  term::lterm::Term,
+  term::value::Term,
 };
 
 pub struct BitWriter {}

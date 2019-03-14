@@ -1,4 +1,4 @@
-use crate::{emulator::process::Process, term::lterm::Term};
+use crate::{emulator::process::Process, term::value::Term};
 use std::collections::HashMap;
 
 pub struct ProcessRegistry {

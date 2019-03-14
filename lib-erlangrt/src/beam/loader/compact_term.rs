@@ -10,7 +10,7 @@ use crate::{
   rt_util::bin_reader::BinaryReader,
   term::{
     boxed::{self, bignum, endianness::Endianness},
-    lterm::{Term, SPECIAL_LT_ATOM, SPECIAL_LT_LABEL, SPECIAL_LT_LITERAL},
+    value::{self, Term},
   },
 };
 
@@ -78,7 +78,7 @@ pub fn read(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
         if index == 0 {
           return Ok(Term::nil());
         }
-        return Ok(Term::make_loadtime(SPECIAL_LT_ATOM, index));
+        return Ok(Term::make_loadtime(value::SPECIAL_LT_ATOM, index));
       }
       make_err(CompactTermError::BadAtomTag)
     }
@@ -97,7 +97,7 @@ pub fn read(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
     x if x == CTETag::Label as u8 => {
       if bword.is_small() {
         return Ok(Term::make_loadtime(
-          SPECIAL_LT_LABEL,
+          value::SPECIAL_LT_LABEL,
           bword.get_small_unsigned(),
         ));
       }
@@ -132,8 +132,8 @@ fn parse_ext_tag(hp: &mut Heap, b: u8, r: &mut BinaryReader) -> RtResult<LtTerm>
   match b {
     x if x == CTEExtTag::List as u8 => parse_ext_list(hp, r),
     x if x == CTEExtTag::Float as u8 => parse_ext_float(hp, r),
-    x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(r),
-    x if x == CTEExtTag::Literal as u8 => parse_ext_literal(r),
+    x if x == CTEExtTag::FloatReg as u8 => parse_ext_fpreg(hp, r),
+    x if x == CTEExtTag::Literal as u8 => parse_ext_literal(hp, r),
     x if x == CTEExtTag::AllocList as u8 => {
       panic!("Don't know how to decode an alloclist")
     }
@@ -188,7 +188,7 @@ fn parse_ext_literal(hp: &mut Heap, r: &mut BinaryReader) -> RtResult<Term> {
   let reg = read_word(hp, b, r)?;
   if reg.is_small() {
     return Ok(Term::make_loadtime(
-      SPECIAL_LT_LITERAL,
+      value::SPECIAL_LT_LITERAL,
       reg.get_small_unsigned(),
     ));
   }

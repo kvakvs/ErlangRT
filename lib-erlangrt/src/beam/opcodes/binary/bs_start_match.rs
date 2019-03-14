@@ -7,7 +7,7 @@ use crate::{
       self,
       binary::{match_state::BinaryMatchState, trait_interface::TBinary},
     },
-    lterm::Term,
+    value::Term,
   },
 };
 

@@ -1,11 +1,10 @@
 //! Utility functions for handling lists
 use crate::{
-  defs::exc_type::ExceptionType,
+  defs::{exc_type::ExceptionType, sizes::ByteSize},
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
-  term::{boxed, lterm::lterm_impl::Term, term_builder::ListBuilder},
+  term::{boxed, term_builder::ListBuilder, value::Term},
 };
-use crate::defs::sizes::ByteSize;
 
 // TODO: Rewrite this with for_each when i can think clear again
 pub fn list_length(val: Term) -> RtResult<usize> {
@@ -119,8 +118,8 @@ where
 
 /// Finds and returns first element of lst which satisfies `predicate`.
 pub fn find_first<T>(lst: Term, mut predicate: T) -> Option<*const boxed::Cons>
-  where
-      T: FnMut(Term) -> bool,
+where
+  T: FnMut(Term) -> bool,
 {
   // Not found
   if lst == Term::nil() {
@@ -206,7 +205,8 @@ pub fn get_iolist_size(list: Term) -> ByteSize {
       result.add_bytesize(get_iolist_size(elem));
     }
     Ok(())
-  }).unwrap();
+  })
+  .unwrap();
   // unwrap above may panic if you feed a non-iolist or OOM or something
   result
 }

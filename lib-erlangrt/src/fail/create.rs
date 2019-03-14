@@ -2,7 +2,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, heap::Heap},
   fail::{RtErr, RtResult},
-  term::{builders::make_badfun, lterm::Term},
+  term::{builders::make_badfun, value::Term},
 };
 
 #[inline]

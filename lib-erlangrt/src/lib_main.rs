@@ -3,7 +3,7 @@ use crate::{
   emulator::{
     atom, mfa::ModFunArgs, spawn_options::SpawnOptions, vm::VM,
   },
-  term::lterm::*,
+  term::value::*,
 };
 use std::{
   io::{stdout, Write},

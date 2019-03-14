@@ -1,7 +1,7 @@
 use crate::{
   emulator::{process::Process, vm::VM},
   fail::RtResult,
-  term::{compare::cmp_terms, lterm::Term},
+  term::{compare::cmp_terms, value::Term},
 };
 use core::cmp::Ordering;
 

@@ -2,7 +2,7 @@
 use crate::{
   defs::Word,
   emulator::heap::{heap_iter, Heap},
-  term::lterm::TERMTAG_BOXED,
+  term::value::TERMTAG_BOXED,
 };
 
 impl Heap {

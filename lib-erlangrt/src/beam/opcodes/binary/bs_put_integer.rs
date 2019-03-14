@@ -3,7 +3,7 @@ use crate::{
   defs::BitSize,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
-  term::lterm::Term,
+  term::value::Term,
 };
 
 // Store `src` into ??? context with unit size

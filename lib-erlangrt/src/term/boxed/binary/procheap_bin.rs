@@ -8,7 +8,7 @@ use crate::{
       binary::{bit_writer::BitWriter, trait_interface::TBinary, BinaryType},
       Binary,
     },
-    lterm::Term,
+    value::Term,
   },
 };
 

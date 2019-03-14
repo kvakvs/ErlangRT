@@ -1,6 +1,6 @@
 use crate::{
   fail::{self, RtResult},
-  term::{boxed, lterm::Term},
+  term::{boxed, value::Term},
 };
 
 // Return size of a tuple or a binary object.

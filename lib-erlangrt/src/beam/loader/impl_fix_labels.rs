@@ -3,7 +3,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed,
-    lterm::{Term, SPECIAL_LT_LABEL},
+    value::{self, Term},
   },
 };
 
@@ -42,7 +42,7 @@ impl LoaderState {
   /// a jump table, resolves as if it was a label index, and returns a value
   /// to be put back into memory.
   fn resolve_loadtime_label(&self, val: Term) -> Term {
-    assert!(val.is_loadtime() && val.get_loadtime_tag() == SPECIAL_LT_LABEL);
+    assert!(val.is_loadtime() && val.get_loadtime_tag() == value::SPECIAL_LT_LABEL);
 
     // Convert from Term smallint to integer and then to labelid
     let unfixed = val.get_loadtime_val();

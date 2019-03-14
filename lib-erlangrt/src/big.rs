@@ -4,7 +4,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{self, endianness::Endianness},
-    lterm::Term,
+    value::Term,
   },
 };
 

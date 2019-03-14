@@ -8,7 +8,7 @@ use crate::{
     boxed::{self, binary::trait_interface::TBinary},
     classify,
     compare::EqResult::Concluded,
-    lterm::*,
+    value::*,
   },
 };
 
@@ -411,8 +411,13 @@ unsafe fn cmp_binary(a: Term, b: Term) -> RtResult<Ordering> {
   }
 
   println!("Going to compare {} {}", a, b);
-  println!("sizes - {} {} vs {} {}", a_size, (*a_trait).get_byte_size(),
-           b_size, (*b_trait).get_byte_size());
+  println!(
+    "sizes - {} {} vs {} {}",
+    a_size,
+    (*a_trait).get_byte_size(),
+    b_size,
+    (*b_trait).get_byte_size()
+  );
 
   // Try figure out a compatible byte- or bit-reader combination for A arg and
   // B arg and then call a branch function which will do the same for B.

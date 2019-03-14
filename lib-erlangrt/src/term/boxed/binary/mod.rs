@@ -15,7 +15,7 @@ use crate::{
       BoxHeader,
     },
     classify,
-    lterm::Term,
+    value::Term,
   },
 };
 

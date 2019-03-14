@@ -4,7 +4,7 @@ use crate::{
   emulator::{
     gen_atoms, process::Process, process_flags, process_registry::ProcessRegistry,
   },
-  term::lterm::*,
+  term::value::*,
 };
 use colored::Colorize;
 use std::collections::{HashMap, VecDeque};

@@ -5,7 +5,7 @@ use crate::{
   emulator::atom,
   term::{
     boxed::{self, box_header::BoxHeader, boxtype},
-    lterm::{cons, lterm_impl::*},
+    value::{cons, *},
   },
 };
 use core::fmt;
@@ -137,13 +137,15 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
     SPECIALTAG_REG => {
       let rtag = term.get_reg_tag();
       if rtag == SPECIALREG_X {
-      return write!(f, "X{}", term.get_reg_value()); } else if rtag == SPECIALREG_Y {
-      return write!(f, "Y{}", term.get_reg_value()); } else if rtag == SPECIALREG_FP {
+        return write!(f, "X{}", term.get_reg_value());
+      } else if rtag == SPECIALREG_Y {
+        return write!(f, "Y{}", term.get_reg_value());
+      } else if rtag == SPECIALREG_FP {
         return write!(f, "F{}", term.get_reg_value());
       } else {
         panic!("Unknown special reg tag")
       }
-    },
+    }
     SPECIALTAG_OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
     SPECIALTAG_CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
     _ => {}

@@ -15,7 +15,7 @@ use crate::{
       BoxHeader, BOXTYPETAG_CLOSURE,
     },
     classify,
-    lterm::*,
+    value::*,
   },
 };
 use core::mem::size_of;
@@ -45,13 +45,13 @@ impl TBoxed for Closure {
     boxtype::BOXTYPETAG_CLOSURE
   }
 
-//  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
-//    let this_p = self as *mut Closure;
-//    let frozen = unsafe { (*this_p).get_frozen_mut() };
-//    for i in 0..frozen.len() {
-//      frozen[i] = mapfn(this_p as *mut BoxHeader, frozen[i]);
-//    }
-//  }
+  //  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
+  //    let this_p = self as *mut Closure;
+  //    let frozen = unsafe { (*this_p).get_frozen_mut() };
+  //    for i in 0..frozen.len() {
+  //      frozen[i] = mapfn(this_p as *mut BoxHeader, frozen[i]);
+  //    }
+  //  }
 }
 
 impl Closure {

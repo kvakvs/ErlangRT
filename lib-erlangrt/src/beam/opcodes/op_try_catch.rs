@@ -3,7 +3,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
-  term::lterm::Term,
+  term::value::Term,
 };
 
 // Set up a try-catch stack frame for possible stack unwinding. Label points

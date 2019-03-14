@@ -2,7 +2,7 @@ use crate::{
   big,
   emulator::{arith::multiplication, process::Process, vm::VM},
   fail::RtResult,
-  term::lterm::*,
+  term::value::*,
 };
 
 fn module() -> &'static str {

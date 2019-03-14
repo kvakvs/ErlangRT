@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::{self, RtResult},
-  term::lterm::*,
+  term::value::*,
 };
 use crate::beam::disp_result::YieldType;
 

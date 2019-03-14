@@ -12,7 +12,7 @@ use crate::{
       BoxHeader, BOXTYPETAG_IMPORT,
     },
     classify,
-    lterm::*,
+    value::*,
   },
 };
 use core::{mem::size_of, ptr};

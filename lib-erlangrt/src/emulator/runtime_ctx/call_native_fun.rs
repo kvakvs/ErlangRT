@@ -4,7 +4,7 @@ use crate::{
   emulator::{code_srv::CodeServer, mfa::ModFunArity, process::Process, vm::VM},
   fail::{self, RtErr, RtResult},
   native_fun::NativeFn,
-  term::{boxed::import, lterm::*},
+  term::{boxed::import, value::*},
 };
 use core::slice;
 

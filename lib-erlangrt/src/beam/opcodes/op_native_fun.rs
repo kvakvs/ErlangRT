@@ -8,7 +8,7 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  term::lterm::*,
+  term::value::*,
 };
 
 // Call a native_fun defined by `m:f/0`, a `HOImport` import object stored on heap
@@ -37,7 +37,7 @@ impl OpcodeBif0 {
   }
 }
 
-// Structure: bif1(fail:cp, import:boxed, arg1:lterm, dst:dst)
+// Structure: bif1(fail:cp, import:boxed, arg1:term, dst:dst)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeBif1, arity: 4,
   run: { Self::bif1(vm, ctx, curr_p, fail, target, bif_args, dst) },
@@ -60,7 +60,7 @@ impl OpcodeBif1 {
   }
 }
 
-// Structure: bif1(fail:cp, import:boxed, arg1..2:lterm, dst:dst)
+// Structure: bif1(fail:cp, import:boxed, arg1..2:term, dst:dst)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeBif2, arity: 5,
   run: { Self::bif2(vm, ctx, curr_p, fail, target, bif_args, dst) },
@@ -83,7 +83,7 @@ impl OpcodeBif2 {
   }
 }
 
-// Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:lterm, dst:dst)
+// Structure: gc_bif1(fail:cp, live:small, import:boxed, arg1:term, dst:dst)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeGcBif1, arity: 5,
   run: { Self::gc_bif1(vm, ctx, curr_p, fail, live, target, bif_args, dst) },
@@ -108,8 +108,8 @@ impl OpcodeGcBif1 {
   }
 }
 
-// Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:lterm,
-//                    arg2:lterm, dst:dst)
+// Structure: gc_bif2(fail:CP, live:small, import:boxed, arg1:term,
+//                    arg2:term, dst:dst)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeGcBif2, arity: 6,
   run: { Self::gc_bif2(vm, ctx, curr_p, fail, live, target, bif_args, dst) },
@@ -134,8 +134,8 @@ impl OpcodeGcBif2 {
   }
 }
 
-// Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:lterm,
-//                    arg2:lterm, arg3:lterm, dst:dst)
+// Structure: gc_bif3(fail:CP, live:small, import:boxed, arg1:term,
+//                    arg2:term, arg3:term, dst:dst)
 define_opcode!(vm, ctx, curr_p,
   name: OpcodeGcBif3, arity: 7,
   run: { Self::gc_bif3(vm, ctx, curr_p, fail, live, target, bif_args, dst) },

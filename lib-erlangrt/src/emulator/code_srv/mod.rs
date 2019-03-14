@@ -12,7 +12,7 @@ use crate::{
   },
   fail::{RtErr, RtResult},
   native_fun::{registry::NativeFunRegistry, NativeFn},
-  term::lterm::*,
+  term::value::*,
 };
 use std::{
   collections::BTreeMap,

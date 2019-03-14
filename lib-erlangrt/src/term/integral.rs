@@ -1,5 +1,5 @@
 ////! Type-safe Erlang integer used during code loading time.
-//use crate::{
+// use crate::{
 //  big,
 //  defs::{SWord, WORD_BITS},
 //  term::boxed,
@@ -10,7 +10,7 @@
 ///// enough to fit into a word, or a large one, stored as a `Bignum` on a literal
 ///// heap. There is no way (and was no need) to represent a small signed integer.
 //#[derive(Debug, Eq, PartialEq)]
-//pub enum LtIntegral {
+// pub enum LtIntegral {
 //  Small(SWord),
 //  Big(*const boxed::Bignum),
 //}

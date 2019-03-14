@@ -12,7 +12,7 @@ use crate::{
   rt_util::bin_reader::BinaryReader,
   term::{
     boxed::{self, boxtype::BOXTYPETAG_JUMP_TABLE},
-    lterm::{Term, SPECIAL_LT_LABEL, SPECIAL_LT_LITERAL},
+    value::{self, Term},
   },
 };
 
@@ -133,7 +133,7 @@ impl LoaderState {
           self.store_opcode_args(&next_instr.args)?;
         }
 
-        // else push the op and convert all args to LTerms, also remember
+        // else push the op and convert all args to Terms, also remember
         // code offsets for label values
         _ => {
           self.code.push(opcode::to_memory_word(next_instr.opcode));
@@ -158,7 +158,7 @@ impl LoaderState {
   /// resolve them into an offset.
   fn store_opcode_args(&mut self, args: &[Term]) -> RtResult<()> {
     for arg in args {
-      // Ext list is special so we convert it and its contents to lterm
+      // Ext list is special so we convert it and its contents to term
       // Load time extlists are stored as tuples
       if arg.is_boxed_of_type(BOXTYPETAG_JUMP_TABLE) {
         // Push a header word with length
@@ -175,7 +175,7 @@ impl LoaderState {
           let (val, label_index) = unsafe { (*jt).get_pair(pair) };
 
           // If value is a loadtime literal index - resolve to the real value
-          if val.is_loadtime() && val.get_loadtime_tag() == SPECIAL_LT_LITERAL {
+          if val.is_loadtime() && val.get_loadtime_tag() == value::SPECIAL_LT_LITERAL {
             let val1 = self.beam_file.lit_tab[val.get_loadtime_val()];
             unsafe {
               (*jt).set_value(pair, val1);
@@ -194,13 +194,13 @@ impl LoaderState {
       } else if arg.is_loadtime() {
         let lt_tag = arg.get_loadtime_tag();
         let f = arg.get_loadtime_val();
-        if lt_tag == SPECIAL_LT_LABEL {
+        if lt_tag == value::SPECIAL_LT_LABEL {
           // Label value is special, we want to remember where it was
           // to convert it to an offset
           let ploc = PatchLocation::PatchCodeOffset(self.code.len());
           let resolved_location = self.maybe_convert_label(*arg, ploc);
           self.code.push(resolved_location.raw())
-        } else if lt_tag == SPECIAL_LT_LITERAL {
+        } else if lt_tag == value::SPECIAL_LT_LITERAL {
           // Load-time literals are already loaded on `self.lit_heap`
           self.code.push(self.beam_file.lit_tab[f].raw())
         }

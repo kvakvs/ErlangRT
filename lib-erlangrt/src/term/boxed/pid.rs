@@ -9,7 +9,7 @@ use crate::{
       BoxHeader,
     },
     classify,
-    lterm::Term,
+    value::Term,
   },
 };
 use core::{mem::size_of, ptr};

@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
-  term::lterm::Term,
+  term::value::Term,
 };
 use crate::defs::sizes::WordSize;
 

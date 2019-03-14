@@ -1,7 +1,7 @@
 use crate::{
   emulator::heap::Heap,
   fail::RtResult,
-  term::{boxed, lterm::Term},
+  term::{boxed, value::Term},
 };
 
 /// Map builder allocates necessary space on the given heap and allows

@@ -13,7 +13,7 @@ use crate::{
       BoxHeader, BOXTYPETAG_BIGINTEGER,
     },
     classify,
-    lterm::*,
+    value::*,
   },
 };
 use core::mem::size_of;

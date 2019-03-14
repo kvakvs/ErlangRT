@@ -2,7 +2,7 @@ use super::bin_reader::BinaryReader;
 use crate::{
   defs::{SWord, Word},
   fail::{RtErr, RtResult},
-  term::{boxed::bignum::sign::Sign, lterm::Term, term_builder::TermBuilder},
+  term::{boxed::bignum::sign::Sign, value::Term, term_builder::TermBuilder},
 };
 
 ///// Errors indicating a problem with External Term Format parser.

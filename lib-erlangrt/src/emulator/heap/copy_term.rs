@@ -6,22 +6,25 @@ use crate::{
   fail::RtResult,
   term::{
     boxed,
-    lterm::*,
     term_builder::{ListBuilder, TupleBuilder},
+    value::{self, Term},
   },
 };
 
 /// Copies term to another heap.
 pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
   match term.get_term_tag() {
-    TERMTAG_BOXED => unsafe { copy_boxed_to(term, hp) },
-    TERMTAG_HEADER => {
+    value::TERMTAG_BOXED => unsafe { copy_boxed_to(term, hp) },
+    value::TERMTAG_HEADER => {
       panic!("Attempt to copy header value");
     }
-    TERMTAG_CONS => unsafe { copy_cons_to(term, hp) },
-    TERMTAG_SMALL | TERMTAG_ATOM | TERMTAG_LOCALPID | TERMTAG_LOCALPORT => Ok(term),
-    TERMTAG_SPECIAL => match term.get_special_tag() {
-      SPECIALTAG_CONST => Ok(term),
+    value::TERMTAG_CONS => unsafe { copy_cons_to(term, hp) },
+    value::TERMTAG_SMALL
+    | value::TERMTAG_ATOM
+    | value::TERMTAG_LOCALPID
+    | value::TERMTAG_LOCALPORT => Ok(term),
+    value::TERMTAG_SPECIAL => match term.get_special_tag() {
+      value::SPECIALTAG_CONST => Ok(term),
       _ => panic!("Attempt to copy a special value: {}", term),
     },
     t => panic!("Not sure how to copy term with {:?}", t),
@@ -34,7 +37,7 @@ pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
 unsafe fn copy_cons_to(lst: Term, hp: &mut Heap) -> RtResult<Term> {
   let mut lb = ListBuilder::new(hp)?;
 
-  let tail_el_result = cons::for_each(lst, |el| {
+  let tail_el_result = value::cons::for_each(lst, |el| {
     // Recurse into copy, for each list element
     lb.append(copy_to(el, hp)?)?;
     Ok(())

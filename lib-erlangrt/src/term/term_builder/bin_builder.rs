@@ -4,7 +4,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{self, binary::trait_interface::TBinary},
-    lterm::Term,
+    value::Term,
   },
 };
 

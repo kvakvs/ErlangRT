@@ -13,7 +13,7 @@ use crate::{
     spawn_options::SpawnOptions,
   },
   fail::RtResult,
-  term::lterm::*,
+  term::value::*,
 };
 use crate::emulator::process_flags;
 use crate::emulator::heap::Heap;

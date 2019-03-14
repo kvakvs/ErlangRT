@@ -3,7 +3,7 @@
 //! Config used: OTP22 
 #![allow(dead_code)]
 
-use crate::{native_fun, defs::Arity, term::lterm::*};
+use crate::{native_fun, defs::Arity, term::value::*};
 
 pub struct BifTabItem {
     pub m: Term, 

@@ -10,7 +10,7 @@ use crate::{
   },
   fail::{self, RtErr, RtResult},
   native_fun::assert_arity,
-  term::{boxed, lterm::*},
+  term::{boxed, value::*},
 };
 
 #[allow(dead_code)]

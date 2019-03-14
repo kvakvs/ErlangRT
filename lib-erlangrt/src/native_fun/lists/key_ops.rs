@@ -4,7 +4,7 @@ use crate::{
   fail::RtResult,
   term::{
     compare,
-    lterm::{cons, Term},
+    value::{cons, Term},
   },
 };
 use std::cmp::Ordering;

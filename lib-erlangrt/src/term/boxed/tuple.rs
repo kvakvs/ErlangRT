@@ -9,7 +9,7 @@ use crate::{
       BoxHeader,
     },
     classify,
-    lterm::Term,
+    value::Term,
   },
 };
 use core::fmt;
@@ -32,19 +32,19 @@ impl TBoxed for Tuple {
     boxtype::BOXTYPETAG_TUPLE
   }
 
-//  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
-//    let this_p = self as *mut Tuple;
-//
-//    unsafe {
-//      let count = (*this_p).get_arity();
-//      let data = &mut (*this_p).data0 as *mut Term;
-//
-//      for i in 0..count {
-//        let val = core::ptr::read(data.add(i));
-//        core::ptr::write(data.add(i), mapfn(this_p as *mut BoxHeader, val));
-//      }
-//    }
-//  }
+  //  fn inplace_map(&mut self, mapfn: &InplaceMapFn) {
+  //    let this_p = self as *mut Tuple;
+  //
+  //    unsafe {
+  //      let count = (*this_p).get_arity();
+  //      let data = &mut (*this_p).data0 as *mut Term;
+  //
+  //      for i in 0..count {
+  //        let val = core::ptr::read(data.add(i));
+  //        core::ptr::write(data.add(i), mapfn(this_p as *mut BoxHeader, val));
+  //      }
+  //    }
+  //  }
 }
 
 impl Tuple {

@@ -2,7 +2,7 @@ use crate::{
   emulator::{atom, process::Process},
   fail::{self, RtResult},
   term::{
-    lterm::{cons, Term},
+    value::{cons, Term},
     term_builder::BinaryBuilder,
   },
 };

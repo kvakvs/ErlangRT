@@ -8,7 +8,7 @@ use crate::{
     vm::VM,
   },
   fail::{self, RtResult},
-  term::{boxed, lterm::*},
+  term::{boxed, value::*},
 };
 
 fn module() -> &'static str {

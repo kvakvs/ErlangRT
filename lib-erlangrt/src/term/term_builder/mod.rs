@@ -18,7 +18,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::{self, bignum, endianness::Endianness},
-    lterm::*,
+    value::*,
   },
 };
 

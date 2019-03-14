@@ -3,7 +3,7 @@ use crate::{
   defs::{BitSize, ByteSize, WordSize},
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::{self, RtResult},
-  term::{boxed, lterm::Term},
+  term::{boxed, value::Term},
 };
 
 // Create a binary on proc heap or binary heap with GC if required.
