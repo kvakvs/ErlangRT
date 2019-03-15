@@ -73,6 +73,7 @@ wait
 get_tuple_element
 is_tagged_tuple
 put_tuple
+put_tuple2
 set_tuple_element
 test_arity
 

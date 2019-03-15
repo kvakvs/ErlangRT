@@ -1,8 +1,16 @@
+use std::{
+  io::{Cursor, Read},
+  path::PathBuf,
+};
+
+use bytes::Bytes;
+use compress::zlib;
+
 use crate::{
   beam::{
     gen_op,
     loader::{
-      compact_term,
+      compact_term::CompactTermReader,
       load_time_structs::{LtExport, LtFun, LtImport},
     },
   },
@@ -14,12 +22,6 @@ use crate::{
     ext_term_format as etf,
   },
   term::{term_builder::TermBuilder, value::Term},
-};
-use bytes::Bytes;
-use compress::zlib;
-use std::{
-  io::{Cursor, Read},
-  path::PathBuf,
 };
 
 fn module() -> &'static str {
@@ -242,16 +244,17 @@ impl BeamFile {
     }
   }
 
-  fn load_line_info(&mut self, r: &mut BinaryReader) -> RtResult<()> {
-    let _version = r.read_u32be(); // must match emulator version 0
-    let _flags = r.read_u32be();
-    let _n_line_instr = r.read_u32be();
-    let n_line_refs = r.read_u32be();
-    let n_filenames = r.read_u32be();
+  fn load_line_info(&mut self, reader: &mut BinaryReader) -> RtResult<()> {
+    let _version = reader.read_u32be(); // must match emulator version 0
+    let _flags = reader.read_u32be();
+    let _n_line_instr = reader.read_u32be();
+    let n_line_refs = reader.read_u32be();
+    let n_filenames = reader.read_u32be();
     let mut _fname_index = 0u32;
 
+    let mut ct_reader = CompactTermReader::new(&mut self.lit_heap);
     for _i in 0..n_line_refs {
-      let val = compact_term::read(&mut self.lit_heap, r)?;
+      let val = ct_reader.read(reader)?;
       if val.is_small() {
         // self.linerefs.push((_fname_index, w));
       } else if val.is_atom() {
@@ -262,8 +265,8 @@ impl BeamFile {
     }
 
     for _i in 0..n_filenames {
-      let name_size = r.read_u16be();
-      let _fstr = r.read_str_utf8(name_size as defs::Word);
+      let name_size = reader.read_u16be();
+      let _fstr = reader.read_str_utf8(name_size as defs::Word);
     }
     Ok(())
   }

@@ -1,7 +1,9 @@
 use crate::{
   beam::{
     gen_op,
-    loader::{compact_term, op_badarg_panic, LoaderState, PatchLocation},
+    loader::{
+      compact_term::CompactTermReader, op_badarg_panic, LoaderState, PatchLocation,
+    },
   },
   defs::Arity,
   emulator::{
@@ -60,13 +62,15 @@ impl LoaderState {
     let mut reader = BinaryReader::from_bytes(raw_code);
 
     // TODO: Get rid of this, smarter code-loading memory management
+    let mut ct_reader = CompactTermReader::new(&mut self.beam_file.lit_heap);
     let code_size = {
       let mut s = 0usize;
       while !reader.eof() {
         let op = RawOpcode(reader.read_u8());
         let arity = gen_op::opcode_arity(op) as usize;
+        ct_reader.on_ext_list_create_jumptable(op != gen_op::OPCODE_PUT_TUPLE2);
         for _i in 0..arity {
-          compact_term::read(&mut self.beam_file.lit_heap, &mut reader)?;
+          ct_reader.read(&mut reader)?;
         }
         s += arity + 1;
       }
@@ -91,12 +95,17 @@ impl LoaderState {
       // let op = opcode::RawOpcode(r.read_u8());
       // let mut args: Vec<FTerm> = Vec::new();
       next_instr.next(reader.read_u8());
-      rtdbg!("opcode {:?} {}", next_instr.opcode, gen_op::opcode_name(next_instr.opcode));
+      ct_reader.on_ext_list_create_jumptable(next_instr.opcode != gen_op::OPCODE_PUT_TUPLE2);
+      rtdbg!(
+        "opcode {:?} {}",
+        next_instr.opcode,
+        gen_op::opcode_name(next_instr.opcode)
+      );
 
       // Read `arity` args, and convert them to reasonable runtime values
       let arity = gen_op::opcode_arity(next_instr.opcode) as usize;
       for _i in 0..arity {
-        let arg = compact_term::read(&mut self.beam_file.lit_heap, &mut reader)?;
+        let arg = ct_reader.read(&mut reader)?;
         rtdbg!("arg {}", arg);
         next_instr.args.push(self.resolve_value(arg));
       }

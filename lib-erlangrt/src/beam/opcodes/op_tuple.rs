@@ -50,6 +50,28 @@ impl OpcodePutTuple {
   }
 }
 
+// Creates an empty tuple from the `initializer` which is a tuple with values
+// and possibly registers/stack locations, each of them is loaded, the result
+// tuple is placed into `dst`.
+// Structure: put_tuple2(dst:register, initializer:tuple)
+define_opcode!(_vm, ctx, curr_p,
+  name: OpcodePutTuple2, arity: 2,
+  run: { Self::put_tuple2(ctx, curr_p, dst, initializer) },
+  args: term(dst), term(initializer),
+);
+
+impl OpcodePutTuple2 {
+  #[inline]
+  pub fn put_tuple2(
+    _ctx: &mut Context,
+    _curr_p: &mut Process,
+    _dst: Term,
+    _initializer: Term,
+  ) -> RtResult<DispatchResult> {
+    unimplemented!("put_tuple2")
+  }
+}
+
 
 // Checks that tuple in argument1 has arity `arity` otherwise jumps to fail.
 // Structure: test_arity(on_false:label, value:tuple, arity:int)

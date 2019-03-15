@@ -19,7 +19,6 @@ pub enum RtErr {
   //--- Code loading ---
   CodeLoadingFailed(String),
   CodeLoadingCompactTerm(CompactTermError),
-  // PrematureEOF,
 
   //--- Code server, lookups ---
   NotFound, // generic notfound-anything
@@ -29,8 +28,6 @@ pub enum RtErr {
 
   //--- Memory allocation events and errors ---
   AtomNotExist(String),
-  // /// Very bad, no more memory to grow.
-  // OutOfMemory,
   /// No space left in heap. GC requested.
   HeapIsFull(&'static str),
   /// Attempt to index outside of the current stack.

@@ -372,6 +372,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeGetTl::__run(vm, ctx, curr_p);
     },
 
+    OPCODE_PUT_TUPLE2 => {
+      assert_arity(OPCODE_PUT_TUPLE2, OpcodePutTuple2::ARITY);
+      return OpcodePutTuple2::__run(vm, ctx, curr_p);
+    },
+
     OPCODE_BS_START_MATCH3 => {
       assert_arity(OPCODE_BS_START_MATCH3, OpcodeBsStartMatch3::ARITY);
       return OpcodeBsStartMatch3::__run(vm, ctx, curr_p);
