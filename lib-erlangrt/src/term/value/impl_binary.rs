@@ -2,7 +2,7 @@ use crate::{
   defs::ByteSize,
   term::{
     boxed,
-    value::{Term, SpecialConst, SpecialTag},
+    value::{SpecialConst, SpecialTag, Term},
   },
 };
 

@@ -243,7 +243,8 @@ impl CompactTermReader {
       unsafe { tb.set_element(i, value) };
     }
 
-    Ok(tb.make_term())
+    let result = tb.make_term();
+    Ok(result)
   }
 
   /// Parses a list, places on the provided heap.

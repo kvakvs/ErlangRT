@@ -1,9 +1,6 @@
 use crate::{
   defs::*,
-  term::{
-    boxed::trait_interface::TBoxed,
-    value::{PrimaryTag},
-  },
+  term::{boxed::trait_interface::TBoxed, value::PrimaryTag},
 };
 
 /// Term header in memory, followed by corresponding data. The first header word
@@ -70,8 +67,9 @@ impl BoxHeader {
   pub fn ensure_valid(&self) {
     assert_eq!(
       self.guard_word, GUARD_WORD_VALUE,
-      "Guard value 0x{:x} is not in place (found 0x{:x}), check that the pointer to the box is correct",
-      GUARD_WORD_VALUE, self.guard_word
+      "Guard value 0x{:x} at {:p} is not in place (found value 0x{:x}), \
+      check that the pointer to the box is aligned and correct",
+      GUARD_WORD_VALUE, self as *const Self, self.guard_word
     );
   }
 

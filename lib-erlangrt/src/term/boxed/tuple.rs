@@ -60,7 +60,7 @@ impl Tuple {
     assert_ne!(arity, 0, "Can't create tuple of arity 0 on heap");
     Tuple {
       header: BoxHeader::new::<Tuple>(Self::storage_size(arity)),
-      data0: Term::non_value(),
+      data0: Term::nil(),
     }
   }
 

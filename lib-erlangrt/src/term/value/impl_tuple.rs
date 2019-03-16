@@ -1,6 +1,6 @@
 use crate::term::{
   boxed,
-  value::{Term, PrimaryTag},
+  value::{PrimaryTag, Term},
 };
 
 impl Term {

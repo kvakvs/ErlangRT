@@ -7,10 +7,6 @@ use crate::{
 };
 
 impl Term {
-  // === === BOXED === === ===
-  //
-
-  // TODO: Some safety checks maybe? But oh well
   #[inline]
   pub fn make_boxed<T>(p: *const T) -> Self {
     let p_val = p as usize;
@@ -37,6 +33,7 @@ impl Term {
   pub fn get_box_ptr_unchecked<T>(self) -> *const T {
     (self.value & !PrimaryTag::TAG_MASK) as *const T
   }
+
   /// Just raw decode value bits into a mut pointer, no safety checks
   #[inline]
   pub fn get_box_ptr_unchecked_mut<T>(self) -> *mut T {
@@ -72,7 +69,7 @@ impl Term {
   #[cfg(debug_assertions)]
   fn debug_assert_box_pointer_valid(&self) {
     // Additional check in debug, boxheader has an extra guard word stored
-    let boxheader = self.value as *const BoxHeader;
+    let boxheader = self.get_box_ptr_unchecked::<BoxHeader>();
     unsafe { (*boxheader).ensure_valid() };
   }
 

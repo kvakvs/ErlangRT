@@ -9,18 +9,19 @@ mod impl_binary;
 mod impl_boxed;
 mod impl_cons;
 mod impl_cp;
+mod impl_float;
 mod impl_fun;
 mod impl_map;
 mod impl_nonvalue;
 mod impl_number;
+mod impl_special;
 mod impl_tuple;
 mod primary_tag;
-mod special;
-pub mod tuple;
 
 pub use self::{
-  impl_binary::*, impl_boxed::*, impl_cons::*, impl_cp::*, impl_fun::*, impl_map::*,
-  impl_nonvalue::*, impl_number::*, impl_tuple::*, primary_tag::*, special::*,
+  impl_binary::*, impl_boxed::*, impl_cons::*, impl_cp::*, impl_float::*, impl_fun::*,
+  impl_map::*, impl_nonvalue::*, impl_number::*, impl_special::*, impl_tuple::*,
+  primary_tag::*,
 };
 use crate::{
   defs,
@@ -177,46 +178,6 @@ impl Term {
   pub fn atom_index(self) -> usize {
     debug_assert!(self.is_atom());
     self.get_term_val_without_tag()
-  }
-
-  // === === FLOAT === ===
-  //
-
-  /// Check whether a value is a small integer, a big integer or a float.
-  pub fn is_number(self) -> bool {
-    self.is_small()
-      || self.is_boxed_of_(|t| {
-        t == boxed::BOXTYPETAG_BIGINTEGER || t == boxed::BOXTYPETAG_FLOAT
-      })
-  }
-
-  /// Constructor to create a float on heap. May fail if the heap is full or
-  /// something else might happen.
-  pub fn make_float(hp: &mut Heap, val: f64) -> RtResult<Self> {
-    let pf = unsafe { boxed::Float::create_into(hp, val)? };
-    Ok(Self::make_boxed(pf))
-  }
-
-  /// Check whether a term is boxed and then whether it points to a word of
-  /// memory tagged as float
-  pub fn is_float(self) -> bool {
-    self.is_boxed_of_type(boxed::BOXTYPETAG_FLOAT)
-  }
-
-  pub fn get_float(self) -> RtResult<f64> {
-    if !self.is_boxed() {
-      return Err(RtErr::TermIsNotABoxed);
-    }
-    let _p = self.get_box_ptr::<BoxHeader>();
-    unimplemented!("float box")
-  }
-
-  /// Returns float value, performs no extra checks. The caller is responsible
-  /// for the value being a boxed float.
-  #[inline]
-  pub unsafe fn get_float_unchecked(self) -> f64 {
-    let p = self.get_box_ptr::<boxed::Float>();
-    (*p).value
   }
 
   /// Raw compare two term values.

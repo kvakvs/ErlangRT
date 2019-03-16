@@ -18,7 +18,7 @@ pub struct PrimaryTag(pub usize);
 #[cfg(target_pointer_width = "64")]
 impl PrimaryTag {
   pub const TAG_BITS: usize = 3;
-  pub const TAG_MASK: usize = (1 << Self::TAG_BITS) - 1;
+  pub const TAG_MASK: usize = 7;
 
   pub const SMALL_INT: Self = Self(0); // immediate, not a pointer
   pub const HEADER: Self = Self(1); // immediate, first word of a memory block
