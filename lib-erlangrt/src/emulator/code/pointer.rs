@@ -31,7 +31,7 @@ impl VersionedCodePtr {
 /// over args too, and no extra checks are made.
 ///
 /// In debug build additional mark bits `PrimaryTag::SPECIAL`, and then
-/// `SPECIALTAG_OPCODE` are added to this word and additional check is done
+/// `SpecialTag::OPCODE` are added to this word and additional check is done
 /// here in `CodePtr`.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq, Eq)]
 pub struct CodePtr {

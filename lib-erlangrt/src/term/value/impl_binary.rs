@@ -2,7 +2,7 @@ use crate::{
   defs::ByteSize,
   term::{
     boxed,
-    value::{Term, SPECIALCONST_EMPTYBINARY, SPECIALTAG_CONST},
+    value::{Term, SpecialConst, SpecialTag},
   },
 };
 
@@ -12,7 +12,7 @@ impl Term {
 
   #[inline]
   pub const fn empty_binary() -> Self {
-    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYBINARY.0)
+    Self::make_special(SpecialTag::CONST, SpecialConst::EMPTY_BINARY.0)
   }
 
   #[inline]

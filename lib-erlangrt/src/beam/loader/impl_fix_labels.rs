@@ -42,11 +42,11 @@ impl LoaderState {
   /// a jump table, resolves as if it was a label index, and returns a value
   /// to be put back into memory.
   fn resolve_loadtime_label(&self, val: Term) -> Term {
-    //  if !val.is_loadtime() || val.get_loadtime_tag() != value::SPECIAL_LT_LABEL {
+    //  if !val.is_loadtime() || val.get_loadtime_tag() != value::SpecialLoadtime::LABEL {
     //    return val; // no changes, is not a loadtime label
     //  }
     debug_assert!(
-      val.is_loadtime() && val.get_loadtime_tag() == value::SPECIAL_LT_LABEL,
+      val.is_loadtime() && val.get_loadtime_tag() == value::SpecialLoadtime::LABEL,
       "resolve_lt_label: Expected a loadtime label, got {}",
       val
     );

@@ -173,7 +173,7 @@ impl LoaderState {
       let lt_tag = arg.get_loadtime_tag();
       let lt_val = arg.get_loadtime_val();
 
-      if lt_tag == value::SPECIAL_LT_ATOM {
+      if lt_tag == value::SpecialLoadtime::ATOM {
         // A special value 0 means NIL []
         if lt_val == 0 {
           return Term::nil();

@@ -24,7 +24,7 @@ pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
     | PrimaryTag::LOCAL_PID
     | PrimaryTag::LOCAL_PORT => Ok(term),
     PrimaryTag::SPECIAL => match term.get_special_tag() {
-      value::SPECIALTAG_CONST => Ok(term),
+      value::SpecialTag::CONST => Ok(term),
       _ => panic!("Attempt to copy a special value: {}", term),
     },
     t => panic!("Not sure how to copy term with {:?}", t),

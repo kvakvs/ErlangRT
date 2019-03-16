@@ -130,7 +130,7 @@ unsafe fn format_box_contents(
 
 fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
   match term.get_special_tag() {
-    value::SPECIALTAG_CONST => {
+    value::SpecialTag::CONST => {
       if term == Term::nil() {
         return write!(f, "[]");
       } else if term.is_non_value() {
@@ -142,29 +142,29 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "{{}}");
       }
     }
-    value::SPECIALTAG_REG => {
+    value::SpecialTag::REG => {
       let r_tag = term.get_reg_tag();
       let r_val = term.get_reg_value();
-      if r_tag == value::SPECIALREG_X {
+      if r_tag == value::SpecialReg::REG_X {
         return write!(f, "#x<{}>", r_val);
-      } else if r_tag == value::SPECIALREG_Y {
+      } else if r_tag == value::SpecialReg::REG_Y {
         return write!(f, "#y<{}>", r_val);
-      } else if r_tag == value::SPECIALREG_FLOAT {
+      } else if r_tag == value::SpecialReg::REG_FLOAT {
         return write!(f, "#f<{}>", r_val);
       } else {
         panic!("Unknown special reg tag {:?}", r_tag)
       }
     }
-    value::SPECIALTAG_OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
-    value::SPECIALTAG_CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
-    value::SPECIALTAG_LOADTIME => {
+    value::SpecialTag::OPCODE => return write!(f, "Opcode({})", term.get_special_value()),
+    value::SpecialTag::CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
+    value::SpecialTag::LOAD_TIME => {
       let lt_tag = term.get_loadtime_tag();
       let lt_val = term.get_loadtime_val();
-      if lt_tag == value::SPECIAL_LT_ATOM {
+      if lt_tag == value::SpecialLoadtime::ATOM {
         return write!(f, "LtAtom({})", lt_val);
-      } else if lt_tag == value::SPECIAL_LT_LABEL {
+      } else if lt_tag == value::SpecialLoadtime::LABEL {
         return write!(f, "LtLabel({})", lt_val);
-      } else if lt_tag == value::SPECIAL_LT_LITERAL {
+      } else if lt_tag == value::SpecialLoadtime::LITERAL {
         return write!(f, "LtLit({})", lt_val);
       } else {
         panic!("Unknown special loadtime tag {:?}", lt_tag)

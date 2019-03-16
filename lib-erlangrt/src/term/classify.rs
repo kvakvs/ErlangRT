@@ -69,7 +69,7 @@ pub fn classify_term(t: Term) -> TermClass {
 
 fn classify_special(val: Term) -> TermClass {
   match val.get_special_tag() {
-    value::SPECIALTAG_CONST => {
+    value::SpecialTag::CONST => {
       if val == Term::nil() {
         CLASS_LIST
       } else if val == Term::empty_binary() {
@@ -80,7 +80,7 @@ fn classify_special(val: Term) -> TermClass {
         CLASS_SPECIAL
       }
     }
-    value::SPECIALTAG_REG | value::SPECIALTAG_LOADTIME => CLASS_SPECIAL,
+    value::SpecialTag::REG | value::SpecialTag::LOAD_TIME => CLASS_SPECIAL,
     value::SpecialTag(unk) => panic!("classify_special: failed for specialtag {}", unk),
   }
 }

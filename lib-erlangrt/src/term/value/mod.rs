@@ -74,12 +74,12 @@ impl Term {
 
   #[inline]
   pub const fn empty_tuple() -> Self {
-    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYTUPLE.0)
+    Self::make_special(SpecialTag::CONST, SpecialConst::EMPTY_TUPLE.0)
   }
 
   #[inline]
   pub const fn nil() -> Self {
-    Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYLIST.0)
+    Self::make_special(SpecialTag::CONST, SpecialConst::EMPTY_LIST.0)
   }
 
   pub const fn make_from_tag_and_value(t: PrimaryTag, v: usize) -> Self {
@@ -292,12 +292,12 @@ impl Term {
     let catch_index = (p as usize) >> defs::WORD_ALIGN_SHIFT;
     assert!(Self::special_value_fits(catch_index));
     // TODO: Use some smart solution for handling code reloading
-    Self::make_special(SPECIALTAG_CATCH, catch_index)
+    Self::make_special(SpecialTag::CATCH, catch_index)
   }
 
   #[inline]
   pub fn is_catch(self) -> bool {
-    self.is_special_of_type(SPECIALTAG_CATCH)
+    self.is_special_of_type(SpecialTag::CATCH)
   }
 
   #[inline]

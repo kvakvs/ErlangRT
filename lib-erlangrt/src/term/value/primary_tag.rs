@@ -1,11 +1,11 @@
 //! Primary tag module contains definitions for the first 3 bits of a term. This
 //! is specific to 64 bit platform.
-// Structure of term:
-// Boxed: [Pointer bits] [PrimaryTag::BOX_PTR|CONS_PTR 3 bits]
-// Immediates: [Value] [PrimaryTag::ATOM|PID|PORT|SMALL 3 bits]
-// Specials Reg/Loadtime: [Value] [SpecialReg|Loadtime Tag 2 bits]...
-//          ... [SpecialTag::* 3 bits] [PrimaryTag::SPECIAL 3 bits]
-// Special Consts etc: [Value] [SpecialTag::* 3 bits] [PrimaryTag::SPECIAL 3 bits]
+//! Structure of term:
+//! Boxed: `[Pointer bits] [PrimaryTag::BOX_PTR|CONS_PTR 3 bits]`
+//! Immediates: `[Value] [PrimaryTag::ATOM|PID|PORT|SMALL 3 bits]`
+//! Specials Reg/Loadtime: `[Value] [SpecialReg|Loadtime Tag 2 bits]`...
+//!          ... `[SpecialTag::* 3 bits] [PrimaryTag::SPECIAL 3 bits]`
+//! Special Consts etc: `[Value + ConstTag] [SpecialTag::* 3 bits] [PrimaryTag::SPECIAL 3 bits]`
 
 /// This thing is valid for 64-bit platform only, which allows us to use 3 bits
 /// guaranteed to be zero for all aligned addresses. As 32-bit platforms only
