@@ -21,7 +21,7 @@ impl HeapIterator {
     // using header arity. Otherwise step by 1 cell
     let val = core::ptr::read(self.p);
     let size = match val.get_term_tag() {
-      PrimaryTag::HEADER => boxed::headerword_to_arity(val.raw()),
+      PrimaryTag::HEADER => boxed::headerword_to_storage_size(val.raw()),
       _ => 1usize,
     };
 

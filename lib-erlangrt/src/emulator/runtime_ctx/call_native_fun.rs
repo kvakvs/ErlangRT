@@ -52,17 +52,17 @@ pub fn find_and_call_native_fun(
   // a pointer to import, or a pointer to native_fun function.
   // TODO: Maybe make this use codeserver generic lookup_mfa or extend it to support this
   let maybe_bif_fn = match target {
-    CallBifTarget::ImportTerm(ho_imp) => {
-      callbif_resolve_import(&vm.code_server, ho_imp, args.len())?
+    CallBifTarget::ImportTerm(imp) => {
+      callbif_resolve_import(&vm.code_server, imp, args.len())?
     }
 
     CallBifTarget::MFArity(mfa) => callbif_resolve_mfa(&vm.code_server, &mfa)?,
 
-    CallBifTarget::ImportPointer(ho_imp_ptr) => {
-      if let Some(fn_ptr) = unsafe { (*ho_imp_ptr).get_native_fn_ptr(&vm.code_server) } {
+    CallBifTarget::ImportPointer(imp_ptr) => {
+      if let Some(fn_ptr) = unsafe { (*imp_ptr).get_native_fn_ptr(&vm.code_server) } {
         BifResolutionResult::FnPointer(fn_ptr)
       } else {
-        let bif_name = unsafe { format!("{}", (*ho_imp_ptr).mfarity) };
+        let bif_name = unsafe { format!("{}", (*imp_ptr).mfarity) };
         return Err(RtErr::BifNotFound(bif_name));
       }
     }
@@ -133,16 +133,22 @@ fn callbif_resolve_import(
   imp: Term,
   check_arity: usize,
 ) -> RtResult<BifResolutionResult> {
-  // Possibly a boxed::Import object on heap which contains m:f/arity
+  // Possibly a `boxed::Import` object on heap which contains m:f/arity
   let imp_p = imp.get_box_ptr_safe::<import::Import>()?;
-  assert_eq!(unsafe { (*imp_p).mfarity.arity }, check_arity);
+  let imp_arity = unsafe { (*imp_p).mfarity.arity };
+  assert_eq!(
+    imp_arity, check_arity,
+    "callbif: Import arity 0x{:x} not eq check_arity {}",
+    imp_arity, check_arity
+  );
 
   // Here HOImport pointer is found, try and resolve it to a Rust function ptr
   if let Some(fn_ptr) = unsafe { (*imp_p).get_native_fn_ptr(code_srv) } {
     return Ok(BifResolutionResult::FnPointer(fn_ptr));
   }
-  let s = unsafe { format!("{}", (*imp_p).mfarity) };
-  Err(RtErr::BifNotFound(s))
+  Err(RtErr::BifNotFound(unsafe {
+    format!("{}", (*imp_p).mfarity)
+  }))
 }
 
 /// Simply maps Ok/Err from `find_bif` to `BifResolutionResult`.

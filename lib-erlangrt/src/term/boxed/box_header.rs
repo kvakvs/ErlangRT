@@ -23,9 +23,9 @@ pub struct BoxHeader {
 }
 
 /// In debug build, an extra word is added to each header on heap to assist
-/// with debugging. NOTE: the last bits in ....2222 resolve to a CONS type term.
+/// with debugging. NOTE: the last bits in ....cafe resolve to 4 (atom term).
 #[cfg(debug_assertions)]
-pub const GUARD_WORD_VALUE: usize = 0x1111beefface2222;
+pub const GUARD_WORD_VALUE: usize = 0xfeebbeeffacecafe;
 
 impl BoxHeader {
   pub fn new<TraitType>(storage_size: WordSize) -> BoxHeader
@@ -59,6 +59,7 @@ impl BoxHeader {
   }
 
   pub const fn storage_size() -> WordSize {
+    // The size will include guard word on debug builds
     ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up()
   }
 
@@ -69,7 +70,8 @@ impl BoxHeader {
   pub fn ensure_valid(&self) {
     assert_eq!(
       self.guard_word, GUARD_WORD_VALUE,
-      "Guard value is not in place, check that the pointer to the box is correct"
+      "Guard value 0x{:x} is not in place (found 0x{:x}), check that the pointer to the box is correct",
+      GUARD_WORD_VALUE, self.guard_word
     );
   }
 
@@ -98,19 +100,19 @@ impl BoxHeader {
     unsafe { core::mem::transmute(trait_obj) }
   }
 
-  pub fn get_arity(&self) -> usize {
+  pub fn get_storage_size(&self) -> usize {
     self.ensure_valid();
-    headerword_to_arity(self.header_word)
+    Self::headerword_to_storage_size(self.header_word)
   }
-}
 
-/// For a header word value, extract bits with arity
-/// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
-pub fn headerword_to_arity(w: Word) -> usize {
-  debug_assert_eq!(
-    w & TERM_TAG_MASK,
-    PrimaryTag::HEADER.get(),
-    "Boxed header with arity must have HEADER tag"
-  );
-  w >> TERM_TAG_BITS
+  /// For a header word value, extract bits with arity
+  /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
+  fn headerword_to_storage_size(w: Word) -> usize {
+    debug_assert_eq!(
+      w & TERM_TAG_MASK,
+      PrimaryTag::HEADER.get(),
+      "Boxed header with arity must have HEADER tag"
+    );
+    w >> TERM_TAG_BITS
+  }
 }

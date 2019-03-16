@@ -13,7 +13,7 @@ pub struct PrimaryTag(pub usize);
 /// guaranteed to be zero for all aligned addresses.
 #[cfg(target_pointer_width = "64")]
 impl PrimaryTag {
-  pub const SMALLINT: Self = Self(0);
+  pub const SMALL_INT: Self = Self(0);
   pub const HEADER: Self = Self(1);
   pub const CONS_PTR: Self = Self(2);
   // From here and below, values are immediate (fit into a single word)

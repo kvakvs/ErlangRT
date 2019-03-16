@@ -11,6 +11,7 @@ mod impl_cons;
 mod impl_cp;
 mod impl_fun;
 mod impl_map;
+mod impl_nonvalue;
 mod impl_number;
 mod impl_tuple;
 mod primary_tag;
@@ -19,7 +20,7 @@ pub mod tuple;
 
 pub use self::{
   impl_binary::*, impl_boxed::*, impl_cons::*, impl_cp::*, impl_fun::*, impl_map::*,
-  impl_number::*, impl_tuple::*, primary_tag::*, special::*,
+  impl_nonvalue::*, impl_number::*, impl_tuple::*, primary_tag::*, special::*,
 };
 use crate::{
   defs,
@@ -89,21 +90,6 @@ impl Term {
     Self::from_raw((v << TERM_TAG_BITS | (t.0 as isize)) as usize)
   }
 
-  /// Create a NON_VALUE.
-  pub const fn non_value() -> Self {
-    Self { value: 0 }
-  }
-
-  /// Check whether a value is a NON_VALUE.
-  pub const fn is_non_value(self) -> bool {
-    self.value == 0
-  }
-
-  /// Check whether a value is NOT a NON_VALUE.
-  pub const fn is_value(self) -> bool {
-    !self.is_non_value()
-  }
-
   /// Get tag bits from the p field as integer.
   #[inline]
   pub const fn get_term_tag(self) -> PrimaryTag {
@@ -150,7 +136,8 @@ impl Term {
   #[inline]
   pub fn get_term_val_without_tag(self) -> usize {
     debug_assert!(
-      self.get_term_tag() != PrimaryTag::BOX_PTR && self.get_term_tag() != PrimaryTag::CONS_PTR
+      self.get_term_tag() != PrimaryTag::BOX_PTR
+        && self.get_term_tag() != PrimaryTag::CONS_PTR
     );
     self.value >> TERM_TAG_BITS
   }

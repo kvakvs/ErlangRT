@@ -2,7 +2,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BoxType},
-    value::{primary_tag::TERM_TAG_MASK, Term, PrimaryTag},
+    value::{primary_tag::TERM_TAG_MASK, PrimaryTag, Term},
   },
 };
 
@@ -48,6 +48,13 @@ impl Term {
     if !self.is_boxed() {
       return Err(RtErr::TermIsNotABoxed);
     }
+
+    // Additional check in debug, boxheader has an extra guard word stored
+    if cfg!(debug_assertions) {
+      let boxheader = self.value as *const BoxHeader;
+      unsafe { (*boxheader).ensure_valid() };
+    }
+
     Ok(self.value as *const T)
   }
 

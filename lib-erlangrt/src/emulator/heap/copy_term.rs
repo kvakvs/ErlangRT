@@ -19,7 +19,7 @@ pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
       panic!("Attempt to copy header value");
     }
     value::PrimaryTag::CONS_PTR => unsafe { copy_cons_to(term, hp) },
-    value::PrimaryTag::SMALLINT
+    value::PrimaryTag::SMALL_INT
     | value::PrimaryTag::ATOM
     | value::PrimaryTag::LOCAL_PID
     | value::PrimaryTag::LOCAL_PORT => Ok(term),

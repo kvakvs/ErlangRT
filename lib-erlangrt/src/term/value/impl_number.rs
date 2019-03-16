@@ -1,6 +1,6 @@
 use crate::term::{
   boxed,
-  value::{Term, LARGEST_SMALL, SMALLEST_SMALL, PrimaryTag, TERM_TAG_BITS},
+  value::{PrimaryTag, Term, LARGEST_SMALL, SMALLEST_SMALL, TERM_TAG_BITS},
 };
 
 impl Term {
@@ -15,7 +15,7 @@ impl Term {
   /// Check whether the value is a small integer
   #[inline]
   pub fn is_small(self) -> bool {
-    self.get_term_tag() == PrimaryTag::SMALLINT
+    self.get_term_tag() == PrimaryTag::SMALL_INT
   }
 
   #[inline]
@@ -25,19 +25,19 @@ impl Term {
 
   #[inline]
   pub const fn make_small_unsigned(val: usize) -> Self {
-    Self::make_from_tag_and_value(PrimaryTag::SMALLINT, val)
+    Self::make_from_tag_and_value(PrimaryTag::SMALL_INT, val)
   }
 
   pub const fn small_0() -> Self {
-    Self::make_from_tag_and_value(PrimaryTag::SMALLINT, 0)
+    Self::make_from_tag_and_value(PrimaryTag::SMALL_INT, 0)
   }
 
   pub const fn small_1() -> Self {
-    Self::make_from_tag_and_value(PrimaryTag::SMALLINT, 1)
+    Self::make_from_tag_and_value(PrimaryTag::SMALL_INT, 1)
   }
 
   pub const fn make_small_signed(val: isize) -> Self {
-    Self::make_from_tag_and_signed_value(PrimaryTag::SMALLINT, val)
+    Self::make_from_tag_and_signed_value(PrimaryTag::SMALL_INT, val)
   }
 
   /// Check whether a signed isize fits into small integer range

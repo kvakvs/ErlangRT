@@ -34,13 +34,17 @@ impl fmt::Display for Term {
         }
       },
 
-      value::PrimaryTag::SMALLINT => write!(f, "{}", self.get_small_signed()),
+      value::PrimaryTag::SMALL_INT => write!(f, "{}", self.get_small_signed()),
 
       value::PrimaryTag::SPECIAL => format_special(*self, f),
 
-      value::PrimaryTag::LOCAL_PID => write!(f, "#Pid<{}>", self.get_term_val_without_tag()),
+      value::PrimaryTag::LOCAL_PID => {
+        write!(f, "#Pid<{}>", self.get_term_val_without_tag())
+      }
 
-      value::PrimaryTag::LOCAL_PORT => write!(f, "#Port<{}>", self.get_term_val_without_tag()),
+      value::PrimaryTag::LOCAL_PORT => {
+        write!(f, "#Port<{}>", self.get_term_val_without_tag())
+      }
 
       value::PrimaryTag::ATOM => match atom::to_str(*self) {
         Ok(s) => {
@@ -54,7 +58,7 @@ impl fmt::Display for Term {
       },
 
       value::PrimaryTag::HEADER => {
-        return write!(f, "#Header({})", boxed::headerword_to_arity(self.raw()));
+        return write!(f, "#Header({})", boxed::headerword_to_storage_size(self.raw()));
         // format_box_contents(*self, ptr::null(), f)?;
         // write!(f, ")")
       }

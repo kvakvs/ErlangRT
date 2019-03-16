@@ -54,7 +54,7 @@ pub fn classify_term(t: Term) -> TermClass {
       }
     }
     value::PrimaryTag::CONS_PTR => CLASS_LIST,
-    value::PrimaryTag::SMALLINT => CLASS_NUMBER,
+    value::PrimaryTag::SMALL_INT => CLASS_NUMBER,
     value::PrimaryTag::HEADER => CLASS_SPECIAL, // won't look into the header
     value::PrimaryTag::ATOM => CLASS_ATOM,
     value::PrimaryTag::LOCAL_PID => CLASS_PID,

@@ -68,7 +68,7 @@ impl Map {
 
   /// Returns allocated size used by this map on heap
   pub fn get_capacity(&self) -> usize {
-    self.header.get_arity()
+    self.header.get_storage_size()
   }
 
   /// Returns actual element count, less or equal to the capacity
