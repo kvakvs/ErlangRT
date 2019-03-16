@@ -59,7 +59,7 @@ impl Term {
       return Err(RtErr::TermIsNotABoxed);
     }
     self.debug_assert_box_pointer_valid();
-    Ok(self.value as *const T)
+    Ok(self.get_box_ptr_unchecked::<T>())
   }
 
   #[cfg(not(debug_assertions))]
