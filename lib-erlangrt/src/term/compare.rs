@@ -391,7 +391,7 @@ fn cmp_terms_immed_box(a: Term, b: Term) -> RtResult<Ordering> {
     }
   } else {
     // must be a binary
-    assert!(a.is_binary());
+    debug_assert!(a.is_binary());
     if !b.is_binary() {
       return cmp_mixed_types(a, b);
     }

@@ -10,6 +10,7 @@ use crate::{
   rt_util::bin_reader::BinaryReader,
   term::{
     boxed::{self, bignum, endianness::Endianness},
+    term_builder::TupleBuilder,
     value::Term,
   },
 };
@@ -158,12 +159,14 @@ impl CompactTermReader {
   fn parse_ext_tag(&mut self, reader: &mut BinaryReader, b: u8) -> RtResult<LtTerm> {
     match b {
       x if x == CteExtTag::List as u8 => match self.mode {
-        ListParseMode::AsJumpTable => self.parse_list_as_jump_table(),
-        ListParseMode::AsTuple2Initializer => self.parse_list_as_tuple_initializer(),
+        ListParseMode::AsJumpTable => self.parse_list_as_jump_table(reader),
+        ListParseMode::AsTuple2Initializer => {
+          self.parse_list_as_tuple_initializer(reader)
+        }
       },
       x if x == CteExtTag::Float as u8 => self.parse_ext_float(),
-      x if x == CteExtTag::FloatReg as u8 => self.parse_ext_fpreg(),
-      x if x == CteExtTag::Literal as u8 => self.parse_ext_literal(),
+      x if x == CteExtTag::FloatReg as u8 => self.parse_ext_fpreg(reader),
+      x if x == CteExtTag::Literal as u8 => self.parse_ext_literal(reader),
       x if x == CteExtTag::AllocList as u8 => {
         panic!("Don't know how to decode an alloclist")
       }
@@ -204,7 +207,7 @@ impl CompactTermReader {
     // floats are always stored as f64
     let fp_bytes = reader.read_u64be();
     let float_val: f64 = unsafe { std::mem::transmute::<u64, f64>(fp_bytes) };
-    Term::make_float(self.heap.borrow_mut(), float_val)
+    unsafe { Term::make_float(&mut (*self.heap), float_val) }
   }
 
   fn parse_ext_fpreg(&mut self, reader: &mut BinaryReader) -> RtResult<Term> {
@@ -229,9 +232,18 @@ impl CompactTermReader {
 
   fn parse_list_as_tuple_initializer(
     &mut self,
-    _reader: &mut BinaryReader,
+    reader: &mut BinaryReader,
   ) -> RtResult<Term> {
-    unimplemented!("read tuple initializer")
+    let arity = self.read_int(reader)? as usize;
+    let tb = unsafe { TupleBuilder::with_arity(arity, &mut (*self.heap))? };
+
+    for i in 0..arity {
+      let value = self.read(reader)?;
+      // No checkes whether a value is a register, because this is OK and allowed
+      unsafe { tb.set_element(i, value) };
+    }
+
+    Ok(tb.make_term())
   }
 
   /// Parses a list, places on the provided heap.

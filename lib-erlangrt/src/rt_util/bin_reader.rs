@@ -48,7 +48,7 @@ impl BinaryReader {
   }
 
   pub fn seek(&mut self, p: Word) {
-    assert!(p <= self.buf.len(), "p={} buf.len()={}", p, self.buf.len());
+    debug_assert!(p <= self.buf.len(), "p={} buf.len()={}", p, self.buf.len());
     self.pos = p;
   }
 

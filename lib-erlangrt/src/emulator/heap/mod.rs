@@ -52,7 +52,7 @@ impl fmt::Debug for Heap {
 
 impl Heap {
   pub fn new(capacity: Word) -> Self {
-    assert!(capacity > 0);
+    debug_assert!(capacity > 0);
     let mut h = Self {
       data: Vec::with_capacity(capacity),
       heap_top: 0,
@@ -283,7 +283,7 @@ impl Heap {
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   pub fn stack_deallocate(&mut self, n: Word) -> Term {
-    assert!(
+    debug_assert!(
       self.stack_top + n < self.capacity,
       "Failed to dealloc {}+1 words (s_top {}, s_end {})",
       n,
@@ -291,7 +291,7 @@ impl Heap {
       self.capacity
     );
     let cp = Term::from_raw(self.data[self.stack_top]);
-    assert!(cp.is_cp());
+    debug_assert!(cp.is_cp(), "Dealloc expected a CP value on stack top, got {}", cp);
     self.stack_top += n + 1;
     cp
   }
@@ -348,7 +348,7 @@ impl Heap {
   /// Arg: new_stack_top - offset from the heap end
   pub fn drop_stack_words(&mut self, n_drop: usize) {
     println!("drop_stack_words {}", n_drop);
-    assert!(self.stack_top + n_drop < self.capacity);
+    debug_assert!(self.stack_top + n_drop < self.capacity);
     self.stack_top += n_drop;
   }
 }

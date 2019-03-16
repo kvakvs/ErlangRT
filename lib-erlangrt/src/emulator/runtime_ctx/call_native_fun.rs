@@ -171,7 +171,7 @@ pub fn call_native_fun_fn(
   let n_args = args.len();
 
   // Make a slice from the args. Bif arg count can go up to 3
-  assert!(args.len() < 4);
+  debug_assert!(args.len() < 4);
   let mut loaded_args = [Term::nil(); 4];
 
   {

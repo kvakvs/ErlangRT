@@ -81,8 +81,8 @@ impl Process {
     spawn_opts: &SpawnOptions,
     code_server: &mut CodeServer,
   ) -> RtResult<Process> {
-    assert!(pid.is_local_pid());
-    assert!(_parent_pid.is_local_pid() || _parent_pid == Term::nil());
+    debug_assert!(pid.is_local_pid());
+    debug_assert!(_parent_pid.is_local_pid() || _parent_pid == Term::nil());
 
     // Process must start with some code location
     match code_server.lookup_beam_code_and_load(mfarity) {

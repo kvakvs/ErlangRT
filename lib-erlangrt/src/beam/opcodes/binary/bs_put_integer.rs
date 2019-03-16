@@ -27,7 +27,7 @@ impl OpcodeBsPutInteger {
     flags: usize,
     src: Term,
   ) -> RtResult<DispatchResult> {
-    assert!(
+    debug_assert!(
       ctx.current_bin.valid(),
       "Attempt to bs_put_integer with no ctx.current_bin"
     );

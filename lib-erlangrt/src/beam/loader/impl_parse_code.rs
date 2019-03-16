@@ -240,7 +240,8 @@ impl LoaderState {
       Some(offset0) => self.create_jump_destination(*offset0),
       None => {
         self.replace_labels.push(patch_loc);
-        Term::make_small_unsigned(label_id)
+        // Term::make_small_unsigned(label_id)
+        val
       }
     }
   }

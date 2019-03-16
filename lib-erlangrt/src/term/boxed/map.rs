@@ -95,7 +95,7 @@ impl Map {
       MapGetResult::FoundAt(pos) => pos,
       MapGetResult::ClosestLarger(pos) => {
         // Possible reallocation? For now just assert that it can grow
-        assert!((*this).get_capacity() > (*this).get_count());
+        debug_assert!((*this).get_capacity() > (*this).get_count());
 
         // Shift elements one forward, each element is key and value pair
         core::ptr::copy(

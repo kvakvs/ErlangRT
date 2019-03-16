@@ -115,7 +115,7 @@ impl Scheduler {
     pid: Term,
     skip_queue_check: bool,
   ) {
-    assert!(pid.is_local_pid());
+    debug_assert!(pid.is_local_pid());
 
     let prio = {
       // Lookup the pid
@@ -141,7 +141,7 @@ impl Scheduler {
   /// Queue a process by its pid into either timed_wait or infinite_wait queue.
   #[inline]
   pub fn enqueue_wait(&mut self, infinite: bool, pid: Term) {
-    assert!(pid.is_local_pid());
+    debug_assert!(pid.is_local_pid());
 
     if infinite {
       self.infinite_wait.insert(pid, ());
@@ -229,7 +229,7 @@ impl Scheduler {
   ) -> ScheduleHint {
     // Extract the last running process from the process registry
     let curr_ptr = proc_reg.unsafe_lookup_pid_mut(curr_pid);
-    assert!(!curr_ptr.is_null());
+    debug_assert!(!curr_ptr.is_null());
 
     // Unspeakable horrors are happening as we speak: (bypassing borrow checker)
     let curr_proc = unsafe { &mut (*curr_ptr) };
@@ -285,7 +285,7 @@ impl Scheduler {
     // Bypassing the borrow checker again
     let proc = unsafe { &mut (*proc_p) };
 
-    assert!(proc.is_failed());
+    debug_assert!(proc.is_failed());
     let p_error = proc.error.unwrap();
 
     if proc.num_catches <= 0 {
@@ -348,7 +348,7 @@ impl Scheduler {
     }
 
     // root process exits with halt()
-    // assert!(p.get_registered_name() != atom::INIT);
+    // debug_assert!(p.get_registered_name() != atom::INIT);
 
     // TODO: ets tables
     // TODO: notify monitors
@@ -366,9 +366,9 @@ impl Scheduler {
 
     self.timed_wait.remove(&pid);
     self.infinite_wait.remove(&pid);
-    assert!(!self.queue_normal.contains(&pid));
-    assert!(!self.queue_low.contains(&pid));
-    assert!(!self.queue_high.contains(&pid));
+    debug_assert!(!self.queue_normal.contains(&pid));
+    debug_assert!(!self.queue_low.contains(&pid));
+    debug_assert!(!self.queue_high.contains(&pid));
     proc_reg.remove(pid);
   }
 

@@ -26,7 +26,7 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
   let mut ip = ip0;
 
   let op = opcode::from_memory_ptr(ip);
-  assert!(
+  debug_assert!(
     op <= gen_op::OPCODE_MAX,
     "Opcode {:?} is too big, more than max {:?}",
     op,

@@ -13,12 +13,12 @@ use core::fmt;
 impl fmt::Display for Term {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     if self.is_non_value() {
-      return write!(f, "NON_VALUE");
+      return write!(f, "#Nonvalue<>");
     }
     match self.get_term_tag() {
       value::TERMTAG_BOXED => unsafe {
         if self.is_cp() {
-          write!(f, "CP({:p})", self.get_cp_ptr::<Word>())
+          write!(f, "#Cp<{:p}>", self.get_cp_ptr::<Word>())
         } else {
           let box_ptr = self.get_box_ptr::<boxed::BoxHeader>();
           // `p` can't be null because non_value=0 is checked above
@@ -38,9 +38,9 @@ impl fmt::Display for Term {
 
       value::TERMTAG_SPECIAL => format_special(*self, f),
 
-      value::TERMTAG_LOCALPID => write!(f, "Pid<{}>", self.get_term_val_without_tag()),
+      value::TERMTAG_LOCALPID => write!(f, "#Pid<{}>", self.get_term_val_without_tag()),
 
-      value::TERMTAG_LOCALPORT => write!(f, "Port<{}>", self.get_term_val_without_tag()),
+      value::TERMTAG_LOCALPORT => write!(f, "#Port<{}>", self.get_term_val_without_tag()),
 
       value::TERMTAG_ATOM => match atom::to_str(*self) {
         Ok(s) => {
@@ -50,11 +50,11 @@ impl fmt::Display for Term {
             write!(f, "'{}'", s)
           }
         }
-        Err(e) => write!(f, "Atom<printing failed {:?}>", e),
+        Err(e) => write!(f, "#Atom<printing failed {:?}>", e),
       },
 
       value::TERMTAG_HEADER => {
-        return write!(f, "Header({})", boxed::headerword_to_arity(self.raw()));
+        return write!(f, "#Header({})", boxed::headerword_to_arity(self.raw()));
         // format_box_contents(*self, ptr::null(), f)?;
         // write!(f, ")")
       }
@@ -88,14 +88,14 @@ unsafe fn format_box_contents(
       }
       boxed::Binary::format(trait_ptr, f)
     }
-    boxtype::BOXTYPETAG_BIGINTEGER => write!(f, "Big<>"),
+    boxtype::BOXTYPETAG_BIGINTEGER => write!(f, "#Big<>"),
     boxtype::BOXTYPETAG_TUPLE => {
       let tuple_ptr = trait_ptr as *const boxed::Tuple;
       (*tuple_ptr).format(f)
     }
     boxtype::BOXTYPETAG_CLOSURE => {
       let fun_p = trait_ptr as *const boxed::Closure;
-      write!(f, "Fun<{}>", (*fun_p).mfa)
+      write!(f, "#Fun<{}>", (*fun_p).mfa)
     }
     boxtype::BOXTYPETAG_FLOAT => {
       let fptr = trait_ptr as *const boxed::Float;
@@ -106,11 +106,11 @@ unsafe fn format_box_contents(
     boxtype::BOXTYPETAG_EXTERNALREF => write!(f, "ExtRef<>"),
     boxtype::BOXTYPETAG_IMPORT => {
       let iptr = trait_ptr as *const boxed::Import;
-      write!(f, "Import<{}>", (*iptr).mfarity)
+      write!(f, "#Import<{}>", (*iptr).mfarity)
     }
     boxtype::BOXTYPETAG_EXPORT => {
       let eptr = trait_ptr as *const boxed::Export;
-      write!(f, "Export<{}>", (*eptr).exp.mfa)
+      write!(f, "#Export<{}>", (*eptr).exp.mfa)
     }
     boxtype::BOXTYPETAG_BINARY_MATCH_STATE => write!(f, "BinaryMatchState<>"),
     boxtype::BOXTYPETAG_JUMP_TABLE => {
@@ -130,7 +130,8 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
       if term == Term::nil() {
         return write!(f, "[]");
       } else if term.is_non_value() {
-        return write!(f, "NON_VALUE");
+        panic!("This must have been handled above in call stack");
+        // return write!(f, "#Nonvalue<>");
       } else if term == Term::empty_binary() {
         return write!(f, "<<>>");
       } else if term == Term::empty_tuple() {
@@ -141,7 +142,7 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
       let r_tag = term.get_reg_tag();
       let r_val = term.get_reg_value();
       if r_tag == value::SPECIALREG_X {
-        return write!(f, "#X<{}>", r_val);
+        return write!(f, "#x<{}>", r_val);
       } else if r_tag == value::SPECIALREG_Y {
         return write!(f, "#y<{}>", r_val);
       } else if r_tag == value::SPECIALREG_FLOAT {

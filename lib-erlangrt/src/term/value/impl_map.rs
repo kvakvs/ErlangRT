@@ -10,14 +10,14 @@ impl Term {
   }
 
   /// Check whether a value is a small map < 32 elements (Flat). Does NOT check
-  /// that the value is a map (assert!) assuming that the caller has checked
+  /// that the value is a map (debug_assert!) assuming that the caller has checked
   /// it by now.
   pub fn is_flat_map(self) -> bool {
     false
   }
 
   /// Check whether a value is a hash map >= 32 elements (HAMT). Does NOT check
-  /// that the value is a map (assert!) assuming that the caller has checked
+  /// that the value is a map (debug_assert!) assuming that the caller has checked
   /// it by now.
   pub fn is_hash_map(self) -> bool {
     false

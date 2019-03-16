@@ -49,7 +49,7 @@ impl Atom {
       }
     }
 
-    assert!(s.len() <= u16::MAX as usize);
+    debug_assert!(s.len() <= u16::MAX as usize);
     Atom {
       len: s.len() as u16,
       ord0,
@@ -131,7 +131,7 @@ pub fn from_str(val: &str) -> Term {
 }
 
 pub fn to_str(a: Term) -> RtResult<String> {
-  assert!(a.is_atom());
+  debug_assert!(a.is_atom());
   let p = lookup(a);
   if p.is_null() {
     return Err(RtErr::AtomNotExist(format!("index {}", a.atom_index())));
@@ -160,7 +160,7 @@ pub fn is_printable_atom(s: &str) -> bool {
 }
 
 pub fn lookup(a: Term) -> *const Atom {
-  assert!(a.is_atom());
+  debug_assert!(a.is_atom());
   let atoms_r = ATOMS.atoms_by_index.lock().unwrap();
   let index = a.atom_index();
   if index >= atoms_r.len() {

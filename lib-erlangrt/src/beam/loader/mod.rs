@@ -149,7 +149,7 @@ impl LoaderState {
   //============================================================================
 
   fn set_mod_id(&mut self, code_server: &mut CodeServer) {
-    assert!(!self.vm_atoms.is_empty());
+    debug_assert!(!self.vm_atoms.is_empty());
     // 0-th atom in the atom table is module name
     let mod_name = self.vm_atoms[0];
     self.name = Some(VersionedModuleName {

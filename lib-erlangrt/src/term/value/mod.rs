@@ -326,7 +326,7 @@ impl Term {
   #[inline]
   pub fn make_catch(p: *const usize) -> Self {
     let catch_index = (p as usize) >> defs::WORD_ALIGN_SHIFT;
-    assert!(Self::special_value_fits(catch_index));
+    debug_assert!(Self::special_value_fits(catch_index));
     // TODO: Use some smart solution for handling code reloading
     Self::make_special(SPECIALTAG_CATCH, catch_index)
   }
@@ -338,7 +338,7 @@ impl Term {
 
   #[inline]
   pub fn get_catch_ptr(self) -> *const usize {
-    assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
+    debug_assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
     let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
     val as *const usize
   }

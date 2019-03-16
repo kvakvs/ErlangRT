@@ -24,13 +24,13 @@ impl Term {
 
   #[inline]
   pub fn get_box_ptr<T>(self) -> *const T {
-    assert!(self.is_boxed());
+    debug_assert!(self.is_boxed());
     self.value as *const T
   }
 
   #[inline]
   pub fn get_box_ptr_mut<T>(self) -> *mut T {
-    assert!(self.is_boxed());
+    debug_assert!(self.is_boxed());
     self.value as *mut T
   }
 
