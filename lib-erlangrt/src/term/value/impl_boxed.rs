@@ -2,7 +2,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BoxType},
-    value::{Term, TERMTAG_BOXED},
+    value::{primary_tag::TERM_TAG_MASK, Term, PrimaryTag},
   },
 };
 
@@ -13,24 +13,34 @@ impl Term {
   // TODO: Some safety checks maybe? But oh well
   #[inline]
   pub fn make_boxed<T>(p: *const T) -> Self {
-    Self { value: p as usize }
+    let p_val = p as usize;
+    assert_eq!(
+      p_val & TERM_TAG_MASK,
+      0,
+      "Creating a boxed value from {:p} is only allowed for word aligned addresses, it would be 0x{:x} then",
+      p,
+      p_val & !TERM_TAG_MASK
+    );
+    Self {
+      value: p_val | PrimaryTag::BOX_PTR.0,
+    }
   }
 
   /// Check whether tag bits of a value equal to TAG_BOXED=0
   #[inline]
   pub fn is_boxed(self) -> bool {
-    self.get_term_tag() == TERMTAG_BOXED
+    self.get_term_tag() == PrimaryTag::BOX_PTR
   }
 
   #[inline]
   pub fn get_box_ptr<T>(self) -> *const T {
-    debug_assert!(self.is_boxed());
-    self.value as *const T
+    assert!(self.is_boxed());
+    (self.value & !TERM_TAG_MASK) as *const T
   }
 
   #[inline]
   pub fn get_box_ptr_mut<T>(self) -> *mut T {
-    debug_assert!(self.is_boxed());
+    assert!(self.is_boxed());
     self.value as *mut T
   }
 

@@ -14,16 +14,16 @@ use crate::{
 /// Copies term to another heap.
 pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
   match term.get_term_tag() {
-    value::TERMTAG_BOXED => unsafe { copy_boxed_to(term, hp) },
-    value::TERMTAG_HEADER => {
+    value::PrimaryTag::BOX_PTR => unsafe { copy_boxed_to(term, hp) },
+    value::PrimaryTag::HEADER => {
       panic!("Attempt to copy header value");
     }
-    value::TERMTAG_CONS => unsafe { copy_cons_to(term, hp) },
-    value::TERMTAG_SMALL
-    | value::TERMTAG_ATOM
-    | value::TERMTAG_LOCALPID
-    | value::TERMTAG_LOCALPORT => Ok(term),
-    value::TERMTAG_SPECIAL => match term.get_special_tag() {
+    value::PrimaryTag::CONS_PTR => unsafe { copy_cons_to(term, hp) },
+    value::PrimaryTag::SMALLINT
+    | value::PrimaryTag::ATOM
+    | value::PrimaryTag::LOCAL_PID
+    | value::PrimaryTag::LOCAL_PORT => Ok(term),
+    value::PrimaryTag::SPECIAL => match term.get_special_tag() {
       value::SPECIALTAG_CONST => Ok(term),
       _ => panic!("Attempt to copy a special value: {}", term),
     },

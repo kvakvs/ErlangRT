@@ -65,7 +65,7 @@ impl Reductions {
 #[allow(dead_code)]
 #[inline]
 pub fn pointer_diff<T>(a: *const T, b: *const T) -> usize {
-  debug_assert!(a >= b);
+  assert!(a >= b);
   let an = a as usize;
   let bn = b as usize;
   (an - bn) / core::mem::size_of::<T>()

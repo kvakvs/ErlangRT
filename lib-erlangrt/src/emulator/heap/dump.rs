@@ -2,7 +2,7 @@
 use crate::{
   defs::Word,
   emulator::heap::{heap_iter, Heap},
-  term::value::TERMTAG_BOXED,
+  term::value::PrimaryTag,
 };
 
 impl Heap {
@@ -34,7 +34,7 @@ impl Heap {
       }
 
       // Display a warning if boxed points outside the current heap
-      if let TERMTAG_BOXED = val_at_addr.get_term_tag() {
+      if let PrimaryTag::BOX_PTR = val_at_addr.get_term_tag() {
         let p = val_at_addr.get_box_ptr() as *const Word;
         if p < self.get_heap_start_ptr() || p >= self.get_heap_top_ptr() {
           output += " <- heap bounds!";

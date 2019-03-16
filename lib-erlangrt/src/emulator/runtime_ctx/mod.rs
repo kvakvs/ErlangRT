@@ -114,7 +114,7 @@ impl Context {
   pub fn get_x(&self, index: usize) -> Term {
     // debug_assert!(index < self.live);
     let result = self.regs[index];
-    debug_assert!(result.is_value(), "Should never get a NON_VALUE from x[]");
+    debug_assert!(result.is_value(), "Should never get a #Nonvalue<> from x[]");
     result
   }
 
@@ -123,7 +123,7 @@ impl Context {
     if cfg!(feature = "trace_register_changes") {
       println!("{}{} = {}", "set x".blue(), index, val);
     }
-    // debug_assert!(val.is_value(), "Should never set x[] to a NON_VALUE");
+    // debug_assert!(val.is_value(), "Should never set x[] to a #Nonvalue<>");
     self.regs[index] = val;
   }
 
@@ -274,7 +274,7 @@ impl Context {
       dst.is_register_x() || dst.is_register_y() || dst.is_register_float(),
       "ctx.store destination must be a X, Y or FP register"
     );
-    if dst.get_term_tag() == value::TERMTAG_SPECIAL {
+    if dst.get_term_tag() == value::PrimaryTag::SPECIAL {
       if dst.get_special_tag() == value::SPECIALTAG_REG {
         let r_tag = dst.get_reg_tag();
         if r_tag == value::SPECIALREG_X {
@@ -351,7 +351,7 @@ impl Context {
   }
 
   #[allow(dead_code)]
-  pub fn registers_dump(&self, arity: usize) {
+  pub fn dump_registers(&self, arity: usize) {
     if arity == 0 {
       println!("registers: empty");
       return;

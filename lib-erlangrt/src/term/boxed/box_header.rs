@@ -2,12 +2,12 @@ use crate::{
   defs::*,
   term::{
     boxed::trait_interface::TBoxed,
-    value::{TERMTAG_HEADER, TERM_TAG_BITS, TERM_TAG_MASK},
+    value::{PrimaryTag, TERM_TAG_BITS, TERM_TAG_MASK},
   },
 };
 
 /// Term header in memory, followed by corresponding data. The first header word
-/// is parsed just like any term, tag bits are set to TERMTAG_HEADER.
+/// is parsed just like any term, tag bits are set to TermTag::HEADER.
 pub struct BoxHeader {
   /// Format is <arity> <TAG_HEADER:TERM_TAG_BITS>
   header_word: Word,
@@ -33,7 +33,7 @@ impl BoxHeader {
     TraitType: TBoxed,
   {
     let arity = storage_size.words();
-    let header_word = (arity << TERM_TAG_BITS) | TERMTAG_HEADER.get();
+    let header_word = (arity << TERM_TAG_BITS) | PrimaryTag::HEADER.get();
 
     // Extract and store vtable pointer from the TBoxed trait object
     let trait_ptr = core::ptr::null_mut::<TraitType>() as *mut TBoxed;
@@ -109,7 +109,7 @@ impl BoxHeader {
 pub fn headerword_to_arity(w: Word) -> usize {
   debug_assert_eq!(
     w & TERM_TAG_MASK,
-    TERMTAG_HEADER.get(),
+    PrimaryTag::HEADER.get(),
     "Boxed header with arity must have HEADER tag"
   );
   w >> TERM_TAG_BITS

@@ -30,7 +30,7 @@ impl VersionedCodePtr {
 /// (instruction begin), and never to the data. During VM execution iterates
 /// over args too, and no extra checks are made.
 ///
-/// In debug build additional mark bits `TERMTAG_SPECIAL`, and then
+/// In debug build additional mark bits `TermTag::SPECIAL`, and then
 /// `SPECIALTAG_OPCODE` are added to this word and additional check is done
 /// here in `CodePtr`.
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq, Eq)]

@@ -1,6 +1,6 @@
 use crate::term::{
   boxed,
-  value::{Term, TERMTAG_CONS, TERM_TAG_MASK},
+  value::{Term, PrimaryTag, TERM_TAG_MASK},
 };
 
 impl Term {
@@ -15,7 +15,7 @@ impl Term {
   /// Check whether the value is a CONS pointer
   #[inline]
   pub fn is_cons(self) -> bool {
-    self.get_term_tag() == TERMTAG_CONS
+    self.get_term_tag() == PrimaryTag::CONS_PTR
   }
 
   #[inline]
@@ -42,7 +42,7 @@ impl Term {
       value: if p.is_null() {
         return Self::nil();
       } else {
-        (p as usize) | TERMTAG_CONS.0
+        (p as usize) | PrimaryTag::CONS_PTR.0
       },
     }
   }

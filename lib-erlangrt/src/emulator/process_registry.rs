@@ -35,14 +35,14 @@ impl ProcessRegistry {
   /// Borrow a read-only process, if it exists. Return `None` if we are sorry.
   #[inline]
   pub fn lookup_pid(&self, pid: Term) -> Option<&Process> {
-    debug_assert!(pid.is_local_pid());
+    assert!(pid.is_local_pid());
     self.pid_to_proc.get(&pid)
   }
 
   /// Borrow a mutable process, if it exists. Return `None` if we are sorry.
   #[inline]
   pub fn lookup_pid_mut(&mut self, pid: Term) -> Option<&mut Process> {
-    debug_assert!(pid.is_local_pid());
+    assert!(pid.is_local_pid());
     self.pid_to_proc.get_mut(&pid)
   }
 
@@ -51,7 +51,7 @@ impl ProcessRegistry {
   #[inline]
   #[allow(dead_code)]
   pub fn unsafe_lookup_pid(&self, pid: Term) -> *const Process {
-    debug_assert!(pid.is_local_pid());
+    assert!(pid.is_local_pid());
     match self.pid_to_proc.get(&pid) {
       Some(p) => p as *const Process,
       None => core::ptr::null(),
@@ -61,7 +61,7 @@ impl ProcessRegistry {
   /// Find a process and instead of borrowing return a mutable pointer to it.
   #[inline]
   pub fn unsafe_lookup_pid_mut(&mut self, pid: Term) -> *mut Process {
-    debug_assert!(pid.is_local_pid());
+    assert!(pid.is_local_pid());
     match self.pid_to_proc.get_mut(&pid) {
       Some(p) => p as *mut Process,
       None => core::ptr::null_mut(),

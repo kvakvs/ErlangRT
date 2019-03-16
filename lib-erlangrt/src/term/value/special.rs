@@ -1,6 +1,6 @@
 use crate::{
   defs,
-  term::value::{tag_term::TERM_TAG_BITS, Term, TERMTAG_SPECIAL},
+  term::value::{primary_tag::TERM_TAG_BITS, Term, PrimaryTag},
 };
 
 // Structure of SPECIAL values,
@@ -47,7 +47,7 @@ pub const SPECIAL_REG_RESERVED_BITS: usize =
 pub const SPECIALREG_X: SpecialReg = SpecialReg(0); // register x
 pub const SPECIALREG_Y: SpecialReg = SpecialReg(1); // register y
 pub const SPECIALREG_FLOAT: SpecialReg = SpecialReg(2); // float register
-                                                     // unused 3
+                                                        // unused 3
 
 /// Used as prefix for special value in loadtime index
 /// Loadtime value contains loadtime tag + loadtime value following after it
@@ -119,7 +119,7 @@ impl Term {
 
   #[inline]
   pub fn is_special(self) -> bool {
-    self.get_term_tag() == TERMTAG_SPECIAL
+    self.get_term_tag() == PrimaryTag::SPECIAL
   }
 
   #[inline]
@@ -129,14 +129,14 @@ impl Term {
 
   /// For a special-tagged term extract its special tag
   pub fn get_special_tag(self) -> SpecialTag {
-    debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
+    debug_assert_eq!(self.get_term_tag(), PrimaryTag::SPECIAL);
     // cut away term tag bits and extract special tag
     SpecialTag((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK)
   }
 
   /// From a special-tagged term extract its value
   pub fn get_special_value(self) -> usize {
-    debug_assert_eq!(self.get_term_tag(), TERMTAG_SPECIAL);
+    debug_assert_eq!(self.get_term_tag(), PrimaryTag::SPECIAL);
     // cut away term tag bits and special tag, extract the remaining value bits
     self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
   }
@@ -150,7 +150,7 @@ impl Term {
   #[inline]
   pub const fn make_special(special_t: SpecialTag, val: usize) -> Self {
     Self::make_from_tag_and_value(
-      TERMTAG_SPECIAL,
+      PrimaryTag::SPECIAL,
       val << TERM_SPECIAL_TAG_BITS | special_t.0,
     )
   }

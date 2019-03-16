@@ -107,7 +107,7 @@ impl Module {
 
     let code_begin = &self.code[0] as *const Word;
     let ip_ptr = ip.get_pointer();
-    debug_assert!(ip_ptr > code_begin);
+    assert!(ip_ptr > code_begin);
     let ip_offset = (ip_ptr as usize - code_begin as usize) / WORD_BYTES;
 
     for (key, export_offset) in &self.funs {

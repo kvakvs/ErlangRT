@@ -46,20 +46,20 @@ pub const CLASS_SPECIAL: TermClass = TermClass(500);
 pub fn classify_term(t: Term) -> TermClass {
   // let _v = t.raw();
   match t.get_term_tag() {
-    value::TERMTAG_BOXED => {
+    value::PrimaryTag::BOX_PTR => {
       if t.is_cp() {
         CLASS_SPECIAL
       } else {
         unsafe { classify_boxed(t) }
       }
     }
-    value::TERMTAG_CONS => CLASS_LIST,
-    value::TERMTAG_SMALL => CLASS_NUMBER,
-    value::TERMTAG_HEADER => CLASS_SPECIAL, // won't look into the header
-    value::TERMTAG_ATOM => CLASS_ATOM,
-    value::TERMTAG_LOCALPID => CLASS_PID,
-    value::TERMTAG_LOCALPORT => CLASS_PORT,
-    value::TERMTAG_SPECIAL => classify_special(t),
+    value::PrimaryTag::CONS_PTR => CLASS_LIST,
+    value::PrimaryTag::SMALLINT => CLASS_NUMBER,
+    value::PrimaryTag::HEADER => CLASS_SPECIAL, // won't look into the header
+    value::PrimaryTag::ATOM => CLASS_ATOM,
+    value::PrimaryTag::LOCAL_PID => CLASS_PID,
+    value::PrimaryTag::LOCAL_PORT => CLASS_PORT,
+    value::PrimaryTag::SPECIAL => classify_special(t),
     _ => panic!("{}Invalid primary tag {:?}", module(), t.get_term_tag()),
   }
 }

@@ -268,7 +268,7 @@ impl OpcodeFuncInfo {
   ) -> RtResult<DispatchResult> {
     if cfg!(debug_assertions) {
       println!("{}function_clause {}:{}/{}", module(), m, f, arity);
-      proc.context.registers_dump(arity);
+      proc.context.dump_registers(arity);
     }
     Err(RtErr::Exception(
       ExceptionType::Error,

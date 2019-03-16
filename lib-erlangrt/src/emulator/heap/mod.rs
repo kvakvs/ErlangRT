@@ -52,7 +52,7 @@ impl fmt::Debug for Heap {
 
 impl Heap {
   pub fn new(capacity: Word) -> Self {
-    debug_assert!(capacity > 0);
+    assert!(capacity > 0);
     let mut h = Self {
       data: Vec::with_capacity(capacity),
       heap_top: 0,
@@ -244,7 +244,7 @@ impl Heap {
 
   /// Set stack value (`index`th from stack top) to `val`.
   pub fn set_y(&mut self, index: Word, val: Term) -> RtResult<()> {
-    debug_assert!(val.is_value(), "Should never set y[] to a NON_VALUE");
+    debug_assert!(val.is_value(), "Should never set y[] to a #Nonvalue<>");
     if !self.stack_have_y(index) {
       return Err(RtErr::StackIndexRange(index));
     }
@@ -266,7 +266,7 @@ impl Heap {
     }
     let pos = index + self.stack_top + 1;
     let result = Term::from_raw(self.data[pos]);
-    debug_assert!(result.is_value(), "Should never get a NON_VALUE from y[]");
+    debug_assert!(result.is_value(), "Should never get a #Nonvalue<> from y[]");
     Ok(result)
   }
 
@@ -283,15 +283,16 @@ impl Heap {
 
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   pub fn stack_deallocate(&mut self, n: Word) -> Term {
-    debug_assert!(
+    assert!(
       self.stack_top + n < self.capacity,
       "Failed to dealloc {}+1 words (s_top {}, s_end {})",
       n,
       self.stack_top,
       self.capacity
     );
+
     let cp = Term::from_raw(self.data[self.stack_top]);
-    debug_assert!(cp.is_cp(), "Dealloc expected a CP value on stack top, got {}", cp);
+    assert!(cp.is_cp(), "Dealloc expected a CP value on stack top, got {}", cp);
     self.stack_top += n + 1;
     cp
   }
@@ -348,7 +349,7 @@ impl Heap {
   /// Arg: new_stack_top - offset from the heap end
   pub fn drop_stack_words(&mut self, n_drop: usize) {
     println!("drop_stack_words {}", n_drop);
-    debug_assert!(self.stack_top + n_drop < self.capacity);
+    assert!(self.stack_top + n_drop < self.capacity);
     self.stack_top += n_drop;
   }
 }

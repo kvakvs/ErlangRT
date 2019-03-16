@@ -8,17 +8,18 @@ mod format;
 mod impl_binary;
 mod impl_boxed;
 mod impl_cons;
+mod impl_cp;
 mod impl_fun;
 mod impl_map;
 mod impl_number;
 mod impl_tuple;
+mod primary_tag;
 mod special;
-mod tag_term;
 pub mod tuple;
 
 pub use self::{
-  impl_binary::*, impl_boxed::*, impl_cons::*, impl_fun::*, impl_map::*, impl_number::*,
-  impl_tuple::*, special::*, tag_term::*,
+  impl_binary::*, impl_boxed::*, impl_cons::*, impl_cp::*, impl_fun::*, impl_map::*,
+  impl_number::*, impl_tuple::*, primary_tag::*, special::*,
 };
 use crate::{
   defs,
@@ -67,7 +68,7 @@ impl Term {
 
   #[inline]
   pub const fn make_atom(id: usize) -> Self {
-    Self::make_from_tag_and_value(TERMTAG_ATOM, id)
+    Self::make_from_tag_and_value(PrimaryTag::ATOM, id)
   }
 
   #[inline]
@@ -80,11 +81,11 @@ impl Term {
     Self::make_special(SPECIALTAG_CONST, SPECIALCONST_EMPTYLIST.0)
   }
 
-  pub const fn make_from_tag_and_value(t: TermTag, v: usize) -> Self {
+  pub const fn make_from_tag_and_value(t: PrimaryTag, v: usize) -> Self {
     Self::from_raw(v << TERM_TAG_BITS | t.0)
   }
 
-  pub const fn make_from_tag_and_signed_value(t: TermTag, v: isize) -> Self {
+  pub const fn make_from_tag_and_signed_value(t: PrimaryTag, v: isize) -> Self {
     Self::from_raw((v << TERM_TAG_BITS | (t.0 as isize)) as usize)
   }
 
@@ -105,21 +106,21 @@ impl Term {
 
   /// Get tag bits from the p field as integer.
   #[inline]
-  pub const fn get_term_tag(self) -> TermTag {
-    TermTag(self.raw() & TERM_TAG_MASK)
+  pub const fn get_term_tag(self) -> PrimaryTag {
+    PrimaryTag(self.value & TERM_TAG_MASK)
   }
 
   //
 
   #[inline]
   pub fn is_immediate(self) -> bool {
-    self.get_term_tag() != TERMTAG_BOXED
+    self.get_term_tag() != PrimaryTag::BOX_PTR
   }
 
   /// Check whether the value is tagged as atom
   #[inline]
   pub fn is_atom(self) -> bool {
-    self.get_term_tag() == TERMTAG_ATOM
+    self.get_term_tag() == PrimaryTag::ATOM
   }
 
   #[inline]
@@ -129,7 +130,7 @@ impl Term {
 
   #[inline]
   pub fn is_local_pid(self) -> bool {
-    self.get_term_tag() == TERMTAG_LOCALPID
+    self.get_term_tag() == PrimaryTag::LOCAL_PID
   }
 
   /// Check whether a term is boxed and then whether it points to a word of
@@ -142,14 +143,14 @@ impl Term {
   /// Return true if a value's tag will fit into a single word
   #[inline]
   pub fn is_internal_immediate(self) -> bool {
-    self.get_term_tag() == TERMTAG_SPECIAL
+    self.get_term_tag() == PrimaryTag::SPECIAL
   }
 
   /// For non-pointer Term types get the encoded integer without tag bits
   #[inline]
   pub fn get_term_val_without_tag(self) -> usize {
     debug_assert!(
-      self.get_term_tag() != TERMTAG_BOXED && self.get_term_tag() != TERMTAG_CONS
+      self.get_term_tag() != PrimaryTag::BOX_PTR && self.get_term_tag() != PrimaryTag::CONS_PTR
     );
     self.value >> TERM_TAG_BITS
   }
@@ -163,36 +164,12 @@ impl Term {
   }
 
   pub fn make_local_pid(pindex: usize) -> Self {
-    Self::make_from_tag_and_value(TERMTAG_LOCALPID, pindex)
+    Self::make_from_tag_and_value(PrimaryTag::LOCAL_PID, pindex)
   }
 
   pub fn make_remote_pid(hp: &mut Heap, node: Self, pindex: usize) -> RtResult<Self> {
     let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
     Ok(Self::make_boxed(rpid_ptr))
-  }
-
-  // === === Code Pointer (Continuation Pointer) === ===
-  //
-
-  // XXX: Can shift value right by 3 bits (WORD_ALIGN_SHIFT)
-  #[inline]
-  pub fn make_cp<T>(p: *const T) -> Self {
-    assert_eq!(p as usize & TERM_TAG_MASK, 0); // must be aligned to 8
-    let tagged_p = (p as usize) | defs::HIGHEST_BIT_CP;
-    Self::from_raw(tagged_p)
-  }
-
-  #[inline]
-  pub fn is_cp(self) -> bool {
-    if !self.is_boxed() {
-      return false;
-    }
-    self.value & defs::HIGHEST_BIT_CP == defs::HIGHEST_BIT_CP
-  }
-
-  pub fn get_cp_ptr<T>(self) -> *const T {
-    debug_assert_eq!(self.value & defs::HIGHEST_BIT_CP, defs::HIGHEST_BIT_CP);
-    (self.value & (defs::HIGHEST_BIT_CP - 1)) as *const T
   }
 
   /// When a box header guard value is interpreted as a term, it will be caught here
@@ -326,7 +303,7 @@ impl Term {
   #[inline]
   pub fn make_catch(p: *const usize) -> Self {
     let catch_index = (p as usize) >> defs::WORD_ALIGN_SHIFT;
-    debug_assert!(Self::special_value_fits(catch_index));
+    assert!(Self::special_value_fits(catch_index));
     // TODO: Use some smart solution for handling code reloading
     Self::make_special(SPECIALTAG_CATCH, catch_index)
   }
@@ -338,7 +315,7 @@ impl Term {
 
   #[inline]
   pub fn get_catch_ptr(self) -> *const usize {
-    debug_assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
+    assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
     let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
     val as *const usize
   }

@@ -149,7 +149,7 @@ impl LoaderState {
   //============================================================================
 
   fn set_mod_id(&mut self, code_server: &mut CodeServer) {
-    debug_assert!(!self.vm_atoms.is_empty());
+    assert!(!self.vm_atoms.is_empty());
     // 0-th atom in the atom table is module name
     let mod_name = self.vm_atoms[0];
     self.name = Some(VersionedModuleName {
@@ -162,7 +162,7 @@ impl LoaderState {
   /// signed jump offset for it.
   fn create_jump_destination(&self, dst_offset: CodeOffset) -> Term {
     let CodeOffset(offs) = dst_offset;
-    let ptr = &self.code[offs] as *const Word;
+    let ptr = unsafe { self.code.as_ptr().add(offs) };
     Term::make_cp(ptr)
   }
 

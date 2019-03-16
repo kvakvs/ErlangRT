@@ -93,8 +93,8 @@ fn cmp_terms_1(a: Term, b: Term, exact: bool) -> RtResult<Ordering> {
 
 /// Given a and b, terms, branch on their type and try do draw some conclusions.
 fn cmp_terms_any_type(a: Term, b: Term, exact: bool) -> RtResult<EqResult> {
-  debug_assert!(a.is_value(), "compare_any_type, a NON_VALUE and a {}", b);
-  debug_assert!(b.is_value(), "compare_any_type, a {} and a NON_VALUE", a);
+  debug_assert!(a.is_value(), "compare_any_type, a #Nonvalue<> and a {}", b);
+  debug_assert!(b.is_value(), "compare_any_type, a {} and a #Nonvalue<>", a);
 
   // Compare type tags first
   if a.is_atom() && b.is_atom() {
@@ -206,14 +206,14 @@ fn cmp_terms_primary(a: Term, b: Term, exact: bool) -> RtResult<EqResult> {
   }
 
   match a_prim_tag {
-    TERMTAG_BOXED => {
+    PrimaryTag::BOX_PTR => {
       if a.is_cp() || b.is_cp() {
         panic!("eq_terms for CP is unsupported")
       }
       Ok(Concluded(cmp_terms_immed_box(a, b)?))
     }
 
-    TERMTAG_CONS => {
+    PrimaryTag::CONS_PTR => {
       if !b.is_cons() {
         return Ok(EqResult::Concluded(cmp_mixed_types(a, b)?));
       }
@@ -391,7 +391,7 @@ fn cmp_terms_immed_box(a: Term, b: Term) -> RtResult<Ordering> {
     }
   } else {
     // must be a binary
-    debug_assert!(a.is_binary());
+    assert!(a.is_binary());
     if !b.is_binary() {
       return cmp_mixed_types(a, b);
     }

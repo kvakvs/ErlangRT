@@ -80,7 +80,7 @@ impl ListBuilder {
 
   pub unsafe fn make_term_with_tail(&self, tail: Term) -> Term {
     // Cannot set tail if no cells were allocated
-    debug_assert!(!self.head_p.is_null());
+    assert!(!self.head_p.is_null());
     self.set_tail(tail);
     Term::make_cons(self.head_p)
   }

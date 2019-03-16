@@ -16,7 +16,7 @@ impl fmt::Display for Term {
       return write!(f, "#Nonvalue<>");
     }
     match self.get_term_tag() {
-      value::TERMTAG_BOXED => unsafe {
+      value::PrimaryTag::BOX_PTR => unsafe {
         if self.is_cp() {
           write!(f, "#Cp<{:p}>", self.get_cp_ptr::<Word>())
         } else {
@@ -26,7 +26,7 @@ impl fmt::Display for Term {
         }
       },
 
-      value::TERMTAG_CONS => unsafe {
+      value::PrimaryTag::CONS_PTR => unsafe {
         if self.cons_is_ascii_string() {
           format_cons_ascii(*self, f)
         } else {
@@ -34,15 +34,15 @@ impl fmt::Display for Term {
         }
       },
 
-      value::TERMTAG_SMALL => write!(f, "{}", self.get_small_signed()),
+      value::PrimaryTag::SMALLINT => write!(f, "{}", self.get_small_signed()),
 
-      value::TERMTAG_SPECIAL => format_special(*self, f),
+      value::PrimaryTag::SPECIAL => format_special(*self, f),
 
-      value::TERMTAG_LOCALPID => write!(f, "#Pid<{}>", self.get_term_val_without_tag()),
+      value::PrimaryTag::LOCAL_PID => write!(f, "#Pid<{}>", self.get_term_val_without_tag()),
 
-      value::TERMTAG_LOCALPORT => write!(f, "#Port<{}>", self.get_term_val_without_tag()),
+      value::PrimaryTag::LOCAL_PORT => write!(f, "#Port<{}>", self.get_term_val_without_tag()),
 
-      value::TERMTAG_ATOM => match atom::to_str(*self) {
+      value::PrimaryTag::ATOM => match atom::to_str(*self) {
         Ok(s) => {
           if atom::is_printable_atom(&s) {
             write!(f, "{}", s)
@@ -53,7 +53,7 @@ impl fmt::Display for Term {
         Err(e) => write!(f, "#Atom<printing failed {:?}>", e),
       },
 
-      value::TERMTAG_HEADER => {
+      value::PrimaryTag::HEADER => {
         return write!(f, "#Header({})", boxed::headerword_to_arity(self.raw()));
         // format_box_contents(*self, ptr::null(), f)?;
         // write!(f, ")")
@@ -131,7 +131,7 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "[]");
       } else if term.is_non_value() {
         panic!("This must have been handled above in call stack");
-        // return write!(f, "#Nonvalue<>");
+      // return write!(f, "#Nonvalue<>");
       } else if term == Term::empty_binary() {
         return write!(f, "<<>>");
       } else if term == Term::empty_tuple() {

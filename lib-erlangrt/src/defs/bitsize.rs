@@ -46,7 +46,7 @@ impl BitSize {
 
   pub fn with_unit(size: usize, unit: usize) -> Self {
     if cfg!(debug_assertions) {
-      debug_assert!(
+      assert!(
         size < core::usize::MAX / unit,
         "Bitsize: the size={} * unit={} does not fit usize datatype",
         size,

@@ -106,6 +106,7 @@ impl LoaderState {
       let arity = gen_op::opcode_arity(next_instr.opcode) as usize;
       for _i in 0..arity {
         let arg = ct_reader.read(&mut reader)?;
+        assert!(arg.is_value(), "Should never get a nonvalue from compact term");
         rtdbg!("arg {}", arg);
         next_instr.args.push(self.resolve_value(arg));
       }

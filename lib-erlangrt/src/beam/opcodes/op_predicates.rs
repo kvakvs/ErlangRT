@@ -93,6 +93,7 @@ fn generic_comparison(
   desired_result: Ordering,
   invert: CmpInvert,
 ) -> RtResult<DispatchResult> {
+  // ctx.dump_registers(3);
   let result = compare::cmp_terms(a, b, exact == CmpPrecision::Exact)?;
   // Not flag is xor-ed with result =/= desired
   if (result != desired_result) ^ (invert == CmpInvert::Not) {
