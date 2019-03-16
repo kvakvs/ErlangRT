@@ -1,6 +1,6 @@
 use crate::{
   defs,
-  term::value::{primary_tag::TERM_TAG_BITS, PrimaryTag, Term},
+  term::value::{PrimaryTag, Term},
 };
 
 // Structure of SPECIAL values,
@@ -42,7 +42,7 @@ const SPECIAL_REG_TAG_BITS: usize = 2;
 /// How many bits are remaining in the machine word after taking away the prefix bits
 #[allow(dead_code)]
 pub const SPECIAL_REG_RESERVED_BITS: usize =
-  SPECIAL_REG_TAG_BITS + TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS;
+  SPECIAL_REG_TAG_BITS + PrimaryTag::TAG_BITS + TERM_SPECIAL_TAG_BITS;
 
 pub const SPECIALREG_X: SpecialReg = SpecialReg(0); // register x
 pub const SPECIALREG_Y: SpecialReg = SpecialReg(1); // register y
@@ -58,7 +58,7 @@ pub struct SpecialLoadTime(pub usize);
 pub const SPECIAL_LT_TAG_BITS: usize = 2;
 /// How many bits are remaining in the machine word after taking away the prefix bits
 pub const SPECIAL_LT_RESERVED_BITS: usize =
-  SPECIAL_LT_TAG_BITS + TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS;
+  SPECIAL_LT_TAG_BITS + PrimaryTag::TAG_BITS + TERM_SPECIAL_TAG_BITS;
 
 pub const SPECIAL_LT_ATOM: SpecialLoadTime = SpecialLoadTime(0); // atom table index
 pub const SPECIAL_LT_LABEL: SpecialLoadTime = SpecialLoadTime(1); // label table index
@@ -131,19 +131,19 @@ impl Term {
   pub fn get_special_tag(self) -> SpecialTag {
     debug_assert_eq!(self.get_term_tag(), PrimaryTag::SPECIAL);
     // cut away term tag bits and extract special tag
-    SpecialTag((self.value >> TERM_TAG_BITS) & TERM_SPECIAL_TAG_MASK)
+    SpecialTag((self.value >> PrimaryTag::TAG_BITS) & TERM_SPECIAL_TAG_MASK)
   }
 
   /// From a special-tagged term extract its value
   pub fn get_special_value(self) -> usize {
     debug_assert_eq!(self.get_term_tag(), PrimaryTag::SPECIAL);
     // cut away term tag bits and special tag, extract the remaining value bits
-    self.value >> (TERM_TAG_BITS + TERM_SPECIAL_TAG_BITS)
+    self.value >> (PrimaryTag::TAG_BITS + TERM_SPECIAL_TAG_BITS)
   }
 
   #[inline]
   pub const fn special_value_fits(n: usize) -> bool {
-    let max = 1 << (defs::WORD_BITS - TERM_TAG_BITS - TERM_SPECIAL_TAG_BITS);
+    let max = 1 << (defs::WORD_BITS - PrimaryTag::TAG_BITS - TERM_SPECIAL_TAG_BITS);
     max > n
   }
 

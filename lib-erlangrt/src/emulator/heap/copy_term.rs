@@ -7,23 +7,23 @@ use crate::{
   term::{
     boxed,
     term_builder::{ListBuilder, TupleBuilder},
-    value::{self, Term},
+    value::{self, PrimaryTag, Term},
   },
 };
 
 /// Copies term to another heap.
 pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
   match term.get_term_tag() {
-    value::PrimaryTag::BOX_PTR => unsafe { copy_boxed_to(term, hp) },
-    value::PrimaryTag::HEADER => {
+    PrimaryTag::BOX_PTR => unsafe { copy_boxed_to(term, hp) },
+    PrimaryTag::HEADER => {
       panic!("Attempt to copy header value");
     }
-    value::PrimaryTag::CONS_PTR => unsafe { copy_cons_to(term, hp) },
-    value::PrimaryTag::SMALL_INT
-    | value::PrimaryTag::ATOM
-    | value::PrimaryTag::LOCAL_PID
-    | value::PrimaryTag::LOCAL_PORT => Ok(term),
-    value::PrimaryTag::SPECIAL => match term.get_special_tag() {
+    PrimaryTag::CONS_PTR => unsafe { copy_cons_to(term, hp) },
+    PrimaryTag::SMALL_INT
+    | PrimaryTag::ATOM
+    | PrimaryTag::LOCAL_PID
+    | PrimaryTag::LOCAL_PORT => Ok(term),
+    PrimaryTag::SPECIAL => match term.get_special_tag() {
       value::SPECIALTAG_CONST => Ok(term),
       _ => panic!("Attempt to copy a special value: {}", term),
     },

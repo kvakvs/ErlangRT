@@ -2,7 +2,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BoxType},
-    value::{primary_tag::TERM_TAG_MASK, PrimaryTag, Term},
+    value::{PrimaryTag, Term},
   },
 };
 
@@ -15,47 +15,65 @@ impl Term {
   pub fn make_boxed<T>(p: *const T) -> Self {
     let p_val = p as usize;
     assert_eq!(
-      p_val & TERM_TAG_MASK,
+      p_val & PrimaryTag::TAG_MASK,
       0,
       "Creating a boxed value from {:p} is only allowed for word aligned addresses, it would be 0x{:x} then",
       p,
-      p_val & !TERM_TAG_MASK
+      p_val & !PrimaryTag::TAG_MASK
     );
     Self {
       value: p_val | PrimaryTag::BOX_PTR.0,
     }
   }
 
-  /// Check whether tag bits of a value equal to TAG_BOXED=0
+  /// Check whether tag bits of a value equal to `PrimaryTag::BOX_PTR`
   #[inline]
   pub fn is_boxed(self) -> bool {
     self.get_term_tag() == PrimaryTag::BOX_PTR
   }
 
+  /// Just raw decode value bits into a pointer, no safety checks
+  #[inline]
+  pub fn get_box_ptr_unchecked<T>(self) -> *const T {
+    (self.value & !PrimaryTag::TAG_MASK) as *const T
+  }
+  /// Just raw decode value bits into a mut pointer, no safety checks
+  #[inline]
+  pub fn get_box_ptr_unchecked_mut<T>(self) -> *mut T {
+    (self.value & !PrimaryTag::TAG_MASK) as *mut T
+  }
+
   #[inline]
   pub fn get_box_ptr<T>(self) -> *const T {
     assert!(self.is_boxed());
-    (self.value & !TERM_TAG_MASK) as *const T
+    self.debug_assert_box_pointer_valid();
+    self.get_box_ptr_unchecked::<T>()
   }
 
   #[inline]
   pub fn get_box_ptr_mut<T>(self) -> *mut T {
     assert!(self.is_boxed());
-    self.value as *mut T
+    self.debug_assert_box_pointer_valid();
+    self.get_box_ptr_unchecked_mut::<T>()
   }
 
   pub fn get_box_ptr_safe<T>(self) -> RtResult<*const T> {
     if !self.is_boxed() {
       return Err(RtErr::TermIsNotABoxed);
     }
-
-    // Additional check in debug, boxheader has an extra guard word stored
-    if cfg!(debug_assertions) {
-      let boxheader = self.value as *const BoxHeader;
-      unsafe { (*boxheader).ensure_valid() };
-    }
-
+    self.debug_assert_box_pointer_valid();
     Ok(self.value as *const T)
+  }
+
+  #[cfg(not(debug_assertions))]
+  #[inline]
+  fn debug_assert_box_pointer_valid(&self) {}
+
+  #[cfg(debug_assertions)]
+  fn debug_assert_box_pointer_valid(&self) {
+    // Additional check in debug, boxheader has an extra guard word stored
+    let boxheader = self.value as *const BoxHeader;
+    unsafe { (*boxheader).ensure_valid() };
   }
 
   pub fn get_box_ptr_safe_mut<T>(self) -> RtResult<*mut T> {

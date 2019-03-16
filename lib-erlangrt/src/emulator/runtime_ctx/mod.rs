@@ -16,7 +16,7 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  term::value::{self, Term},
+  term::value::{self, PrimaryTag, Term},
 };
 
 pub mod call_closure;
@@ -274,7 +274,7 @@ impl Context {
       dst.is_register_x() || dst.is_register_y() || dst.is_register_float(),
       "ctx.store destination must be a X, Y or FP register"
     );
-    if dst.get_term_tag() == value::PrimaryTag::SPECIAL {
+    if dst.get_term_tag() == PrimaryTag::SPECIAL {
       if dst.get_special_tag() == value::SPECIALTAG_REG {
         let r_tag = dst.get_reg_tag();
         if r_tag == value::SPECIALREG_X {

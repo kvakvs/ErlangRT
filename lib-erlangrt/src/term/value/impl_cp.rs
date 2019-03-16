@@ -1,6 +1,6 @@
 use crate::{
   defs,
-  term::value::{PrimaryTag, Term, TERM_TAG_MASK},
+  term::value::{PrimaryTag, Term},
 };
 
 impl Term {
@@ -11,7 +11,7 @@ impl Term {
   #[inline]
   pub fn make_cp<T>(p: *const T) -> Self {
     assert_eq!(
-      p as usize & TERM_TAG_MASK,
+      p as usize & PrimaryTag::TAG_MASK,
       0,
       "Creating CP: Pointer must be aligned to usize"
     );
@@ -33,6 +33,6 @@ impl Term {
       defs::HIGHEST_BIT_CP,
       "A CP pointer must have its highest bit set"
     );
-    (self.value & !TERM_TAG_MASK & (defs::HIGHEST_BIT_CP - 1)) as *const T
+    (self.value & !PrimaryTag::TAG_MASK & (defs::HIGHEST_BIT_CP - 1)) as *const T
   }
 }

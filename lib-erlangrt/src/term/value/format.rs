@@ -5,7 +5,7 @@ use crate::{
   emulator::atom,
   term::{
     boxed::{self, box_header::BoxHeader, boxtype},
-    value::{self, cons, Term},
+    value::{self, cons, PrimaryTag, Term},
   },
 };
 use core::fmt;
@@ -16,7 +16,7 @@ impl fmt::Display for Term {
       return write!(f, "#Nonvalue<>");
     }
     match self.get_term_tag() {
-      value::PrimaryTag::BOX_PTR => unsafe {
+      PrimaryTag::BOX_PTR => unsafe {
         if self.is_cp() {
           write!(f, "#Cp<{:p}>", self.get_cp_ptr::<Word>())
         } else {
@@ -26,7 +26,7 @@ impl fmt::Display for Term {
         }
       },
 
-      value::PrimaryTag::CONS_PTR => unsafe {
+      PrimaryTag::CONS_PTR => unsafe {
         if self.cons_is_ascii_string() {
           format_cons_ascii(*self, f)
         } else {
@@ -34,19 +34,15 @@ impl fmt::Display for Term {
         }
       },
 
-      value::PrimaryTag::SMALL_INT => write!(f, "{}", self.get_small_signed()),
+      PrimaryTag::SMALL_INT => write!(f, "{}", self.get_small_signed()),
 
-      value::PrimaryTag::SPECIAL => format_special(*self, f),
+      PrimaryTag::SPECIAL => format_special(*self, f),
 
-      value::PrimaryTag::LOCAL_PID => {
-        write!(f, "#Pid<{}>", self.get_term_val_without_tag())
-      }
+      PrimaryTag::LOCAL_PID => write!(f, "#Pid<{}>", self.get_term_val_without_tag()),
 
-      value::PrimaryTag::LOCAL_PORT => {
-        write!(f, "#Port<{}>", self.get_term_val_without_tag())
-      }
+      PrimaryTag::LOCAL_PORT => write!(f, "#Port<{}>", self.get_term_val_without_tag()),
 
-      value::PrimaryTag::ATOM => match atom::to_str(*self) {
+      PrimaryTag::ATOM => match atom::to_str(*self) {
         Ok(s) => {
           if atom::is_printable_atom(&s) {
             write!(f, "{}", s)
@@ -57,8 +53,12 @@ impl fmt::Display for Term {
         Err(e) => write!(f, "#Atom<printing failed {:?}>", e),
       },
 
-      value::PrimaryTag::HEADER => {
-        return write!(f, "#Header({})", boxed::headerword_to_storage_size(self.raw()));
+      PrimaryTag::HEADER => {
+        return write!(
+          f,
+          "#Header({})",
+          boxed::BoxHeader::headerword_to_storage_size(self.raw())
+        );
         // format_box_contents(*self, ptr::null(), f)?;
         // write!(f, ")")
       }

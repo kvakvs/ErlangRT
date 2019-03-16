@@ -33,10 +33,10 @@ use std::fmt;
 
 /// Max value for a positive small integer packed into immediate2 low level
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
-pub const SMALLEST_SMALL: isize = isize::MIN >> TERM_TAG_BITS;
-pub const LARGEST_SMALL: isize = isize::MAX >> TERM_TAG_BITS;
+pub const SMALLEST_SMALL: isize = isize::MIN >> PrimaryTag::TAG_BITS;
+pub const LARGEST_SMALL: isize = isize::MAX >> PrimaryTag::TAG_BITS;
 #[allow(dead_code)]
-pub const SMALL_SIGNED_BITS: usize = defs::WORD_BITS - TERM_TAG_BITS - 1;
+pub const SMALL_SIGNED_BITS: usize = defs::WORD_BITS - PrimaryTag::TAG_BITS - 1;
 
 /// A low-level term is either a pointer to memory term or an Immediate with
 /// leading bits defining its type (see TAG_* consts below).
@@ -83,17 +83,17 @@ impl Term {
   }
 
   pub const fn make_from_tag_and_value(t: PrimaryTag, v: usize) -> Self {
-    Self::from_raw(v << TERM_TAG_BITS | t.0)
+    Self::from_raw(v << PrimaryTag::TAG_BITS | t.0)
   }
 
   pub const fn make_from_tag_and_signed_value(t: PrimaryTag, v: isize) -> Self {
-    Self::from_raw((v << TERM_TAG_BITS | (t.0 as isize)) as usize)
+    Self::from_raw((v << PrimaryTag::TAG_BITS | (t.0 as isize)) as usize)
   }
 
   /// Get tag bits from the p field as integer.
   #[inline]
   pub const fn get_term_tag(self) -> PrimaryTag {
-    PrimaryTag(self.value & TERM_TAG_MASK)
+    PrimaryTag(self.value & PrimaryTag::TAG_MASK)
   }
 
   //
@@ -139,7 +139,7 @@ impl Term {
       self.get_term_tag() != PrimaryTag::BOX_PTR
         && self.get_term_tag() != PrimaryTag::CONS_PTR
     );
-    self.value >> TERM_TAG_BITS
+    self.value >> PrimaryTag::TAG_BITS
   }
 
   // === === CONSTRUCTION === === ===

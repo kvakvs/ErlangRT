@@ -1,6 +1,6 @@
 use crate::term::{
   boxed,
-  value::{PrimaryTag, Term, TERM_TAG_MASK},
+  value::{PrimaryTag, Term},
 };
 
 impl Term {
@@ -22,14 +22,14 @@ impl Term {
   pub fn get_cons_ptr(self) -> *const boxed::Cons {
     self.assert_is_not_boxheader_guard_value();
     debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
-    (self.value & (!TERM_TAG_MASK)) as *const boxed::Cons
+    (self.value & (!PrimaryTag::TAG_MASK)) as *const boxed::Cons
   }
 
   #[inline]
   pub fn get_cons_ptr_mut(self) -> *mut boxed::Cons {
     self.assert_is_not_boxheader_guard_value();
     debug_assert!(self.is_cons(), "Value is not a cons: {}", self);
-    (self.value & (!TERM_TAG_MASK)) as *mut boxed::Cons
+    (self.value & (!PrimaryTag::TAG_MASK)) as *mut boxed::Cons
   }
 
 

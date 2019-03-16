@@ -1,6 +1,9 @@
 //! Term ordering and classification.
 
-use crate::term::{boxed::BoxHeader, value::{self, Term}};
+use crate::term::{
+  boxed::BoxHeader,
+  value::{self, PrimaryTag, Term},
+};
 
 fn module() -> &'static str {
   "classify: "
@@ -46,20 +49,20 @@ pub const CLASS_SPECIAL: TermClass = TermClass(500);
 pub fn classify_term(t: Term) -> TermClass {
   // let _v = t.raw();
   match t.get_term_tag() {
-    value::PrimaryTag::BOX_PTR => {
+    PrimaryTag::BOX_PTR => {
       if t.is_cp() {
         CLASS_SPECIAL
       } else {
         unsafe { classify_boxed(t) }
       }
     }
-    value::PrimaryTag::CONS_PTR => CLASS_LIST,
-    value::PrimaryTag::SMALL_INT => CLASS_NUMBER,
-    value::PrimaryTag::HEADER => CLASS_SPECIAL, // won't look into the header
-    value::PrimaryTag::ATOM => CLASS_ATOM,
-    value::PrimaryTag::LOCAL_PID => CLASS_PID,
-    value::PrimaryTag::LOCAL_PORT => CLASS_PORT,
-    value::PrimaryTag::SPECIAL => classify_special(t),
+    PrimaryTag::CONS_PTR => CLASS_LIST,
+    PrimaryTag::SMALL_INT => CLASS_NUMBER,
+    PrimaryTag::HEADER => CLASS_SPECIAL, // won't look into the header
+    PrimaryTag::ATOM => CLASS_ATOM,
+    PrimaryTag::LOCAL_PID => CLASS_PID,
+    PrimaryTag::LOCAL_PORT => CLASS_PORT,
+    PrimaryTag::SPECIAL => classify_special(t),
     _ => panic!("{}Invalid primary tag {:?}", module(), t.get_term_tag()),
   }
 }

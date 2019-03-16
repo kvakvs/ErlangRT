@@ -2,14 +2,14 @@ use crate::{
   defs::*,
   term::{
     boxed::trait_interface::TBoxed,
-    value::{PrimaryTag, TERM_TAG_BITS, TERM_TAG_MASK},
+    value::{PrimaryTag},
   },
 };
 
 /// Term header in memory, followed by corresponding data. The first header word
-/// is parsed just like any term, tag bits are set to TermTag::HEADER.
+/// is parsed just like any term, tag bits are set to PrimaryTag::HEADER.
 pub struct BoxHeader {
-  /// Format is <arity> <TAG_HEADER:TERM_TAG_BITS>
+  /// Format is <arity> <TAG_HEADER:PrimaryTag::TAG_BITS>
   header_word: Word,
 
   /// Guard word is only present in debug build, is used to verify that the
@@ -33,7 +33,7 @@ impl BoxHeader {
     TraitType: TBoxed,
   {
     let arity = storage_size.words();
-    let header_word = (arity << TERM_TAG_BITS) | PrimaryTag::HEADER.get();
+    let header_word = (arity << PrimaryTag::TAG_BITS) | PrimaryTag::HEADER.0;
 
     // Extract and store vtable pointer from the TBoxed trait object
     let trait_ptr = core::ptr::null_mut::<TraitType>() as *mut TBoxed;
@@ -106,13 +106,14 @@ impl BoxHeader {
   }
 
   /// For a header word value, extract bits with arity
-  /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:TERM_TAG_BITS>
-  fn headerword_to_storage_size(w: Word) -> usize {
+  /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:PrimaryTag::TAG_BITS>
+  #[inline]
+  pub fn headerword_to_storage_size(w: Word) -> usize {
     debug_assert_eq!(
-      w & TERM_TAG_MASK,
-      PrimaryTag::HEADER.get(),
+      w & PrimaryTag::TAG_MASK,
+      PrimaryTag::HEADER.0,
       "Boxed header with arity must have HEADER tag"
     );
-    w >> TERM_TAG_BITS
+    w >> PrimaryTag::TAG_BITS
   }
 }

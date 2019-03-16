@@ -1,6 +1,6 @@
 use crate::term::{
   boxed,
-  value::{PrimaryTag, Term, LARGEST_SMALL, SMALLEST_SMALL, TERM_TAG_BITS},
+  value::{PrimaryTag, Term, LARGEST_SMALL, SMALLEST_SMALL},
 };
 
 impl Term {
@@ -53,7 +53,7 @@ impl Term {
       "Small is expected, got raw=0x{:x}",
       self.value
     );
-    (self.value as isize) >> TERM_TAG_BITS
+    (self.value as isize) >> PrimaryTag::TAG_BITS
   }
 
   #[inline]
