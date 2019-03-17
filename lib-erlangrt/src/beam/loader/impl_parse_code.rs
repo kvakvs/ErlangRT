@@ -96,18 +96,18 @@ impl LoaderState {
       // let mut args: Vec<FTerm> = Vec::new();
       next_instr.next(reader.read_u8());
       ct_reader.on_ext_list_create_jumptable(next_instr.opcode != gen_op::OPCODE_PUT_TUPLE2);
-      rtdbg!(
-        "opcode {:?} {}",
-        next_instr.opcode,
-        gen_op::opcode_name(next_instr.opcode)
-      );
+      //  rtdbg!(
+      //    "opcode {:?} {}",
+      //    next_instr.opcode,
+      //    gen_op::opcode_name(next_instr.opcode)
+      //  );
 
       // Read `arity` args, and convert them to reasonable runtime values
       let arity = gen_op::opcode_arity(next_instr.opcode) as usize;
       for _i in 0..arity {
         let arg = ct_reader.read(&mut reader)?;
         assert!(arg.is_value(), "Should never get a nonvalue from compact term");
-        rtdbg!("arg {}", arg);
+        // rtdbg!("arg {}", arg);
         next_instr.args.push(self.resolve_value(arg));
       }
 

@@ -139,10 +139,8 @@ impl CompactTermReader {
         Self::make_err(CompactTermError::BadLabelTag)
       }
       x if x == CteTag::Integer as u8 => {
-        if bword.is_small() {
-          return Ok(bword);
-        }
-        Self::make_err(CompactTermError::BadIntegerTag)
+        // Can return small or big
+        return Ok(bword);
       }
       x if x == CteTag::Character as u8 => {
         if bword.is_small() {

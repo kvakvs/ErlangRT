@@ -130,7 +130,7 @@ impl OpcodeTrim {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeInit, arity: 1,
   run: {
-    curr_p.heap.set_y(y.get_special_value(), Term::nil())?;
+    curr_p.heap.set_y(y.get_reg_value(), Term::nil())?;
     Ok(DispatchResult::Normal)
   },
   args: yreg(y),

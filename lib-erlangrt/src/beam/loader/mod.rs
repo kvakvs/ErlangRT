@@ -49,7 +49,7 @@ pub enum CompactTermError {
   BadYRegTag,
   BadLabelTag,
   BadCharacterTag,
-  BadIntegerTag,
+  // BadIntegerTag,
   BadExtendedTag(String),
 }
 

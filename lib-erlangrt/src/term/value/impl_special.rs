@@ -81,6 +81,10 @@ impl SpecialLoadtime {
 }
 
 impl Term {
+  //
+  // === === === Register index values === ===
+  //
+
   #[inline]
   fn make_special_register(tag: SpecialReg, n: usize) -> Self {
     debug_assert!(n < (1usize << (defs::WORD_BITS - SpecialReg::WORD_RESERVED_BITS)));
@@ -130,6 +134,11 @@ impl Term {
   /// For register special, retrieve value bits which are stored in the special value
   #[inline]
   pub fn get_reg_value(self) -> usize {
+    debug_assert!(
+      self.is_special_of_type(SpecialTag::REG),
+      "A register value is expected, got {}",
+      self
+    );
     self.get_special_value() >> SpecialReg::TAG_BITS
   }
 
@@ -151,6 +160,7 @@ impl Term {
   }
 
   /// From a special-tagged term extract its value
+  /// NOTE: Ignores additional rules for storing registers and loadtime indices.
   pub fn get_special_value(self) -> usize {
     debug_assert_eq!(self.get_term_tag(), PrimaryTag::SPECIAL);
     // cut away term tag bits and special tag, extract the remaining value bits
@@ -181,6 +191,23 @@ impl Term {
     Self::make_special(special_t, val)
   }
 
+  //
+  // === === OPCODE === ===
+  // In debug only: Represents value in the opcode cell of an instruction
+  //
+  /// For opcode special, retrieve value bits which are stored in the special value
+  #[cfg(debug_assertions)]
+  #[inline]
+  pub fn get_opcode_value(self) -> usize {
+    debug_assert!(
+      self.is_special_of_type(SpecialTag::OPCODE),
+      "An opcode value is expected, got {}",
+      self
+    );
+    self.get_special_value()
+  }
+
+  //
   // === === SPECIAL - Load Time ATOM, LABEL, LITERAL indices === ===
   // These exist only during loading time and then must be converted to real
   // values using the lookup tables included in the BEAM file.
@@ -226,5 +253,31 @@ impl Term {
     debug_assert!(self.is_loadtime(), "Must be a loadtime value, got {}", self);
     let mask = (1usize << SpecialLoadtime::TAG_BITS) - 1;
     SpecialLoadtime(self.get_special_value() & mask)
+  }
+
+
+  //
+  //=== === CATCH VALUES === ===
+  //
+
+  /// Create a catch marker on stack
+  #[inline]
+  pub fn make_catch(p: *const usize) -> Self {
+    let catch_index = (p as usize) >> defs::WORD_ALIGN_SHIFT;
+    assert!(Self::special_value_fits(catch_index));
+    // TODO: Use some smart solution for handling code reloading
+    Self::make_special(SpecialTag::CATCH, catch_index)
+  }
+
+  #[inline]
+  pub fn is_catch(self) -> bool {
+    self.is_special_of_type(SpecialTag::CATCH)
+  }
+
+  #[inline]
+  pub fn get_catch_ptr(self) -> *const usize {
+    assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
+    let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
+    val as *const usize
   }
 }

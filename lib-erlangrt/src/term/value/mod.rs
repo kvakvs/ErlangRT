@@ -243,30 +243,6 @@ impl Term {
     self.value == gen_atoms::FALSE.raw()
   }
 
-  //
-  //=== === CATCH VALUES === ===
-  //
-
-  /// Create a catch marker on stack
-  #[inline]
-  pub fn make_catch(p: *const usize) -> Self {
-    let catch_index = (p as usize) >> defs::WORD_ALIGN_SHIFT;
-    assert!(Self::special_value_fits(catch_index));
-    // TODO: Use some smart solution for handling code reloading
-    Self::make_special(SpecialTag::CATCH, catch_index)
-  }
-
-  #[inline]
-  pub fn is_catch(self) -> bool {
-    self.is_special_of_type(SpecialTag::CATCH)
-  }
-
-  #[inline]
-  pub fn get_catch_ptr(self) -> *const usize {
-    assert!(self.is_catch(), "Attempt to get_catch_ptr on {}", self);
-    let val = self.get_special_value() << defs::WORD_ALIGN_SHIFT;
-    val as *const usize
-  }
 }
 
 pub unsafe fn helper_get_const_from_boxed_term<T>(

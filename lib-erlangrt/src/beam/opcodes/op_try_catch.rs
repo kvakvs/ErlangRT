@@ -29,7 +29,7 @@ impl OpcodeTry {
 
     // Write catch value into the given stack register
     let catch_val = Term::make_catch(catch_label.get_cp_ptr());
-    hp.set_y(yreg.get_special_value(), catch_val)?;
+    hp.set_y(yreg.get_reg_value(), catch_val)?;
     // curr_p.heap.print_stack();
 
     Ok(DispatchResult::Normal)
@@ -54,7 +54,7 @@ impl OpcodeTryEnd {
     curr_p.num_catches -= 1;
 
     let hp = &mut curr_p.heap;
-    hp.set_y(yreg.get_special_value(), Term::nil())?;
+    hp.set_y(yreg.get_reg_value(), Term::nil())?;
 
     // Not sure why this is happening here, copied from Erlang/OTP
     if ctx.get_x(0).is_non_value() {
@@ -88,7 +88,7 @@ impl OpcodeTryCase {
     curr_p.num_catches -= 1;
 
     let hp = &mut curr_p.heap;
-    hp.set_y(yreg.get_special_value(), Term::nil())?;
+    hp.set_y(yreg.get_reg_value(), Term::nil())?;
 
     // Clear error and shift regs x1-x2-x3 to x0-x1-x2
     curr_p.clear_exception();

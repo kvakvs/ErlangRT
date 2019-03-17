@@ -156,7 +156,7 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
       }
     }
     value::SpecialTag::OPCODE => {
-      return write!(f, "Opcode({})", term.get_special_value())
+      return write!(f, "Opcode({})", term.get_opcode_value())
     }
     value::SpecialTag::CATCH => return write!(f, "Catch({:p})", term.get_catch_ptr()),
     value::SpecialTag::LOAD_TIME => {
@@ -176,7 +176,7 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
   }
   write!(
     f,
-    "Special({}; 0x{:x})",
+    "#Special({}; 0x{:x})",
     term.get_special_tag().0,
     term.get_special_value()
   )

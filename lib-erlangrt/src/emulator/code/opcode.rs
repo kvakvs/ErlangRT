@@ -45,9 +45,13 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
     "Opcode 0x{:x} from code memory must be tagged as Special/Opcode",
     m
   );
-  debug_assert!(as_term.get_special_value() < 256);
-  let opc = RawOpcode(as_term.get_special_value() as u8);
-  debug_assert!(opc <= gen_op::OPCODE_MAX);
+  debug_assert!(
+    as_term.get_opcode_value() <= gen_op::OPCODE_MAX.0 as usize,
+    "Value for rawOpcode is too big, get {} expected max {}",
+    as_term.get_opcode_value(),
+    gen_op::OPCODE_MAX.0
+  );
+  let opc = RawOpcode(as_term.get_opcode_value() as u8);
   opc as RawOpcode
 }
 
@@ -75,9 +79,13 @@ pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
     m,
     p
   );
-  debug_assert!(as_term.get_special_value() < 256);
-  let opc = RawOpcode(as_term.get_special_value() as u8);
-  debug_assert!(opc <= gen_op::OPCODE_MAX);
+  debug_assert!(
+    as_term.get_opcode_value() <= gen_op::OPCODE_MAX.0 as usize,
+    "Value for rawOpcode is too big, get {} expected max {}",
+    as_term.get_opcode_value(),
+    gen_op::OPCODE_MAX.0
+  );
+  let opc = RawOpcode(as_term.get_opcode_value() as u8);
   opc as RawOpcode
 }
 
