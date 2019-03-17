@@ -4,12 +4,12 @@
 use crate::{
   beam::loader::CompactTermError,
   big,
-  defs::Word,
+  defs::{self, Word},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   rt_util::bin_reader::BinaryReader,
   term::{
-    boxed::{self, bignum, endianness::Endianness},
+    boxed::{self, bignum::sign::Sign, endianness::Endianness},
     term_builder::TupleBuilder,
     value::Term,
   },
@@ -308,14 +308,39 @@ impl CompactTermReader {
       // Read the remaining big endian bytes and convert to int
       let long_bytes = reader.read_bytes(n_bytes)?;
       let sign = if long_bytes[0] & 0x80 == 0x80 {
-        bignum::sign::Sign::Negative
+        Sign::Negative
       } else {
-        bignum::sign::Sign::Positive
+        Sign::Positive
       };
 
+      // Check if bytes are few enough to fit into a small integer
+      // TODO: Can also do this when the length is equal to WORD_BYTES but then must check last byte bits to fit
+      if long_bytes.len() < defs::WORD_BYTES {
+        return Self::bytes_to_small(sign, &long_bytes);
+      }
+
       let limbs = big::make_limbs_from_bytes(Endianness::Little, long_bytes);
+      debug_assert!(
+        !limbs.is_empty(),
+        "Limbs vec can't be empty for creating a bigint"
+      );
       let r = unsafe { boxed::Bignum::create_into(&mut (*self.heap), sign, &limbs)? };
+      println!("Creating bigint with {:?}", limbs);
       Ok(Term::make_boxed(r))
     } // if larger than 11 bits
+  }
+
+  fn bytes_to_small(sign: Sign, long_bytes: &[u8]) -> RtResult<Term> {
+    let mut n = 0isize;
+    // Assume little endian, so each next digit costs more
+    let mut shift = 0usize;
+    for digit in long_bytes {
+      n |= (*digit as isize) << shift;
+      shift += defs::BYTE_BITS;
+    }
+    if sign == Sign::Negative {
+      n = -n;
+    }
+    Ok(Term::make_small_signed(n))
   }
 }

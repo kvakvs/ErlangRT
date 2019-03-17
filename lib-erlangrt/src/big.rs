@@ -37,8 +37,10 @@ pub fn make_limbs_from_bytes(input_endian: Endianness, b: Vec<u8>) -> Vec<usize>
   assert_eq!(input_endian, Endianness::default());
 
   // Round dst size up to nearest word size which will fit everything
-  let dst_size = (b.len() + defs::WORD_BYTES - 1) / defs::WORD_BYTES;
+  let dst_size: usize = (b.len() + defs::WORD_BYTES - 1) / defs::WORD_BYTES;
   let mut dst = Vec::<usize>::with_capacity(dst_size);
+  dst.resize(dst_size, 0);
+
   unsafe {
     core::ptr::copy_nonoverlapping(
       b.as_ptr(),
