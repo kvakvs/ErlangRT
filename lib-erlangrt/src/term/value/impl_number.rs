@@ -46,6 +46,20 @@ impl Term {
     val >= SMALLEST_SMALL && val <= LARGEST_SMALL
   }
 
+  /// For 64-bit platform check multiplication results of i128
+  #[cfg(target_pointer_width = "64")]
+  #[inline]
+  pub fn small_fits_i128(val: i128) -> bool {
+    val >= SMALLEST_SMALL as i128 && val <= LARGEST_SMALL as i128
+  }
+
+  /// For 32-bit platform check multiplication results of i64
+  #[cfg(target_pointer_width = "32")]
+  #[inline]
+  pub fn small_fits_i64(val: i64) -> bool {
+    val >= SMALLEST_SMALL as i64 && val <= LARGEST_SMALL as i64
+  }
+
   #[inline]
   pub fn get_small_signed(self) -> isize {
     debug_assert!(

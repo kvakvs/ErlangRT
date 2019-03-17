@@ -26,8 +26,37 @@ pub fn multiply(hp: &mut Heap, x: Term, y: Term) -> RtResult<Term> {
   unimplemented!("{}a={} other than small", module(), x)
 }
 
+/// Optimistic multiplication which will possibly fit the small int without
+/// creating three big ints.
+#[cfg(target_pointer_width = "64")]
+#[inline]
+fn optimistic_mul(a: isize, b: isize) -> Option<Term> {
+  let maybe_small = a as i128 * b as i128;
+  if Term::small_fits_i128(maybe_small) {
+    return Some(Term::make_small_signed(maybe_small as isize));
+  }
+  None
+}
+
+#[cfg(target_pointer_width = "32")]
+#[inline]
+fn optimistic_mul(a: isize, b: isize) -> Option<Term> {
+  let maybe_small = a as i64 * b as i64;
+  if Term::small_fits_i64(maybe_small) {
+    return Some(Term::make_small_signed(maybe_small as isize));
+  }
+  None
+}
+
 /// Implement multiplication for two signed integers, possibly creating a bigint.
 pub fn multiply_two_small(hp: &mut Heap, x: isize, y: isize) -> RtResult<Term> {
+  match optimistic_mul(x, y) {
+    Some(val) => return Ok(val),
+    None => {}
+  }
+
+  // Pessimistic case, the result did not fit, so proceed with 2 big ints
+  // creating a third big int.
   let big_x = big::from_isize(hp, x)?;
   let big_y = big::from_isize(hp, y)?;
   big::mul(hp, big_x, big_y)
