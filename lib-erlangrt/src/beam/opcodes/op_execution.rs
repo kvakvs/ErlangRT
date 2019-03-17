@@ -299,7 +299,7 @@ impl OpcodeBadmatch {
 define_opcode!(_vm, ctx, _curr_p,
   name: OpcodeSelectVal, arity: 3,
   run: { Self::select_val(ctx, val, fail, pairs) },
-  args: load(val), cp_or_nil(fail), literal_tuple(pairs),
+  args: load(val), cp_or_nil(fail), literal_jumptable(pairs),
 );
 
 impl OpcodeSelectVal {
@@ -308,14 +308,13 @@ impl OpcodeSelectVal {
     ctx: &mut Context,
     val: Term,
     fail: Term,
-    pairs: *const boxed::Tuple,
+    jtab: *const boxed::JumpTable,
   ) -> RtResult<DispatchResult> {
-    let pairs_count = unsafe { (*pairs).get_arity() / 2 };
+    let pairs_count = unsafe { (*jtab).get_count() };
 
     for i in 0..pairs_count {
-      let sel_val = unsafe { (*pairs).get_element(i * 2) };
+      let (sel_val, sel_label) = unsafe { (*jtab).get_pair(i) };
       if compare::cmp_terms(val, sel_val, true)? == Ordering::Equal {
-        let sel_label = unsafe { (*pairs).get_element(i * 2 + 1) };
         ctx.jump(sel_label);
         return Ok(DispatchResult::Normal);
       }

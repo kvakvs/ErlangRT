@@ -69,6 +69,7 @@ macro_rules! define_opcode {
 ///   slice(ident,n) - `&[Term]` from arg position of length n
 ///   literal_tuple(n) - the value is a tuple, which does not need to be
 ///       "loaded" from a register or stack
+///   literal_jumptable(n) - the value is a jumptable (special tuple with pairs)
 ///   cp_or_nil(n) - take a term and assert it is either a CP, or a NIL
 ///   yreg(n) - take a term and assert it is an Y register
 ///   binary_match_state(n) - extract and assert the boxed is a binary match state
@@ -105,13 +106,17 @@ macro_rules! fetch_multiple_args {
 macro_rules! fetch_one_arg {
   // UNUSED args are do-nothing
   (
-    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,IGNORE($arg_ident:ident)
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    IGNORE($arg_ident:ident)
   ) => {
     // unused $type $arg_ident
   };
 
   // Term args are just taken as is from memory
-  ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,term($arg_ident:ident)) => {
+  (
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    term($arg_ident:ident)
+  ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
   };
 
@@ -119,17 +124,26 @@ macro_rules! fetch_one_arg {
   // step is required. Only debug check is performed whether the value is
   // a tuple, there will be no check in release.
   (
-    $vmarg:ident,
-    $ctxarg:ident,
-    $procarg:ident,
-    $arg_pos:expr,literal_tuple($arg_ident:ident)
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    literal_tuple($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos).get_tuple_ptr();
   };
 
+  // Literal Jumptable args are ready to use pointers to a jumptable
+  (
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    literal_jumptable($arg_ident:ident)
+  ) => {
+    let $arg_ident = $ctxarg
+      .op_arg_read_term_at($arg_pos)
+      .get_box_ptr::<crate::term::boxed::JumpTable>();
+  };
+
   // Usize args are decoded from term a small unsigned
   (
-    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,usize($arg_ident:ident)
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_read_term_at($arg_pos);
@@ -140,10 +154,8 @@ macro_rules! fetch_one_arg {
 
   // Load_usize args are first loaded then decoded from term a small unsigned
   (
-    $vmarg:ident,
-    $ctxarg:ident,
-    $procarg:ident,
-    $arg_pos:expr,load_usize($arg_ident:ident)
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    load_usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
@@ -154,23 +166,27 @@ macro_rules! fetch_one_arg {
 
   // Load args are terms which may point to a register or a stack cell
   // and should be loaded before use.
-  ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,load($arg_ident:ident)) => {
+  (
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    load($arg_ident:ident)
+  ) => {
     let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
   };
 
   // Take a term from IP, and assert it is a CP or a NIL
   (
-    $vmarg:ident,
-    $ctxarg:ident,
-    $procarg:ident,
-    $arg_pos:expr,cp_or_nil($arg_ident:ident)
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    cp_or_nil($arg_ident:ident)
   ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!($arg_ident.is_cp() || $arg_ident == Term::nil());
   };
 
   // Take a term from IP, and assert it is a Y register
-  ($vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,yreg($arg_ident:ident)) => {
+  (
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    yreg($arg_ident:ident)
+  ) => {
     let $arg_ident = $ctxarg.op_arg_read_term_at($arg_pos);
     debug_assert!(
       $arg_ident.is_register_y(),
@@ -181,10 +197,8 @@ macro_rules! fetch_one_arg {
 
   // Take a term from IP, and assert it is a binary match state
   (
-    $vmarg:ident,
-    $ctxarg:ident,
-    $procarg:ident,
-    $arg_pos:expr,binary_match_state($arg_ident:ident)
+    $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
+    binary_match_state($arg_ident:ident)
   ) => {
     let $arg_ident = {
       let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
