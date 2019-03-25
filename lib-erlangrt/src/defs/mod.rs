@@ -22,6 +22,8 @@ pub type Arity = usize;
 pub const BYTE_POF2_BITS: usize = 3;
 /// Like there were many other byte-sizes in Erlang VMs ever before.
 pub const BYTE_BITS: usize = 1usize << BYTE_POF2_BITS;
+/// A mask to use on bit shift values to limit their range to [0..BY_BITS) exclusive
+pub const BYTE_BITS_SHIFT_MASK: usize = BYTE_BITS - 1;
 
 #[cfg(target_pointer_width = "32")]
 pub const WORD_BITS: usize = 32;

@@ -86,7 +86,7 @@ impl BitWriter {
     // then let fmt_int() handle the rest.
     let shift_count = write_size.bit_count - rbits;
     let val = write_val.get_small_signed();
-    let mut b = core::ptr::read(iptr) & (0xff << rbits);
+    let mut b = core::ptr::read(iptr) & (0xff << (rbits & defs::BYTE_BITS_SHIFT_MASK));
 
     // Shifting with a shift count greater than or equal to the word
     // size may be a no-op (instead of 0 the result may be the unshifted
@@ -122,7 +122,7 @@ impl BitWriter {
     write_size: BitSize,
   ) -> RtResult<()> {
     // Read the old value and mask away the bits about to be replaced
-    let mut b = core::ptr::read(iptr) & (0xff << rbits);
+    let mut b = core::ptr::read(iptr) & (0xff << (rbits & defs::BYTE_BITS_SHIFT_MASK));
     let val_mask = (1 << write_size.bit_count) - 1;
     let new_val = (write_val & val_mask) << (8 - inbyte_offset - write_size.bit_count);
     b |= new_val as u8;
