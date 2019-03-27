@@ -277,6 +277,11 @@ pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p:
       return OpcodeBsPutInteger::__run(vm, ctx, curr_p);
     },
 
+    OPCODE_BS_PUT_BINARY => {
+      assert_arity(OPCODE_BS_PUT_BINARY, OpcodeBsPutBinary::ARITY);
+      return OpcodeBsPutBinary::__run(vm, ctx, curr_p);
+    },
+
     OPCODE_MAKE_FUN2 => {
       assert_arity(OPCODE_MAKE_FUN2, OpcodeMakeFun2::ARITY);
       return OpcodeMakeFun2::__run(vm, ctx, curr_p);

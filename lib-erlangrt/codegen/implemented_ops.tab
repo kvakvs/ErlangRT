@@ -94,6 +94,7 @@ try_end
 bs_add
 bs_get_binary2
 bs_init2
+bs_put_binary
 bs_put_integer
 bs_start_match3
 bs_test_tail2

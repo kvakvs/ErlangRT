@@ -4,8 +4,9 @@ pub mod bs_get_binary;
 pub mod bs_init;
 pub mod bs_put_integer;
 pub mod bs_start_match;
+pub mod bs_put_binary;
 
-pub use super::{bs_get_binary::*, bs_init::*, bs_put_integer::*, bs_start_match::*};
+pub use super::{bs_get_binary::*, bs_init::*, bs_put_integer::*, bs_start_match::*, bs_put_binary::*};
 
 use crate::{
   beam::disp_result::DispatchResult,

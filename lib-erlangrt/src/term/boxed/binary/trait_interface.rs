@@ -41,4 +41,12 @@ pub trait TBinary {
     offset: BitSize,
     flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()>;
+
+  /// Writes another binary `val` with a bit offset.
+  unsafe fn put_binary(
+    &mut self,
+    val: Term,
+    size: BitSize,
+    offset: BitSize,
+  ) -> RtResult<()>;
 }
