@@ -1,15 +1,11 @@
 use crate::{
-  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, WordSize},
+  defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
     boxed::{
       self,
-      binary::{
-        bit_writer::BitWriter,
-        trait_interface::{SizeOrAll, TBinary},
-        BinaryType,
-      },
+      binary::{bit_writer::BitWriter, trait_interface::TBinary, BinaryType},
       Binary,
     },
     value::Term,
@@ -37,10 +33,10 @@ impl TBinary for ProcessHeapBinary {
     self.size
   }
 
-  fn get_byte_reader(&self) -> Option<ByteDataReader> {
+  fn get_byte_reader(&self) -> Option<ByteReader> {
     let data = (&self.data) as *const usize as *const u8;
     let len = self.size.get_byte_size_rounded_up();
-    Some(ByteDataReader::new(data, len.bytes()))
+    Some(ByteReader::new(data, len.bytes()))
   }
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
@@ -49,7 +45,13 @@ impl TBinary for ProcessHeapBinary {
     core::slice::from_raw_parts_mut(data, len.bytes())
   }
 
-  fn get_bit_reader(&self) -> BitDataReader {
+  unsafe fn get_data(&self) -> &[u8] {
+    let data = (&self.data) as *const usize as *const u8;
+    let len = self.size.get_byte_size_rounded_up();
+    core::slice::from_raw_parts(data, len.bytes())
+  }
+
+  fn get_bit_reader(&self) -> BitReader {
     unimplemented!()
   }
 
@@ -83,16 +85,6 @@ impl TBinary for ProcessHeapBinary {
   ) -> RtResult<()> {
     let data = self.get_data_mut();
     BitWriter::put_integer(val, size, data, offset, flags)
-  }
-
-  unsafe fn put_binary(
-    &mut self,
-    _src: *const TBinary,
-    _dst_offset: BitSize,
-    _size: SizeOrAll,
-    _flags: crate::beam::opcodes::BsFlags,
-  ) -> RtResult<BitSize> {
-    unimplemented!()
   }
 }
 

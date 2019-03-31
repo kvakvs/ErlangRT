@@ -53,6 +53,7 @@ pub enum RtErr {
   CannotCopyIntoBinSlice,  // Can not copy into binary slice, it is const
   HeapBinTooSmall(usize, ByteSize), // want bytes, have bytes
   ProcBinTooSmall(usize, ByteSize), // want bytes, have bytes
+  BinaryDestinationTooSmall, // bytes/bits will not fit the dst binary
 }
 
 impl From<bin_reader::ReadError> for RtErr {

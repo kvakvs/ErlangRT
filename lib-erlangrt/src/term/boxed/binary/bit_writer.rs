@@ -3,13 +3,57 @@
 use crate::{
   beam::opcodes::binary::BsFlags,
   defs::{self, BitSize},
-  fail::RtResult,
-  term::value::Term,
+  fail::{RtErr, RtResult},
+  term::{boxed::binary::trait_interface::TBinary, value::Term},
 };
 
 pub struct BitWriter {}
 
+pub enum SizeOrAll {
+  Bits(BitSize),
+  All,
+}
+
 impl BitWriter {
+  /// Writes binary `src` into binary `dst`, with a bit offset.
+  /// Arg `src`: TBinary serving as data source,
+  /// Arg `dst_offset`: Bit offset in the destination where the bits go
+  /// Arg `size`: How many bits to copy, or `All`
+  /// Returns: Bit count copied
+  pub unsafe fn put_binary(
+    src: *const TBinary,
+    size_or_all: SizeOrAll,
+    dst: *mut TBinary,
+    dst_offset: BitSize,
+    _flags: crate::beam::opcodes::BsFlags,
+  ) -> RtResult<BitSize> {
+    let size = match size_or_all {
+      SizeOrAll::All => (*src).get_bit_size(),
+      SizeOrAll::Bits(s) => s,
+    };
+
+    let dst_size = (*dst).get_bit_size();
+    if dst_offset + size > dst_size {
+      return Err(RtErr::BinaryDestinationTooSmall);
+    }
+
+    // Start reading from offset 0
+    let src_data = (*src).get_data();
+    Self::copy_bits_from_offset_0(src_data, size, (*dst).get_data_mut(), dst_offset)
+  }
+
+  /// Copies `size` bits from the beginning of `src` slice into `dst` slice
+  /// at `dst_offset` bits.
+  fn copy_bits_from_offset_0(
+    src: &[u8],
+    size: BitSize,
+    dst: &mut [u8],
+    dst_offset: BitSize,
+  ) -> RtResult<BitSize> {
+    unimplemented!()
+    // Ok(size)
+  }
+
   /// For a writable byte buffer, insert an integer of given size. Different cases
   /// are handled for offsets multiple of 8, and for small/big integers.
   pub fn put_integer(

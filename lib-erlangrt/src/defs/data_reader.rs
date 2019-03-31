@@ -11,12 +11,12 @@ pub trait TDataReader {
 
 /// Points to bit data with possible misaligned bit offset from the beginning.
 /// Bit reader is naturally slower than byte-aligned reader.
-pub struct BitDataReader {
+pub struct BitReader {
   data: &'static [u8],
   offset: BitSize,
 }
 
-impl BitDataReader {
+impl BitReader {
   #[allow(dead_code)]
   pub fn new(data: &'static [u8], offset: BitSize) -> Self {
     Self { data, offset }
@@ -27,7 +27,7 @@ impl BitDataReader {
   }
 }
 
-impl TDataReader for BitDataReader {
+impl TDataReader for BitReader {
   fn get_bit_size(&self) -> BitSize {
     // Length of the data minus the bit offset.
     // The last byte will be possibly incomplete.
@@ -42,11 +42,11 @@ impl TDataReader for BitDataReader {
 
 /// Points to read-only byte-aligned data.
 /// Byte reader is naturally faster than the bit reader.
-pub struct ByteDataReader {
+pub struct ByteReader {
   data: &'static [u8],
 }
 
-impl ByteDataReader {
+impl ByteReader {
   pub fn new(data: *const u8, size: usize) -> Self {
     // println!("Creating data reader size={}", size);
     Self {
@@ -65,7 +65,7 @@ impl ByteDataReader {
   }
 }
 
-impl TDataReader for ByteDataReader {
+impl TDataReader for ByteReader {
   #[inline]
   fn get_bit_size(&self) -> BitSize {
     BitSize::with_bytes(self.data.len())

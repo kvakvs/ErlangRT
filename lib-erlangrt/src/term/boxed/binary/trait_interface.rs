@@ -1,15 +1,10 @@
 //! Generic binary trait used to access various types of binary
 
 use crate::{
-  defs::{data_reader::BitDataReader, BitSize, ByteDataReader, ByteSize},
+  defs::{data_reader::BitReader, BitSize, ByteReader, ByteSize},
   fail::RtResult,
   term::{boxed::binary::BinaryType, value::Term},
 };
-
-pub enum SizeOrAll {
-  Bits(BitSize),
-  All,
-}
 
 /// Trait represents any type of binary with generic access functions.
 pub trait TBinary {
@@ -20,14 +15,17 @@ pub trait TBinary {
 
   /// Get slice for read access to the bytes.
   /// The call may fail for binary slices, in that case `get_bit_reader` should be used (slower).
-  fn get_byte_reader(&self) -> Option<ByteDataReader>;
+  fn get_byte_reader(&self) -> Option<ByteReader>;
 
   /// Get slice for read-write access to the bytes
   unsafe fn get_data_mut(&mut self) -> &mut [u8];
 
+  /// Get slice for read-only access to the bytes
+  unsafe fn get_data(&self) -> &[u8];
+
   /// Used for readonly bit offsets in binary slices. Will only be called if
   /// get_data has returned NULL.
-  fn get_bit_reader(&self) -> BitDataReader;
+  fn get_bit_reader(&self) -> BitReader;
 
   /// Write to the binary from position 0
   fn store(&mut self, data: &[u8]) -> RtResult<()>;
@@ -46,17 +44,4 @@ pub trait TBinary {
     offset: BitSize,
     flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()>;
-
-  /// Writes another binary `val` into this binary, with a bit offset.
-  /// Arg `src`: TBinary serving as data source,
-  /// Arg `dst_offset`: Bit offset in the destination where the bits go
-  /// Arg `size`: How many bits to copy, or `All`
-  /// Returns: Bit count copied
-  unsafe fn put_binary(
-    &mut self,
-    src: *const TBinary,
-    dst_offset: BitSize,
-    size: SizeOrAll,
-    flags: crate::beam::opcodes::BsFlags,
-  ) -> RtResult<BitSize>;
 }

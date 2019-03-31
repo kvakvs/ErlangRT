@@ -2,12 +2,10 @@ use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
   emulator::{gen_atoms, process::Process, runtime_ctx::Context, vm::VM},
-  fail::RtResult,
-  term::{
-    boxed::{self, binary::trait_interface::SizeOrAll},
-    value::Term,
-  },
+  fail::{RtErr, RtResult},
+  term::{boxed, value::Term},
 };
+use crate::term::boxed::binary::bit_writer::{SizeOrAll, BitWriter};
 
 // Store `src` into the binary open for writing, the binary and the write
 // position are stored in the process runtime context.
@@ -27,7 +25,7 @@ impl OpcodeBsPutBinary {
   #[inline]
   fn get_size_or_all(size: Term) -> SizeOrAll {
     if size == gen_atoms::ALL {
-      return SizeOrAll::All
+      return SizeOrAll::All;
     }
     SizeOrAll::Bits(BitSize::with_bits(size.get_small_unsigned()))
   }
@@ -38,7 +36,7 @@ impl OpcodeBsPutBinary {
     _vm: &mut VM,
     ctx: &mut Context,
     _proc: &mut Process,
-    _fail: Term,
+    fail: Term,
     in_size_term: Term,
     _unit: usize,
     flags: usize,
@@ -53,14 +51,26 @@ impl OpcodeBsPutBinary {
     let size_or_all = Self::get_size_or_all(in_size_term);
 
     unsafe {
-      let copied_size = (*dst_binary).put_binary(
-        boxed::Binary::get_trait_from_term(src),
-        ctx.current_bin.offset,
+      match BitWriter::put_binary(
+        ctx.current_bin.dst.unwrap(),
         size_or_all,
+        boxed::Binary::get_trait_mut_from_term(src),
+        ctx.current_bin.offset,
         crate::beam::opcodes::BsFlags::from_bits_truncate(flags),
-      )?;
-      ctx.current_bin.offset = ctx.current_bin.offset + copied_size;
+      ) {
+        Ok(copied_size) => {
+          ctx.current_bin.offset = ctx.current_bin.offset + copied_size;
+          Ok(DispatchResult::Normal)
+        }
+        Err(RtErr::BinaryDestinationTooSmall) => {
+          ctx.jump(fail);
+          Ok(DispatchResult::Normal)
+        }
+        Err(err) => {
+          // Rewrap the error into result type for opcode
+          Err(err)
+        }
+      }
     }
-    Ok(DispatchResult::Normal)
   }
 }

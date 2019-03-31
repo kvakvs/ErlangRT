@@ -1,11 +1,11 @@
 use crate::{
-  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, WordSize},
+  defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
   emulator::heap::Heap,
   fail::{RtErr, RtResult},
   term::{
     boxed::{
       binary::{
-        trait_interface::{SizeOrAll, TBinary},
+        trait_interface::{TBinary},
         BinaryType,
       },
       Binary,
@@ -75,7 +75,7 @@ impl TBinary for BinarySlice {
     self.size
   }
 
-  fn get_byte_reader(&self) -> Option<ByteDataReader> {
+  fn get_byte_reader(&self) -> Option<ByteReader> {
     if self.offset.get_last_byte_bits() == 0 {
       // The offset is byte-aligned, we can actually return a faster byte-reader
       match unsafe { (*self.orig).get_byte_reader() } {
@@ -97,7 +97,11 @@ impl TBinary for BinarySlice {
     core::slice::from_raw_parts_mut(core::ptr::null_mut(), 0)
   }
 
-  fn get_bit_reader(&self) -> BitDataReader {
+  unsafe fn get_data(&self) -> &[u8] {
+    unimplemented!()
+  }
+
+  fn get_bit_reader(&self) -> BitReader {
     let r = unsafe { (*self.orig).get_bit_reader() };
     r.add_bit_offset(self.offset)
   }
@@ -118,15 +122,5 @@ impl TBinary for BinarySlice {
     _flags: crate::beam::opcodes::BsFlags,
   ) -> Result<(), RtErr> {
     panic!("Can't put_integer into a binary slice")
-  }
-
-  unsafe fn put_binary(
-    &mut self,
-    _src: *const TBinary,
-    _dst_offset: BitSize,
-    _size: SizeOrAll,
-    _flags: crate::beam::opcodes::BsFlags,
-  ) -> RtResult<BitSize> {
-    unimplemented!()
   }
 }

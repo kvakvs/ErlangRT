@@ -1,13 +1,9 @@
 use crate::{
-  defs::{BitDataReader, BitSize, ByteDataReader, ByteSize, Word, WordSize},
+  defs::{BitReader, BitSize, ByteReader, ByteSize, Word, WordSize},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{
-        binaryheap_bin::BinaryHeapBinary,
-        trait_interface::{SizeOrAll, TBinary},
-        BinaryType,
-      },
+      binary::{binaryheap_bin::BinaryHeapBinary, trait_interface::TBinary, BinaryType},
       Binary,
     },
     value::Term,
@@ -51,15 +47,19 @@ impl TBinary for ReferenceToBinary {
     self.size
   }
 
-  fn get_byte_reader(&self) -> Option<ByteDataReader> {
-    unimplemented!("return reader from the master binary")
+  fn get_byte_reader(&self) -> Option<ByteReader> {
+    unimplemented!()
   }
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
-    unimplemented!("return read-writer from the master binary")
+    unimplemented!()
   }
 
-  fn get_bit_reader(&self) -> BitDataReader {
+  unsafe fn get_data(&self) -> &[u8] {
+    unimplemented!()
+  }
+
+  fn get_bit_reader(&self) -> BitReader {
     unimplemented!()
   }
 
@@ -81,15 +81,5 @@ impl TBinary for ReferenceToBinary {
   ) -> RtResult<()> {
     let p = self.pointer as *mut TBinary;
     (*p).put_integer(val, size, offset, flags)
-  }
-
-  unsafe fn put_binary(
-    &mut self,
-    _src: *const TBinary,
-    _dst_offset: BitSize,
-    _size: SizeOrAll,
-    _flags: crate::beam::opcodes::BsFlags,
-  ) -> RtResult<BitSize> {
-    unimplemented!()
   }
 }
