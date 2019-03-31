@@ -4,7 +4,10 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{trait_interface::TBinary, BinaryType},
+      binary::{
+        trait_interface::{SizeOrAll, TBinary},
+        BinaryType,
+      },
       Binary,
     },
     value::Term,
@@ -115,5 +118,15 @@ impl TBinary for BinarySlice {
     _flags: crate::beam::opcodes::BsFlags,
   ) -> Result<(), RtErr> {
     panic!("Can't put_integer into a binary slice")
+  }
+
+  unsafe fn put_binary(
+    &mut self,
+    _src: *const TBinary,
+    _dst_offset: BitSize,
+    _size: SizeOrAll,
+    _flags: crate::beam::opcodes::BsFlags,
+  ) -> RtResult<BitSize> {
+    unimplemented!()
   }
 }

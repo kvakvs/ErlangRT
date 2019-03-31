@@ -5,7 +5,11 @@ use crate::{
   term::{
     boxed::{
       self,
-      binary::{bit_writer::BitWriter, trait_interface::TBinary, BinaryType},
+      binary::{
+        bit_writer::BitWriter,
+        trait_interface::{SizeOrAll, TBinary},
+        BinaryType,
+      },
       Binary,
     },
     value::Term,
@@ -79,6 +83,16 @@ impl TBinary for ProcessHeapBinary {
   ) -> RtResult<()> {
     let data = self.get_data_mut();
     BitWriter::put_integer(val, size, data, offset, flags)
+  }
+
+  unsafe fn put_binary(
+    &mut self,
+    _src: *const TBinary,
+    _dst_offset: BitSize,
+    _size: SizeOrAll,
+    _flags: crate::beam::opcodes::BsFlags,
+  ) -> RtResult<BitSize> {
+    unimplemented!()
   }
 }
 

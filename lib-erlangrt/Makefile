@@ -2,6 +2,19 @@
 # THIS MAKEFILE IS OUTDATED/DEPRECATED/NOT USED, SEE THE MAKEFILE IN PROJECT ROOT
 #
 
+.PHONY: doc
+doc:
+	cargo rustdoc -- \
+            --no-defaults \
+            --passes strip-hidden \
+            --passes collapse-docs \
+            --passes unindent-comments \
+            --passes strip-priv-imports
+
+##
+## DEPRECATED OLD BELOW
+##
+
 HERE=$(shell pwd)
 
 .PHONY: run run-rel

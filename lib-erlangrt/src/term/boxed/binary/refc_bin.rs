@@ -3,7 +3,11 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{binaryheap_bin::BinaryHeapBinary, trait_interface::TBinary, BinaryType},
+      binary::{
+        binaryheap_bin::BinaryHeapBinary,
+        trait_interface::{SizeOrAll, TBinary},
+        BinaryType,
+      },
       Binary,
     },
     value::Term,
@@ -77,5 +81,15 @@ impl TBinary for ReferenceToBinary {
   ) -> RtResult<()> {
     let p = self.pointer as *mut TBinary;
     (*p).put_integer(val, size, offset, flags)
+  }
+
+  unsafe fn put_binary(
+    &mut self,
+    _src: *const TBinary,
+    _dst_offset: BitSize,
+    _size: SizeOrAll,
+    _flags: crate::beam::opcodes::BsFlags,
+  ) -> RtResult<BitSize> {
+    unimplemented!()
   }
 }

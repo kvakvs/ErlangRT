@@ -6,6 +6,11 @@ use crate::{
   term::{boxed::binary::BinaryType, value::Term},
 };
 
+pub enum SizeOrAll {
+  Bits(BitSize),
+  All,
+}
+
 /// Trait represents any type of binary with generic access functions.
 pub trait TBinary {
   fn get_type(&self) -> BinaryType;
@@ -42,11 +47,16 @@ pub trait TBinary {
     flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()>;
 
-  /// Writes another binary `val` with a bit offset.
+  /// Writes another binary `val` into this binary, with a bit offset.
+  /// Arg `src`: TBinary serving as data source,
+  /// Arg `dst_offset`: Bit offset in the destination where the bits go
+  /// Arg `size`: How many bits to copy, or `All`
+  /// Returns: Bit count copied
   unsafe fn put_binary(
     &mut self,
-    val: Term,
-    size: BitSize,
-    offset: BitSize,
-  ) -> RtResult<()>;
+    src: *const TBinary,
+    dst_offset: BitSize,
+    size: SizeOrAll,
+    flags: crate::beam::opcodes::BsFlags,
+  ) -> RtResult<BitSize>;
 }

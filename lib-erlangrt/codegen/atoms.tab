@@ -4,6 +4,7 @@
 == sym_eq_eq
 
 #--- A
+all
 apply
 
 #--- B
