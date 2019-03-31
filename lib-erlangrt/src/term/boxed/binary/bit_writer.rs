@@ -50,8 +50,32 @@ impl BitWriter {
     dst: &mut [u8],
     dst_offset: BitSize,
   ) -> RtResult<BitSize> {
-    unimplemented!()
-    // Ok(size)
+    assert_eq!(
+      dst_offset.get_last_byte_bits(),
+      0,
+      "Copy to dst offset not multiple of 8"
+    );
+
+    unsafe {
+      let dst_offset_bytes = dst_offset.get_byte_size_rounded_down().bytes();
+      let size_bytes = size.get_byte_size_rounded_down().bytes();
+      core::ptr::copy_nonoverlapping(
+        src.as_ptr(),
+        dst.as_mut_ptr().add(dst_offset_bytes),
+        size_bytes,
+      );
+    }
+
+    // Possibly there is an incomplete byte at the tail, to be copied
+    let remaining_bits = size.get_last_byte_bits();
+    if remaining_bits != 0 {
+      unimplemented!("Copy partial byte")
+    }
+
+    // Pass the size out to the caller as they might have called
+    // `BinaryWriter::put_binary` with just a `SizeOrAll::All` value and might
+    // be interested in the actual size copied
+    Ok(size)
   }
 
   /// For a writable byte buffer, insert an integer of given size. Different cases

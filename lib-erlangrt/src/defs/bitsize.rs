@@ -64,6 +64,8 @@ impl BitSize {
     }
   }
 
+  /// Returns how many hanging bits are there. Value range is 0..7, 0 means
+  /// all bytes are whole and no hanging bits.
   #[inline]
   pub const fn get_last_byte_bits(&self) -> usize {
     self.bit_count & (defs::BYTE_BITS - 1)
