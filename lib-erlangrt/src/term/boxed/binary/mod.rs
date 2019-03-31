@@ -19,6 +19,7 @@ use crate::{
   },
 };
 
+pub mod bits;
 pub mod binaryheap_bin;
 pub mod bit_writer;
 pub mod match_state;

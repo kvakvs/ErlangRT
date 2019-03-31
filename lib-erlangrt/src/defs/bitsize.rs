@@ -21,8 +21,14 @@ impl fmt::Debug for BitSize {
 }
 
 impl BitSize {
+  pub const fn zero() -> Self {
+    Self { bit_count: 0 }
+  }
+
   #[inline]
-  pub const fn is_empty(self) -> bool { self.bit_count == 0 }
+  pub const fn is_empty(self) -> bool {
+    self.bit_count == 0
+  }
 
   #[inline]
   pub const fn with_bits(bit_count: usize) -> Self {

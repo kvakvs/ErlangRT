@@ -6,6 +6,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{boxed::binary::trait_interface::TBinary, value::Term},
 };
+use crate::term::boxed::binary::bits;
 
 pub struct BitWriter {}
 
@@ -39,23 +40,34 @@ impl BitWriter {
 
     // Start reading from offset 0
     let src_data = (*src).get_data();
-    Self::copy_bits_from_offset_0(src_data, size, (*dst).get_data_mut(), dst_offset)
+    if dst_offset.get_last_byte_bits() == 0 {
+      Self::copy_bits_from_offset_0_bytealigned_dst(
+        src_data,
+        size,
+        (*dst).get_data_mut(),
+        dst_offset,
+      )
+    } else {
+      bits::copy_bits(
+        src_data.as_ptr(),
+        BitSize::zero(),
+        1,
+        (*dst).get_data_mut().as_mut_ptr(),
+        dst_offset,
+        1,
+        size,
+      )
+    }
   }
 
   /// Copies `size` bits from the beginning of `src` slice into `dst` slice
-  /// at `dst_offset` bits.
-  fn copy_bits_from_offset_0(
+  /// at `dst_offset` bits, where `dst_offset` must be byte aligned.
+  fn copy_bits_from_offset_0_bytealigned_dst(
     src: &[u8],
     size: BitSize,
     dst: &mut [u8],
     dst_offset: BitSize,
   ) -> RtResult<BitSize> {
-    assert_eq!(
-      dst_offset.get_last_byte_bits(),
-      0,
-      "Copy to dst offset not multiple of 8"
-    );
-
     unsafe {
       let dst_offset_bytes = dst_offset.get_byte_size_rounded_down().bytes();
       let size_bytes = size.get_byte_size_rounded_down().bytes();
