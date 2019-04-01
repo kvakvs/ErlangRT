@@ -1,7 +1,7 @@
 //! Module defines pointer types for readonly code and mutable code.
 
 use crate::{defs::Word, emulator::module::VersionedModuleName, term::value::*};
-use core::fmt;
+use core::{fmt, ptr};
 
 /// A cross-module code pointer tied to a specific module of a specific version.
 #[derive(Eq, PartialEq, Debug, Clone)]
@@ -83,9 +83,7 @@ impl CodePtr {
 
   #[inline]
   pub fn null() -> CodePtr {
-    CodePtr {
-      p: core::ptr::null(),
-    }
+    CodePtr { p: ptr::null() }
   }
 
   /// Convert to tagged CP integer
@@ -138,13 +136,13 @@ impl CodePtrMut {
   #[inline]
   pub unsafe fn read_n(self, n: usize) -> Word {
     let CodePtrMut(p) = self;
-    core::ptr::read(p.add(n))
+    ptr::read(p.add(n))
   }
 
   /// Write `n`-th word at the code pointer.
   #[inline]
   pub unsafe fn write_n(self, n: usize, val: Word) {
     let CodePtrMut(p) = self;
-    core::ptr::write(p.add(n), val)
+    ptr::write(p.add(n), val)
   }
 }

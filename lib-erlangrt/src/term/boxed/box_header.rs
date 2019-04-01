@@ -2,6 +2,7 @@ use crate::{
   defs::*,
   term::{boxed::trait_interface::TBoxed, value::PrimaryTag},
 };
+use core::ptr;
 
 /// Term header in memory, followed by corresponding data. The first header word
 /// is parsed just like any term, tag bits are set to PrimaryTag::HEADER.
@@ -33,7 +34,7 @@ impl BoxHeader {
     let header_word = (arity << PrimaryTag::TAG_BITS) | PrimaryTag::HEADER.0;
 
     // Extract and store vtable pointer from the TBoxed trait object
-    let trait_ptr = core::ptr::null_mut::<TraitType>() as *mut TBoxed;
+    let trait_ptr = ptr::null_mut::<TraitType>() as *mut TBoxed;
     let trait_obj: core::raw::TraitObject = unsafe { core::mem::transmute(trait_ptr) };
     Self::create_bare(header_word, trait_obj.vtable)
   }

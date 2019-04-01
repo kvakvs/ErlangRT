@@ -8,7 +8,7 @@ use crate::{
   term::{boxed, value::*},
 };
 use colored::Colorize;
-use core::fmt;
+use core::{fmt, ptr};
 
 /// Default heap size for constants (literals) when loading a module.
 pub const DEFAULT_LIT_HEAP: usize = 8192;
@@ -134,7 +134,7 @@ impl Heap {
     if init_nil {
       unsafe {
         for i in 0..n_words {
-          core::ptr::write(new_chunk.add(i), raw_nil)
+          ptr::write(new_chunk.add(i), raw_nil)
         }
       }
     }
@@ -162,7 +162,7 @@ impl Heap {
   /// To expand heap without calling GC, a heap fragment can be attempted.
   pub fn ensure_size(&mut self, size: WordSize) -> RtResult<()> {
     if self.heap_has_available(size) {
-      return Ok(())
+      return Ok(());
     }
     Err(RtErr::HeapIsFull("heap::ensure_size"))
   }
@@ -195,7 +195,7 @@ impl Heap {
 
       if fill_nil {
         for y in 0..need.words() {
-          core::ptr::write(p.add(y), raw_nil)
+          ptr::write(p.add(y), raw_nil)
         }
       }
     }
@@ -292,7 +292,11 @@ impl Heap {
     );
 
     let cp = Term::from_raw(self.data[self.stack_top]);
-    assert!(cp.is_cp(), "Dealloc expected a CP value on stack top, got {}", cp);
+    assert!(
+      cp.is_cp(),
+      "Dealloc expected a CP value on stack top, got {}",
+      cp
+    );
     self.stack_top += n + 1;
     cp
   }
@@ -311,7 +315,7 @@ impl Heap {
         return None;
       }
       // Hope we found a CP on stack (good!)
-      let term_at_ptr = Term::from_raw(core::ptr::read(ptr));
+      let term_at_ptr = Term::from_raw(ptr::read(ptr));
 
       if term_at_ptr.is_catch() {
         // Typical stack frame looks like:

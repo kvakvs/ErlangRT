@@ -1,6 +1,6 @@
 //! Module defines Runtime Context which represents the low-level VM state of
 //! a running process, such as registers, code pointer, etc.
-use core::{fmt, slice};
+use core::{fmt, ptr, slice};
 
 use colored::Colorize;
 
@@ -70,7 +70,7 @@ impl Context {
   pub fn new(ip: CodePtr) -> Context {
     Context {
       cp: CodePtr::null(),
-      args_ptr: core::ptr::null(),
+      args_ptr: ptr::null(),
       fpregs: [0.0; MAX_FPREGS],
       ip,
       regs: [Term::non_value(); MAX_XREGS],

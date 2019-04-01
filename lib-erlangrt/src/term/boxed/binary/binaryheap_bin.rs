@@ -9,6 +9,7 @@ use crate::{
     value::Term,
   },
 };
+use core::ptr;
 
 /// Defines operations with a binary on the binary heap
 /// Pointer to this can be directly casted from pointer to boxed::Binary
@@ -73,7 +74,7 @@ impl TBinary for BinaryHeapBinary {
 
     let bin_bytes = unsafe { self.get_data_mut() };
     unsafe {
-      core::ptr::copy_nonoverlapping(&data[0], bin_bytes.as_mut_ptr(), data.len());
+      ptr::copy_nonoverlapping(&data[0], bin_bytes.as_mut_ptr(), data.len());
     }
     Ok(())
   }

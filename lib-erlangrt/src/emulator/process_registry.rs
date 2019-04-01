@@ -1,4 +1,5 @@
 use crate::{emulator::process::Process, term::value::Term};
+use core::ptr;
 use std::collections::HashMap;
 
 pub struct ProcessRegistry {
@@ -54,7 +55,7 @@ impl ProcessRegistry {
     assert!(pid.is_local_pid());
     match self.pid_to_proc.get(&pid) {
       Some(p) => p as *const Process,
-      None => core::ptr::null(),
+      None => ptr::null(),
     }
   }
 
@@ -64,7 +65,7 @@ impl ProcessRegistry {
     assert!(pid.is_local_pid());
     match self.pid_to_proc.get_mut(&pid) {
       Some(p) => p as *mut Process,
-      None => core::ptr::null_mut(),
+      None => ptr::null_mut(),
     }
   }
 

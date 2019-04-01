@@ -7,6 +7,7 @@ use crate::{
   term::{boxed::binary::trait_interface::TBinary, value::Term},
 };
 use crate::term::boxed::binary::bits;
+use core::ptr;
 
 pub struct BitWriter {}
 
@@ -71,7 +72,7 @@ impl BitWriter {
     unsafe {
       let dst_offset_bytes = dst_offset.get_byte_size_rounded_down().bytes();
       let size_bytes = size.get_byte_size_rounded_down().bytes();
-      core::ptr::copy_nonoverlapping(
+      ptr::copy_nonoverlapping(
         src.as_ptr(),
         dst.as_mut_ptr().add(dst_offset_bytes),
         size_bytes,
@@ -166,7 +167,7 @@ impl BitWriter {
     // then let fmt_int() handle the rest.
     let shift_count = write_size.bit_count - rbits;
     let val = write_val.get_small_signed();
-    let mut b = core::ptr::read(iptr) & (0xff << (rbits & defs::BYTE_BITS_SHIFT_MASK));
+    let mut b = ptr::read(iptr) & (0xff << (rbits & defs::BYTE_SHIFT_RANGE_MASK));
 
     // Shifting with a shift count greater than or equal to the word
     // size may be a no-op (instead of 0 the result may be the unshifted
@@ -181,7 +182,7 @@ impl BitWriter {
       // Simulate sign extension.
       b |= (!0) & ((1 << rbits) - 1);
     }
-    core::ptr::write(iptr, b);
+    ptr::write(iptr, b);
 
     // fmt_int() can't fail here. Continue to the next byte
     Self::fmt_int(
@@ -202,11 +203,11 @@ impl BitWriter {
     write_size: BitSize,
   ) -> RtResult<()> {
     // Read the old value and mask away the bits about to be replaced
-    let mut b = core::ptr::read(iptr) & (0xff << (rbits & defs::BYTE_BITS_SHIFT_MASK));
+    let mut b = ptr::read(iptr) & (0xff << (rbits & defs::BYTE_SHIFT_RANGE_MASK));
     let val_mask = (1 << write_size.bit_count) - 1;
     let new_val = (write_val & val_mask) << (8 - inbyte_offset - write_size.bit_count);
     b |= new_val as u8;
-    core::ptr::write(iptr, b);
+    ptr::write(iptr, b);
     Ok(())
   }
 

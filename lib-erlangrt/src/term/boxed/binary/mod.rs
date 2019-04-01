@@ -116,7 +116,7 @@ impl Binary {
   //  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
   //    unimplemented!();
   //    // let p = this.add(1) as *const u8;
-  //    // core::ptr::read(p.add(i))
+  //    // ptr::read(p.add(i))
   //  }
 
   unsafe fn generic_switch<T>(

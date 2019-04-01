@@ -47,7 +47,7 @@ impl OpcodeBsPutBinary {
       "bs_put_binary with no ctx.current_bin"
     );
 
-    let dst_binary = ctx.current_bin.dst.unwrap();
+    let _dst_binary = ctx.current_bin.dst.unwrap();
     let size_or_all = Self::get_size_or_all(in_size_term);
 
     unsafe {

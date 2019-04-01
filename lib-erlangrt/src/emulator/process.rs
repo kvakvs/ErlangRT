@@ -17,6 +17,7 @@ use crate::{
   fail::RtResult,
   term::value::*,
 };
+use core::ptr;
 
 //#[allow(dead_code)]
 //#[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -95,7 +96,7 @@ impl Process {
           prio: spawn_opts.prio,
           current_queue: scheduler::Queue::None,
           timeslice_result: scheduler::SliceResult::None,
-          owned_by_scheduler: core::ptr::null_mut(),
+          owned_by_scheduler: ptr::null_mut(),
 
           // Memory
           heap: Heap::new(DEFAULT_PROC_HEAP),

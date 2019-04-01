@@ -1,10 +1,11 @@
 use crate::term::value::Term;
+use core::ptr;
 
 impl Term {
   /// Create a NON_VALUE.
   #[inline]
   pub fn non_value() -> Self {
-    Self::make_boxed(core::ptr::null::<usize>())
+    Self::make_boxed(ptr::null::<usize>())
   }
 
   /// Check whether a value is a NON_VALUE.

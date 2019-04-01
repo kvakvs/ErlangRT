@@ -7,6 +7,7 @@ use crate::{
     value::Term,
   },
 };
+use core::ptr;
 
 pub struct BinaryBuilder {
   p: *mut TBinary,
@@ -36,7 +37,7 @@ impl BinaryBuilder {
       "binary_builder: writing beyond {} bytes",
       self.size
     );
-    core::ptr::write(self.write_pos, b);
+    ptr::write(self.write_pos, b);
     self.write_pos = self.write_pos.add(1);
   }
 

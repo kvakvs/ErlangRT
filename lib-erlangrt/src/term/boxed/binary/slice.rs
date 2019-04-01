@@ -13,6 +13,7 @@ use crate::{
     value::Term,
   },
 };
+use core::ptr;
 
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {
@@ -56,7 +57,7 @@ impl BinarySlice {
       size,
       orig,
     };
-    core::ptr::write(this, new_self);
+    ptr::write(this, new_self);
 
     Ok(this as *mut TBinary)
   }
@@ -94,7 +95,7 @@ impl TBinary for BinarySlice {
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
     // Can not use mutable access on slice
-    core::slice::from_raw_parts_mut(core::ptr::null_mut(), 0)
+    core::slice::from_raw_parts_mut(ptr::null_mut(), 0)
   }
 
   unsafe fn get_data(&self) -> &[u8] {

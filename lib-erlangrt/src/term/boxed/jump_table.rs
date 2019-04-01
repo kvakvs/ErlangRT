@@ -13,7 +13,7 @@ use crate::{
     value::Term,
   },
 };
-use core::fmt;
+use core::{fmt, ptr};
 
 /// An array of sorted pairs, which like a tuple stores the array in its memory
 pub struct JumpTable {
@@ -74,7 +74,7 @@ impl JumpTable {
     let storage_size = Self::storage_size(n_pairs);
     let p = hp.alloc::<Self>(storage_size, false)?;
     unsafe {
-      core::ptr::write(p, Self::new(n_pairs));
+      ptr::write(p, Self::new(n_pairs));
     }
     Ok(p)
   }
@@ -85,8 +85,8 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &mut self.val0 as *mut Term;
-    core::ptr::write(data.add(index * 2), val);
-    core::ptr::write(data.add(index * 2 + 1), location);
+    ptr::write(data.add(index * 2), val);
+    ptr::write(data.add(index * 2 + 1), location);
   }
 
   // Write value component in the i-th pair (base 0)
@@ -95,7 +95,7 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &mut self.val0 as *mut Term;
-    core::ptr::write(data.add(index * 2), val)
+    ptr::write(data.add(index * 2), val)
   }
 
   // Write location component in the i-th pair (base 0)
@@ -104,7 +104,7 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &mut self.val0 as *mut Term;
-    core::ptr::write(data.add(index * 2 + 1), val)
+    ptr::write(data.add(index * 2 + 1), val)
   }
 
   // Read tuple's i-th element (base 0)
@@ -113,8 +113,8 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &self.val0 as *const Term;
-    let val = core::ptr::read(data.add(index * 2));
-    let location = core::ptr::read(data.add(index * 2 + 1));
+    let val = ptr::read(data.add(index * 2));
+    let location = ptr::read(data.add(index * 2 + 1));
     (val, location)
   }
 
@@ -124,7 +124,7 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &self.val0 as *const Term;
-    core::ptr::read(data.add(index * 2 + 1))
+    ptr::read(data.add(index * 2 + 1))
   }
 
   /// Format jump table contents

@@ -7,6 +7,7 @@ use crate::{
     value::Term,
   },
 };
+use core::ptr;
 
 /// Helper, creates a new big integer on heap with val.
 pub fn from_isize(hp: &mut Heap, val: isize) -> RtResult<Term> {
@@ -42,7 +43,7 @@ pub fn make_limbs_from_bytes(input_endian: Endianness, b: Vec<u8>) -> Vec<usize>
   dst.resize(dst_size, 0);
 
   unsafe {
-    core::ptr::copy_nonoverlapping(
+    ptr::copy_nonoverlapping(
       b.as_ptr(),
       dst.as_mut_ptr() as *mut u8,
       b.len() & !(defs::WORD_BITS - 1),
@@ -52,7 +53,7 @@ pub fn make_limbs_from_bytes(input_endian: Endianness, b: Vec<u8>) -> Vec<usize>
     if remaining_bytes > 0 && dst.len() > 0 {
       let index = dst.len() - 1;
       dst[index] = 0;
-      core::ptr::copy_nonoverlapping(
+      ptr::copy_nonoverlapping(
         b.as_ptr().add(index * defs::WORD_BYTES),
         dst.as_mut_ptr().add(index) as *mut u8,
         remaining_bytes,

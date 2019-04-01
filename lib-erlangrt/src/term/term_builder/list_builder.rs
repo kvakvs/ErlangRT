@@ -4,6 +4,7 @@ use crate::{
   fail::RtResult,
   term::{boxed, value::*},
 };
+use core::ptr;
 
 /// Helper which allows building lists forward or backwards.
 ///
@@ -24,8 +25,8 @@ pub struct ListBuilder {
 impl ListBuilder {
   pub fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
     Ok(ListBuilder {
-      head_p: core::ptr::null_mut(),
-      tail_p: core::ptr::null_mut(),
+      head_p: ptr::null_mut(),
+      tail_p: ptr::null_mut(),
       heap,
     })
   }

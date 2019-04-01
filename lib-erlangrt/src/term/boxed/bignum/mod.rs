@@ -16,7 +16,7 @@ use crate::{
     value::*,
   },
 };
-use core::mem::size_of;
+use core::{mem::size_of, ptr};
 
 #[allow(dead_code)]
 pub struct Bignum {
@@ -66,7 +66,7 @@ impl Bignum {
     let n_words = Self::storage_size();
     let this = hp.alloc::<Self>(n_words, false)?;
 
-    core::ptr::write(
+    ptr::write(
       this,
       Self {
         header: BoxHeader::new::<Self>(n_words),
@@ -78,7 +78,7 @@ impl Bignum {
         digits: core::mem::MaybeUninit::uninitialized(),
       },
     );
-    core::ptr::copy_nonoverlapping(
+    ptr::copy_nonoverlapping(
       limbs.as_ptr(),
       &mut (*this).digits as *mut core::mem::MaybeUninit<usize> as *mut usize,
       limbs.len(),

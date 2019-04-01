@@ -11,6 +11,7 @@ use crate::{
     value::Term,
   },
 };
+use core::ptr;
 
 /// Defines operations with a binary on process heap.
 /// Pointer to this can be directly casted from pointer to boxed::Binary
@@ -67,7 +68,7 @@ impl TBinary for ProcessHeapBinary {
 
     let bin_bytes = unsafe { self.get_data_mut() };
     unsafe {
-      core::ptr::copy_nonoverlapping(&data[0], bin_bytes.as_mut_ptr(), data.len());
+      ptr::copy_nonoverlapping(&data[0], bin_bytes.as_mut_ptr(), data.len());
     }
     Ok(())
   }
@@ -109,7 +110,7 @@ impl ProcessHeapBinary {
       size,
       data: 0,
     };
-    core::ptr::write(this, new_self);
+    ptr::write(this, new_self);
 
     Ok(this as *mut TBinary)
   }

@@ -12,7 +12,7 @@ use crate::{
     value::Term,
   },
 };
-use core::fmt;
+use core::{fmt, ptr};
 
 /// A fixed-size array which stores everything in its allocated memory on
 /// process heap.
@@ -40,8 +40,8 @@ impl TBoxed for Tuple {
   //      let data = &mut (*this_p).data0 as *mut Term;
   //
   //      for i in 0..count {
-  //        let val = core::ptr::read(data.add(i));
-  //        core::ptr::write(data.add(i), mapfn(this_p as *mut BoxHeader, val));
+  //        let val = ptr::read(data.add(i));
+  //        ptr::write(data.add(i), mapfn(this_p as *mut BoxHeader, val));
   //      }
   //    }
   //  }
@@ -74,7 +74,7 @@ impl Tuple {
     let n = Self::storage_size(arity);
     let p = hp.alloc::<Tuple>(n, false)?;
     unsafe {
-      core::ptr::write(p, Tuple::new(arity));
+      ptr::write(p, Tuple::new(arity));
     }
     Ok(p)
   }
@@ -85,7 +85,7 @@ impl Tuple {
     debug_assert!(index < self.get_arity());
 
     let data = &mut self.data0 as *mut Term as *mut Word;
-    core::ptr::write(data.add(index), val)
+    ptr::write(data.add(index), val)
   }
 
   // Write tuple's i-th element (base 0)
@@ -95,7 +95,7 @@ impl Tuple {
 
     // Take i-th word after the tuple header
     let data = &mut self.data0 as *mut Term;
-    core::ptr::write(data.add(index), val)
+    ptr::write(data.add(index), val)
   }
 
   // Read tuple's i-th element (base 0)
@@ -104,7 +104,7 @@ impl Tuple {
     debug_assert!(index < self.get_arity());
 
     let data = &self.data0 as *const Term;
-    core::ptr::read(data.add(index))
+    ptr::read(data.add(index))
   }
 
   /// Format tuple contents
