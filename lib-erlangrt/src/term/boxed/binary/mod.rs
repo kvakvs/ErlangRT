@@ -21,7 +21,7 @@ use crate::{
 
 pub mod bits;
 pub mod binaryheap_bin;
-pub mod bit_writer;
+pub mod bits_paste;
 pub mod match_state;
 pub mod procheap_bin;
 pub mod refc_bin;
@@ -99,7 +99,7 @@ impl Binary {
   }
 
   pub unsafe fn create_into(size: BitSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
-    if size.bit_count == 0 {
+    if size.bits == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedBinary);
     }
@@ -231,7 +231,7 @@ impl Binary {
     // If last byte bits are not 0, print comma again and print the last byte
     let lbb = size.get_last_byte_bits();
     if lbb != 0 {
-      if size.bit_count > defs::BYTE_BITS {
+      if size.bits > defs::BYTE_BITS {
         write!(f, ", ")?;
       }
       let last_byte = reader.read(n_bytes);

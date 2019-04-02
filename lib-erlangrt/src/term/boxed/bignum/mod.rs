@@ -1,22 +1,22 @@
+use core::{mem::size_of, ptr};
+
+use crate::{defs::{ByteSize, WordSize}, defs, emulator::heap::Heap, fail::{RtErr, RtResult}, term::{
+  boxed::{
+    BoxHeader,
+    boxtype::{self, BoxType},
+    BOXTYPETAG_BIGINTEGER, trait_interface::TBoxed,
+  },
+  classify,
+  value::*,
+}};
+
+use self::sign::*;
+
 pub mod endianness;
 pub mod sign;
 
-use self::sign::*;
-use crate::{
-  defs::{ByteSize, WordSize},
-  emulator::heap::Heap,
-  fail::{RtErr, RtResult},
-  term::{
-    boxed::{
-      boxtype::{self, BoxType},
-      trait_interface::TBoxed,
-      BoxHeader, BOXTYPETAG_BIGINTEGER,
-    },
-    classify,
-    value::*,
-  },
-};
-use core::{mem::size_of, ptr};
+pub const BIG_DIGIT_SIZE: usize = defs::WORD_BYTES;
+pub type Digit = usize;
 
 #[allow(dead_code)]
 pub struct Bignum {
@@ -25,7 +25,7 @@ pub struct Bignum {
   /// Negative size points that the number is negative.
   pub size: isize,
   /// First limb of digits is here, remaining digits follow in the memory after
-  pub digits: core::mem::MaybeUninit<usize>,
+  pub digits: Digit,
 }
 
 impl TBoxed for Bignum {
@@ -61,7 +61,7 @@ impl Bignum {
   pub unsafe fn create_into(
     hp: &mut Heap,
     sign: Sign,
-    limbs: &[usize],
+    limbs: &[Digit],
   ) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
     let this = hp.alloc::<Self>(n_words, false)?;
@@ -75,16 +75,40 @@ impl Bignum {
         } else {
           limbs.len() as isize
         },
-        digits: core::mem::MaybeUninit::uninitialized(),
+        digits: 0,
       },
     );
     ptr::copy_nonoverlapping(
       limbs.as_ptr(),
-      &mut (*this).digits as *mut core::mem::MaybeUninit<usize> as *mut usize,
+      &mut (*this).digits as *mut Digit,
       limbs.len(),
     );
 
     Ok(this)
+  }
+
+  pub fn get_digits(&self) -> &[Digit] {
+    unsafe { core::slice::from_raw_parts(&self.digits as *const Digit, self.get_size()) }
+  }
+
+  pub fn is_negative(&self) -> bool {
+    self.size < 0
+  }
+
+  /// Return how many digits are stored (abs value of self.size)
+  #[inline]
+  pub fn get_size(&self) -> usize {
+    if self.size >= 0 {
+      self.size
+    } else {
+      -self.size
+    } as usize
+  }
+
+  /// Return how many bytes are used to store the digits. Multiple of word size.
+  #[inline]
+  pub fn get_byte_size(&self) -> ByteSize {
+    ByteSize::new(self.get_size() * DIGIT_BYTES)
   }
 
   #[allow(dead_code)]
@@ -103,9 +127,5 @@ impl Bignum {
       BOXTYPETAG_BIGINTEGER,
       RtErr::BoxedIsNotABigint,
     )
-  }
-
-  pub fn is_negative(&self) -> bool {
-    unimplemented!("is_negative")
   }
 }

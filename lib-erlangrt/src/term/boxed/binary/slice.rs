@@ -39,7 +39,7 @@ impl BinarySlice {
     size: BitSize,
     hp: &mut Heap,
   ) -> RtResult<*const TBinary> {
-    if size.bit_count == 0 {
+    if size.bits == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedSlice);
     }

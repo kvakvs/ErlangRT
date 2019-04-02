@@ -95,8 +95,8 @@ impl BinaryMatchState {
 
   #[inline]
   pub fn get_bits_remaining(&self) -> BitSize {
-    let stop_at = self.match_buffer.stop_at.bit_count;
-    let read_pos = self.match_buffer.read_position.bit_count;
+    let stop_at = self.match_buffer.stop_at.bits;
+    let read_pos = self.match_buffer.read_position.bits;
     debug_assert!(
       read_pos <= stop_at,
       "Offset in match buffer {} can't and shouldn't be greater than the total bits {}",

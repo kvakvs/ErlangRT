@@ -5,48 +5,48 @@ use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct BitSize {
-  pub bit_count: usize,
+  pub bits: usize,
 }
 
 impl fmt::Display for BitSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} bits", self.bit_count)
+    write!(f, "{} bits", self.bits)
   }
 }
 
 impl fmt::Debug for BitSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} bits", self.bit_count)
+    write!(f, "{} bits", self.bits)
   }
 }
 
 impl BitSize {
   pub const fn zero() -> Self {
-    Self { bit_count: 0 }
+    Self { bits: 0 }
   }
 
   #[inline]
   pub const fn is_empty(self) -> bool {
-    self.bit_count == 0
+    self.bits == 0
   }
 
   #[inline]
   pub const fn with_bits(bit_count: usize) -> Self {
-    Self { bit_count }
+    Self { bits: bit_count }
   }
 
   #[allow(dead_code)]
   #[inline]
   pub const fn with_bytesize(size: ByteSize) -> Self {
     Self {
-      bit_count: size.bytes() * defs::BYTE_BITS,
+      bits: size.bytes() * defs::BYTE_BITS,
     }
   }
 
   #[inline]
   pub const fn with_bytes(size: usize) -> Self {
     Self {
-      bit_count: size * defs::BYTE_BITS,
+      bits: size * defs::BYTE_BITS,
     }
   }
 
@@ -60,13 +60,13 @@ impl BitSize {
       );
     }
     Self {
-      bit_count: size * unit,
+      bits: size * unit,
     }
   }
 
   pub const fn with_unit_const(size: usize, unit: usize) -> Self {
     Self {
-      bit_count: size * unit,
+      bits: size * unit,
     }
   }
 
@@ -74,21 +74,21 @@ impl BitSize {
   /// all bytes are whole and no hanging bits.
   #[inline]
   pub const fn get_last_byte_bits(&self) -> usize {
-    self.bit_count & (defs::BYTE_BITS - 1)
+    self.bits & defs::BYTE_SHIFT_RANGE_MASK
   }
 
   #[inline]
   pub const fn get_byte_size_rounded_down(&self) -> ByteSize {
-    ByteSize::new(self.bit_count >> defs::BYTE_POF2_BITS)
+    ByteSize::new(self.bits >> defs::BYTE_POF2_BITS)
   }
 
   #[inline]
   pub const fn get_bytes_rounded_down(&self) -> usize {
-    self.bit_count >> defs::BYTE_POF2_BITS
+    self.bits >> defs::BYTE_POF2_BITS
   }
 
   pub const fn get_byte_size_rounded_up(self) -> ByteSize {
-    ByteSize::new((self.bit_count + defs::BYTE_BITS - 1) / defs::BYTE_BITS)
+    ByteSize::new((self.bits + defs::BYTE_SHIFT_RANGE_MASK) / defs::BYTE_BITS)
   }
 
   #[inline]
@@ -103,7 +103,7 @@ impl Add for BitSize {
 
   fn add(self, other: BitSize) -> BitSize {
     BitSize {
-      bit_count: self.bit_count + other.bit_count,
+      bits: self.bits + other.bits,
     }
   }
 }
@@ -113,7 +113,7 @@ impl Sub for BitSize {
 
   fn sub(self, other: BitSize) -> BitSize {
     BitSize {
-      bit_count: self.bit_count - other.bit_count,
+      bits: self.bits - other.bits,
     }
   }
 }

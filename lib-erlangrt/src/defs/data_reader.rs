@@ -31,7 +31,7 @@ impl TDataReader for BitReader {
   fn get_bit_size(&self) -> BitSize {
     // Length of the data minus the bit offset.
     // The last byte will be possibly incomplete.
-    BitSize::with_bits(self.data.len() * defs::BYTE_BITS - self.offset.bit_count)
+    BitSize::with_bits(self.data.len() * defs::BYTE_BITS - self.offset.bits)
   }
 
   #[inline]

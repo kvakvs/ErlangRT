@@ -36,5 +36,5 @@ fn bit_size_1(t: Term) -> RtResult<Term> {
 
   let bin_ptr = unsafe { boxed::Binary::get_trait_from_term(t) };
   let bin_size = unsafe { (*bin_ptr).get_bit_size() };
-  Ok(Term::make_small_unsigned(bin_size.bit_count))
+  Ok(Term::make_small_unsigned(bin_size.bits))
 }

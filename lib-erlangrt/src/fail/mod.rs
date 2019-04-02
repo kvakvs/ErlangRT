@@ -54,6 +54,8 @@ pub enum RtErr {
   HeapBinTooSmall(usize, ByteSize), // want bytes, have bytes
   ProcBinTooSmall(usize, ByteSize), // want bytes, have bytes
   BinaryDestinationTooSmall, // bytes/bits will not fit the dst binary
+  PasteIntMustBeSmallOrBigint,
+  PasteIntZeroDstSize, // destination size for paste int was 0
 }
 
 impl From<bin_reader::ReadError> for RtErr {

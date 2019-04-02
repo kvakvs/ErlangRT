@@ -5,7 +5,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{boxed, value::Term},
 };
-use crate::term::boxed::binary::bit_writer::{SizeOrAll, BitWriter};
+use crate::term::boxed::binary::bits_paste::{SizeOrAll, BitWriter};
 
 // Store `src` into the binary open for writing, the binary and the write
 // position are stored in the process runtime context.

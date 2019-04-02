@@ -16,7 +16,7 @@ pub unsafe fn copy_bits(
   dst_direction: isize,
   size: BitSize,
 ) -> RtResult<BitSize> {
-  if size.bit_count == 0 {
+  if size.bits == 0 {
     return Ok(size);
   }
 
@@ -27,8 +27,8 @@ pub unsafe fn copy_bits(
 
   let dst_end_bits = (dst_offset + size).get_last_byte_bits();
 
-  let mut lmask = if dst_offset.bit_count != 0 {
-    make_mask(defs::BYTE_BITS - dst_offset.bit_count)
+  let mut lmask = if dst_offset.bits != 0 {
+    make_mask(defs::BYTE_BITS - dst_offset.bits)
   } else {
     0
   };
@@ -40,7 +40,7 @@ pub unsafe fn copy_bits(
   };
 
   // Take care of the case that all bits are in the same byte.
-  if (dst_offset + size).bit_count < defs::BYTE_BITS {
+  if (dst_offset + size).bits < defs::BYTE_BITS {
     // Check whether the masks overlap and should be `and`-ed, or should be `or`-ed
     lmask = if lmask & rmask != 0 {
       lmask & rmask
@@ -50,10 +50,10 @@ pub unsafe fn copy_bits(
 
     if src_offset == dst_offset {
       ptr::write(dst, mask_bits(ptr::read(src), ptr::read(dst), lmask as u8));
-    } else if src_offset.bit_count > dst_offset.bit_count {
+    } else if src_offset.bits > dst_offset.bits {
       let diff_bits = (src_offset - dst_offset).get_last_byte_bits();
       let mut bits = ((ptr::read(src) as usize) << diff_bits) as u8;
-      if (src_offset + size).bit_count > defs::BYTE_BITS {
+      if (src_offset + size).bits > defs::BYTE_BITS {
         src = src.offset(src_direction);
         bits |= ptr::read(src) >> (defs::BYTE_BITS - diff_bits);
       }
@@ -71,9 +71,9 @@ pub unsafe fn copy_bits(
   // At this point, we know that the bits are in 2 or more bytes
   //
   let mut count = if lmask != 0 {
-    (size.bit_count - (defs::BYTE_BITS - dst_offset.bit_count)) >> defs::BYTE_POF2_BITS
+    (size.bits - (defs::BYTE_BITS - dst_offset.bits)) >> defs::BYTE_POF2_BITS
   } else {
-    size.bit_count >> defs::BYTE_POF2_BITS
+    size.bits >> defs::BYTE_POF2_BITS
   };
 
   if src_offset == dst_offset {
@@ -104,14 +104,14 @@ pub unsafe fn copy_bits(
     let mut bits: u8;
 
     if src_offset > dst_offset {
-      lshift = (src_offset - dst_offset).bit_count;
+      lshift = (src_offset - dst_offset).bits;
       rshift = (defs::BYTE_BITS - lshift) & defs::BYTE_SHIFT_RANGE_MASK;
       bits = ptr::read(src);
-      if (src_offset + size).bit_count > 8 {
+      if (src_offset + size).bits > 8 {
         src = src.offset(src_direction);
       }
     } else {
-      rshift = (dst_offset - src_offset).bit_count & defs::BYTE_SHIFT_RANGE_MASK;
+      rshift = (dst_offset - src_offset).bits & defs::BYTE_SHIFT_RANGE_MASK;
       lshift = (defs::BYTE_BITS - rshift) & defs::BYTE_SHIFT_RANGE_MASK;
       bits = 0;
     }

@@ -50,7 +50,7 @@ impl OpcodeBsTestTail2 {
     match_state: *mut BinaryMatchState,
     bits: usize,
   ) -> RtResult<DispatchResult> {
-    let remaining = unsafe { (*match_state).get_bits_remaining().bit_count };
+    let remaining = unsafe { (*match_state).get_bits_remaining().bits };
     if remaining != bits {
       runtime_ctx.jump(fail);
     }

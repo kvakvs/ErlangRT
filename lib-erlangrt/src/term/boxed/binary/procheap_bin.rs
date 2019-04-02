@@ -5,7 +5,7 @@ use crate::{
   term::{
     boxed::{
       self,
-      binary::{bit_writer::BitWriter, trait_interface::TBinary, BinaryType},
+      binary::{bits_paste::BitWriter, trait_interface::TBinary, BinaryType},
       Binary,
     },
     value::Term,
