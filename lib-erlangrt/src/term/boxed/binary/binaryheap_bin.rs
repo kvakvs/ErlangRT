@@ -3,7 +3,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{bits_paste::BitWriter, trait_interface::TBinary, BinaryType},
+      binary::{bits_paste, trait_interface::TBinary, BinaryType},
       Binary,
     },
     value::Term,
@@ -91,6 +91,6 @@ impl TBinary for BinaryHeapBinary {
     flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()> {
     let data = self.get_data_mut();
-    BitWriter::put_integer(val, size, data, offset, flags)
+    bits_paste::put_integer(val, size, data, offset, flags)
   }
 }

@@ -105,14 +105,14 @@ pub unsafe fn copy_bits(
 
     if src_offset > dst_offset {
       lshift = (src_offset - dst_offset).bits;
-      rshift = (defs::BYTE_BITS - lshift) & defs::BYTE_SHIFT_RANGE_MASK;
+      rshift = defs::byte_shift(defs::BYTE_BITS - lshift);
       bits = ptr::read(src);
       if (src_offset + size).bits > 8 {
         src = src.offset(src_direction);
       }
     } else {
-      rshift = (dst_offset - src_offset).bits & defs::BYTE_SHIFT_RANGE_MASK;
-      lshift = (defs::BYTE_BITS - rshift) & defs::BYTE_SHIFT_RANGE_MASK;
+      rshift = defs::byte_shift((dst_offset - src_offset).bits);
+      lshift = defs::byte_shift(defs::BYTE_BITS - rshift);
       bits = 0;
     }
 

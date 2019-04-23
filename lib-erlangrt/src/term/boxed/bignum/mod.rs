@@ -99,16 +99,16 @@ impl Bignum {
   #[inline]
   pub fn get_size(&self) -> usize {
     if self.size >= 0 {
-      self.size
+      self.size as usize
     } else {
-      -self.size
-    } as usize
+      -self.size as usize
+    }
   }
 
   /// Return how many bytes are used to store the digits. Multiple of word size.
   #[inline]
   pub fn get_byte_size(&self) -> ByteSize {
-    ByteSize::new(self.get_size() * DIGIT_BYTES)
+    ByteSize::new(self.get_size() * BIG_DIGIT_SIZE)
   }
 
   #[allow(dead_code)]

@@ -3,9 +3,14 @@ use crate::{
   defs::BitSize,
   emulator::{gen_atoms, process::Process, runtime_ctx::Context, vm::VM},
   fail::{RtErr, RtResult},
-  term::{boxed, value::Term},
+  term::{
+    boxed::{
+      self,
+      binary::bits_paste::{self, SizeOrAll},
+    },
+    value::Term,
+  },
 };
-use crate::term::boxed::binary::bits_paste::{SizeOrAll, BitWriter};
 
 // Store `src` into the binary open for writing, the binary and the write
 // position are stored in the process runtime context.
@@ -51,7 +56,7 @@ impl OpcodeBsPutBinary {
     let size_or_all = Self::get_size_or_all(in_size_term);
 
     unsafe {
-      match BitWriter::put_binary(
+      match bits_paste::put_binary(
         ctx.current_bin.dst.unwrap(),
         size_or_all,
         boxed::Binary::get_trait_mut_from_term(src),

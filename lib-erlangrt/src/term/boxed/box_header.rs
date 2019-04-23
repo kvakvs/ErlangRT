@@ -69,7 +69,7 @@ impl BoxHeader {
     assert_eq!(
       self.guard_word, GUARD_WORD_VALUE,
       "Guard value 0x{:x} at {:p} is not in place (found value 0x{:x}), \
-      check that the pointer to the box is aligned and correct",
+       check that the pointer to the box is aligned and correct",
       GUARD_WORD_VALUE, self as *const Self, self.guard_word
     );
   }

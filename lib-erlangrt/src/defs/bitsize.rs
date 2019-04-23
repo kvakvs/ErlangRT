@@ -59,22 +59,18 @@ impl BitSize {
         unit
       );
     }
-    Self {
-      bits: size * unit,
-    }
+    Self { bits: size * unit }
   }
 
   pub const fn with_unit_const(size: usize, unit: usize) -> Self {
-    Self {
-      bits: size * unit,
-    }
+    Self { bits: size * unit }
   }
 
   /// Returns how many hanging bits are there. Value range is 0..7, 0 means
   /// all bytes are whole and no hanging bits.
   #[inline]
   pub const fn get_last_byte_bits(&self) -> usize {
-    self.bits & defs::BYTE_SHIFT_RANGE_MASK
+    self.bits & (defs::BYTE_BITS - 1)
   }
 
   #[inline]
@@ -88,7 +84,7 @@ impl BitSize {
   }
 
   pub const fn get_byte_size_rounded_up(self) -> ByteSize {
-    ByteSize::new((self.bits + defs::BYTE_SHIFT_RANGE_MASK) / defs::BYTE_BITS)
+    ByteSize::new((self.bits + defs::BYTE_BITS - 1) / defs::BYTE_BITS)
   }
 
   #[inline]
