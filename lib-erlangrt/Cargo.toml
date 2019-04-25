@@ -34,13 +34,13 @@ fancy_string_quotes = []
 trace_beam_loader = []
 
 [dependencies]
-bitflags = "1.0.4"
-bytes = "0.4.5"
+bitflags = "*"
+bytes = "*"
 clippy = {version = "*", optional = true}
-colored = "1.6" # console colors (TTY systems)
-compress = "0.1.2" # depends on `num`; TODO: use libflate
-lazy_static = "0.2"
-ramp = "0.5.1" # Rust multiprecision arithmetics
+colored = "*" # console colors (TTY systems)
+compress = "*" # depends on `num`; TODO: use libflate
+lazy_static = "*"
+ramp = "*" # Rust multiprecision arithmetics
 byteorder = "*"
 
 [profile.dev]
