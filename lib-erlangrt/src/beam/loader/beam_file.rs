@@ -15,7 +15,7 @@ use crate::{
     },
   },
   defs,
-  emulator::heap::{Heap, DEFAULT_LIT_HEAP},
+  emulator::heap::{Heap},
   fail::{RtErr, RtResult},
   rt_util::{
     bin_reader::{BinaryReader, ReadError},
@@ -23,6 +23,7 @@ use crate::{
   },
   term::{term_builder::TermBuilder, value::Term},
 };
+use crate::emulator::heap::Designation;
 
 fn module() -> &'static str {
   "beam/file: "
@@ -62,7 +63,7 @@ impl BeamFile {
       code: Vec::new(),
 
       lit_tab: Vec::new(),
-      lit_heap: Heap::new(DEFAULT_LIT_HEAP),
+      lit_heap: Heap::new(Designation::ModuleLiterals),
       mod_attrs: Term::nil(),
       compiler_info: Term::nil(),
     }

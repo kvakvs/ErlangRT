@@ -6,6 +6,7 @@ use crate::{
     term_builder::{list_builder::build_erlstr_from_utf8, ListBuilder},
   },
 };
+use crate::emulator::heap::Designation;
 
 #[derive(Debug)]
 pub enum NodeName {
@@ -42,7 +43,7 @@ impl ErlStartArgs {
       node: NodeName::Short("nonode@nohost".to_string()),
       start: Vec::new(),
       search_path: vec![],
-      arg_heap: Heap::new(1024),
+      arg_heap: Heap::new(Designation::ProgramArgumentsHeap),
       args_term: Term::non_value(),
     }
   }

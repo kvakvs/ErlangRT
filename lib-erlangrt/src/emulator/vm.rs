@@ -16,7 +16,7 @@ use crate::{
   term::value::*,
 };
 use crate::emulator::process_flags;
-use crate::emulator::heap::Heap;
+use crate::emulator::heap::{Heap, Designation};
 
 /// VM environment, heaps, tables, processes all goes here.
 /// Atoms are a global API in `atom.rs`.
@@ -33,8 +33,6 @@ pub struct VM {
   pub binary_heap: Heap,
 }
 
-const BINARY_HEAP_CAPACITY: usize = 65536; // 64k*8 = 512kb
-
 impl VM {
   /// Create a VM, multiple VMs can be created but atom table and code server
   /// will be shared (global).
@@ -44,7 +42,7 @@ impl VM {
       pid_counter: 0,
       scheduler: Scheduler::new(),
       processes: ProcessRegistry::new(),
-      binary_heap: Heap::new(BINARY_HEAP_CAPACITY),
+      binary_heap: Heap::new(Designation::BinaryHeap),
     }
   }
 

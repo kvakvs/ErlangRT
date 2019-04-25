@@ -14,6 +14,7 @@ use crate::{
   term::value::Term,
 };
 use std::collections::BTreeMap;
+use crate::emulator::heap::Designation;
 
 /// Stores f/arity mapping to offset in code.
 pub type ModuleFunTable = BTreeMap<FunArity, usize>;
@@ -53,7 +54,7 @@ impl Module {
     Module {
       code: Vec::new(),
       funs: BTreeMap::new(),
-      lit_heap: Heap::new(1),
+      lit_heap: Heap::new(Designation::TransientDestructible),
       versioned_name: name.clone(),
       lambdas: Vec::new(),
     }

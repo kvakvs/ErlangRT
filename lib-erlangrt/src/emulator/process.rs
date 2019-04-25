@@ -5,9 +5,9 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{
     code_srv::CodeServer,
-    heap::{copy_term, Heap, DEFAULT_PROC_HEAP},
+    heap::{copy_term, Designation, Heap},
     mailbox::ProcessMailbox,
-    mfa::{ModFunArity, ModFunArgs},
+    mfa::{ModFunArgs, ModFunArity},
     process_flags::ProcessFlags,
     process_registry::ProcessRegistry,
     runtime_ctx,
@@ -99,7 +99,7 @@ impl Process {
           owned_by_scheduler: ptr::null_mut(),
 
           // Memory
-          heap: Heap::new(DEFAULT_PROC_HEAP),
+          heap: Heap::new(Designation::ProcessHeap),
           mailbox: ProcessMailbox::new(),
 
           // Execution

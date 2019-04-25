@@ -1,16 +1,12 @@
 //! Debug tool to display Erlang heap contents.
-use crate::{
-  defs::Word,
-  emulator::heap::{heap_iter, Heap},
-  term::value::PrimaryTag,
-};
+use crate::{defs::Word, emulator::heap::Heap, term::value::PrimaryTag};
 
 impl Heap {
   /// Print heap contents
   // This function is not used sometimes, this is fine to ignore dead code
   #[allow(dead_code)]
   pub unsafe fn dump(&self) {
-    let mut data_p = heap_iter(self);
+    let mut data_p = self.heap_iter();
     while let Some(addr) = data_p.next() {
       let val_at_addr = *addr;
       let mut output = String::new();
