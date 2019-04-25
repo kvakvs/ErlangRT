@@ -1,5 +1,5 @@
 use crate::{
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{boxed, value::Term},
 };
@@ -17,7 +17,7 @@ pub struct MapBuilder {
 }
 
 impl MapBuilder {
-  pub fn new(heap: &mut Heap, size_hint: usize) -> RtResult<Self> {
+  pub fn new(heap: &mut THeap, size_hint: usize) -> RtResult<Self> {
     let p = boxed::Map::create_into(heap, size_hint)?;
     Ok(Self { p })
   }

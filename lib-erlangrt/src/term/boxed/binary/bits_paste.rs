@@ -1,7 +1,7 @@
 //! Paste operations insert integers (small and big) somewhere into a binary.
 //! Ported from OTP `erl_bits.c` mostly.
 
-use core::{ptr, cmp};
+use core::{cmp, ptr};
 
 use crate::{
   beam::opcodes::binary::BsFlags,
@@ -243,7 +243,7 @@ fn copy_and_update_val(
   dst: &mut [u8],
   mut dst_offset: usize,
   ddir: isize,
-  mut val: isize
+  mut val: isize,
 ) -> (usize, isize) {
   let mut sz = dst.len() - dst_offset;
   while sz > 0 {

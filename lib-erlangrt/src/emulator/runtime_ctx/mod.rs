@@ -10,7 +10,7 @@ use crate::{
   emulator::{
     code::{opcode, CodePtr},
     code_srv::MFALookupResult,
-    heap,
+    heap::heap_trait::THeap,
     process::Process,
     runtime_ctx::current_binary::CurrentBinaryState,
     vm::VM,
@@ -198,7 +198,7 @@ impl Context {
   /// Fetch a word from code, assume it is either an `Term` or a source X, Y or
   /// FP register, then perform a load operation.
   #[inline]
-  pub fn op_arg_load_term_at(&mut self, offs: usize, hp: &heap::Heap) -> Term {
+  pub fn op_arg_load_term_at(&mut self, offs: usize, hp: &THeap) -> Term {
     let src = self.op_arg_read_term_at(offs);
     self.load(src, hp)
   }
@@ -211,7 +211,7 @@ impl Context {
 
   /// Read a register otherwise term is returned unchanged.
   // TODO: Optimize - separate load constant from load register instruction
-  pub fn load(&self, src: Term, hp: &heap::Heap) -> Term {
+  pub fn load(&self, src: Term, hp: &THeap) -> Term {
     if src.is_special() {
       if src.get_special_tag() == value::SpecialTag::REG {
         let r_tag = src.get_reg_tag();
@@ -240,7 +240,7 @@ impl Context {
     &mut self,
     src: Term,
     dst: Term,
-    hp: &mut heap::Heap,
+    hp: &mut THeap,
   ) -> RtResult<()> {
     let src_val = self.load(src, hp);
     self.store_value(src_val, dst, hp)
@@ -249,12 +249,7 @@ impl Context {
   /// Copy a value `val` to `dst`. No attempt is done to load val from a
   /// stack value or a register, val is assumed to be a ready value, not a source.
   /// Returns void `()` or an error.
-  pub fn store_value(
-    &mut self,
-    val: Term,
-    dst: Term,
-    hp: &mut heap::Heap,
-  ) -> RtResult<()> {
+  pub fn store_value(&mut self, val: Term, dst: Term, hp: &mut THeap) -> RtResult<()> {
     debug_assert!(
       !val.is_register_x(),
       "ctx.store value must not be a X reg, have {}",

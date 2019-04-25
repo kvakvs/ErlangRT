@@ -1,5 +1,5 @@
 use crate::{
-  emulator::heap::Heap,
+  emulator::heap::{heap_trait::THeap, Heap},
   fail::RtResult,
   term::{boxed, value::*},
 };
@@ -11,7 +11,7 @@ pub struct TupleBuilder {
 
 impl TupleBuilder {
   #[inline]
-  pub fn with_arity(arity: usize, hp: &mut Heap) -> RtResult<Self> {
+  pub fn with_arity(arity: usize, hp: &mut THeap) -> RtResult<Self> {
     let new_tuple = boxed::Tuple::create_into(hp, arity)?;
     Ok(Self::new(new_tuple))
   }

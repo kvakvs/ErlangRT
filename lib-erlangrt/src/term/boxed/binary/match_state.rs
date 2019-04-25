@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitSize, ByteSize, WordSize},
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{
     boxed::{
@@ -76,7 +76,7 @@ impl BinaryMatchState {
 
   pub unsafe fn create_into(
     bin_ptr: *const TBinary,
-    hp: &mut Heap,
+    hp: &mut THeap,
   ) -> RtResult<*mut BinaryMatchState> {
     let storage_sz = Self::storage_size();
     let this = hp.alloc::<Self>(storage_sz, false)?;

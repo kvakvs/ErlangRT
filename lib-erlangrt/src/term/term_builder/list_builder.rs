@@ -1,6 +1,6 @@
 use crate::{
   defs::sizes::WordSize,
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{boxed, value::*},
 };
@@ -19,15 +19,15 @@ pub struct ListBuilder {
   // last cell (used to append to list)
   pub tail_p: *mut boxed::Cons,
   // because i can't into lifetimes :( but it lives short anyway
-  heap: *mut Heap,
+  heap: *mut THeap,
 }
 
 impl ListBuilder {
-  pub fn new(heap: *mut Heap) -> RtResult<ListBuilder> {
+  pub fn new(heap: &mut THeap) -> RtResult<ListBuilder> {
     Ok(ListBuilder {
       head_p: ptr::null_mut(),
       tail_p: ptr::null_mut(),
-      heap,
+      heap: heap as *mut THeap,
     })
   }
 
@@ -89,7 +89,7 @@ impl ListBuilder {
 
 /// A helper which takes a heap and a UTF-8 string, and creates Erlang string
 /// of integer unicode codepoints, one per character.
-pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut Heap) -> RtResult<Term> {
+pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut THeap) -> RtResult<Term> {
   let mut lb = ListBuilder::new(hp)?;
   for (_pos, ch) in s.char_indices() {
     lb.append(Term::make_small_unsigned(ch as usize))?;

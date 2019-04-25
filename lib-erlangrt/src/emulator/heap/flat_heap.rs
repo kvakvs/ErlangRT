@@ -1,6 +1,6 @@
 use crate::{
   defs::{Word, WordSize},
-  emulator::heap::{catch::NextCatchResult, iter, Designation},
+  emulator::heap::{catch::NextCatchResult, heap_trait::THeap, iter, Designation},
   fail::{RtErr, RtResult},
   term::value::Term,
 };
@@ -37,6 +37,51 @@ impl fmt::Debug for FlatHeap {
       self.get_heap_max_capacity(),
       self.get_heap_used_words()
     )
+  }
+}
+
+impl THeap for FlatHeap {
+  fn alloc(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut Word> {
+    let pos = self.heap_top;
+    let n_words = n.words();
+    // Explicitly forbid expanding without a GC, fail if capacity is exceeded
+    if pos + n_words >= self.stack_top {
+      // return Err(Error::HeapIsFull);
+      panic!(
+        "Heap is full requested={} have={}",
+        n,
+        self.get_heap_available()
+      );
+    }
+
+    // Assume we can grow the data without reallocating
+    let raw_nil = Term::nil().raw();
+    let new_chunk = unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) };
+
+    if init_nil {
+      unsafe {
+        for i in 0..n_words {
+          ptr::write(new_chunk.add(i), raw_nil)
+        }
+      }
+    }
+
+    self.heap_top += n_words;
+
+    Ok(new_chunk)
+  }
+
+
+  /// Create a constant iterator for walking the heap.
+  /// This is used by heap walkers such as "dump.rs"
+  unsafe fn heap_iter(&self) -> iter::HeapIterator {
+    let last = self.heap_top as isize;
+    let begin = self.get_heap_start_ptr() as *const Term;
+    iter::HeapIterator::new(begin, begin.offset(last))
+  }
+
+  fn belongs_to_heap(&self, p: *const Word) -> bool {
+    p < self.get_heap_start_ptr() || p >= self.get_heap_top_ptr()
   }
 }
 
@@ -93,8 +138,8 @@ impl FlatHeap {
 
   /// Get pointer to end of the allocated heap (below the stack top).
   #[inline]
-  pub unsafe fn get_heap_top_ptr(&self) -> *const Word {
-    self.get_heap_start_ptr().add(self.heap_top)
+  pub fn get_heap_top_ptr(&self) -> *const Word {
+    unsafe { self.get_heap_start_ptr().add(self.heap_top) }
   }
 
   /// Stack start is same as end of everything, pointer to the first word after
@@ -112,37 +157,6 @@ impl FlatHeap {
   #[inline]
   unsafe fn get_stack_top_ptr(&self) -> *const Word {
     self.get_heap_start_ptr().add(self.stack_top)
-  }
-
-  pub fn alloc<T>(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut T> {
-    let pos = self.heap_top;
-    let n_words = n.words();
-    // Explicitly forbid expanding without a GC, fail if capacity is exceeded
-    if pos + n_words >= self.stack_top {
-      // return Err(Error::HeapIsFull);
-      panic!(
-        "Heap is full requested={} have={}",
-        n,
-        self.get_heap_available()
-      );
-    }
-
-    // Assume we can grow the data without reallocating
-    let raw_nil = Term::nil().raw();
-    let new_chunk =
-      unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) as *mut Word };
-
-    if init_nil {
-      unsafe {
-        for i in 0..n_words {
-          ptr::write(new_chunk.add(i), raw_nil)
-        }
-      }
-    }
-
-    self.heap_top += n_words;
-
-    Ok(new_chunk as *mut T)
   }
 
   //  /// Allocate words on heap enough to store bignum digits and copy the given
@@ -356,13 +370,5 @@ impl FlatHeap {
     println!("drop_stack_words {}", n_drop);
     assert!(self.stack_top + n_drop < self.capacity);
     self.stack_top += n_drop;
-  }
-
-  /// Create a constant iterator for walking the heap.
-  /// This is used by heap walkers such as "dump.rs"
-  pub unsafe fn heap_iter(&self) -> iter::HeapIterator {
-    let last = self.heap_top as isize;
-    let begin = self.get_heap_start_ptr() as *const Term;
-    iter::HeapIterator::new(begin, begin.offset(last))
   }
 }

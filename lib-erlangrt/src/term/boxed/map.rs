@@ -2,7 +2,7 @@ use core::cmp::Ordering;
 
 use crate::{
   defs::{Word, WordSize},
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{
     boxed::{
@@ -78,7 +78,7 @@ impl Map {
   }
 
   /// Allocate `size+n` cells and form a Map in memory, return the pointer.
-  pub fn create_into(hp: &mut Heap, num_pairs: Word) -> RtResult<*mut Map> {
+  pub fn create_into(hp: &mut THeap, num_pairs: Word) -> RtResult<*mut Map> {
     let n = Self::storage_size(num_pairs);
     let p = hp.alloc::<Map>(n, false)?;
     unsafe {

@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -98,7 +98,7 @@ impl ProcessHeapBinary {
     header_size.get_words_rounded_up() + size.get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(size: BitSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size(size);
     let this = hp.alloc::<Self>(storage_sz, false)?;

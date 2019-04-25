@@ -2,7 +2,7 @@ use core::fmt;
 
 use crate::{
   defs::{self, data_reader::TDataReader, BitSize, ByteSize, WordSize},
-  emulator::{heap::Heap, vm::VM},
+  emulator::{heap::heap_trait::THeap, vm::VM},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -19,8 +19,8 @@ use crate::{
   },
 };
 
-pub mod bits;
 pub mod binaryheap_bin;
+pub mod bits;
 pub mod bits_paste;
 pub mod match_state;
 pub mod procheap_bin;
@@ -72,7 +72,7 @@ impl Binary {
   /// and if a large binary is to be created, also check the binary heap capacity.
   pub fn ensure_memory_for_binary(
     vm: &mut VM,
-    hp: &mut Heap,
+    hp: &mut THeap,
     size: BitSize,
     extra_memory: WordSize,
   ) -> RtResult<()> {
@@ -98,7 +98,7 @@ impl Binary {
     }
   }
 
-  pub unsafe fn create_into(size: BitSize, hp: &mut Heap) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
     if size.bits == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedBinary);

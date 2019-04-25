@@ -1,13 +1,10 @@
 use crate::{
   defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{
-        trait_interface::{TBinary},
-        BinaryType,
-      },
+      binary::{trait_interface::TBinary, BinaryType},
       Binary,
     },
     value::Term,
@@ -37,7 +34,7 @@ impl BinarySlice {
     orig: *const TBinary,
     offset: BitSize,
     size: BitSize,
-    hp: &mut Heap,
+    hp: &mut THeap,
   ) -> RtResult<*const TBinary> {
     if size.bits == 0 {
       // Return binary {} immediate special instead!

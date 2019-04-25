@@ -14,7 +14,10 @@ pub use self::{
 use crate::{
   big,
   defs::BitSize,
-  emulator::{atom, heap::Heap},
+  emulator::{
+    atom,
+    heap::{heap_trait::THeap, Heap},
+  },
   fail::RtResult,
   term::{
     boxed::{self, bignum, endianness::Endianness},
@@ -29,7 +32,7 @@ pub struct TermBuilder {
 }
 
 impl TermBuilder {
-  pub fn new(hp: &mut Heap) -> TermBuilder {
+  pub fn new(hp: &mut THeap) -> TermBuilder {
     TermBuilder {
       heap: hp as *mut Heap,
     }

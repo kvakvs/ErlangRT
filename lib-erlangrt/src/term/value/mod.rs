@@ -25,7 +25,7 @@ pub use self::{
 };
 use crate::{
   defs,
-  emulator::{gen_atoms, heap::Heap},
+  emulator::{gen_atoms, heap::heap_trait::THeap},
   fail::{RtErr, RtResult},
   term::boxed::{self, box_header, BoxHeader, BoxType},
 };
@@ -155,7 +155,7 @@ impl Term {
     Self::make_from_tag_and_value(PrimaryTag::LOCAL_PID, pindex)
   }
 
-  pub fn make_remote_pid(hp: &mut Heap, node: Self, pindex: usize) -> RtResult<Self> {
+  pub fn make_remote_pid(hp: &mut THeap, node: Self, pindex: usize) -> RtResult<Self> {
     let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
     Ok(Self::make_boxed(rpid_ptr))
   }
@@ -242,7 +242,6 @@ impl Term {
   pub const fn is_false(self) -> bool {
     self.value == gen_atoms::FALSE.raw()
   }
-
 }
 
 pub unsafe fn helper_get_const_from_boxed_term<T>(

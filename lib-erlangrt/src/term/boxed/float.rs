@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{
     boxed::{
@@ -45,7 +45,7 @@ impl Float {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn create_into(hp: &mut Heap, value: f64) -> RtResult<*mut Self> {
+  pub unsafe fn create_into(hp: &mut THeap, value: f64) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
     let this = hp.alloc::<Self>(n_words, false)?;
 

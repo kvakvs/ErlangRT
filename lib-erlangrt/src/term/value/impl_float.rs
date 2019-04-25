@@ -1,5 +1,5 @@
 use crate::{
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::{RtErr, RtResult},
   term::{boxed, value::Term},
 };
@@ -15,7 +15,7 @@ impl Term {
 
   /// Constructor to create a float on heap. May fail if the heap is full or
   /// something else might happen.
-  pub fn make_float(hp: &mut Heap, val: f64) -> RtResult<Self> {
+  pub fn make_float(hp: &mut THeap, val: f64) -> RtResult<Self> {
     let pf = unsafe { boxed::Float::create_into(hp, val)? };
     Ok(Self::make_boxed(pf))
   }

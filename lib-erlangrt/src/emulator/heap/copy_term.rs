@@ -2,7 +2,7 @@
 //! when an object changes its owner process.
 // TODO: Smarter approach with refcounted movable objects or use shared heap or something else
 use crate::{
-  emulator::heap::Heap,
+  emulator::heap::THeap,
   fail::RtResult,
   term::{
     boxed,
@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Copies term to another heap.
-pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
+pub fn copy_to(term: Term, hp: &mut THeap) -> RtResult<Term> {
   match term.get_term_tag() {
     PrimaryTag::BOX_PTR => unsafe { copy_boxed_to(term, hp) },
     PrimaryTag::HEADER => {
@@ -34,7 +34,7 @@ pub fn copy_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
 /// For each list element copy it to a new element in the destination heap.
 /// Also copy the tail element.
 /// Returns: `RtResult<copied_term>`
-unsafe fn copy_cons_to(lst: Term, hp: &mut Heap) -> RtResult<Term> {
+unsafe fn copy_cons_to(lst: Term, hp: &mut THeap) -> RtResult<Term> {
   let mut lb = ListBuilder::new(hp)?;
 
   let tail_el_result = value::cons::for_each(lst, |el| {
@@ -50,7 +50,7 @@ unsafe fn copy_cons_to(lst: Term, hp: &mut Heap) -> RtResult<Term> {
   Ok(lb.make_term())
 }
 
-unsafe fn copy_boxed_to(term: Term, hp: &mut Heap) -> RtResult<Term> {
+unsafe fn copy_boxed_to(term: Term, hp: &mut THeap) -> RtResult<Term> {
   let header_ptr = term.get_box_ptr::<boxed::BoxHeader>();
   let trait_ptr = (*header_ptr).get_trait_ptr();
   let box_type = (*trait_ptr).get_type();

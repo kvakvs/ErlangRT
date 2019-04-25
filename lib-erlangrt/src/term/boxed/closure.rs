@@ -4,7 +4,7 @@ use crate::{
     code::pointer::{CodePtr, VersionedCodePtr},
     code_srv::CodeServer,
     function::FunEntry,
-    heap::Heap,
+    heap::heap_trait::THeap,
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
@@ -18,8 +18,7 @@ use crate::{
     value::*,
   },
 };
-use core::mem::size_of;
-use core::ptr;
+use core::{mem::size_of, ptr};
 
 const fn module() -> &'static str {
   "closure: "
@@ -74,7 +73,7 @@ impl Closure {
   }
 
   pub unsafe fn create_into(
-    hp: &mut Heap,
+    hp: &mut THeap,
     fe: &FunEntry,
     frozen: &[Term],
   ) -> RtResult<Term> {

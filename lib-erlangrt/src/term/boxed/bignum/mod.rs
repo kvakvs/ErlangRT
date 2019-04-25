@@ -1,16 +1,21 @@
 use core::{mem::size_of, ptr};
 
-use crate::{defs::{ByteSize, WordSize}, defs, emulator::heap::Heap, fail::{RtErr, RtResult}, term::{
-  boxed::{
-    BoxHeader,
-    boxtype::{self, BoxType},
-    BOXTYPETAG_BIGINTEGER, trait_interface::TBoxed,
+use crate::{
+  defs::{self, ByteSize, WordSize},
+  fail::{RtErr, RtResult},
+  term::{
+    boxed::{
+      boxtype::{self, BoxType},
+      trait_interface::TBoxed,
+      BoxHeader, BOXTYPETAG_BIGINTEGER,
+    },
+    classify,
+    value::*,
   },
-  classify,
-  value::*,
-}};
+};
 
 use self::sign::*;
+use crate::emulator::heap::heap_trait::THeap;
 
 pub mod endianness;
 pub mod sign;
@@ -45,7 +50,7 @@ impl Bignum {
   }
 
   /// Create bignum for one isize
-  pub fn with_isize(hp: &mut Heap, val: isize) -> RtResult<*mut Bignum> {
+  pub fn with_isize(hp: &mut THeap, val: isize) -> RtResult<*mut Bignum> {
     let (sign, positive_val) = Sign::split(val);
 
     // Create slice of one limb
@@ -59,7 +64,7 @@ impl Bignum {
   /// Consume bytes as either big- or little-endian stream, and build a big
   /// integer on heap.
   pub unsafe fn create_into(
-    hp: &mut Heap,
+    hp: &mut THeap,
     sign: Sign,
     limbs: &[Digit],
   ) -> RtResult<*mut Self> {

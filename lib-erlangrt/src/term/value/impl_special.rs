@@ -81,7 +81,6 @@ impl SpecialLoadtime {
 }
 
 impl Term {
-  //
   // === === === Register index values === ===
   //
 
@@ -191,7 +190,6 @@ impl Term {
     Self::make_special(special_t, val)
   }
 
-  //
   // === === OPCODE === ===
   // In debug only: Represents value in the opcode cell of an instruction
   //
@@ -207,7 +205,6 @@ impl Term {
     self.get_special_value()
   }
 
-  //
   // === === SPECIAL - Load Time ATOM, LABEL, LITERAL indices === ===
   // These exist only during loading time and then must be converted to real
   // values using the lookup tables included in the BEAM file.

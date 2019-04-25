@@ -1,6 +1,6 @@
 use crate::{
   defs::sizes::ByteSize,
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{
     boxed::{self, binary::trait_interface::TBinary},
@@ -18,7 +18,7 @@ pub struct BinaryBuilder {
 
 impl BinaryBuilder {
   #[inline]
-  pub fn with_size(size: ByteSize, hp: &mut Heap) -> RtResult<Self> {
+  pub fn with_size(size: ByteSize, hp: &mut THeap) -> RtResult<Self> {
     let p = unsafe { boxed::Binary::create_into(size.get_bits(), hp) }?;
     let write_slice = unsafe { (*p).get_data_mut() };
     let write_pos = write_slice.as_mut_ptr();

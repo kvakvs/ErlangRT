@@ -1,7 +1,8 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::{
-    code::pointer::CodePtr, code_srv::CodeServer, heap::Heap, mfa::ModFunArity,
+    code::pointer::CodePtr, code_srv::CodeServer, heap::heap_trait::THeap,
+    mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
   native_fun::NativeFn,
@@ -40,7 +41,7 @@ impl Import {
     ByteSize::new(size_of::<Self>()).get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(hp: &mut Heap, mfarity: ModFunArity) -> RtResult<Term> {
+  pub unsafe fn create_into(hp: &mut THeap, mfarity: ModFunArity) -> RtResult<Term> {
     let storage_size = Self::storage_size();
     let this = hp.alloc::<Self>(storage_size, false)?;
 

@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, Word, WordSize},
-  emulator::heap::Heap,
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{
     boxed::{
@@ -70,7 +70,7 @@ impl Tuple {
   }
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
-  pub fn create_into(hp: &mut Heap, arity: usize) -> RtResult<*mut Tuple> {
+  pub fn create_into(hp: &mut THeap, arity: usize) -> RtResult<*mut Tuple> {
     let n = Self::storage_size(arity);
     let p = hp.alloc::<Tuple>(n, false)?;
     unsafe {
