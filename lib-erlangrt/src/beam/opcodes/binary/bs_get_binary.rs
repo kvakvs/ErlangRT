@@ -27,7 +27,7 @@ impl OpcodeBsGetBinary2 {
     proc: &mut Process,
     _fail: Term,
     match_state: *mut BinaryMatchState,
-    _live: usize,
+    live: usize,
     size: usize,
     unit: usize,
     _flags: Term,
@@ -38,21 +38,20 @@ impl OpcodeBsGetBinary2 {
     let src_bin = (*match_state).get_src_binary();
 
     if !bit_size.is_empty() {
-      // TODO: for GC might need to pass extra args
-      proc.heap.ensure_size(BinarySlice::storage_size())?;
+      proc.get_heap_mut().allocate_intent(BinarySlice::storage_size(), live)?;
 
       // Create slice
       let bit_offset = (*match_state).get_offset();
       let slice =
-        BinarySlice::create_into(src_bin, bit_offset, bit_size, &mut proc.heap)?;
+        BinarySlice::create_into(src_bin, bit_offset, bit_size, proc.get_heap_mut())?;
       (*match_state).increase_offset(bit_size);
 
       // Return the slice (sub-binary) created
-      runtime_ctx.store_value((*slice).make_term(), dst, &mut proc.heap)?;
+      runtime_ctx.store_value((*slice).make_term(), dst, proc.get_heap_mut())?;
     } else {
       // ignore error here, can't fail
       runtime_ctx
-        .store_value(Term::empty_binary(), dst, &mut proc.heap)
+        .store_value(Term::empty_binary(), dst, proc.get_heap_mut())
         .unwrap();
     }
 

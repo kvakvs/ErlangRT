@@ -27,7 +27,7 @@ impl OpcodePutTuple {
     arity: usize,
     dst: Term,
   ) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     let tuple_p = boxed::Tuple::create_into(hp, arity)?;
 
     // Now continue fetching opcodes if there are more `put` operations
@@ -123,7 +123,7 @@ impl OpcodeGetTupleElement {
   ) -> RtResult<DispatchResult> {
     let tuple_p = src.get_tuple_ptr();
     let element = unsafe { (*tuple_p).get_element(index) };
-    ctx.store_value(element, dst, &mut curr_p.heap)?;
+    ctx.store_value(element, dst, curr_p.get_heap_mut())?;
     Ok(DispatchResult::Normal)
   }
 }

@@ -14,7 +14,7 @@ use crate::{
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeMove, arity: 2,
   run: {
-    ctx.store_value(src, dst, &mut curr_p.heap)?;
+    ctx.store_value(src, dst, curr_p.get_heap_mut())?;
     Ok(DispatchResult::Normal)
   },
   args: load(src), term(dst),

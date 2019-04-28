@@ -21,7 +21,7 @@ pub fn atom_to_list_1(proc: &mut Process, atom_val: Term) -> RtResult<Term> {
     return fail::create::badarg();
   }
   unsafe {
-    let s = cons::rust_str_to_list(&(*atom_p).name, &mut proc.heap)?;
+    let s = cons::rust_str_to_list(&(*atom_p).name, proc.get_heap_mut())?;
     Ok(s)
   }
 }
@@ -38,7 +38,7 @@ pub fn integer_to_list_1(curr_p: &mut Process, val: Term) -> RtResult<Term> {
   if !val.is_integer() {
     return fail::create::badarg();
   }
-  unsafe { cons::integer_to_list(val, &mut curr_p.heap) }
+  unsafe { cons::integer_to_list(val, curr_p.get_heap_mut()) }
 }
 
 // Returns list `list` reversed with `tail` appended (any term).
@@ -54,7 +54,7 @@ unsafe fn list_to_binary_1(proc: &mut Process, list: Term) -> RtResult<Term> {
   if size.bytes() == 0 {
     Ok(Term::empty_binary())
   } else {
-    let mut bb = BinaryBuilder::with_size(size, &mut proc.heap)?;
+    let mut bb = BinaryBuilder::with_size(size, proc.get_heap_mut())?;
     list_to_binary_1_recursive(&mut bb, list)?;
     Ok(bb.make_term())
   }

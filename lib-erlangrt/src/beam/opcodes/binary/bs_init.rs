@@ -42,24 +42,24 @@ impl OpcodeBsInit2 {
     }
     if sz == 0 {
       // TODO: Check GC for extra words on heap
-      runtime_ctx.store_value(Term::empty_binary(), dst, &mut proc.heap)?;
+      runtime_ctx.store_value(Term::empty_binary(), dst, proc.get_heap_mut())?;
       return Ok(DispatchResult::Normal);
     }
 
     // Show intent to allocate memory; TODO: add GC related args, like live/regs
     boxed::Binary::ensure_memory_for_binary(
       vm,
-      &mut proc.heap,
+      proc.get_heap_mut(),
       BitSize::with_bytes(sz),
       WordSize::new(words),
     )?;
 
     let binary_size = BitSize::with_bytes(sz);
-    let bin = unsafe { boxed::Binary::create_into(binary_size, &mut proc.heap)? };
+    let bin = unsafe { boxed::Binary::create_into(binary_size, proc.get_heap_mut())? };
 
     let bin_term = unsafe { (*bin).make_term() };
     runtime_ctx.current_bin.reset(bin_term);
-    runtime_ctx.store_value(bin_term, dst, &mut proc.heap)?;
+    runtime_ctx.store_value(bin_term, dst, proc.get_heap_mut())?;
     Ok(DispatchResult::Normal)
   }
 }

@@ -87,7 +87,7 @@ impl OpcodeCallLast {
     dealloc: usize,
   ) -> RtResult<DispatchResult> {
     ctx.live = arity;
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     ctx.set_cp(hp.stack_deallocate(dealloc));
     ctx.debug_trace_call("opcode:call_last", dst, 0, arity);
     ctx.jump(dst);
@@ -163,7 +163,7 @@ impl OpcodeCallExtLast {
     dst: Term,
     dealloc: usize,
   ) -> RtResult<DispatchResult> {
-    let new_cp = curr_p.heap.stack_deallocate(dealloc);
+    let new_cp = curr_p.get_heap_mut().stack_deallocate(dealloc);
     ctx.set_cp(new_cp);
     let args = ctx.registers_slice(0, arity);
     ctx.debug_trace_call("opcode:call_ext_last", dst, 0, arity);
@@ -225,7 +225,7 @@ fn generic_call_ext(
     Err(_err) => {
       // Create a `{badfun, _}` error
       // panic!("bad call_ext target {}", imp0);
-      fail::create::badfun_val(dst_import, &mut proc.heap)
+      fail::create::badfun_val(dst_import, proc.get_heap_mut())
     }
   }
 }
@@ -288,8 +288,7 @@ define_opcode!(_vm, _ctx, curr_p,
 impl OpcodeBadmatch {
   #[inline]
   pub fn badmatch(curr_p: &mut Process, val: Term) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
-    fail::create::badmatch_val(val, hp)
+    fail::create::badmatch_val(val, curr_p.get_heap_mut())
   }
 }
 

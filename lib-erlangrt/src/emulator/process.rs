@@ -18,6 +18,7 @@ use crate::{
   term::value::*,
 };
 use core::ptr;
+use crate::emulator::heap::heap_trait::THeap;
 
 //#[allow(dead_code)]
 //#[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -56,7 +57,7 @@ pub struct Process {
   pub context: runtime_ctx::Context,
 
   // Memory
-  pub heap: Heap,
+  heap: Heap,
   pub mailbox: ProcessMailbox,
 
   // Error handling
@@ -113,6 +114,16 @@ impl Process {
       }
       Err(e) => Err(e),
     }
+  }
+
+  #[inline]
+  pub fn get_heap(&self) -> &THeap { &self.heap as &THeap }
+
+  #[inline]
+  pub fn get_heap_mut(&mut self) -> &mut THeap {
+    // &self.heap as &mut THeap
+    let heap_ref = &mut self.heap;
+    heap_ref as &mut THeap
   }
 
   /// Copy args from mfargs-MFA-something into new process heap and set the

@@ -88,7 +88,7 @@ impl Context {
       println!("{} x0={}", "Return:".yellow(), self.get_x(0));
     }
     if self.cp.is_null() {
-      if proc.heap.stack_depth() == 0 {
+      if proc.get_heap().stack_depth() == 0 {
         // Process end of life: return on empty stack
         println!(
           "Process {} end of life (return on empty stack) x0={}",
@@ -97,7 +97,7 @@ impl Context {
         );
         return ReturnResult::EmptyStack;
       } else {
-        proc.heap.stack_dump();
+        proc.get_heap().stack_dump();
         panic!(
           "{}Return instruction with null CP and nonempty stack. Possible error in CP value management",
           module()

@@ -158,7 +158,7 @@ macro_rules! fetch_one_arg {
     load_usize($arg_ident:ident)
   ) => {
     let $arg_ident = {
-      let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
+      let tmp = $ctxarg.op_arg_load_term_at($arg_pos, $procarg.get_heap_mut());
       debug_assert!(tmp.is_small(), "Expected a small int, got {}", tmp);
       tmp.get_small_unsigned()
     };
@@ -170,7 +170,7 @@ macro_rules! fetch_one_arg {
     $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     load($arg_ident:ident)
   ) => {
-    let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
+    let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, $procarg.get_heap_mut());
   };
 
   // Take a term from IP, and assert it is a CP or a NIL
@@ -201,7 +201,7 @@ macro_rules! fetch_one_arg {
     binary_match_state($arg_ident:ident)
   ) => {
     let $arg_ident = {
-      let tmp = $ctxarg.op_arg_load_term_at($arg_pos, &mut $procarg.heap);
+      let tmp = $ctxarg.op_arg_load_term_at($arg_pos, $procarg.get_heap_mut());
       debug_assert!(
         tmp.is_boxed_of_type(crate::term::boxed::BOXTYPETAG_BINARY_MATCH_STATE),
         "Expected a binary match state, got {}",

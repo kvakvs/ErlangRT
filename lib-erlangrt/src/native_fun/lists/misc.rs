@@ -37,7 +37,7 @@ define_nativefun!(_vm, proc, args,
 
 #[inline]
 unsafe fn reverse_2(proc: &mut Process, list: Term, tail: Term) -> RtResult<Term> {
-  let mut lb = ListBuilder::new(&mut proc.heap)?;
+  let mut lb = ListBuilder::new(proc.get_heap_mut())?;
   // Going forward the list, prepend values to the result
   cons::for_each(list, |elem| lb.prepend(elem))?;
   // Last element's tail in the new list is set to `tail` argument

@@ -30,7 +30,7 @@ impl BoxHeader {
   where
     TraitType: TBoxed,
   {
-    let arity = storage_size.words();
+    let arity = storage_size.words;
     let header_word = (arity << PrimaryTag::TAG_BITS) | PrimaryTag::HEADER.0;
 
     // Extract and store vtable pointer from the TBoxed trait object

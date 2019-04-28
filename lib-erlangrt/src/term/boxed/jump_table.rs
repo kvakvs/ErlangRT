@@ -53,7 +53,7 @@ impl JumpTable {
   const fn storage_size(n_pairs: usize) -> WordSize {
     // Minus one because data0 in tuple already consumes one word
     let self_size = ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up();
-    WordSize::new(self_size.words() - 1 + n_pairs * 2)
+    WordSize::new(self_size.words - 1 + n_pairs * 2)
   }
 
   fn new(n_pairs: usize) -> JumpTable {
@@ -66,7 +66,7 @@ impl JumpTable {
 
   #[inline]
   pub fn get_count(&self) -> usize {
-    (self.header.get_storage_size() - BoxHeader::storage_size().words()) / 2
+    (self.header.get_storage_size() - BoxHeader::storage_size().words) / 2
   }
 
   /// Allocate `n_pairs`*2 cells and form a tuple-like structure

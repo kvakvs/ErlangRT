@@ -53,7 +53,7 @@ impl Tuple {
   const fn storage_size(arity: usize) -> WordSize {
     // Minus one because data0 in tuple already consumes one word
     let self_size = ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up();
-    WordSize::new(self_size.words() + arity - 1)
+    WordSize::new(self_size.words + arity - 1)
   }
 
   fn new(arity: usize) -> Tuple {
@@ -66,7 +66,7 @@ impl Tuple {
 
   #[inline]
   pub fn get_arity(&self) -> usize {
-    self.header.get_storage_size() - BoxHeader::storage_size().words()
+    self.header.get_storage_size() - BoxHeader::storage_size().words
   }
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.

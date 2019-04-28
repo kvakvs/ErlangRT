@@ -43,7 +43,7 @@ impl fmt::Debug for FlatHeap {
 impl THeap for FlatHeap {
   fn alloc(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut Word> {
     let pos = self.heap_top;
-    let n_words = n.words();
+    let n_words = n.words;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
     if pos + n_words >= self.stack_top {
       // return Err(Error::HeapIsFull);
@@ -71,6 +71,26 @@ impl THeap for FlatHeap {
     Ok(new_chunk)
   }
 
+  fn get_y(&self, index: Word) -> RtResult<Term> {
+    if !self.stack_have_y(index) {
+      println!(
+        "Stack value requested y{}, depth={}",
+        index,
+        self.stack_depth()
+      );
+      return Err(RtErr::StackIndexRange(index));
+    }
+    let pos = index + self.stack_top + 1;
+    let result = Term::from_raw(self.data[pos]);
+    debug_assert!(result.is_value(), "Should never get a #Nonvalue<> from y[]");
+    Ok(result)
+  }
+
+  #[inline]
+  fn get_y_unchecked(&self, index: Word) -> Term {
+    let pos = index + self.stack_top + 1;
+    Term::from_raw(self.data[pos])
+  }
 
   /// Create a constant iterator for walking the heap.
   /// This is used by heap walkers such as "dump.rs"
@@ -83,7 +103,114 @@ impl THeap for FlatHeap {
   fn belongs_to_heap(&self, p: *const Word) -> bool {
     p < self.get_heap_start_ptr() || p >= self.get_heap_top_ptr()
   }
+
+  /// Set stack value (`index`th from stack top) to `val`.
+  fn set_y(&mut self, index: Word, val: Term) -> RtResult<()> {
+    debug_assert!(val.is_value(), "Should never set y[] to a #Nonvalue<>");
+    if !self.stack_have_y(index) {
+      return Err(RtErr::StackIndexRange(index));
+    }
+    if cfg!(feature = "trace_stack_changes") {
+      println!("{}{} = {}", "set y".green(), index, val);
+    }
+    self.data[index + self.stack_top + 1] = val.raw();
+    Ok(())
+  }
+
+  /// Take `cp` from stack top and deallocate `n+1` words of stack.
+  fn stack_deallocate(&mut self, n: usize) -> Term {
+    assert!(
+      self.stack_top + n < self.capacity,
+      "Failed to dealloc {}+1 words (s_top {}, s_end {})",
+      n,
+      self.stack_top,
+      self.capacity
+    );
+
+    let cp = Term::from_raw(self.data[self.stack_top]);
+    assert!(
+      cp.is_cp(),
+      "Dealloc expected a CP value on stack top, got {}",
+      cp
+    );
+    self.stack_top += n + 1;
+    cp
+  }
+
+  /// Express the intent to allocate `size` words on the heap, which may either
+  /// include an attempt to GC, or incur a heap fragment allocation.
+  /// Does not immediately allocate.
+  fn allocate_intent(&mut self, size: WordSize, _live: usize) -> RtResult<()> {
+    if self.heap_check_available(size) {
+      return Ok(());
+    }
+    Err(RtErr::HeapIsFull("heap::allocate_intent"))
+  }
+
+  #[inline]
+  fn heap_check_available(&self, need: WordSize) -> bool {
+    self.heap_top + need.words <= self.stack_top
+  }
+
+  #[inline]
+  fn stack_check_available(&self, need: WordSize) -> bool {
+    self.heap_top + need.words <= self.stack_top
+  }
+
+
+  /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
+  fn stack_alloc_unchecked(&mut self, need: WordSize, fill_nil: bool) {
+    if need.words == 0 {
+      return;
+    }
+    self.stack_top -= need.words;
+
+    // Clear the new cells
+    let raw_nil = Term::nil().raw();
+    unsafe {
+      let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
+
+      if fill_nil {
+        for y in 0..need.words {
+          ptr::write(p.add(y), raw_nil)
+        }
+      }
+    }
+  }
+
+  /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.
+  #[inline]
+  fn stack_push_lterm_unchecked(&mut self, val: Term) {
+    if cfg!(feature = "trace_stack_changes") {
+      println!("{} {}", "push (unchecked)".green(), val);
+    }
+    self.stack_top -= 1;
+    self.data[self.stack_top] = val.raw();
+  }
+
+  fn stack_depth(&self) -> usize {
+    self.capacity - self.stack_top
+  }
+
+  fn stack_dump(&self) {
+    if self.stack_depth() == 0 {
+      println!("stack: empty");
+      return;
+    }
+
+    let mut i = 0;
+    let max_i = self.stack_depth() - 1;
+    loop {
+      if i >= max_i || i >= 10 {
+        break;
+      }
+      println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
+      i += 1;
+    }
+  }
 }
+
+// === === ===
 
 impl FlatHeap {
   fn get_size_for(d: Designation) -> usize {
@@ -159,161 +286,15 @@ impl FlatHeap {
     self.get_heap_start_ptr().add(self.stack_top)
   }
 
-  //  /// Allocate words on heap enough to store bignum digits and copy the given
-  //  /// bignum to memory, return the pointer.
-  //  pub fn allocate_big(&mut self, big: &num::BigInt) -> Hopefully<BignumPtr> {
-  //    match self.allocate(BignumPtr::storage_size(big)) {
-  //      Ok(p) => unsafe { Ok(BignumPtr::create_at(p, big)) },
-  //      Err(e) => Err(e) // repack inner Err into outer Err
-  //    }
-  //  }
-
-  #[inline]
-  pub fn heap_has_available(&self, need: WordSize) -> bool {
-    self.heap_top + need.words() <= self.stack_top
-  }
-
-  /// Check that the heap has size needed, otherwise GC is triggered.
-  /// To expand heap without calling GC, a heap fragment can be attempted.
-  pub fn ensure_size(&mut self, size: WordSize) -> RtResult<()> {
-    if self.heap_has_available(size) {
-      return Ok(());
-    }
-    Err(RtErr::HeapIsFull("heap::ensure_size"))
-  }
-
-  #[inline]
-  pub fn stack_have(&self, need: WordSize) -> bool {
-    self.heap_top + need.words() <= self.stack_top
-  }
-
-  //  pub fn stack_alloc(&mut self, need: Word) -> Hopefully<()> {
-  //    // Check if heap top is too close to stack top, then fail
-  //    if !self.stack_have(need) {
-  //      return Err(Error::HeapIsFull)
-  //    }
-  //    self.stack_alloc_unchecked(need);
-  //    Ok(())
-  //  }
-
-  /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  pub fn stack_alloc_unchecked(&mut self, need: WordSize, fill_nil: bool) {
-    if need.words() == 0 {
-      return;
-    }
-    self.stack_top -= need.words();
-
-    // Clear the new cells
-    let raw_nil = Term::nil().raw();
-    unsafe {
-      let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
-
-      if fill_nil {
-        for y in 0..need.words() {
-          ptr::write(p.add(y), raw_nil)
-        }
-      }
-    }
-  }
-
-  // TODO: Add unsafe push without range checks (batch check+multiple push)
-
-  //  pub fn stack_push(&mut self, val: Word) -> Hopefully<()> {
-  //    if !self.stack_have(1) {
-  //      return Err(Error::HeapIsFull)
-  //    }
-  //    self.stack_push_unchecked(val);
-  //    Ok(())
-  //  }
-
   #[allow(dead_code)]
   pub fn stack_info(&self) {
     println!("Stack (s_top {}, s_end {})", self.stack_top, self.capacity)
-  }
-
-  //  /// Push a value to stack without checking. Call `stack_have(1)` beforehand.
-  //  #[inline]
-  //  pub fn stack_push_unchecked(&mut self, val: Word) {
-  //    if cfg!(feature = "trace_stack_changes") {
-  //      println!("push (unchecked) word {}", val);
-  //    }
-  //    self.stack_top -= 1;
-  //    self.data[self.stack_top] = val;
-  //  }
-
-  /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.
-  #[inline]
-  pub fn stack_push_lterm_unchecked(&mut self, val: Term) {
-    if cfg!(feature = "trace_stack_changes") {
-      println!("{} {}", "push (unchecked)".green(), val);
-    }
-    self.stack_top -= 1;
-    self.data[self.stack_top] = val.raw();
   }
 
   /// Check whether `y+1`-th element can be found in stack
   #[inline]
   pub fn stack_have_y(&self, y: Word) -> bool {
     self.capacity - self.stack_top >= y + 1
-  }
-
-  /// Set stack value (`index`th from stack top) to `val`.
-  pub fn set_y(&mut self, index: Word, val: Term) -> RtResult<()> {
-    debug_assert!(val.is_value(), "Should never set y[] to a #Nonvalue<>");
-    if !self.stack_have_y(index) {
-      return Err(RtErr::StackIndexRange(index));
-    }
-    if cfg!(feature = "trace_stack_changes") {
-      println!("{}{} = {}", "set y".green(), index, val);
-    }
-    self.data[index + self.stack_top + 1] = val.raw();
-    Ok(())
-  }
-
-  pub fn get_y(&self, index: Word) -> RtResult<Term> {
-    if !self.stack_have_y(index) {
-      println!(
-        "Stack value requested y{}, depth={}",
-        index,
-        self.stack_depth()
-      );
-      return Err(RtErr::StackIndexRange(index));
-    }
-    let pos = index + self.stack_top + 1;
-    let result = Term::from_raw(self.data[pos]);
-    debug_assert!(result.is_value(), "Should never get a #Nonvalue<> from y[]");
-    Ok(result)
-  }
-
-  #[allow(dead_code)]
-  #[inline]
-  pub fn get_y_unchecked(&self, index: Word) -> Term {
-    let pos = index + self.stack_top + 1;
-    Term::from_raw(self.data[pos])
-  }
-
-  pub fn stack_depth(&self) -> Word {
-    self.capacity - self.stack_top
-  }
-
-  /// Take `cp` from stack top and deallocate `n+1` words of stack.
-  pub fn stack_deallocate(&mut self, n: Word) -> Term {
-    assert!(
-      self.stack_top + n < self.capacity,
-      "Failed to dealloc {}+1 words (s_top {}, s_end {})",
-      n,
-      self.stack_top,
-      self.capacity
-    );
-
-    let cp = Term::from_raw(self.data[self.stack_top]);
-    assert!(
-      cp.is_cp(),
-      "Dealloc expected a CP value on stack top, got {}",
-      cp
-    );
-    self.stack_top += n + 1;
-    cp
   }
 
   /// Go through stack values searching for a stored CP, skip if it does not
@@ -343,24 +324,6 @@ impl FlatHeap {
       }
       ptr = ptr.add(1);
       stack_drop += 1;
-    }
-  }
-
-  #[allow(dead_code)]
-  pub fn stack_dump(&self) {
-    if self.stack_depth() == 0 {
-      println!("stack: empty");
-      return;
-    }
-
-    let mut i = 0;
-    let max_i = self.stack_depth() - 1;
-    loop {
-      if i >= max_i || i >= 10 {
-        break;
-      }
-      println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
-      i += 1;
     }
   }
 

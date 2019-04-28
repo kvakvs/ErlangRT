@@ -15,7 +15,7 @@ define_nativefun!(_vm, proc, args,
   name: "erlang:nif_error/1", struct_name: NfErlangNifError1, arity: 1,
   invoke: {
     Err(RtErr::Exception(
-      ExceptionType::Error, make_badfun_n(args, &mut proc.heap)?
+      ExceptionType::Error, make_badfun_n(args, proc.get_heap_mut())?
     ))
   },
   args:
@@ -26,7 +26,7 @@ define_nativefun!(_vm, proc, args,
   name: "erlang:nif_error/2", struct_name: NfErlangNifError2, arity: 2,
   invoke: {
     Err(RtErr::Exception(
-      ExceptionType::Error, make_badfun_n(args, &mut proc.heap)?
+      ExceptionType::Error, make_badfun_n(args, proc.get_heap_mut())?
     ))
   },
   args:

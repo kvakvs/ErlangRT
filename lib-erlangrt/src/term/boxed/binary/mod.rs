@@ -77,11 +77,11 @@ impl Binary {
     extra_memory: WordSize,
   ) -> RtResult<()> {
     if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
-      return hp.ensure_size(ProcessHeapBinary::storage_size(size) + extra_memory);
+      return hp.allocate_intent(ProcessHeapBinary::storage_size(size) + extra_memory);
     }
     vm.binary_heap
-      .ensure_size(BinaryHeapBinary::storage_size(size))?;
-    return hp.ensure_size(ReferenceToBinary::storage_size() + extra_memory);
+      .allocate_intent(BinaryHeapBinary::storage_size(size))?;
+    return hp.allocate_intent(ReferenceToBinary::storage_size() + extra_memory);
   }
 
   fn get_binary_type_for_creation(size: BitSize) -> BinaryType {

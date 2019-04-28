@@ -1,10 +1,10 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context},
+  defs::sizes::WordSize,
+  emulator::{heap::heap_trait::THeap, process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
   term::value::Term,
 };
-use crate::defs::sizes::WordSize;
 
 /// Shared code for stack checks and allocations with an optional heap check.
 #[inline]
@@ -18,15 +18,15 @@ fn gen_alloc(
 ) -> RtResult<()> {
   ctx.live = live;
 
-  let hp = &mut curr_p.heap;
+  let hp = curr_p.get_heap_mut();
 
-  if !hp.heap_has_available(heap_need) {
+  if hp.allocate_intent(heap_need, live).is_err() {
     return Err(RtErr::HeapIsFull("heap::gen_alloc"));
   }
 
-  if hp.stack_have(stack_need + WordSize::one()) {
+  if hp.stack_check_available(stack_need + WordSize::one()) {
     // Stack has enough words, we can allocate unchecked
-    if stack_need.words() > 0 {
+    if stack_need.words > 0 {
       hp.stack_alloc_unchecked(stack_need, zero);
     }
     hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
@@ -86,7 +86,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeDeallocate, arity: 1,
   run: {
-    ctx.set_cp(curr_p.heap.stack_deallocate(free));
+    ctx.set_cp(curr_p.get_heap_mut().stack_deallocate(free));
     Ok(DispatchResult::Normal)
   },
   args: usize(free),
@@ -99,10 +99,10 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, _ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
   run: {
-    curr_p.heap.ensure_size(WordSize::new(heap_need))?;
+    curr_p.get_heap_mut().allocate_intent(WordSize::new(heap_need), live)?;
     Ok(DispatchResult::Normal)
   },
-  args: usize(heap_need), IGNORE(live),
+  args: usize(heap_need), usize(live),
 );
 
 // Reduce the stack usage by N words, keeping CP on top of the stack.
@@ -117,7 +117,7 @@ define_opcode!(_vm, _ctx, curr_p,
 impl OpcodeTrim {
   #[inline]
   pub fn trim(curr_p: &mut Process, n_trim: usize) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     let tmp_cp = hp.stack_deallocate(n_trim);
     // assume that after trimming the cp will fit back on stack just fine
     hp.stack_push_lterm_unchecked(tmp_cp);
@@ -130,7 +130,7 @@ impl OpcodeTrim {
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeInit, arity: 1,
   run: {
-    curr_p.heap.set_y(y.get_reg_value(), Term::nil())?;
+    curr_p.get_heap_mut().set_y(y.get_reg_value(), Term::nil())?;
     Ok(DispatchResult::Normal)
   },
   args: yreg(y),

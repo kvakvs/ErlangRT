@@ -65,7 +65,7 @@ impl OpcodeBsTestTail2 {
 define_opcode!(
   _vm, rt_ctx, proc, name: OpcodeBsAdd, arity: 5,
   run: {
-    rt_ctx.store_value(s2, dst, &mut proc.heap)?;
+    rt_ctx.store_value(s2, dst, proc.get_heap_mut())?;
     Ok(DispatchResult::Normal)
   },
   args: cp_or_nil(fail), IGNORE(s1), load(s2), IGNORE(unit), term(dst),

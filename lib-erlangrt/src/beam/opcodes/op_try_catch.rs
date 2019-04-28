@@ -25,7 +25,7 @@ impl OpcodeTry {
   ) -> RtResult<DispatchResult> {
     curr_p.num_catches += 1;
 
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
 
     // Write catch value into the given stack register
     let catch_val = Term::make_catch(catch_label.get_cp_ptr());
@@ -53,7 +53,7 @@ impl OpcodeTryEnd {
   ) -> RtResult<DispatchResult> {
     curr_p.num_catches -= 1;
 
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     hp.set_y(yreg.get_reg_value(), Term::nil())?;
 
     // Not sure why this is happening here, copied from Erlang/OTP
@@ -87,7 +87,7 @@ impl OpcodeTryCase {
   ) -> RtResult<DispatchResult> {
     curr_p.num_catches -= 1;
 
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     hp.set_y(yreg.get_reg_value(), Term::nil())?;
 
     // Clear error and shift regs x1-x2-x3 to x0-x1-x2

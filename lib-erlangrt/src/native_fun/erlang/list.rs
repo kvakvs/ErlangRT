@@ -31,7 +31,7 @@ pub fn plusplus_2(curr_p: &mut Process, a: Term, b: Term) -> RtResult<Term> {
   }
 
   // Copy the list a without setting its tail, ...
-  let hp = &mut curr_p.heap;
+  let hp = curr_p.get_heap_mut();
   let (l1, tail) = unsafe { cons::copy_list_leave_tail(a, hp) }?;
 
   // then append the tail

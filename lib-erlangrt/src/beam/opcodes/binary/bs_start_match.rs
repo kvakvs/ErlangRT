@@ -94,7 +94,7 @@ impl OpcodeBsStartMatch3 {
     // Here we have a new start, matchstate does not exist and the context
     // is a binary. Have to construct a new match context.
     let new_match_state =
-      unsafe { BinaryMatchState::create_into(bin_ptr, &mut proc.heap)? };
+      unsafe { BinaryMatchState::create_into(bin_ptr, proc.get_heap_mut())? };
 
     // The binary, we're working on, is stored temporarily in x[live]
     // runtime_ctx.set_x(live, context);
@@ -105,7 +105,7 @@ impl OpcodeBsStartMatch3 {
     //      runtime_ctx.jump(fail);
     //      return Ok(DispatchResult::Normal);
     //    }
-    runtime_ctx.store_value(Term::make_boxed(new_match_state), dst, &mut proc.heap)?;
+    runtime_ctx.store_value(Term::make_boxed(new_match_state), dst, proc.get_heap_mut())?;
     Ok(DispatchResult::Normal)
   }
 
@@ -120,7 +120,7 @@ impl OpcodeBsStartMatch3 {
     // Here we continue, matchstate has already been created, in context
     // Reset the position to the beginning
     (*match_state).reset();
-    runtime_ctx.store_value(Term::make_boxed(match_state), dst, &mut proc.heap)?;
+    runtime_ctx.store_value(Term::make_boxed(match_state), dst, proc.get_heap_mut())?;
     Ok(DispatchResult::Normal)
   }
 }

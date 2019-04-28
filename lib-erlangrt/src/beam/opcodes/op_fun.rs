@@ -31,7 +31,7 @@ impl OpcodeMakeFun2 {
   ) -> RtResult<DispatchResult> {
     let fe = export.get_cp_ptr::<FunEntry>();
 
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     let closure = unsafe {
       let nfrozen = (*fe).nfrozen as usize;
       let frozen = ctx.registers_slice(0, nfrozen);

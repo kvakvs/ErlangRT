@@ -77,7 +77,7 @@ pub fn find_and_call_native_fun(
     }
 
     BifResolutionResult::BadfunError(badfun_val) => {
-      return fail::create::badfun_val(badfun_val, &mut curr_p.heap);
+      return fail::create::badfun_val(badfun_val, curr_p.get_heap_mut());
     }
   };
 
@@ -107,7 +107,7 @@ pub fn find_and_call_native_fun(
       //  );
       // if dst is not NIL, store the result in it
       if dst != Term::nil() {
-        ctx.store_value(val, dst, &mut curr_p.heap)?;
+        ctx.store_value(val, dst, curr_p.get_heap_mut())?;
       }
       Ok(DispatchResult::Normal)
     }
@@ -181,7 +181,7 @@ pub fn call_native_fun_fn(
   let mut loaded_args = [Term::nil(); 4];
 
   {
-    let heap = &curr_p.heap;
+    let heap = curr_p.get_heap();
     for i in 0..n_args {
       loaded_args[i] = ctx.load(args[i], heap);
     }

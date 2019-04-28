@@ -297,9 +297,9 @@ impl Scheduler {
 
     println!("Catching {}:{}", p_error.0, p_error.1);
     println!("{}", proc.context);
-    proc.heap.stack_dump();
+    proc.get_heap().stack_dump();
 
-    match unsafe { proc.heap.unroll_stack_until_catch() } {
+    match unsafe { proc.get_heap().unroll_stack_until_catch() } {
       Some(next_catch) => {
         println!("Catch found: {:p}", next_catch.loc);
         proc.context.set_x(0, Term::non_value());
@@ -308,7 +308,7 @@ impl Scheduler {
         proc.context.set_x(3, Term::nil()); // stacktrace object goes here
         proc.context.jump_ptr(next_catch.loc);
         proc.context.clear_cp();
-        proc.heap.drop_stack_words(next_catch.stack_drop);
+        proc.get_heap().drop_stack_words(next_catch.stack_drop);
 
         // TODO: Clear save mark on recv in process.mailbox
         return ScheduleHint::ContinueSameProcess;

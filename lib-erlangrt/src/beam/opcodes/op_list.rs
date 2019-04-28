@@ -78,7 +78,7 @@ impl OpcodeGetList {
       panic!("Attempt to get_list on a nil[]");
     }
 
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     if !src.is_cons() {
       return fail::create::badarg_val(src, hp);
     }
@@ -111,7 +111,7 @@ impl OpcodePutList {
     src_tl: Term,
     dst: Term,
   ) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
 
     unsafe {
       let cons_p = allocate_cons(hp).unwrap();
@@ -140,7 +140,7 @@ impl OpcodeGetHd {
     cons: Term,
     dst: Term,
   ) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     let val = unsafe { (*cons.get_cons_ptr()).hd() };
     ctx.store_value(val, dst, hp)?;
     Ok(DispatchResult::Normal)
@@ -163,7 +163,7 @@ impl OpcodeGetTl {
     cons: Term,
     dst: Term,
   ) -> RtResult<DispatchResult> {
-    let hp = &mut curr_p.heap;
+    let hp = curr_p.get_heap_mut();
     let val = unsafe { (*cons.get_cons_ptr()).tl() };
     ctx.store_value(val, dst, hp)?;
     Ok(DispatchResult::Normal)

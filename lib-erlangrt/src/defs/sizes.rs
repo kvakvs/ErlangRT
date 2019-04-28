@@ -3,26 +3,28 @@ use core::fmt;
 use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone)]
-pub struct WordSize(usize);
+pub struct WordSize {
+  pub words: usize,
+}
 
 #[allow(dead_code)]
 impl WordSize {
-  pub const fn one() -> Self { Self(1) }
+  pub const fn one() -> Self {
+    Self { words: 1 }
+  }
 
   pub const fn new(words: usize) -> Self {
-    Self(words)
+    Self { words }
   }
 
   pub const fn add(self, n: usize) -> Self {
-    Self(self.0 + n)
-  }
-
-  pub const fn words(self) -> usize {
-    self.0
+    Self {
+      words: self.words + n,
+    }
   }
 
   pub const fn bytes(self) -> usize {
-    self.0 * defs::WORD_BYTES
+    self.words * defs::WORD_BYTES
   }
 }
 
@@ -30,7 +32,9 @@ impl Add for WordSize {
   type Output = Self;
 
   fn add(self, other: Self) -> Self {
-    Self(self.0 + other.0)
+    Self {
+      words: self.words + other.words,
+    }
   }
 }
 
@@ -38,58 +42,62 @@ impl Sub for WordSize {
   type Output = Self;
 
   fn sub(self, other: Self) -> Self {
-    Self(self.0 - other.0)
+    Self {
+      words: self.words - other.words,
+    }
   }
 }
 
 impl fmt::Display for WordSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} words", self.0)
+    write!(f, "{} words", self.words)
   }
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct ByteSize(usize);
+pub struct ByteSize {
+  pub bytes: usize,
+}
 
 #[allow(dead_code)]
 impl ByteSize {
   #[inline]
   pub const fn new(bytes: usize) -> ByteSize {
-    ByteSize(bytes)
+    Self { bytes }
   }
 
   pub fn add(&mut self, n: usize) {
-    self.0 += n
+    self.bytes += n
   }
 
   // TODO: impl Add trait
   pub fn add_bytesize(&mut self, other: ByteSize) {
-    self.0 = self.0 + other.0
+    self.bytes = self.bytes + other.bytes
   }
 
   #[inline]
   pub const fn bytes(self) -> usize {
-    self.0
+    self.bytes
   }
 
   #[inline]
   pub const fn get_words_rounded_down(self) -> WordSize {
-    WordSize::new(self.0 / defs::WORD_BYTES)
+    WordSize::new(self.bytes / defs::WORD_BYTES)
   }
 
   #[inline]
   pub const fn get_words_rounded_up(self) -> WordSize {
-    WordSize::new((self.0 + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
+    WordSize::new((self.bytes + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
   }
 
   #[inline]
   pub const fn get_bits(self) -> BitSize {
-    BitSize::with_unit_const(self.0, defs::WORD_BYTES)
+    BitSize::with_unit_const(self.bytes, defs::WORD_BYTES)
   }
 }
 
 impl fmt::Display for ByteSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} bytes", self.0)
+    write!(f, "{} bytes", self.bytes)
   }
 }
