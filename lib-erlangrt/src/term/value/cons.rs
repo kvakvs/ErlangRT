@@ -38,11 +38,11 @@ pub unsafe fn copy_list_leave_tail(
   src: Term,
   hp: &mut THeap,
 ) -> RtResult<(Term, *mut boxed::Cons)> {
-  let mut lb = ListBuilder::new(hp)?;
+  let mut lb = ListBuilder::new()?;
 
   // Copy elements one by one
   if let Ok(Some(tail)) = for_each(src, |elem| {
-    lb.append(elem)?;
+    lb.append(elem, hp)?;
     Ok(())
   }) {
     return Ok((lb.make_term_with_tail(tail), lb.tail_p));
@@ -147,10 +147,11 @@ where
 /// Given Rust `String`, create list of characters on heap
 // TODO: Optimize by adding new string type which is not a list?
 pub unsafe fn rust_str_to_list(s: &String, hp: &mut THeap) -> RtResult<Term> {
-  let mut lb = ListBuilder::new(hp)?;
+  let mut lb = ListBuilder::new()?;
   for pos_char in s.char_indices() {
     let ch = pos_char.1 as usize;
-    lb.append(Term::make_small_unsigned(ch))?;
+    let char_term = Term::make_small_unsigned(ch);
+    lb.append(char_term, hp)?;
   }
   Ok(lb.make_term())
 }
@@ -163,7 +164,7 @@ pub unsafe fn integer_to_list(val: Term, hp: &mut THeap) -> RtResult<Term> {
 
   let base = 10isize;
   let mut i_val = val.get_small_signed();
-  let mut lb = ListBuilder::new(hp)?;
+  let mut lb = ListBuilder::new()?;
 
   let sign = if i_val < 0 {
     i_val = -i_val;
@@ -173,7 +174,7 @@ pub unsafe fn integer_to_list(val: Term, hp: &mut THeap) -> RtResult<Term> {
   };
 
   if i_val == 0 {
-    lb.append(Term::make_char('0'))?;
+    lb.append(Term::make_char('0'), hp)?;
   } else {
     loop {
       let digit = '0' as usize + (i_val % base) as usize;
@@ -181,12 +182,12 @@ pub unsafe fn integer_to_list(val: Term, hp: &mut THeap) -> RtResult<Term> {
       if i_val == 0 {
         break;
       }
-      lb.prepend(digit_term)?;
+      lb.prepend(digit_term, hp)?;
       i_val /= base;
     } // loop
 
     if sign {
-      lb.prepend(Term::make_char('-'))?;
+      lb.prepend(Term::make_char('-'), hp)?;
     }
   } // if not 0
 

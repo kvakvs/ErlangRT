@@ -1,7 +1,7 @@
 // use crate::emulator::heap::Designation;
 use crate::{
   defs::{sizes::WordSize, Word},
-  emulator::heap::iter,
+  emulator::heap::{catch::NextCatchResult, iter},
   fail::RtResult,
   term::value::Term,
 };
@@ -26,6 +26,7 @@ pub trait THeap {
   /// include an attempt to GC, or incur a heap fragment allocation.
   /// Does not immediately allocate.
   fn allocate_intent(&mut self, size: WordSize, live: usize) -> RtResult<()>;
+  fn allocate_intent_no_gc(&mut self, size: WordSize) -> RtResult<()>;
 
   fn heap_check_available(&self, need: WordSize) -> bool;
   fn stack_check_available(&self, need: WordSize) -> bool;
@@ -34,6 +35,8 @@ pub trait THeap {
 
   /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.
   fn stack_push_lterm_unchecked(&mut self, val: Term);
+  fn drop_stack_words(&mut self, n_drop: usize);
+  unsafe fn unroll_stack_until_catch(&self) -> Option<NextCatchResult>;
 
   // Iteration
   //

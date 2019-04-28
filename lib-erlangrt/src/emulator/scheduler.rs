@@ -308,7 +308,7 @@ impl Scheduler {
         proc.context.set_x(3, Term::nil()); // stacktrace object goes here
         proc.context.jump_ptr(next_catch.loc);
         proc.context.clear_cp();
-        proc.get_heap().drop_stack_words(next_catch.stack_drop);
+        proc.get_heap_mut().drop_stack_words(next_catch.stack_drop);
 
         // TODO: Clear save mark on recv in process.mailbox
         return ScheduleHint::ContinueSameProcess;

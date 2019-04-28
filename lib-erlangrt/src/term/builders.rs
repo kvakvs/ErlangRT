@@ -1,9 +1,10 @@
 use crate::{
   emulator::{gen_atoms, heap::heap_trait::THeap},
   fail::RtResult,
-  term::{term_builder::TermBuilder, value::Term},
+  term::value::Term,
 };
 use std::slice;
+use crate::term::term_builder::TupleBuilder;
 
 pub fn make_badfun(arg: Term, hp: &mut THeap) -> RtResult<Term> {
   let slice_of_one = unsafe { slice::from_raw_parts(&arg, 1) };
@@ -12,8 +13,7 @@ pub fn make_badfun(arg: Term, hp: &mut THeap) -> RtResult<Term> {
 
 /// Create a `{badfun, ...}` tuple where `badfun` is followed by multiple args.
 pub fn make_badfun_n(args: &[Term], hp: &mut THeap) -> RtResult<Term> {
-  let mut tb = TermBuilder::new(hp);
-  let val = tb.create_tuple_builder(1 + args.len())?;
+  let val = TupleBuilder::with_arity(1 + args.len(), hp)?;
   unsafe {
     val.set_element(0, gen_atoms::BADFUN);
     let mut i = 1usize;

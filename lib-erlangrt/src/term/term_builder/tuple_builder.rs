@@ -1,5 +1,5 @@
 use crate::{
-  emulator::heap::{heap_trait::THeap, Heap},
+  emulator::heap::heap_trait::THeap,
   fail::RtResult,
   term::{boxed, value::*},
 };
@@ -32,16 +32,13 @@ impl TupleBuilder {
   }
 }
 
-// Must import TupleBuilder for this helper to appear
-impl Heap {
-  /// Create a 2-tuple.
-  #[inline]
-  pub fn tuple2(&mut self, a: Term, b: Term) -> RtResult<Term> {
-    let tb = TupleBuilder::with_arity(2, self)?;
-    unsafe {
-      tb.set_element(0, a);
-      tb.set_element(1, b);
-    }
-    Ok(tb.make_term())
+/// Create a 2-tuple.
+#[inline]
+pub fn tuple2(hp: &mut THeap, a: Term, b: Term) -> RtResult<Term> {
+  let tb = TupleBuilder::with_arity(2, hp)?;
+  unsafe {
+    tb.set_element(0, a);
+    tb.set_element(1, b);
   }
+  Ok(tb.make_term())
 }

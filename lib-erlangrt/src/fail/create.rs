@@ -2,7 +2,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, heap::heap_trait::THeap},
   fail::{RtErr, RtResult},
-  term::{builders::make_badfun, value::Term},
+  term::{builders::make_badfun, term_builder::tuple_builder::tuple2, value::Term},
 };
 
 #[inline]
@@ -14,7 +14,7 @@ fn generic_fail<T>(err_atom: Term) -> RtResult<T> {
 pub fn generic_tuple2_fail<T>(err_atom: Term, val: Term, hp: &mut THeap) -> RtResult<T> {
   Err(RtErr::Exception(
     ExceptionType::Error,
-    hp.tuple2(err_atom, val)?,
+    tuple2(hp, err_atom, val)?,
   ))
 }
 

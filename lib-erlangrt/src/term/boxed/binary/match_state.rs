@@ -79,7 +79,7 @@ impl BinaryMatchState {
     hp: &mut THeap,
   ) -> RtResult<*mut BinaryMatchState> {
     let storage_sz = Self::storage_size();
-    let this = hp.alloc::<Self>(storage_sz, false)?;
+    let this = hp.alloc(storage_sz, false)? as *mut Self;
 
     // Create and write the block header (Self)
     let new_self = Self::new(bin_ptr);

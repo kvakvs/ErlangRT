@@ -18,36 +18,34 @@ pub struct ListBuilder {
   pub head_p: *mut boxed::Cons,
   // last cell (used to append to list)
   pub tail_p: *mut boxed::Cons,
-  // because i can't into lifetimes :( but it lives short anyway
-  heap: *mut THeap,
 }
 
 impl ListBuilder {
-  pub fn new(heap: &mut THeap) -> RtResult<ListBuilder> {
+  pub fn new() -> RtResult<ListBuilder> {
     Ok(ListBuilder {
       head_p: ptr::null_mut(),
       tail_p: ptr::null_mut(),
-      heap: heap as *mut THeap,
     })
   }
 
   /// Creates a new cons cell to grow the list either back or forward
   #[inline]
-  unsafe fn make_cell(&self) -> RtResult<*mut boxed::Cons> {
-    (*self.heap).alloc::<boxed::Cons>(WordSize::new(2), true)
+  unsafe fn make_cell(&self, hp: &mut THeap) -> RtResult<*mut boxed::Cons> {
+    let p = hp.alloc(WordSize::new(2), true)?;
+    Ok(p as *mut boxed::Cons)
   }
 
   /// Build list forward: Set current tail to a newly allocated cons (next cell).
   /// New cell becomes the current.
   /// Remember to terminate with NIL.
-  pub unsafe fn append(&mut self, val: Term) -> RtResult<()> {
+  pub unsafe fn append(&mut self, val: Term, hp: &mut THeap) -> RtResult<()> {
     if self.head_p.is_null() {
       // First cell in the list, make it the only cell in list
-      self.tail_p = self.make_cell()?;
+      self.tail_p = self.make_cell(hp)?;
       self.head_p = self.tail_p;
     } else {
       // Link old tail to new cell
-      let new_cell = self.make_cell()?;
+      let new_cell = self.make_cell(hp)?;
       (*self.tail_p).set_tl(Term::make_cons(new_cell));
       self.tail_p = new_cell;
     }
@@ -58,12 +56,12 @@ impl ListBuilder {
   /// Build list back: Create a new cons, where tail points to current.
   /// New previous cell becomes the current.
   /// Remember to terminate the first cell of the list with NIL.
-  pub unsafe fn prepend(&mut self, val: Term) -> RtResult<()> {
+  pub unsafe fn prepend(&mut self, val: Term, hp: &mut THeap) -> RtResult<()> {
     if self.head_p.is_null() {
-      self.head_p = self.make_cell()?;
+      self.head_p = self.make_cell(hp)?;
       self.tail_p = self.head_p;
     } else {
-      let new_cell = self.make_cell()?;
+      let new_cell = self.make_cell(hp)?;
       (*new_cell).set_tl(Term::make_cons(self.head_p));
       self.head_p = new_cell;
     }
@@ -90,9 +88,10 @@ impl ListBuilder {
 /// A helper which takes a heap and a UTF-8 string, and creates Erlang string
 /// of integer unicode codepoints, one per character.
 pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut THeap) -> RtResult<Term> {
-  let mut lb = ListBuilder::new(hp)?;
+  let mut lb = ListBuilder::new()?;
   for (_pos, ch) in s.char_indices() {
-    lb.append(Term::make_small_unsigned(ch as usize))?;
+    let char_term = Term::make_small_unsigned(ch as usize);
+    lb.append(char_term, hp)?;
   }
   Ok(lb.make_term())
 }

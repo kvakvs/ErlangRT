@@ -80,7 +80,7 @@ impl Map {
   /// Allocate `size+n` cells and form a Map in memory, return the pointer.
   pub fn create_into(hp: &mut THeap, num_pairs: Word) -> RtResult<*mut Map> {
     let n = Self::storage_size(num_pairs);
-    let p = hp.alloc::<Map>(n, false)?;
+    let p = hp.alloc(n, false)? as *mut Self;
     unsafe {
       ptr::write(p, Map::new(num_pairs));
     }

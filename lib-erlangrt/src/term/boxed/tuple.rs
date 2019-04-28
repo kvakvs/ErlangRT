@@ -72,7 +72,7 @@ impl Tuple {
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
   pub fn create_into(hp: &mut THeap, arity: usize) -> RtResult<*mut Tuple> {
     let n = Self::storage_size(arity);
-    let p = hp.alloc::<Tuple>(n, false)?;
+    let p = hp.alloc(n, false)? as *mut Self;
     unsafe {
       ptr::write(p, Tuple::new(arity));
     }

@@ -35,7 +35,7 @@ pub fn nativefun_make_fun_3(
     return Err(RtErr::Exception(ExceptionType::Error, gen_atoms::BADARG));
   }
 
-  let hp = &mut cur_proc.heap;
+  let hp = cur_proc.get_heap_mut();
   let mfa = ModFunArity::from_slice(&args[0..3]);
 
   // Create an export on heap and return it
@@ -121,6 +121,6 @@ fn do_erlang_process_flag(p: &mut Process, flag: Term, value: bool) -> RtResult<
       p.process_flags
         .read_and_set(process_flags::TRAP_EXIT, value),
     )),
-    _ => fail::create::badarg_val(flag, &mut p.heap),
+    _ => fail::create::badarg_val(flag, p.get_heap_mut()),
   }
 }

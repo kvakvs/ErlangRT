@@ -147,6 +147,10 @@ impl THeap for FlatHeap {
     Err(RtErr::HeapIsFull("heap::allocate_intent"))
   }
 
+  fn allocate_intent_no_gc(&mut self, _size: WordSize) -> RtResult<()> {
+    Ok(())
+  }
+
   #[inline]
   fn heap_check_available(&self, need: WordSize) -> bool {
     self.heap_top + need.words <= self.stack_top
@@ -206,6 +210,44 @@ impl THeap for FlatHeap {
       }
       println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
       i += 1;
+    }
+  }
+
+  /// Sets the stack top.
+  /// Arg: new_stack_top - offset from the heap end
+  fn drop_stack_words(&mut self, n_drop: usize) {
+    println!("drop_stack_words {}", n_drop);
+    assert!(self.stack_top + n_drop < self.capacity);
+    self.stack_top += n_drop;
+  }
+
+  /// Go through stack values searching for a stored CP, skip if it does not
+  /// point to a catch instruction.
+  /// Returns: the location stored on stack
+  unsafe fn unroll_stack_until_catch(&self) -> Option<NextCatchResult> {
+    let mut ptr: *const Word = self.get_stack_top_ptr();
+    let stack_start: *const Word = self.get_stack_start_ptr();
+    // Counter how many stack cells to drop
+    let mut stack_drop = 0usize;
+
+    loop {
+      if ptr >= stack_start {
+        return None;
+      }
+      // Hope we found a CP on stack (good!)
+      let term_at_ptr = Term::from_raw(ptr::read(ptr));
+
+      if term_at_ptr.is_catch() {
+        // Typical stack frame looks like:
+        // >>-top-> CP Catch ...
+        // Drop 1 less word than where the catch was found to preserve that CP
+        return Some(NextCatchResult {
+          loc: term_at_ptr.get_catch_ptr(),
+          stack_drop: stack_drop - 1,
+        });
+      }
+      ptr = ptr.add(1);
+      stack_drop += 1;
     }
   }
 }
@@ -295,43 +337,5 @@ impl FlatHeap {
   #[inline]
   pub fn stack_have_y(&self, y: Word) -> bool {
     self.capacity - self.stack_top >= y + 1
-  }
-
-  /// Go through stack values searching for a stored CP, skip if it does not
-  /// point to a catch instruction.
-  /// Returns the location stored on stack and
-  pub unsafe fn unroll_stack_until_catch(&self) -> Option<NextCatchResult> {
-    let mut ptr: *const Word = self.get_stack_top_ptr();
-    let stack_start: *const Word = self.get_stack_start_ptr();
-    // Counter how many stack cells to drop
-    let mut stack_drop = 0usize;
-
-    loop {
-      if ptr >= stack_start {
-        return None;
-      }
-      // Hope we found a CP on stack (good!)
-      let term_at_ptr = Term::from_raw(ptr::read(ptr));
-
-      if term_at_ptr.is_catch() {
-        // Typical stack frame looks like:
-        // >>-top-> CP Catch ...
-        // Drop 1 less word than where the catch was found to preserve that CP
-        return Some(NextCatchResult {
-          loc: term_at_ptr.get_catch_ptr(),
-          stack_drop: stack_drop - 1,
-        });
-      }
-      ptr = ptr.add(1);
-      stack_drop += 1;
-    }
-  }
-
-  /// Sets the stack top.
-  /// Arg: new_stack_top - offset from the heap end
-  pub fn drop_stack_words(&mut self, n_drop: usize) {
-    println!("drop_stack_words {}", n_drop);
-    assert!(self.stack_top + n_drop < self.capacity);
-    self.stack_top += n_drop;
   }
 }

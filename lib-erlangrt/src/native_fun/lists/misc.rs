@@ -2,10 +2,9 @@
 use crate::{
   emulator::process::Process,
   fail::RtResult,
-  term::{compare, value::*},
+  term::{compare, term_builder::ListBuilder, value::*},
 };
 use core::cmp::Ordering;
-use crate::term::term_builder::ListBuilder;
 
 define_nativefun!(_vm, _proc, args,
   name: "lists:member/2", struct_name: NfListsMember2, arity: 2,
@@ -37,9 +36,12 @@ define_nativefun!(_vm, proc, args,
 
 #[inline]
 unsafe fn reverse_2(proc: &mut Process, list: Term, tail: Term) -> RtResult<Term> {
-  let mut lb = ListBuilder::new(proc.get_heap_mut())?;
+  let mut lb = ListBuilder::new()?;
+  let hp = proc.get_heap_mut();
+
   // Going forward the list, prepend values to the result
-  cons::for_each(list, |elem| lb.prepend(elem))?;
+  cons::for_each(list, |elem| lb.prepend(elem, hp))?;
+
   // Last element's tail in the new list is set to `tail` argument
   Ok(lb.make_term_with_tail(tail))
 }

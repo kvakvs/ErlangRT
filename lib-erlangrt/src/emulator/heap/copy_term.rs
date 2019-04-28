@@ -35,11 +35,12 @@ pub fn copy_to(term: Term, hp: &mut THeap) -> RtResult<Term> {
 /// Also copy the tail element.
 /// Returns: `RtResult<copied_term>`
 unsafe fn copy_cons_to(lst: Term, hp: &mut THeap) -> RtResult<Term> {
-  let mut lb = ListBuilder::new(hp)?;
+  let mut lb = ListBuilder::new()?;
 
   let tail_el_result = value::cons::for_each(lst, |el| {
     // Recurse into copy, for each list element
-    lb.append(copy_to(el, hp)?)?;
+    let copy_of_el = copy_to(el, hp)?;
+    lb.append(copy_of_el, hp)?;
     Ok(())
   })?;
 

@@ -2,7 +2,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{gen_atoms, process::Process},
   fail::{RtErr, RtResult},
-  term::{builders::make_badfun_n, value::Term},
+  term::{builders::make_badfun_n, term_builder::tuple_builder::tuple2, value::Term},
 };
 
 #[allow(dead_code)]
@@ -40,7 +40,7 @@ define_nativefun!(_vm, proc, args,
 );
 
 pub fn error_2(proc: &mut Process, reason: Term, err_args: Term) -> RtResult<Term> {
-  let tuple_val = proc.heap.tuple2(reason, err_args)?;
+  let tuple_val = tuple2(proc.get_heap_mut(), reason, err_args)?;
   Err(RtErr::Exception(ExceptionType::Error, tuple_val))
 }
 

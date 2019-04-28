@@ -43,7 +43,7 @@ impl BinarySlice {
 
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size();
-    let this = hp.alloc::<Self>(storage_sz, false)?;
+    let this = hp.alloc(storage_sz, false)? as *mut Self;
 
     let bin_header = Binary::new(BinaryType::Slice, storage_sz);
 

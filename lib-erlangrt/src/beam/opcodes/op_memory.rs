@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::sizes::WordSize,
-  emulator::{heap::heap_trait::THeap, process::Process, runtime_ctx::Context},
+  emulator::{process::Process, runtime_ctx::Context},
   fail::{RtErr, RtResult},
   term::value::Term,
 };

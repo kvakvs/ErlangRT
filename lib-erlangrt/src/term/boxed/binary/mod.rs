@@ -77,11 +77,11 @@ impl Binary {
     extra_memory: WordSize,
   ) -> RtResult<()> {
     if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
-      return hp.allocate_intent(ProcessHeapBinary::storage_size(size) + extra_memory);
+      return hp.allocate_intent_no_gc(ProcessHeapBinary::storage_size(size) + extra_memory);
     }
     vm.binary_heap
-      .allocate_intent(BinaryHeapBinary::storage_size(size))?;
-    return hp.allocate_intent(ReferenceToBinary::storage_size() + extra_memory);
+      .allocate_intent_no_gc(BinaryHeapBinary::storage_size(size))?;
+    return hp.allocate_intent_no_gc(ReferenceToBinary::storage_size() + extra_memory);
   }
 
   fn get_binary_type_for_creation(size: BitSize) -> BinaryType {
@@ -96,6 +96,12 @@ impl Binary {
       header: BoxHeader::new::<Binary>(storage_size),
       bin_type,
     }
+  }
+
+  pub unsafe fn create_with_data(data: &[u8], hp: &mut THeap) -> RtResult<*mut TBinary> {
+    let btrait = Self::create_into(BitSize::with_bytes(data.len()), hp)?;
+    (*btrait).store(data)?;
+    Ok(btrait)
   }
 
   pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {

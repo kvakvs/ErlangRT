@@ -78,7 +78,7 @@ impl Closure {
     frozen: &[Term],
   ) -> RtResult<Term> {
     let n_words = Self::storage_size(fe.nfrozen);
-    let this = hp.alloc::<Self>(n_words, false)?;
+    let this = hp.alloc(n_words, false)? as *mut Self;
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     println!(

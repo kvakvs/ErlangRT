@@ -88,12 +88,12 @@ pub fn nativefun_multiply_2(
   assert_eq!(args.len(), 2, "{}ubif_stimes_2_2 takes 2 args", module());
   let a: Term = args[0];
   let b: Term = args[1];
-  return multiplication::multiply(&mut cur_proc.heap, a, b);
+  return multiplication::multiply(cur_proc.get_heap_mut(), a, b);
 }
 
 // TODO: shorten, use only heap of the process, inline, move to a lib module in arith
 fn create_bigint(cur_proc: &mut Process, iresult: isize) -> RtResult<Term> {
   // We're out of luck - the result is not a small, but we have BigInt!
-  let p = big::from_isize(&mut cur_proc.heap, iresult)?;
+  let p = big::from_isize(cur_proc.get_heap_mut(), iresult)?;
   Ok(p)
 }

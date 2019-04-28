@@ -15,15 +15,14 @@ use crate::{
     },
   },
   defs,
-  emulator::heap::{Heap},
+  emulator::heap::{Designation, Heap},
   fail::{RtErr, RtResult},
   rt_util::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
   },
-  term::{term_builder::TermBuilder, value::Term},
+  term::value::Term,
 };
-use crate::emulator::heap::Designation;
 
 fn module() -> &'static str {
   "beam/file: "
@@ -162,14 +161,12 @@ impl BeamFile {
   /// Read Attr section: two terms (module attributes and compiler info) encoded
   /// as external term format.
   fn load_attributes(&mut self, r: &mut BinaryReader) -> RtResult<()> {
-    let mut tb = TermBuilder::new(&mut self.lit_heap);
-    self.mod_attrs = etf::decode(r, &mut tb)?;
+    self.mod_attrs = etf::decode(r, &mut self.lit_heap)?;
     Ok(())
   }
 
   fn load_compiler_info(&mut self, r: &mut BinaryReader) -> RtResult<()> {
-    let mut tb = TermBuilder::new(&mut self.lit_heap);
-    self.compiler_info = etf::decode(r, &mut tb)?;
+    self.compiler_info = etf::decode(r, &mut self.lit_heap)?;
     Ok(())
   }
 
@@ -316,10 +313,8 @@ impl BeamFile {
       // size should match actual consumed ETF bytes so can skip it here
       let _size = r.read_u32be();
 
-      let mut tb = TermBuilder::new(&mut self.lit_heap);
-
       // TODO: Instead of unwrap return error and possibly log/return error location too?
-      let literal = etf::decode(&mut r, &mut tb).unwrap();
+      let literal = etf::decode(&mut r, &mut self.lit_heap).unwrap();
 
       self.lit_tab.push(literal);
     }

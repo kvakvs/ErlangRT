@@ -43,7 +43,7 @@ impl Import {
 
   pub unsafe fn create_into(hp: &mut THeap, mfarity: ModFunArity) -> RtResult<Term> {
     let storage_size = Self::storage_size();
-    let this = hp.alloc::<Self>(storage_size, false)?;
+    let this = hp.alloc(storage_size, false)? as *mut Self;
 
     ptr::write(
       this,

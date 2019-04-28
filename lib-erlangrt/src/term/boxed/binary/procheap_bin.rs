@@ -101,7 +101,7 @@ impl ProcessHeapBinary {
   pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size(size);
-    let this = hp.alloc::<Self>(storage_sz, false)?;
+    let this = hp.alloc(storage_sz, false)? as *mut Self;
 
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);

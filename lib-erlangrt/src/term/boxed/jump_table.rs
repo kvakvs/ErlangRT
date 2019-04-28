@@ -72,7 +72,7 @@ impl JumpTable {
   /// Allocate `n_pairs`*2 cells and form a tuple-like structure
   pub fn create_into(hp: &mut THeap, n_pairs: usize) -> RtResult<*mut Self> {
     let storage_size = Self::storage_size(n_pairs);
-    let p = hp.alloc::<Self>(storage_size, false)?;
+    let p = hp.alloc(storage_size, false)? as *mut Self;
     unsafe {
       ptr::write(p, Self::new(n_pairs));
     }

@@ -1,6 +1,7 @@
 use core::{mem::size_of, ptr};
 
 use crate::{
+  big,
   defs::{self, ByteSize, WordSize},
   fail::{RtErr, RtResult},
   term::{
@@ -15,7 +16,10 @@ use crate::{
 };
 
 use self::sign::*;
-use crate::emulator::heap::heap_trait::THeap;
+use crate::{
+  emulator::heap::heap_trait::THeap,
+  term::boxed::{bignum, endianness::Endianness},
+};
 
 pub mod endianness;
 pub mod sign;
@@ -61,6 +65,18 @@ impl Bignum {
     unsafe { Self::create_into(hp, sign, limbs) }
   }
 
+  /// Given an array of bytes with little-endian order, create a bignum on the
+  /// provided heap, or fail.
+  pub unsafe fn create_le(
+    hp: &mut THeap,
+    sign: bignum::sign::Sign,
+    digits: Vec<u8>,
+  ) -> RtResult<Term> {
+    let limbs = big::make_limbs_from_bytes(Endianness::Little, digits);
+    let p = Self::create_into(hp, sign, &limbs)?;
+    Ok(Term::make_boxed(p))
+  }
+
   /// Consume bytes as either big- or little-endian stream, and build a big
   /// integer on heap.
   pub unsafe fn create_into(
@@ -69,7 +85,7 @@ impl Bignum {
     limbs: &[Digit],
   ) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
-    let this = hp.alloc::<Self>(n_words, false)?;
+    let this = hp.alloc(n_words, false)? as *mut Self;
 
     ptr::write(
       this,
