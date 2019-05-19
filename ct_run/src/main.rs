@@ -150,8 +150,8 @@ fn main() {
 
   erl_args.search_path = vec![
     "priv/".to_string(),
-    "../otp/erts/preloaded/ebin/".to_string(),
-    "../otp/lib/stdlib/ebin/".to_string(),
+    "otp/erts/preloaded/ebin/".to_string(),
+    "otp/lib/stdlib/ebin/".to_string(),
   ];
 
   //  println!("{:?}", cmd);

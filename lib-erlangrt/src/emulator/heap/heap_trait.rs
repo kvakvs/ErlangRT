@@ -10,7 +10,7 @@ use crate::{
 pub trait THeap {
   fn alloc(&mut self, sz: WordSize, nil_init: bool) -> RtResult<*mut Word>;
 
-  // Data access
+  // Stack access
   //
 
   fn get_y(&self, index: Word) -> RtResult<Term>;
@@ -19,6 +19,7 @@ pub trait THeap {
 
   // Heap & Stack memory management
   //
+
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   fn stack_deallocate(&mut self, n: usize) -> Term;
 

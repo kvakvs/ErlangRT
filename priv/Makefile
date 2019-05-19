@@ -1,6 +1,6 @@
-OTP_DIR=../../otp
+OTP_DIR=../otp
 ERLC=$(OTP_DIR)/bin/erlc
-# OTP_EMU_DIR=../../otp/erts/emulator
+# OTP_EMU_DIR=../otp/erts/emulator
 # OTP_EMU_TEST_DIR=$(OTP_EMU_DIR)/test
 
 compile: \

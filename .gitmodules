@@ -1,0 +1,3 @@
+[submodule "otp"]
+	path = otp
+	url = git@github.com:erlang/otp.git

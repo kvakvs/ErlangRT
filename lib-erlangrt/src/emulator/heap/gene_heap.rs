@@ -1,4 +1,11 @@
-#![allow(dead_code)]
+//! Generational Heap, equivalent to the existing heap and GC in Erlang/OTP.
+//! Started as an identical copy of Flat Heap (which also allocates forward but
+//! has no GC).
+//!
+//! This collector has two heaps (young and old). When the time comes, live data
+//! is moved into the young heap. The old heap is discarded.
+//!
+//! TODO: The young values get garbaged more often, introduce an age mark
 use crate::{
   defs::{Word, WordSize},
   emulator::heap::{catch::NextCatchResult, heap_trait::THeap, iter, Designation},
@@ -18,7 +25,7 @@ const BINARY_HEAP_CAPACITY: usize = 65536; // 64k*8 = 512kb
 /// A heap structure which grows upwards with allocations. Cannot expand
 /// implicitly and will return error when capacity is exceeded. Organize a
 /// garbage collect call to get more memory TODO: gc on heap
-pub struct FlatHeap {
+pub struct GenerationalHeap {
   data: Vec<Word>,
   /// Heap top, begins at 0 and grows up towards the `stack_top`.
   heap_top: usize,
@@ -28,20 +35,20 @@ pub struct FlatHeap {
   capacity: usize,
 }
 
-impl FlatHeap {}
+impl GenerationalHeap {}
 
-impl fmt::Debug for FlatHeap {
+impl fmt::Debug for GenerationalHeap {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,
-      "FlatHeap{{ cap: {}, used: {} }}",
+      "GeneHeap{{ cap: {}, used: {} }}",
       self.get_heap_max_capacity(),
       self.get_heap_used_words()
     )
   }
 }
 
-impl THeap for FlatHeap {
+impl THeap for GenerationalHeap {
   fn alloc(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut Word> {
     let pos = self.heap_top;
     let n_words = n.words;
@@ -255,7 +262,7 @@ impl THeap for FlatHeap {
 
 // === === ===
 
-impl FlatHeap {
+impl GenerationalHeap {
   fn get_size_for(d: Designation) -> usize {
     match d {
       Designation::ProcessHeap => DEFAULT_PROC_HEAP,
