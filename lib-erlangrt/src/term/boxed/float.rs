@@ -11,7 +11,7 @@ use crate::{
     classify,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 #[allow(dead_code)]
 pub struct Float {
@@ -49,7 +49,7 @@ impl Float {
     let n_words = Self::storage_size();
     let this = hp.alloc(n_words, false)? as *mut Self;
 
-    ptr::write(this, Self::new(value));
+    this.write(Self::new(value));
 
     Ok(this)
   }

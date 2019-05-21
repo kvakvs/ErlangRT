@@ -12,7 +12,6 @@ use crate::{
     classify,
   },
 };
-use core::ptr;
 
 /// Binary match buffer is a part of `BinaryMatchState`
 struct MatchBuffer {
@@ -83,7 +82,7 @@ impl BinaryMatchState {
 
     // Create and write the block header (Self)
     let new_self = Self::new(bin_ptr);
-    ptr::write(this, new_self);
+    this.write(new_self);
 
     Ok(this)
   }

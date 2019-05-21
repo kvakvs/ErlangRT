@@ -18,7 +18,7 @@ use crate::{
     value::*,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 const fn module() -> &'static str {
   "closure: "
@@ -89,7 +89,7 @@ impl Closure {
       fe.nfrozen
     );
 
-    ptr::write(this, Self::new(fe.mfa, fe.nfrozen));
+    this.write(Self::new(fe.mfa, fe.nfrozen));
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     // step 1 closure forward, which will point exactly at the frozen location

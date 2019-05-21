@@ -122,7 +122,7 @@ impl Binary {
   //  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
   //    unimplemented!();
   //    // let p = this.add(1) as *const u8;
-  //    // ptr::read(p.add(i))
+  //    // p.add(i).read()
   //  }
 
   unsafe fn generic_switch<T>(

@@ -49,21 +49,22 @@ pub unsafe fn copy_bits(
     };
 
     if src_offset == dst_offset {
-      ptr::write(dst, mask_bits(ptr::read(src), ptr::read(dst), lmask as u8));
+      dst.write(mask_bits(src.read(), dst.read(), lmask as u8));
     } else if src_offset.bits > dst_offset.bits {
       let diff_bits = (src_offset - dst_offset).get_last_byte_bits();
-      let mut bits = ((ptr::read(src) as usize) << diff_bits) as u8;
+      let mut bits = ((src.read() as usize) << diff_bits) as u8;
       if (src_offset + size).bits > defs::BYTE_BITS {
         src = src.offset(src_direction);
-        bits |= ptr::read(src) >> (defs::BYTE_BITS - diff_bits);
+        bits |= src.read() >> (defs::BYTE_BITS - diff_bits);
       }
-      ptr::write(dst, mask_bits(bits as u8, ptr::read(dst), lmask as u8));
+      dst.write(mask_bits(bits as u8, dst.read(), lmask as u8));
     } else {
       let diff_bits = (src_offset - dst_offset).get_last_byte_bits();
-      ptr::write(
-        dst,
-        mask_bits(ptr::read(src) >> diff_bits, ptr::read(dst), lmask as u8),
-      );
+      dst.write(mask_bits(
+        src.read() >> diff_bits,
+        ptr::read(dst),
+        lmask as u8,
+      ));
     }
     return Ok(size); // We are done!
   }
@@ -82,20 +83,20 @@ pub unsafe fn copy_bits(
     // might be different, so we can't just use memcpy().
 
     if lmask != 0 {
-      ptr::write(dst, mask_bits(ptr::read(src), ptr::read(dst), lmask as u8));
+      dst.write(mask_bits(src.read(), dst.read(), lmask as u8));
       dst = dst.offset(dst_direction);
       src = src.offset(src_direction);
     }
 
     while count > 0 {
       count -= 1;
-      ptr::write(dst, ptr::read(src));
+      dst.write(ptr::read(src));
       dst = dst.offset(dst_direction);
       src = src.offset(src_direction);
     }
 
     if rmask != 0 {
-      ptr::write(dst, mask_bits(ptr::read(src), ptr::read(dst), rmask as u8));
+      dst.write(mask_bits(src.read(), dst.read(), rmask as u8));
     }
   } else {
     // The tricky case. The bits must be shifted into position.
@@ -118,29 +119,29 @@ pub unsafe fn copy_bits(
 
     if lmask != 0 {
       let mut bits1 = bits << lshift;
-      bits = ptr::read(src);
+      bits = src.read();
       src = src.offset(src_direction);
       bits1 |= bits >> rshift;
-      ptr::write(dst, mask_bits(bits1, ptr::read(dst), lmask as u8));
+      dst.write(mask_bits(bits1, dst.read(), lmask as u8));
       dst = dst.offset(dst_direction);
     }
 
     while count > 0 {
       count -= 1;
       let bits1 = bits << lshift;
-      bits = ptr::read(src);
+      bits = src.read();
       src = src.offset(src_direction);
-      ptr::write(dst, bits1 | (bits >> rshift));
+      dst.write(bits1 | (bits >> rshift));
       dst = dst.offset(dst_direction);
     }
 
     if rmask != 0 {
       let mut bits1 = bits << lshift;
       if (rmask << rshift) & 0xff != 0 {
-        bits = ptr::read(src);
+        bits = src.read();
         bits1 |= bits >> rshift;
       }
-      ptr::write(dst, mask_bits(bits1, ptr::read(dst), rmask as u8));
+      dst.write(mask_bits(bits1, dst.read(), rmask as u8));
     }
   }
 

@@ -12,7 +12,7 @@ use crate::{
     value::*,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 #[allow(dead_code)]
 pub struct Export {
@@ -49,7 +49,7 @@ impl Export {
     let n_words = Self::storage_size();
     let this = hp.alloc(n_words, false)? as *mut Self;
 
-    ptr::write(this, Self::new(mfa));
+    this.write(Self::new(mfa));
     Ok(Term::make_boxed(this))
   }
 

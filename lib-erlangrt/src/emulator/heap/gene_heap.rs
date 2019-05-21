@@ -13,7 +13,7 @@ use crate::{
   term::value::Term,
 };
 use colored::Colorize;
-use core::{fmt, ptr};
+use core::fmt;
 
 /// Default heap size for constants (literals) when loading a module.
 const DEFAULT_LIT_HEAP: usize = 8192;
@@ -69,7 +69,7 @@ impl THeap for GenerationalHeap {
     if init_nil {
       unsafe {
         for i in 0..n_words {
-          ptr::write(new_chunk.add(i), raw_nil)
+          new_chunk.add(i).write(raw_nil)
         }
       }
     }
@@ -171,7 +171,7 @@ impl THeap for GenerationalHeap {
 
       if fill_nil {
         for y in 0..need.words {
-          ptr::write(p.add(y), raw_nil)
+          p.add(y).write(raw_nil)
         }
       }
     }
@@ -214,7 +214,7 @@ impl THeap for GenerationalHeap {
         return None;
       }
       // Hope we found a CP on stack (good!)
-      let term_at_ptr = Term::from_raw(ptr::read(ptr));
+      let term_at_ptr = Term::from_raw(ptr.read());
 
       if term_at_ptr.is_catch() {
         // Typical stack frame looks like:

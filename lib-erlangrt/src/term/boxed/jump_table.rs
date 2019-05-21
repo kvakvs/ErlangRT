@@ -13,7 +13,7 @@ use crate::{
     value::Term,
   },
 };
-use core::{fmt, ptr};
+use core::fmt;
 
 /// An array of sorted pairs, which like a tuple stores the array in its memory
 pub struct JumpTable {
@@ -74,7 +74,7 @@ impl JumpTable {
     let storage_size = Self::storage_size(n_pairs);
     let p = hp.alloc(storage_size, false)? as *mut Self;
     unsafe {
-      ptr::write(p, Self::new(n_pairs));
+      p.write(Self::new(n_pairs));
     }
     Ok(p)
   }
@@ -85,8 +85,8 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &mut self.val0 as *mut Term;
-    ptr::write(data.add(index * 2), val);
-    ptr::write(data.add(index * 2 + 1), location);
+    data.add(index * 2).write(val);
+    data.add(index * 2 + 1).write(location);
   }
 
   // Write value component in the i-th pair (base 0)
@@ -95,7 +95,7 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &mut self.val0 as *mut Term;
-    ptr::write(data.add(index * 2), val)
+    data.add(index * 2).write(val)
   }
 
   // Write location component in the i-th pair (base 0)
@@ -104,7 +104,7 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &mut self.val0 as *mut Term;
-    ptr::write(data.add(index * 2 + 1), val)
+    data.add(index * 2 + 1).write(val)
   }
 
   // Read tuple's i-th element (base 0)
@@ -113,8 +113,8 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &self.val0 as *const Term;
-    let val = ptr::read(data.add(index * 2));
-    let location = ptr::read(data.add(index * 2 + 1));
+    let val = data.add(index * 2).read();
+    let location = data.add(index * 2 + 1).read();
     (val, location)
   }
 
@@ -124,7 +124,7 @@ impl JumpTable {
     debug_assert!(index < self.get_count());
 
     let data = &self.val0 as *const Term;
-    ptr::read(data.add(index * 2 + 1))
+    data.add(index * 2 + 1).read()
   }
 
   /// Format jump table contents

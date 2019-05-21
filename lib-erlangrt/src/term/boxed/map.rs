@@ -82,7 +82,7 @@ impl Map {
     let n = Self::storage_size(num_pairs);
     let p = hp.alloc(n, false)? as *mut Self;
     unsafe {
-      ptr::write(p, Map::new(num_pairs));
+      p.write(Map::new(num_pairs));
     }
     Ok(p)
   }
@@ -110,8 +110,8 @@ impl Map {
       }
     };
     // Write the key and value where they should go
-    ptr::write(p.add(insert_pos * 2), key);
-    ptr::write(p.add(insert_pos * 2 + 1), value);
+    p.add(insert_pos * 2).write(key);
+    p.add(insert_pos * 2 + 1).write(value);
     Ok(())
   }
 
@@ -122,7 +122,7 @@ impl Map {
     match Self::get_internal(this, key)? {
       MapGetResult::FoundAt(i) => {
         let p = this.add(1) as *const Term;
-        Ok(Some(ptr::read(p.add(i * 2 + 1))))
+        Ok(Some(p.add(i * 2 + 1).read()))
       }
       _ => Ok(None),
     }
@@ -152,7 +152,7 @@ impl Map {
     let mut b = count - 1;
     loop {
       let median = a + (b - a) / 2;
-      let median_value = ptr::read(p.add(median * 2));
+      let median_value = p.add(median * 2).read();
       // The key is less than median, step left
       println!("map:get a={} b={} median={}", a, b, median);
       match cmp_terms(median_value, key, true)? {

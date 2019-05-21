@@ -110,7 +110,7 @@ impl ProcessHeapBinary {
       size,
       data: 0,
     };
-    ptr::write(this, new_self);
+    this.write(new_self);
 
     Ok(this as *mut TBinary)
   }

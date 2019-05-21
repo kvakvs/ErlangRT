@@ -54,7 +54,7 @@ impl BinarySlice {
       size,
       orig,
     };
-    ptr::write(this, new_self);
+    this.write(new_self);
 
     Ok(this as *mut TBinary)
   }

@@ -136,13 +136,13 @@ impl CodePtrMut {
   #[inline]
   pub unsafe fn read_n(self, n: usize) -> Word {
     let CodePtrMut(p) = self;
-    ptr::read(p.add(n))
+    p.add(n).read()
   }
 
   /// Write `n`-th word at the code pointer.
   #[inline]
   pub unsafe fn write_n(self, n: usize, val: Word) {
     let CodePtrMut(p) = self;
-    ptr::write(p.add(n), val)
+    p.add(n).write(val)
   }
 }

@@ -223,11 +223,11 @@ unsafe fn put_bits_one_byte(
   write_size: BitSize,
 ) -> RtResult<()> {
   // Read the old value and mask away the bits about to be replaced
-  let mut b = ptr::read(iptr) & (0xff << defs::byte_shift(rbits));
+  let mut b = iptr.read() & (0xff << defs::byte_shift(rbits));
   let val_mask = (1 << write_size.bits) - 1;
   let new_val = (write_val & val_mask) << (8 - inbyte_offset - write_size.bits);
   b |= new_val as u8;
-  ptr::write(iptr, b);
+  iptr.write(b);
   Ok(())
 }
 
@@ -397,7 +397,7 @@ unsafe fn paste_bigint_le_negative(
   let mut carry = 1usize;
   let mut n = cmp::min(dst.len(), bignum::BIG_DIGIT_SIZE);
   while n >= bignum::BIG_DIGIT_SIZE {
-    let mut d = ptr::read(dp);
+    let mut d = dp.read();
     dp = dp.add(1);
     for _i in 0..bignum::BIG_DIGIT_SIZE {
       carry = subc(d as u8, carry, dst, dst_offset);
@@ -407,7 +407,7 @@ unsafe fn paste_bigint_le_negative(
     n -= bignum::BIG_DIGIT_SIZE;
   }
   if n != 0 {
-    let mut d = ptr::read(dp);
+    let mut d = dp.read();
     loop {
       carry = subc(d as u8, carry, dst, dst_offset);
       dst_offset += 1;
@@ -439,7 +439,7 @@ unsafe fn paste_bigint_le_positive(
 ) -> usize {
   let mut n = cmp::min(dst.len(), bignum::BIG_DIGIT_SIZE);
   while n >= bignum::BIG_DIGIT_SIZE {
-    let mut d = ptr::read(dp);
+    let mut d = dp.read();
     dp = dp.add(1);
     for _i in 0..bignum::BIG_DIGIT_SIZE {
       dst[dst_offset] = d as u8;
@@ -450,7 +450,7 @@ unsafe fn paste_bigint_le_positive(
   }
 
   if n != 0 {
-    let mut d = ptr::read(dp);
+    let mut d = dp.read();
     loop {
       dst[dst_offset] = d as u8;
       dst_offset += 1;
@@ -486,7 +486,7 @@ unsafe fn paste_bigint_be_negative(
   let mut acc: bignum::Digit = 0;
 
   while n >= bignum::BIG_DIGIT_SIZE {
-    let d = ptr::read(dp);
+    let d = dp.read();
     dp = dp.add(1);
     acc |= d << offs;
     carry = subc(acc as u8, carry, dst, dst_offset);
@@ -500,7 +500,7 @@ unsafe fn paste_bigint_be_negative(
     n -= bignum::BIG_DIGIT_SIZE;
   }
   if n != 0 {
-    acc |= ptr::read(dp) << offs;
+    acc |= dp.read() << offs;
     loop {
       carry = subc(acc as u8, carry, dst, dst_offset);
       dst_offset -= 1;
@@ -535,7 +535,7 @@ unsafe fn paste_bigint_be_positive(
   let mut acc: bignum::Digit = 0;
 
   while n >= bignum::BIG_DIGIT_SIZE {
-    let d = ptr::read(dp);
+    let d = dp.read();
     dp = dp.add(1);
     acc |= d << defs::byte_shift(offs);
     dst_offset -= 1;
@@ -549,7 +549,7 @@ unsafe fn paste_bigint_be_positive(
     n -= bignum::BIG_DIGIT_SIZE;
   }
   if n != 0 {
-    acc |= ptr::read(dp) << offs;
+    acc |= dp.read() << offs;
     loop {
       dst_offset -= 1;
       dst[dst_offset] = acc as u8;

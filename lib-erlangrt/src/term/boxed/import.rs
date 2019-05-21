@@ -16,7 +16,7 @@ use crate::{
     value::*,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 #[allow(dead_code)]
 pub struct Import {
@@ -45,14 +45,12 @@ impl Import {
     let storage_size = Self::storage_size();
     let this = hp.alloc(storage_size, false)? as *mut Self;
 
-    ptr::write(
-      this,
-      Self {
-        header: BoxHeader::new::<Self>(storage_size),
-        mfarity,
-        is_bif: None, // we don't know yet
-      },
-    );
+
+    this.write(Self {
+      header: BoxHeader::new::<Self>(storage_size),
+      mfarity,
+      is_bif: None, // we don't know yet
+    });
     Ok(Term::make_boxed(this))
   }
 
