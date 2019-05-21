@@ -1,20 +1,22 @@
 pub mod catch;
 pub mod copy_term;
 pub mod dump;
-pub mod flat_heap;
-pub mod gene_heap;
+pub mod gc_copying;
+pub mod gc_trait;
+pub mod heap_incremental;
 pub mod heap_trait;
 pub mod iter;
 
 use crate::{
   defs::WordSize,
-  emulator::heap::{gene_heap::GenerationalHeap, heap_trait::THeap},
+  emulator::heap::{
+    gc_trait::NullGc, heap_incremental::IncrementalHeap, heap_trait::THeap,
+  },
   fail::RtResult,
   term::boxed,
 };
 
-// pub type Heap = FlatHeap;
-pub type Heap = GenerationalHeap;
+pub type Heap = IncrementalHeap<NullGc>;
 
 /// Specifies the intended use of the heap
 pub enum Designation {

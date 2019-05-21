@@ -1,14 +1,17 @@
-//! Generational Heap, equivalent to the existing heap and GC in Erlang/OTP.
-//! Started as an identical copy of Flat Heap (which also allocates forward but
-//! has no GC).
+//! Classic Heap, similar to the existing heap and GC in Erlang/OTP.
 //!
-//! This collector has two heaps (young and old). When the time comes, live data
-//! is moved into the young heap. The old heap is discarded.
+//! * Incremental allocation.
+//! * Second heap is created on GC. Live data is moved into the new heap.
+//!   The old heap is discarded.
 //!
-//! TODO: The young values get garbaged more often, introduce an age mark
+//! Possible improvements:
+//!
+//! * The young values get garbaged more often, introduce an age mark.
 use crate::{
   defs::{Word, WordSize},
-  emulator::heap::{catch::NextCatchResult, heap_trait::THeap, iter, Designation},
+  emulator::heap::{
+    catch::NextCatchResult, gc_trait::TGc, heap_trait::THeap, iter, Designation,
+  },
   fail::{RtErr, RtResult},
   term::value::Term,
 };
@@ -22,10 +25,15 @@ const DEFAULT_LIT_HEAP: usize = 8192;
 const DEFAULT_PROC_HEAP: usize = 16384;
 const BINARY_HEAP_CAPACITY: usize = 65536; // 64k*8 = 512kb
 
-/// A heap structure which grows upwards with allocations. Cannot expand
-/// implicitly and will return error when capacity is exceeded. Organize a
-/// garbage collect call to get more memory TODO: gc on heap
-pub struct GenerationalHeap {
+/// A heap structure which allocates incrementally forward.
+/// Stack grows backwards until they meet with the heap.
+/// When stack meets heap, a new heap is created and GC moves live data there.
+/// The old heap is discarded.
+pub struct IncrementalHeap<GC>
+where
+  GC: TGc,
+{
+  gc: GC,
   data: Vec<Word>,
   /// Heap top, begins at 0 and grows up towards the `stack_top`.
   heap_top: usize,
@@ -35,20 +43,18 @@ pub struct GenerationalHeap {
   capacity: usize,
 }
 
-impl GenerationalHeap {}
-
-impl fmt::Debug for GenerationalHeap {
+impl<GC: TGc> fmt::Debug for IncrementalHeap<GC> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,
-      "GeneHeap{{ cap: {}, used: {} }}",
+      "IncrementalHeap{{ cap: {}, used: {} }}",
       self.get_heap_max_capacity(),
       self.get_heap_used_words()
     )
   }
 }
 
-impl THeap for GenerationalHeap {
+impl<GC: TGc> THeap for IncrementalHeap<GC> {
   fn alloc(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut Word> {
     let pos = self.heap_top;
     let n_words = n.words;
@@ -262,7 +268,7 @@ impl THeap for GenerationalHeap {
 
 // === === ===
 
-impl GenerationalHeap {
+impl<GC: TGc> IncrementalHeap<GC> {
   fn get_size_for(d: Designation) -> usize {
     match d {
       Designation::ProcessHeap => DEFAULT_PROC_HEAP,
@@ -277,6 +283,7 @@ impl GenerationalHeap {
     let capacity = Self::get_size_for(designation);
     assert!(capacity > 0);
     let mut h = Self {
+      gc: GC::new(),
       data: Vec::with_capacity(capacity),
       heap_top: 0,
       stack_top: capacity,
