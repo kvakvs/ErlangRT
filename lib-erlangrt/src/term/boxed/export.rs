@@ -13,6 +13,7 @@ use crate::{
   },
 };
 use core::mem::size_of;
+use crate::emulator::heap::heap_trait::AllocInit;
 
 #[allow(dead_code)]
 pub struct Export {
@@ -47,7 +48,7 @@ impl Export {
   #[allow(dead_code)]
   pub unsafe fn create_into(hp: &mut THeap, mfa: &ModFunArity) -> RtResult<Term> {
     let n_words = Self::storage_size();
-    let this = hp.alloc(n_words, false)? as *mut Self;
+    let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 
     this.write(Self::new(mfa));
     Ok(Term::make_boxed(this))

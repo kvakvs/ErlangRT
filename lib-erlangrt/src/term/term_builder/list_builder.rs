@@ -1,6 +1,6 @@
 use crate::{
   defs::sizes::WordSize,
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::heap_trait::{AllocInit, THeap},
   fail::RtResult,
   term::{boxed, value::*},
 };
@@ -31,7 +31,7 @@ impl ListBuilder {
   /// Creates a new cons cell to grow the list either back or forward
   #[inline]
   unsafe fn make_cell(&self, hp: &mut THeap) -> RtResult<*mut boxed::Cons> {
-    let p = hp.alloc(WordSize::new(2), true)?;
+    let p = hp.alloc(WordSize::new(2), AllocInit::Nil)?;
     Ok(p as *mut boxed::Cons)
   }
 

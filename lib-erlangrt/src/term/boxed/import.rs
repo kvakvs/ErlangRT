@@ -17,6 +17,7 @@ use crate::{
   },
 };
 use core::mem::size_of;
+use crate::emulator::heap::heap_trait::AllocInit;
 
 #[allow(dead_code)]
 pub struct Import {
@@ -43,7 +44,7 @@ impl Import {
 
   pub unsafe fn create_into(hp: &mut THeap, mfarity: ModFunArity) -> RtResult<Term> {
     let storage_size = Self::storage_size();
-    let this = hp.alloc(storage_size, false)? as *mut Self;
+    let this = hp.alloc(storage_size, AllocInit::Uninitialized)? as *mut Self;
 
 
     this.write(Self {

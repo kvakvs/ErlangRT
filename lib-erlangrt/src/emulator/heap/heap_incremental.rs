@@ -10,7 +10,10 @@
 use crate::{
   defs::{Word, WordSize},
   emulator::heap::{
-    catch::NextCatchResult, gc_trait::TGc, heap_trait::THeap, iter, Designation,
+    catch::NextCatchResult,
+    gc_trait::TGc,
+    heap_trait::{AllocInit, THeap},
+    iter, Designation,
   },
   fail::{RtErr, RtResult},
   term::value::Term,
@@ -55,7 +58,7 @@ impl<GC: TGc> fmt::Debug for IncrementalHeap<GC> {
 }
 
 impl<GC: TGc> THeap for IncrementalHeap<GC> {
-  fn alloc(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut Word> {
+  fn alloc(&mut self, n: WordSize, fill: AllocInit) -> RtResult<*mut Word> {
     let pos = self.heap_top;
     let n_words = n.words;
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
@@ -72,7 +75,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     let raw_nil = Term::nil().raw();
     let new_chunk = unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) };
 
-    if init_nil {
+    if fill == AllocInit::Nil {
       unsafe {
         for i in 0..n_words {
           new_chunk.add(i).write(raw_nil)
@@ -164,7 +167,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
   }
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  fn stack_alloc_unchecked(&mut self, need: WordSize, fill_nil: bool) {
+  fn stack_alloc(&mut self, need: WordSize, extra: WordSize, fill: AllocInit) {
     if need.words == 0 {
       return;
     }
@@ -175,7 +178,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     unsafe {
       let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
 
-      if fill_nil {
+      if fill == AllocInit::Nil {
         for y in 0..need.words {
           p.add(y).write(raw_nil)
         }

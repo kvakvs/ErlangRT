@@ -12,6 +12,7 @@ use crate::{
   },
 };
 use core::ptr;
+use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Defines operations with a binary on process heap.
 /// Pointer to this can be directly casted from pointer to boxed::Binary
@@ -101,7 +102,7 @@ impl ProcessHeapBinary {
   pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size(size);
-    let this = hp.alloc(storage_sz, false)? as *mut Self;
+    let this = hp.alloc(storage_sz, AllocInit::Uninitialized)? as *mut Self;
 
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);

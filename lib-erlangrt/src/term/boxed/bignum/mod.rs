@@ -20,6 +20,7 @@ use crate::{
   emulator::heap::heap_trait::THeap,
   term::boxed::{bignum, endianness::Endianness},
 };
+use crate::emulator::heap::heap_trait::AllocInit;
 
 pub mod endianness;
 pub mod sign;
@@ -85,7 +86,7 @@ impl Bignum {
     limbs: &[Digit],
   ) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
-    let this = hp.alloc(n_words, false)? as *mut Self;
+    let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 
     this.write(Self {
       header: BoxHeader::new::<Self>(n_words),

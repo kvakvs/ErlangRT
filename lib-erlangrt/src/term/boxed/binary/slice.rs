@@ -11,6 +11,7 @@ use crate::{
   },
 };
 use core::ptr;
+use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {
@@ -43,7 +44,7 @@ impl BinarySlice {
 
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size();
-    let this = hp.alloc(storage_sz, false)? as *mut Self;
+    let this = hp.alloc(storage_sz, AllocInit::Uninitialized)? as *mut Self;
 
     let bin_header = Binary::new(BinaryType::Slice, storage_sz);
 

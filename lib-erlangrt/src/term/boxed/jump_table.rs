@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::heap_trait::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
@@ -72,7 +72,7 @@ impl JumpTable {
   /// Allocate `n_pairs`*2 cells and form a tuple-like structure
   pub fn create_into(hp: &mut THeap, n_pairs: usize) -> RtResult<*mut Self> {
     let storage_size = Self::storage_size(n_pairs);
-    let p = hp.alloc(storage_size, false)? as *mut Self;
+    let p = hp.alloc(storage_size, AllocInit::Uninitialized)? as *mut Self;
     unsafe {
       p.write(Self::new(n_pairs));
     }

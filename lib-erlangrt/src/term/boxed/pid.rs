@@ -13,6 +13,7 @@ use crate::{
   },
 };
 use core::mem::size_of;
+use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Represents Pid box on heap.
 pub struct ExternalPid {
@@ -48,7 +49,8 @@ impl ExternalPid {
   /// Allocates
   pub fn create_into(hp: &mut THeap, node: Term, id: Word) -> RtResult<*mut BoxHeader> {
     // TODO do something with possible error from hp.heap_allocate
-    let p = hp.alloc(ExternalPid::storage_size(), false)? as *mut Self;
+    let p =
+      hp.alloc(ExternalPid::storage_size(), AllocInit::Uninitialized)? as *mut Self;
     unsafe { p.write(ExternalPid::new(node, id)) }
     Ok(p as *mut BoxHeader)
   }

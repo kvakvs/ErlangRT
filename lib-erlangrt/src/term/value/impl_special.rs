@@ -37,7 +37,7 @@ impl SpecialConst {
   pub const EMPTY_TUPLE: Self = Self(0);
   pub const EMPTY_LIST: Self = Self(1);
   pub const EMPTY_BINARY: Self = Self(2);
-  // unused 3
+  pub const EMPTY_MAP: Self = Self(3);
 }
 
 /// Used as prefix for special value in register index
