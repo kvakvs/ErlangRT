@@ -1,3 +1,6 @@
+.. image:: https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT.svg?type=shield
+    :target: https://app.fossa.com/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT?ref=badge_shield
+
 ErlangRT - Runtime
 ==================
 
@@ -58,3 +61,10 @@ Contributing
 ````````````
 
 See ``CONTRIBUTING.rst``
+
+
+License Inspection
+------------------
+
+.. image:: https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT.svg?type=large
+    :target: https://app.fossa.com/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT?ref=badge_large
