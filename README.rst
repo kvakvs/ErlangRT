@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT?ref=badge_shield)
+
 ErlangRT - Runtime
 ==================
 
@@ -58,3 +60,7 @@ Contributing
 ````````````
 
 See ``CONTRIBUTING.rst``
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkvakvs%2FErlangRT?ref=badge_large)
