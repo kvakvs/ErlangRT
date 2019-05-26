@@ -2,7 +2,7 @@ use core::cmp::Ordering;
 
 use crate::{
   defs::{Word, WordSize},
-  emulator::heap::heap_trait::{AllocInit, THeap},
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{

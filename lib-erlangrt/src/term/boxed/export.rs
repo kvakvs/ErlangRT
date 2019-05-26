@@ -1,6 +1,10 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::{export, heap::heap_trait::THeap, mfa::ModFunArity},
+  emulator::{
+    export,
+    heap::{AllocInit, THeap},
+    mfa::ModFunArity,
+  },
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -13,7 +17,6 @@ use crate::{
   },
 };
 use core::mem::size_of;
-use crate::emulator::heap::heap_trait::AllocInit;
 
 #[allow(dead_code)]
 pub struct Export {

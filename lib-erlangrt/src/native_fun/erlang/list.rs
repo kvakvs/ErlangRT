@@ -1,4 +1,8 @@
-use crate::{emulator::process::Process, fail::RtResult, term::value::*};
+use crate::{
+  emulator::{heap::THeapOwner, process::Process},
+  fail::RtResult,
+  term::value::*,
+};
 
 #[allow(dead_code)]
 fn module() -> &'static str {

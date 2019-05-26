@@ -4,20 +4,19 @@
 #![crate_type = "lib"]
 #![crate_name = "erlangrt"]
 #![feature(raw)]
-// #![feature(ptr_internals)] // for std/ptr::Unique
-#![feature(maybe_uninit)]
 
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate bitflags;
-// extern crate paste;
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate bitflags;
 
 mod beam;
 mod big;
+pub mod command_line_args;
 mod defs;
 mod emulator;
 mod fail;
+pub mod lib_main;
 mod native_fun;
 mod rt_util;
 mod term;
-pub mod command_line_args;
-pub mod lib_main;

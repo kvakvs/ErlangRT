@@ -5,6 +5,7 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
+    heap::THeapOwner,
     process::Process,
     runtime_ctx::{
       call_native_fun::{self, find_and_call_native_fun},

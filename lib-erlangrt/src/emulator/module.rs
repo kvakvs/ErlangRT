@@ -7,14 +7,13 @@ use crate::{
     funarity::FunArity,
     function::FunEntry,
     gen_atoms,
-    heap::Heap,
+    heap::{Designation, Heap},
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
   term::value::Term,
 };
 use std::collections::BTreeMap;
-use crate::emulator::heap::Designation;
 
 /// Stores f/arity mapping to offset in code.
 pub type ModuleFunTable = BTreeMap<FunArity, usize>;

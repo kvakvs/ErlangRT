@@ -2,7 +2,8 @@
 use crate::{
   defs::{exc_type::ExceptionType, Word},
   emulator::{
-    gen_atoms, process::Process, process_flags, process_registry::ProcessRegistry,
+    gen_atoms, heap::THeapOwner, process::Process, process_flags,
+    process_registry::ProcessRegistry,
   },
   term::value::*,
 };

@@ -1,10 +1,9 @@
 use crate::{
-  emulator::{gen_atoms, heap::heap_trait::THeap},
+  emulator::{gen_atoms, heap::THeap},
   fail::RtResult,
-  term::value::Term,
+  term::{term_builder::TupleBuilder, value::Term},
 };
 use std::slice;
-use crate::term::term_builder::TupleBuilder;
 
 pub fn make_badfun(arg: Term, hp: &mut THeap) -> RtResult<Term> {
   let slice_of_one = unsafe { slice::from_raw_parts(&arg, 1) };

@@ -2,7 +2,8 @@ use crate::{
   defs::exc_type::ExceptionType,
   emulator::{
     gen_atoms,
-    mfa::{ModFunArity, ModFunArgs},
+    heap::THeapOwner,
+    mfa::{ModFunArgs, ModFunArity},
     process::Process,
     process_flags,
     spawn_options::SpawnOptions,
@@ -100,12 +101,7 @@ define_nativefun!(vm, _proc, args,
   args: pid(pid), atom(flag), bool(value),
 );
 
-pub fn process_flag_3(
-  vm: &mut VM,
-  pid: Term,
-  flag: Term,
-  value: bool,
-) -> RtResult<Term> {
+pub fn process_flag_3(vm: &mut VM, pid: Term, flag: Term, value: bool) -> RtResult<Term> {
   let proc_p = vm.processes.unsafe_lookup_pid_mut(pid);
   if proc_p.is_null() {
     return fail::create::badarg();

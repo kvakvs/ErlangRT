@@ -2,7 +2,11 @@
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{heap::allocate_cons, process::Process, runtime_ctx::Context, },
+  emulator::{
+    heap::{allocate_cons, THeapOwner},
+    process::Process,
+    runtime_ctx::Context,
+  },
   fail::{self, RtResult},
   term::value::Term,
 };
@@ -42,11 +46,7 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeIsNil {
   #[inline]
-  pub fn is_nil(
-    ctx: &mut Context,
-    fail: Term,
-    value: Term,
-  ) -> RtResult<DispatchResult> {
+  pub fn is_nil(ctx: &mut Context, fail: Term, value: Term) -> RtResult<DispatchResult> {
     if value != Term::nil() && fail != Term::nil() {
       // jump to fail label
       ctx.jump(fail)

@@ -1,10 +1,10 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
-  emulator::{process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context},
   fail::RtResult,
   term::{
-    boxed::binary::{match_state::BinaryMatchState, slice::BinarySlice},
+    boxed::binary::{match_state::BinaryMatchState, BinarySlice},
     value::Term,
   },
 };
@@ -38,7 +38,8 @@ impl OpcodeBsGetBinary2 {
     let src_bin = (*match_state).get_src_binary();
 
     if !bit_size.is_empty() {
-      proc.get_heap_mut().allocate_intent(BinarySlice::storage_size(), live)?;
+      runtime_ctx.live = live;
+      proc.ensure_heap(BinarySlice::storage_size())?;
 
       // Create slice
       let bit_offset = (*match_state).get_offset();

@@ -2,10 +2,10 @@
 //! heap, stack, registers, and message queue.
 
 use crate::{
-  defs::exc_type::ExceptionType,
+  defs::{exc_type::ExceptionType, WordSize},
   emulator::{
     code_srv::CodeServer,
-    heap::{copy_term, Designation, Heap},
+    heap::{copy_term, Designation, Heap, THeap, THeapOwner},
     mailbox::ProcessMailbox,
     mfa::{ModFunArgs, ModFunArity},
     process_flags::ProcessFlags,
@@ -18,7 +18,6 @@ use crate::{
   term::value::*,
 };
 use core::ptr;
-use crate::emulator::heap::heap_trait::THeap;
 
 //#[allow(dead_code)]
 //#[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -116,16 +115,6 @@ impl Process {
     }
   }
 
-  #[inline]
-  pub fn get_heap(&self) -> &THeap { &self.heap as &THeap }
-
-  #[inline]
-  pub fn get_heap_mut(&mut self) -> &mut THeap {
-    // &self.heap as &mut THeap
-    let heap_ref = &mut self.heap;
-    heap_ref as &mut THeap
-  }
-
   /// Copy args from mfargs-MFA-something into new process heap and set the
   /// registers to the arguments passed to spawn.
   pub fn set_spawn_args(&mut self, mfargs: &ModFunArgs) -> RtResult<()> {
@@ -197,5 +186,24 @@ impl Process {
   pub fn get_context_p(&self) -> *mut runtime_ctx::Context {
     let p = &self.context as *const runtime_ctx::Context;
     p as *mut runtime_ctx::Context
+  }
+}
+
+impl THeapOwner for Process {
+  /// Request heap space from this process' heap, GC will be invoked if necessary
+  fn ensure_heap(&mut self, _need: WordSize) -> RtResult<()> {
+    Ok(())
+  }
+
+  #[inline]
+  fn get_heap(&self) -> &THeap {
+    &self.heap as &THeap
+  }
+
+  #[inline]
+  fn get_heap_mut(&mut self) -> &mut THeap {
+    // &self.heap as &mut THeap
+    let heap_ref = &mut self.heap;
+    heap_ref as &mut THeap
   }
 }

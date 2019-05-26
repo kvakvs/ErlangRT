@@ -1,9 +1,12 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::{BitSize, ByteSize, WordSize},
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context, vm::VM},
   fail::{self, RtResult},
-  term::{boxed, value::Term},
+  term::{
+    boxed::{self, binary::*},
+    value::Term,
+  },
 };
 
 // Create a binary on proc heap or binary heap with GC if required.
@@ -46,16 +49,20 @@ impl OpcodeBsInit2 {
       return Ok(DispatchResult::Normal);
     }
 
-    // Show intent to allocate memory; TODO: add GC related args, like live/regs
-    boxed::Binary::ensure_memory_for_binary(
-      vm,
-      proc.get_heap_mut(),
-      BitSize::with_bytes(sz),
-      WordSize::new(words),
-    )?;
 
-    let binary_size = BitSize::with_bytes(sz);
-    let bin = unsafe { boxed::Binary::create_into(binary_size, proc.get_heap_mut())? };
+    // Check if words is really extra?
+    let extra_memory = WordSize::new(words);
+    let bit_sz = BitSize::with_bytes(sz);
+
+    // Show intent to allocate memory; TODO: add GC related args, like live/regs
+    let bin = if sz <= ProcessHeapBinary::ONHEAP_THRESHOLD {
+      proc.ensure_heap(ProcessHeapBinary::storage_size(bit_sz) + extra_memory)?;
+      unsafe { boxed::Binary::create_into(bit_sz, proc.get_heap_mut())? }
+    } else {
+      vm.binary_heap
+        .ensure_heap(ReferenceToBinary::storage_size() + extra_memory)?;
+      unsafe { boxed::Binary::create_into(bit_sz, vm.binary_heap.get_heap_mut())? }
+    };
 
     let bin_term = unsafe { (*bin).make_term() };
     runtime_ctx.current_bin.reset(bin_term);

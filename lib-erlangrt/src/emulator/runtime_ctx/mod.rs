@@ -10,7 +10,7 @@ use crate::{
   emulator::{
     code::{opcode, CodePtr},
     code_srv::MFALookupResult,
-    heap::heap_trait::THeap,
+    heap::{THeap, THeapOwner},
     process::Process,
     runtime_ctx::current_binary::CurrentBinaryState,
     vm::VM,

@@ -29,11 +29,11 @@ pub trait THeap {
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   fn stack_deallocate(&mut self, n: usize) -> Term;
 
-  /// Express the intent to allocate `size` words on the heap, which may either
-  /// include an attempt to GC, or incur a heap fragment allocation.
-  /// Does not immediately allocate.
-  fn allocate_intent(&mut self, size: WordSize, live: usize) -> RtResult<()>;
-  fn allocate_intent_no_gc(&mut self, size: WordSize) -> RtResult<()>;
+  // / Express the intent to allocate `size` words on the heap, which may either
+  // / include an attempt to GC, or incur a heap fragment allocation.
+  // / Does not immediately allocate.
+  // fn allocate_intent(&mut self, size: WordSize, live: usize) -> RtResult<()>;
+  // fn allocate_intent_no_gc(&mut self, size: WordSize) -> RtResult<()>;
 
   fn heap_check_available(&self, need: WordSize) -> bool;
   fn stack_check_available(&self, need: WordSize) -> bool;

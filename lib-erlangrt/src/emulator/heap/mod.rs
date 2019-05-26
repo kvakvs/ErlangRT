@@ -1,22 +1,22 @@
+use crate::{
+  defs::WordSize,
+  emulator::heap::{gc_trait::NullGc, heap_incremental::IncrementalHeap},
+  fail::RtResult,
+  term::boxed,
+};
+
 pub mod catch;
 pub mod copy_term;
 pub mod dump;
 pub mod gc_copying;
 pub mod gc_trait;
 pub mod heap_incremental;
-pub mod heap_trait;
 pub mod iter;
 
-use crate::{
-  defs::WordSize,
-  emulator::heap::{
-    gc_trait::NullGc,
-    heap_incremental::IncrementalHeap,
-    heap_trait::{AllocInit, THeap},
-  },
-  fail::RtResult,
-  term::boxed,
-};
+mod heap_owner_trait;
+mod heap_trait;
+pub use heap_owner_trait::THeapOwner;
+pub use heap_trait::{AllocInit, THeap};
 
 pub type Heap = IncrementalHeap<NullGc>;
 
@@ -38,11 +38,7 @@ pub fn allocate_cons(hp: &mut THeap) -> RtResult<*mut boxed::Cons> {
 }
 
 #[inline]
-pub fn heap_alloc<T>(
-  hp: &mut THeap,
-  sz: WordSize,
-  fill: AllocInit,
-) -> RtResult<*mut T> {
+pub fn heap_alloc<T>(hp: &mut THeap, sz: WordSize, fill: AllocInit) -> RtResult<*mut T> {
   match hp.alloc(sz, fill) {
     Ok(x) => Ok(x as *mut T),
     Err(y) => Err(y),

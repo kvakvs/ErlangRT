@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
-  emulator::{process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context, vm::VM},
   fail::RtResult,
   term::value::Term,
 };

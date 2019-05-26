@@ -1,7 +1,9 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
-  emulator::{gen_atoms, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{
+    gen_atoms, heap::THeapOwner, process::Process, runtime_ctx::Context, vm::VM,
+  },
   fail::{RtErr, RtResult},
   term::{
     boxed::{

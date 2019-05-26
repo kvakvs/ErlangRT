@@ -1,10 +1,9 @@
 use crate::{
-  beam::disp_result::DispatchResult,
+  beam::disp_result::{DispatchResult, YieldType},
   emulator::{process::Process, runtime_ctx::Context, vm::VM},
   fail::{self, RtResult},
   term::value::*,
 };
-use crate::beam::disp_result::YieldType;
 
 // Sends to x0 value x1, x1 is moved to x0 as result of the operation.
 // If process with pid x0 does not exist, no error is raised.
@@ -17,10 +16,7 @@ define_opcode!(vm, ctx, _curr_p,
 
 impl OpcodeSend {
   #[inline]
-  pub fn send(
-    vm: &mut VM,
-    ctx: &mut Context,
-  ) -> RtResult<DispatchResult> {
+  pub fn send(vm: &mut VM, ctx: &mut Context) -> RtResult<DispatchResult> {
     // let sched = vm.get_scheduler_p();
     let x1 = ctx.get_x(1);
     let x0 = ctx.get_x(0);
@@ -110,10 +106,7 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeWait {
   #[inline]
-  pub fn wait(
-    ctx: &mut Context,
-    label: Term,
-  ) -> RtResult<DispatchResult> {
+  pub fn wait(ctx: &mut Context, label: Term) -> RtResult<DispatchResult> {
     ctx.jump(label);
     Ok(DispatchResult::Yield(YieldType::InfiniteWait))
   }

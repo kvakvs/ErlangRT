@@ -1,11 +1,11 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context},
   fail::RtResult,
   term::{
     boxed::{
       self,
-      binary::{match_state::BinaryMatchState, trait_interface::TBinary},
+      binary::{match_state::BinaryMatchState, TBinary},
     },
     value::Term,
   },
@@ -105,7 +105,11 @@ impl OpcodeBsStartMatch3 {
     //      runtime_ctx.jump(fail);
     //      return Ok(DispatchResult::Normal);
     //    }
-    runtime_ctx.store_value(Term::make_boxed(new_match_state), dst, proc.get_heap_mut())?;
+    runtime_ctx.store_value(
+      Term::make_boxed(new_match_state),
+      dst,
+      proc.get_heap_mut(),
+    )?;
     Ok(DispatchResult::Normal)
   }
 

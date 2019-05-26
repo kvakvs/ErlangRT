@@ -4,6 +4,7 @@ use crate::{
   emulator::{
     function::FunEntry,
     gen_atoms,
+    heap::THeapOwner,
     mfa::ModFunArity,
     process::Process,
     runtime_ctx::{self, Context},

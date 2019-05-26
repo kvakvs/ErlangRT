@@ -1,9 +1,9 @@
 use crate::{
   defs::sizes::ByteSize,
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::THeap,
   fail::RtResult,
   term::{
-    boxed::{self, binary::trait_interface::TBinary},
+    boxed::{self, binary::TBinary},
     value::Term,
   },
 };

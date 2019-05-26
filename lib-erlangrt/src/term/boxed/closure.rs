@@ -4,7 +4,7 @@ use crate::{
     code::pointer::{CodePtr, VersionedCodePtr},
     code_srv::CodeServer,
     function::FunEntry,
-    heap::heap_trait::THeap,
+    heap::{AllocInit, THeap},
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
@@ -19,7 +19,6 @@ use crate::{
   },
 };
 use core::mem::size_of;
-use crate::emulator::heap::heap_trait::AllocInit;
 
 const fn module() -> &'static str {
   "closure: "

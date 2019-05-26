@@ -1,11 +1,14 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::sizes::WordSize,
-  emulator::{process::Process, runtime_ctx::Context},
-  fail::{RtErr, RtResult},
+  emulator::{
+    heap::{AllocInit, THeapOwner},
+    process::Process,
+    runtime_ctx::Context,
+  },
+  fail::RtResult,
   term::value::Term,
 };
-use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Shared code for stack checks and allocations with an optional heap check.
 #[inline]
@@ -18,26 +21,22 @@ fn gen_alloc(
   fill: AllocInit,
 ) -> RtResult<()> {
   ctx.live = live;
+  curr_p.ensure_heap(heap_need)?;
 
   let hp = curr_p.get_heap_mut();
-
-  if hp.allocate_intent(heap_need, live).is_err() {
-    return Err(RtErr::HeapIsFull("heap::gen_alloc"));
-  }
-
   hp.stack_alloc(stack_need, WordSize::one(), fill);
   hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
 
-//  if hp.stack_check_available(stack_need + WordSize::one()) {
-//    // Stack has enough words, we can allocate unchecked
-//    if stack_need.words > 0 {
-//      hp.stack_alloc_unchecked(stack_need, zero);
-//    }
-//    hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
-//  } else {
-//    // Stack has not enough, invoke GC and possibly fail
-//    return Err(RtErr::HeapIsFull("heap::gen_alloc/stack"));
-//  }
+  //  if hp.stack_check_available(stack_need + WordSize::one()) {
+  //    // Stack has enough words, we can allocate unchecked
+  //    if stack_need.words > 0 {
+  //      hp.stack_alloc_unchecked(stack_need, zero);
+  //    }
+  //    hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
+  //  } else {
+  //    // Stack has not enough, invoke GC and possibly fail
+  //    return Err(RtErr::HeapIsFull("heap::gen_alloc/stack"));
+  //  }
   Ok(())
 }
 
@@ -104,10 +103,11 @@ define_opcode!(_vm, ctx, curr_p,
 // GC using `live` amount of registers as a part of root set.
 // Arg 'live' will be used for gc.
 // Structure: test_heap(heap_need:int, live:int)
-define_opcode!(_vm, _ctx, curr_p,
+define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
   run: {
-    curr_p.get_heap_mut().allocate_intent(WordSize::new(heap_need), live)?;
+    ctx.live = live;
+    curr_p.ensure_heap(WordSize::new(heap_need))?;
     Ok(DispatchResult::Normal)
   },
   args: usize(heap_need), usize(live),

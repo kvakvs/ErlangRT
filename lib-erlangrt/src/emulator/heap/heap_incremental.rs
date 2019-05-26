@@ -25,7 +25,7 @@ use core::fmt;
 const DEFAULT_LIT_HEAP: usize = 8192;
 
 /// Default heap size when spawning a process. (default: 300)
-const DEFAULT_PROC_HEAP: usize = 16384;
+const DEFAULT_PROC_HEAP: usize = 1024;
 const BINARY_HEAP_CAPACITY: usize = 65536; // 64k*8 = 512kb
 
 /// A heap structure which allocates incrementally forward.
@@ -142,19 +142,19 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     cp
   }
 
-  /// Express the intent to allocate `size` words on the heap, which may either
-  /// include an attempt to GC, or incur a heap fragment allocation.
-  /// Does not immediately allocate.
-  fn allocate_intent(&mut self, size: WordSize, _live: usize) -> RtResult<()> {
-    if self.heap_check_available(size) {
-      return Ok(());
-    }
-    Err(RtErr::HeapIsFull("heap::allocate_intent"))
-  }
+  //  /// Express the intent to allocate `size` words on the heap, which may either
+  //  /// include an attempt to GC, or incur a heap fragment allocation.
+  //  /// Does not immediately allocate.
+  //  fn allocate_intent(&mut self, size: WordSize, _live: usize) -> RtResult<()> {
+  //    if self.heap_check_available(size) {
+  //      return Ok(());
+  //    }
+  //    Err(RtErr::HeapIsFull)
+  //  }
 
-  fn allocate_intent_no_gc(&mut self, _size: WordSize) -> RtResult<()> {
-    Ok(())
-  }
+  //  fn allocate_intent_no_gc(&mut self, _size: WordSize) -> RtResult<()> {
+  //    Ok(())
+  //  }
 
   #[inline]
   fn heap_check_available(&self, need: WordSize) -> bool {
@@ -167,7 +167,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
   }
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  fn stack_alloc(&mut self, need: WordSize, extra: WordSize, fill: AllocInit) {
+  fn stack_alloc(&mut self, need: WordSize, _extra: WordSize, fill: AllocInit) {
     if need.words == 0 {
       return;
     }

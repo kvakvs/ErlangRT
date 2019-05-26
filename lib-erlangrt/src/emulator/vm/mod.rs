@@ -5,18 +5,15 @@ use crate::{
   command_line_args::ErlStartArgs,
   defs::Word,
   emulator::{
-    code_srv::CodeServer,
-    mfa::ModFunArgs,
-    process::Process,
-    process_registry::ProcessRegistry,
-    scheduler::{Scheduler},
-    spawn_options::SpawnOptions,
+    code_srv::CodeServer, mfa::ModFunArgs, process::Process, process_flags,
+    process_registry::ProcessRegistry, scheduler::Scheduler, spawn_options::SpawnOptions,
   },
   fail::RtResult,
   term::value::*,
 };
-use crate::emulator::process_flags;
-use crate::emulator::heap::{Heap, Designation};
+
+mod binary_heap_owner;
+use binary_heap_owner::*;
 
 /// VM environment, heaps, tables, processes all goes here.
 /// Atoms are a global API in `atom.rs`.
@@ -30,7 +27,10 @@ pub struct VM {
 
   pub scheduler: Scheduler,
   pub processes: ProcessRegistry,
-  pub binary_heap: Heap,
+
+  /// Binary heap is wrapped into binary heap owner which performs GC and other
+  /// maintenance tasks on the binary heap
+  pub binary_heap: BinaryHeapOwner,
 }
 
 impl VM {
@@ -42,7 +42,7 @@ impl VM {
       pid_counter: 0,
       scheduler: Scheduler::new(),
       processes: ProcessRegistry::new(),
-      binary_heap: Heap::new(Designation::BinaryHeap),
+      binary_heap: BinaryHeapOwner::new(),
     }
   }
 

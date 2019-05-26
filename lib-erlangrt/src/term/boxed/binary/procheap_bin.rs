@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -12,7 +12,6 @@ use crate::{
   },
 };
 use core::ptr;
-use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Defines operations with a binary on process heap.
 /// Pointer to this can be directly casted from pointer to boxed::Binary

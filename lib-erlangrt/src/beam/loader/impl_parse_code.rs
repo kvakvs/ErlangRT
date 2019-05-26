@@ -95,7 +95,8 @@ impl LoaderState {
       // let op = opcode::RawOpcode(r.read_u8());
       // let mut args: Vec<FTerm> = Vec::new();
       next_instr.next(reader.read_u8());
-      ct_reader.on_ext_list_create_jumptable(next_instr.opcode != gen_op::OPCODE_PUT_TUPLE2);
+      ct_reader
+        .on_ext_list_create_jumptable(next_instr.opcode != gen_op::OPCODE_PUT_TUPLE2);
       //  rtdbg!(
       //    "opcode {:?} {}",
       //    next_instr.opcode,
@@ -106,7 +107,10 @@ impl LoaderState {
       let arity = gen_op::opcode_arity(next_instr.opcode) as usize;
       for _i in 0..arity {
         let arg = ct_reader.read(&mut reader)?;
-        assert!(arg.is_value(), "Should never get a nonvalue from compact term");
+        assert!(
+          arg.is_value(),
+          "Should never get a nonvalue from compact term"
+        );
         // rtdbg!("arg {}", arg);
         next_instr.args.push(self.resolve_value(arg));
       }
@@ -187,7 +191,9 @@ impl LoaderState {
           let (val, label_index) = unsafe { (*jt).get_pair(pair) };
 
           // If value is a loadtime literal index - resolve to the real value
-          if val.is_loadtime() && val.get_loadtime_tag() == value::SpecialLoadtime::LITERAL {
+          if val.is_loadtime()
+            && val.get_loadtime_tag() == value::SpecialLoadtime::LITERAL
+          {
             let val1 = self.beam_file.lit_tab[val.get_loadtime_val()];
             unsafe {
               (*jt).set_value(pair, val1);

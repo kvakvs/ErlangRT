@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -11,7 +11,6 @@ use crate::{
   },
 };
 use core::ptr;
-use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {

@@ -1,7 +1,9 @@
 use super::Context;
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{code_srv::CodeServer, mfa::ModFunArity, process::Process, vm::VM},
+  emulator::{
+    code_srv::CodeServer, heap::THeapOwner, mfa::ModFunArity, process::Process, vm::VM,
+  },
   fail::{self, RtErr, RtResult},
   native_fun::NativeFn,
   term::{boxed::import, value::*},

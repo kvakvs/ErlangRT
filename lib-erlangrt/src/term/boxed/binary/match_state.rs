@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitSize, ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
@@ -12,7 +12,6 @@ use crate::{
     classify,
   },
 };
-use crate::emulator::heap::heap_trait::AllocInit;
 
 /// Binary match buffer is a part of `BinaryMatchState`
 struct MatchBuffer {

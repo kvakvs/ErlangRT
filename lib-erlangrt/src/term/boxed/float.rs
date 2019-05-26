@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
@@ -12,7 +12,6 @@ use crate::{
   },
 };
 use core::mem::size_of;
-use crate::emulator::heap::heap_trait::AllocInit;
 
 #[allow(dead_code)]
 pub struct Float {

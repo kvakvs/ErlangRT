@@ -1,6 +1,6 @@
 //! Implements misc and general purpose list operations.
 use crate::{
-  emulator::process::Process,
+  emulator::{heap::THeapOwner, process::Process},
   fail::RtResult,
   term::{compare, term_builder::ListBuilder, value::*},
 };

@@ -104,7 +104,9 @@ macro_rules! define_one_arg {
   ) => {
     let $arg_ident: usize = {
       let tmp = $argsvar[$arg_pos];
-      if !(tmp.is_small()) { return crate::fail::create::badarg(); }
+      if !(tmp.is_small()) {
+        return crate::fail::create::badarg();
+      }
       tmp.get_small_unsigned()
     };
   };
@@ -114,7 +116,9 @@ macro_rules! define_one_arg {
     tuple($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_tuple() { return_badarg!($fn_name, $arg_pos, $arg_ident, "tuple"); }
+    if !$arg_ident.is_tuple() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "tuple");
+    }
   };
 
   // Binary args are verified to be a binary or <<>> otherwise a badarg is created.
@@ -122,7 +126,9 @@ macro_rules! define_one_arg {
     binary($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_binary() { return_badarg!($fn_name, $arg_pos, $arg_ident, "binary"); }
+    if !$arg_ident.is_binary() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "binary");
+    }
   };
 
   // List args are verified to be a list or [] otherwise a badarg is created.
@@ -130,7 +136,9 @@ macro_rules! define_one_arg {
     list($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_list() { return_badarg!($fn_name, $arg_pos, $arg_ident, "list"); }
+    if !$arg_ident.is_list() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "list");
+    }
   };
 
   // Non-empty List args are verified to be a list but not [] otherwise a badarg is created.
@@ -138,7 +146,9 @@ macro_rules! define_one_arg {
     non_empty_list($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_cons() { return_badarg!($fn_name, $arg_pos, $arg_ident, "non empty list"); }
+    if !$arg_ident.is_cons() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "non empty list");
+    }
   };
 
   // Atom args are verified to be an atom otherwise a badarg is created.
@@ -146,7 +156,9 @@ macro_rules! define_one_arg {
     atom($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_atom() { return_badarg!($fn_name, $arg_pos, $arg_ident, "atom"); }
+    if !$arg_ident.is_atom() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "atom");
+    }
   };
 
   // Pid args are verified to be a pid or [] otherwise a badarg is created.
@@ -154,7 +166,9 @@ macro_rules! define_one_arg {
     pid($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_pid() { return_badarg!($fn_name, $arg_pos, $arg_ident, "pid"); }
+    if !$arg_ident.is_pid() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "pid");
+    }
   };
 
   // Atom args are verified to be an atom otherwise a badarg is created.
@@ -162,8 +176,9 @@ macro_rules! define_one_arg {
     pid_port($arg_ident:ident)
   ) => {
     let $arg_ident = $argsvar[$arg_pos];
-    if !$arg_ident.is_pid() && !$arg_ident.is_port()
-      { return_badarg!($fn_name, $arg_pos, $arg_ident, "pid|port"); }
+    if !$arg_ident.is_pid() && !$arg_ident.is_port() {
+      return_badarg!($fn_name, $arg_pos, $arg_ident, "pid|port");
+    }
   };
 
   // Atom args are verified to be an atom otherwise a badarg is created.
@@ -172,9 +187,13 @@ macro_rules! define_one_arg {
   ) => {
     let $arg_ident: bool = {
       let tmp = $argsvar[$arg_pos];
-      if tmp.is_true() { true }
-      else if tmp.is_false() { false }
-      else { return_badarg!($fn_name, $arg_pos, tmp, "true|false"); }
+      if tmp.is_true() {
+        true
+      } else if tmp.is_false() {
+        false
+      } else {
+        return_badarg!($fn_name, $arg_pos, tmp, "true|false");
+      }
     };
   };
 }
@@ -182,8 +201,13 @@ macro_rules! define_one_arg {
 macro_rules! return_badarg {
   ($fn_name:expr, $arg_pos:expr, $arg_ident:ident, $expected_to_be:expr) => {
     if cfg!(debug_assertions) {
-      println!("DBG {}: argument #{} is expected to be a {}, got {}",
-        $fn_name, $arg_pos+1, $expected_to_be, $arg_ident);
+      println!(
+        "DBG {}: argument #{} is expected to be a {}, got {}",
+        $fn_name,
+        $arg_pos + 1,
+        $expected_to_be,
+        $arg_ident
+      );
     }
     return crate::fail::create::badarg();
   };

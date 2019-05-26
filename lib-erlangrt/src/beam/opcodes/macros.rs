@@ -170,6 +170,7 @@ macro_rules! fetch_one_arg {
     $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     load($arg_ident:ident)
   ) => {
+    // Error `get_heap_mut` not found - import the THeapOwner trait
     let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, $procarg.get_heap_mut());
   };
 

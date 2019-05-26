@@ -1,7 +1,9 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::{
-    code::pointer::CodePtr, code_srv::CodeServer, heap::heap_trait::THeap,
+    code::pointer::CodePtr,
+    code_srv::CodeServer,
+    heap::{AllocInit, THeap},
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
@@ -17,7 +19,6 @@ use crate::{
   },
 };
 use core::mem::size_of;
-use crate::emulator::heap::heap_trait::AllocInit;
 
 #[allow(dead_code)]
 pub struct Import {

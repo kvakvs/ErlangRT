@@ -1,9 +1,9 @@
 use crate::{
-  emulator::{atom, process::Process},
+  emulator::{atom, heap::THeapOwner, process::Process},
   fail::{self, RtResult},
   term::{
-    value::{cons, Term},
     term_builder::BinaryBuilder,
+    value::{cons, Term},
   },
 };
 

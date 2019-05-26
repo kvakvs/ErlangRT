@@ -17,10 +17,9 @@ use crate::{
 
 use self::sign::*;
 use crate::{
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   term::boxed::{bignum, endianness::Endianness},
 };
-use crate::emulator::heap::heap_trait::AllocInit;
 
 pub mod endianness;
 pub mod sign;

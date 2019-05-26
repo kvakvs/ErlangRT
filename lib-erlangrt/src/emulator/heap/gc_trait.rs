@@ -20,7 +20,7 @@ impl TGc for NullGc {
     Self {}
   }
 
-  fn garbage_collect(heap: &THeap, roots: &[MutableRoot]) -> RtResult<()> {
+  fn garbage_collect(_heap: &THeap, _roots: &[MutableRoot]) -> RtResult<()> {
     panic!("The heap is full and there is nothing i can do about it")
   }
 }

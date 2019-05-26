@@ -1,7 +1,7 @@
 use crate::{
   defs::BitSize,
   term::{
-    boxed::{self, binary::trait_interface::TBinary},
+    boxed::{self, binary::TBinary},
     value::Term,
   },
 };

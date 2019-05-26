@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::heap::heap_trait::{AllocInit, THeap},
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
