@@ -191,8 +191,11 @@ impl Process {
 
 impl THeapOwner for Process {
   /// Request heap space from this process' heap, GC will be invoked if necessary
-  fn ensure_heap(&mut self, _need: WordSize) -> RtResult<()> {
-    Ok(())
+  fn ensure_heap(&mut self, need: WordSize) -> RtResult<()> {
+    if self.heap.heap_check_available(need) {
+      return Ok(());
+    }
+    panic!("OOM warning")
   }
 
   #[inline]

@@ -61,25 +61,22 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
   fn alloc(&mut self, n: WordSize, fill: AllocInit) -> RtResult<*mut Word> {
     let pos = self.heap_top;
     let n_words = n.words;
+
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
+    // This situation has to be detected before we arrive here
     if pos + n_words >= self.stack_top {
-      // return Err(Error::HeapIsFull);
-      panic!(
-        "Heap is full requested={} have={}",
-        n,
-        self.get_heap_available()
-      );
+      panic!("Heap is full requested={}", n);
     }
 
     // Assume we can grow the data without reallocating
-    let raw_nil = Term::nil().raw();
     let new_chunk = unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) };
 
     if fill == AllocInit::Nil {
+      let raw_nil = Term::nil().raw();
       unsafe {
-        for i in 0..n_words {
-          new_chunk.add(i).write(raw_nil)
-        }
+          for i in 0..n_words {
+            new_chunk.add(i).write(raw_nil)
+          }
       }
     }
 
@@ -310,6 +307,7 @@ impl<GC: TGc> IncrementalHeap<GC> {
 
   #[inline]
   fn get_heap_available(&self) -> usize {
+    debug_assert!(self.stack_top > self.heap_top);
     self.stack_top - self.heap_top
   }
 

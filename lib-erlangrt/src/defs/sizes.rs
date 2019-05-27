@@ -53,7 +53,7 @@ impl Sub for WordSize {
 
 impl fmt::Display for WordSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} words", self.words)
+    write!(f, "{}W", self.words)
   }
 }
 
@@ -107,6 +107,6 @@ impl ByteSize {
 
 impl fmt::Display for ByteSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} bytes", self.bytes)
+    write!(f, "{}B", self.bytes)
   }
 }
