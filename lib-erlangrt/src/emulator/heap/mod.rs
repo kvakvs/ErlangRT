@@ -1,28 +1,28 @@
 use crate::{
-  defs::WordSize,
-  emulator::heap::{gc_trait::NullGc, heap_incremental::IncrementalHeap},
-  fail::RtResult,
+  defs::WordSize, emulator::heap::heap_incremental::IncrementalHeap, fail::RtResult,
   term::boxed,
 };
 
 pub mod catch;
 pub mod copy_term;
 pub mod dump;
-pub mod gc_copying;
 pub mod gc_trait;
 pub mod heap_incremental;
 pub mod iter;
 
 mod heap_owner_trait;
-pub use heap_owner_trait::THeapOwner;
+pub use heap_owner_trait::*;
 
 mod heap_trait;
-pub use heap_trait::{AllocInit, THeap};
+pub use heap_trait::*;
+
+pub mod gc_copying;
+use self::gc_copying::CopyingGc;
 
 mod root_source_trait;
 pub use root_source_trait::*;
 
-pub type Heap = IncrementalHeap<NullGc>;
+pub type Heap = IncrementalHeap<CopyingGc>;
 
 /// Specifies the intended use of the heap
 pub enum Designation {

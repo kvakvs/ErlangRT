@@ -13,6 +13,7 @@ pub trait TGc {
 }
 
 /// Null GC does nothing, and instead panics
+#[allow(dead_code)]
 pub struct NullGc {}
 
 impl TGc for NullGc {

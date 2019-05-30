@@ -80,16 +80,9 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     Ok(new_chunk)
   }
 
-  fn garbage_collect(&mut self, mut roots: Box<TRootIterator>) -> RtResult<()> {
-    roots.roots_begin();
-    loop {
-      let r = roots.roots_next();
-      if r.is_null() {
-        break;
-      }
-      println!("root: {:?}", unsafe { *r });
-    }
-    unimplemented!("GC for incremental heap")
+  #[inline]
+  fn garbage_collect(&mut self, roots: Box<TRootIterator>) -> RtResult<()> {
+    GC::garbage_collect(self, roots)
   }
 
   fn get_y(&self, index: Word) -> RtResult<Term> {
@@ -312,6 +305,7 @@ impl<GC: TGc> IncrementalHeap<GC> {
     self.heap_top
   }
 
+  #[allow(dead_code)]
   #[inline]
   fn get_heap_available(&self) -> usize {
     debug_assert!(self.stack_top > self.heap_top);
