@@ -2,8 +2,8 @@ use crate::{
   emulator::gen_atoms,
   native_fun::{
     erlang::{
-      arithmetic::*, compare::*, list::*, predicate::*, process::*, sys::*, tuple::*,
-      type_conversions::*, binary::*,
+      arithmetic::*, binary::*, compare::*, list::*, predicate::*, process::*, sys::*,
+      tuple::*, type_conversions::*,
     },
     fn_entry::NativeFnEntry,
     module::NativeModule,
@@ -11,6 +11,7 @@ use crate::{
 };
 
 pub mod arithmetic;
+pub mod binary;
 pub mod compare;
 pub mod list;
 pub mod predicate;
@@ -18,7 +19,6 @@ pub mod process;
 pub mod sys;
 pub mod tuple;
 pub mod type_conversions;
-pub mod binary;
 
 pub fn new() -> NativeModule {
   let mut m = NativeModule::new(gen_atoms::ERLANG);

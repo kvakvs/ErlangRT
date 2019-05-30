@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -101,7 +101,7 @@ impl ProcessHeapBinary {
   pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size(size);
-    let this = hp.alloc(storage_sz, false)? as *mut Self;
+    let this = hp.alloc(storage_sz, AllocInit::Uninitialized)? as *mut Self;
 
     // Create and write the block header (Self)
     let bin_header = Binary::new(BinaryType::ProcessHeap, storage_sz);
@@ -110,7 +110,7 @@ impl ProcessHeapBinary {
       size,
       data: 0,
     };
-    ptr::write(this, new_self);
+    this.write(new_self);
 
     Ok(this as *mut TBinary)
   }

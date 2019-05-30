@@ -1,12 +1,10 @@
+//! Submodule implements Cons Cell/List features of an Erlang Term
 use crate::term::{
   boxed,
   value::{PrimaryTag, Term},
 };
 
 impl Term {
-  // === === LISTS/CONS CELLS === === ===
-  //
-
   #[inline]
   pub fn is_list(self) -> bool {
     self == Self::nil() || self.is_cons()

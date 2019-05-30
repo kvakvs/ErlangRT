@@ -1,23 +1,37 @@
+//! Classic Heap, similar to the existing heap and GC in Erlang/OTP.
+//!
+//! * Incremental allocation.
+//! * Second heap is created on GC. Live data is moved into the new heap.
+//!   The old heap is discarded.
+//!
+//! Possible improvements:
+//!
+//! * The young values get garbaged more often, introduce an age mark.
 use crate::{
   defs::{Word, WordSize},
-  emulator::heap::{catch::NextCatchResult, heap_trait::THeap, iter, Designation},
+  emulator::heap::{catch::NextCatchResult, gc_trait::TGc, heap_trait::*, iter, *},
   fail::{RtErr, RtResult},
   term::value::Term,
 };
 use colored::Colorize;
-use core::{fmt, ptr};
+use core::fmt;
 
 /// Default heap size for constants (literals) when loading a module.
 const DEFAULT_LIT_HEAP: usize = 8192;
 
 /// Default heap size when spawning a process. (default: 300)
-const DEFAULT_PROC_HEAP: usize = 16384;
+const DEFAULT_PROC_HEAP: usize = 1024;
 const BINARY_HEAP_CAPACITY: usize = 65536; // 64k*8 = 512kb
 
-/// A heap structure which grows upwards with allocations. Cannot expand
-/// implicitly and will return error when capacity is exceeded. Organize a
-/// garbage collect call to get more memory TODO: gc on heap
-pub struct FlatHeap {
+/// A heap structure which allocates incrementally forward.
+/// Stack grows backwards until they meet with the heap.
+/// When stack meets heap, a new heap is created and GC moves live data there.
+/// The old heap is discarded.
+pub struct IncrementalHeap<GC>
+where
+  GC: TGc,
+{
+  gc: GC,
   data: Vec<Word>,
   /// Heap top, begins at 0 and grows up towards the `stack_top`.
   heap_top: usize,
@@ -27,41 +41,36 @@ pub struct FlatHeap {
   capacity: usize,
 }
 
-impl FlatHeap {}
-
-impl fmt::Debug for FlatHeap {
+impl<GC: TGc> fmt::Debug for IncrementalHeap<GC> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,
-      "FlatHeap{{ cap: {}, used: {} }}",
+      "IncrementalHeap{{ cap: {}, used: {} }}",
       self.get_heap_max_capacity(),
       self.get_heap_used_words()
     )
   }
 }
 
-impl THeap for FlatHeap {
-  fn alloc(&mut self, n: WordSize, init_nil: bool) -> RtResult<*mut Word> {
+impl<GC: TGc> THeap for IncrementalHeap<GC> {
+  fn alloc(&mut self, n: WordSize, fill: AllocInit) -> RtResult<*mut Word> {
     let pos = self.heap_top;
     let n_words = n.words;
+
     // Explicitly forbid expanding without a GC, fail if capacity is exceeded
+    // This situation has to be detected before we arrive here
     if pos + n_words >= self.stack_top {
-      // return Err(Error::HeapIsFull);
-      panic!(
-        "Heap is full requested={} have={}",
-        n,
-        self.get_heap_available()
-      );
+      panic!("Heap is full requested={}", n);
     }
 
     // Assume we can grow the data without reallocating
-    let raw_nil = Term::nil().raw();
     let new_chunk = unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) };
 
-    if init_nil {
+    if fill == AllocInit::Nil {
+      let raw_nil = Term::nil().raw();
       unsafe {
         for i in 0..n_words {
-          ptr::write(new_chunk.add(i), raw_nil)
+          new_chunk.add(i).write(raw_nil)
         }
       }
     }
@@ -69,6 +78,11 @@ impl THeap for FlatHeap {
     self.heap_top += n_words;
 
     Ok(new_chunk)
+  }
+
+  #[inline]
+  fn garbage_collect(&mut self, roots: Box<TRootIterator>) -> RtResult<()> {
+    GC::garbage_collect(self, roots)
   }
 
   fn get_y(&self, index: Word) -> RtResult<Term> {
@@ -90,18 +104,6 @@ impl THeap for FlatHeap {
   fn get_y_unchecked(&self, index: Word) -> Term {
     let pos = index + self.stack_top + 1;
     Term::from_raw(self.data[pos])
-  }
-
-  /// Create a constant iterator for walking the heap.
-  /// This is used by heap walkers such as "dump.rs"
-  unsafe fn heap_iter(&self) -> iter::HeapIterator {
-    let last = self.heap_top as isize;
-    let begin = self.get_heap_start_ptr() as *const Term;
-    iter::HeapIterator::new(begin, begin.offset(last))
-  }
-
-  fn belongs_to_heap(&self, p: *const Word) -> bool {
-    p < self.get_heap_start_ptr() || p >= self.get_heap_top_ptr()
   }
 
   /// Set stack value (`index`th from stack top) to `val`.
@@ -137,19 +139,19 @@ impl THeap for FlatHeap {
     cp
   }
 
-  /// Express the intent to allocate `size` words on the heap, which may either
-  /// include an attempt to GC, or incur a heap fragment allocation.
-  /// Does not immediately allocate.
-  fn allocate_intent(&mut self, size: WordSize, _live: usize) -> RtResult<()> {
-    if self.heap_check_available(size) {
-      return Ok(());
-    }
-    Err(RtErr::HeapIsFull("heap::allocate_intent"))
-  }
+  //  /// Express the intent to allocate `size` words on the heap, which may either
+  //  /// include an attempt to GC, or incur a heap fragment allocation.
+  //  /// Does not immediately allocate.
+  //  fn allocate_intent(&mut self, size: WordSize, _live: usize) -> RtResult<()> {
+  //    if self.heap_check_available(size) {
+  //      return Ok(());
+  //    }
+  //    Err(RtErr::HeapIsFull)
+  //  }
 
-  fn allocate_intent_no_gc(&mut self, _size: WordSize) -> RtResult<()> {
-    Ok(())
-  }
+  //  fn allocate_intent_no_gc(&mut self, _size: WordSize) -> RtResult<()> {
+  //    Ok(())
+  //  }
 
   #[inline]
   fn heap_check_available(&self, need: WordSize) -> bool {
@@ -161,9 +163,8 @@ impl THeap for FlatHeap {
     self.heap_top + need.words <= self.stack_top
   }
 
-
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  fn stack_alloc_unchecked(&mut self, need: WordSize, fill_nil: bool) {
+  fn stack_alloc(&mut self, need: WordSize, _extra: WordSize, fill: AllocInit) {
     if need.words == 0 {
       return;
     }
@@ -174,13 +175,18 @@ impl THeap for FlatHeap {
     unsafe {
       let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
 
-      if fill_nil {
+      if fill == AllocInit::Nil {
         for y in 0..need.words {
-          ptr::write(p.add(y), raw_nil)
+          p.add(y).write(raw_nil)
         }
       }
     }
   }
+
+  fn stack_depth(&self) -> usize {
+    self.capacity - self.stack_top
+  }
+
 
   /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.
   #[inline]
@@ -190,27 +196,6 @@ impl THeap for FlatHeap {
     }
     self.stack_top -= 1;
     self.data[self.stack_top] = val.raw();
-  }
-
-  fn stack_depth(&self) -> usize {
-    self.capacity - self.stack_top
-  }
-
-  fn stack_dump(&self) {
-    if self.stack_depth() == 0 {
-      println!("stack: empty");
-      return;
-    }
-
-    let mut i = 0;
-    let max_i = self.stack_depth() - 1;
-    loop {
-      if i >= max_i || i >= 10 {
-        break;
-      }
-      println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
-      i += 1;
-    }
   }
 
   /// Sets the stack top.
@@ -235,7 +220,7 @@ impl THeap for FlatHeap {
         return None;
       }
       // Hope we found a CP on stack (good!)
-      let term_at_ptr = Term::from_raw(ptr::read(ptr));
+      let term_at_ptr = Term::from_raw(ptr.read());
 
       if term_at_ptr.is_catch() {
         // Typical stack frame looks like:
@@ -250,11 +235,40 @@ impl THeap for FlatHeap {
       stack_drop += 1;
     }
   }
+
+  /// Create a constant iterator for walking the heap.
+  /// This is used by heap walkers such as "dump.rs"
+  unsafe fn heap_iter(&self) -> iter::HeapIterator {
+    let last = self.heap_top as isize;
+    let begin = self.get_heap_start_ptr() as *const Term;
+    iter::HeapIterator::new(begin, begin.offset(last))
+  }
+
+  fn belongs_to_heap(&self, p: *const Word) -> bool {
+    p < self.get_heap_start_ptr() || p >= self.get_heap_top_ptr()
+  }
+
+  fn stack_dump(&self) {
+    if self.stack_depth() == 0 {
+      println!("stack: empty");
+      return;
+    }
+
+    let mut i = 0;
+    let max_i = self.stack_depth() - 1;
+    loop {
+      if i >= max_i || i >= 10 {
+        break;
+      }
+      println!("stack Y[{}] = {}", i, self.get_y_unchecked(i));
+      i += 1;
+    }
+  }
 }
 
 // === === ===
 
-impl FlatHeap {
+impl<GC: TGc> IncrementalHeap<GC> {
   fn get_size_for(d: Designation) -> usize {
     match d {
       Designation::ProcessHeap => DEFAULT_PROC_HEAP,
@@ -269,6 +283,7 @@ impl FlatHeap {
     let capacity = Self::get_size_for(designation);
     assert!(capacity > 0);
     let mut h = Self {
+      gc: GC::new(),
       data: Vec::with_capacity(capacity),
       heap_top: 0,
       stack_top: capacity,
@@ -290,8 +305,10 @@ impl FlatHeap {
     self.heap_top
   }
 
+  #[allow(dead_code)]
   #[inline]
   fn get_heap_available(&self) -> usize {
+    debug_assert!(self.stack_top > self.heap_top);
     self.stack_top - self.heap_top
   }
 

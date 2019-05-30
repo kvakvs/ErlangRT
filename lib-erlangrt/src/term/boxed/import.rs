@@ -1,7 +1,9 @@
 use crate::{
   defs::{ByteSize, WordSize},
   emulator::{
-    code::pointer::CodePtr, code_srv::CodeServer, heap::heap_trait::THeap,
+    code::pointer::CodePtr,
+    code_srv::CodeServer,
+    heap::{AllocInit, THeap},
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
@@ -16,7 +18,7 @@ use crate::{
     value::*,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 #[allow(dead_code)]
 pub struct Import {
@@ -43,16 +45,14 @@ impl Import {
 
   pub unsafe fn create_into(hp: &mut THeap, mfarity: ModFunArity) -> RtResult<Term> {
     let storage_size = Self::storage_size();
-    let this = hp.alloc(storage_size, false)? as *mut Self;
+    let this = hp.alloc(storage_size, AllocInit::Uninitialized)? as *mut Self;
 
-    ptr::write(
-      this,
-      Self {
-        header: BoxHeader::new::<Self>(storage_size),
-        mfarity,
-        is_bif: None, // we don't know yet
-      },
-    );
+
+    this.write(Self {
+      header: BoxHeader::new::<Self>(storage_size),
+      mfarity,
+      is_bif: None, // we don't know yet
+    });
     Ok(Term::make_boxed(this))
   }
 

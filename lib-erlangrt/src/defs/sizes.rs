@@ -12,6 +12,9 @@ impl WordSize {
   pub const fn one() -> Self {
     Self { words: 1 }
   }
+  pub const fn zero() -> Self {
+    Self { words: 0 }
+  }
 
   pub const fn new(words: usize) -> Self {
     Self { words }
@@ -50,7 +53,7 @@ impl Sub for WordSize {
 
 impl fmt::Display for WordSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} words", self.words)
+    write!(f, "{}W", self.words)
   }
 }
 
@@ -64,6 +67,12 @@ impl ByteSize {
   #[inline]
   pub const fn new(bytes: usize) -> ByteSize {
     Self { bytes }
+  }
+  pub const fn one() -> Self {
+    Self { bytes: 1 }
+  }
+  pub const fn zero() -> Self {
+    Self { bytes: 0 }
   }
 
   pub fn add(&mut self, n: usize) {
@@ -98,6 +107,6 @@ impl ByteSize {
 
 impl fmt::Display for ByteSize {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{} bytes", self.bytes)
+    write!(f, "{}B", self.bytes)
   }
 }

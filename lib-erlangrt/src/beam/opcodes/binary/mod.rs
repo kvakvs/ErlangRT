@@ -1,18 +1,18 @@
 //! Module implements binary/bit syntax matching and data creation & extraction
 //! opcodes for binaries.
-pub mod bs_get_binary;
-pub mod bs_init;
-pub mod bs_put_binary;
-pub mod bs_put_integer;
-pub mod bs_start_match;
+mod bs_get_binary;
+mod bs_init;
+mod bs_put_binary;
+mod bs_put_integer;
+mod bs_start_match;
 
-pub use super::{
+pub use self::{
   bs_get_binary::*, bs_init::*, bs_put_binary::*, bs_put_integer::*, bs_start_match::*,
 };
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::RtResult,
   term::{boxed::binary::match_state::BinaryMatchState, value::*},
 };
@@ -46,7 +46,7 @@ define_opcode!(
 impl OpcodeBsTestTail2 {
   #[inline]
   fn bs_test_tail2(
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     _proc: &mut Process,
     fail: Term,
     match_state: *mut BinaryMatchState,

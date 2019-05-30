@@ -1,4 +1,4 @@
-use super::Context;
+use super::RuntimeContext;
 use crate::{
   beam::disp_result::DispatchResult,
   defs::Arity,
@@ -19,7 +19,7 @@ fn module() -> &'static str {
 /// either an Erlang function or to a BIF (native built-in function).
 pub fn apply(
   vm: &mut VM,
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   curr_p: &mut Process,
   export: *const boxed::Export,
   args: &[Term],

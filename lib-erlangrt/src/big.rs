@@ -1,6 +1,6 @@
 use crate::{
   defs,
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::THeap,
   fail::RtResult,
   term::{
     boxed::{self, endianness::Endianness},

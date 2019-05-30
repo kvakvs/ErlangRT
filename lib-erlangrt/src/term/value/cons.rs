@@ -1,7 +1,7 @@
 //! Utility functions for handling lists
 use crate::{
   defs::{exc_type::ExceptionType, sizes::ByteSize},
-  emulator::{gen_atoms, heap::heap_trait::THeap},
+  emulator::{gen_atoms, heap::THeap},
   fail::{RtErr, RtResult},
   term::{boxed, term_builder::ListBuilder, value::Term},
 };

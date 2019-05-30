@@ -1,6 +1,6 @@
 use crate::{
   defs::exc_type::ExceptionType,
-  emulator::{gen_atoms, process::Process},
+  emulator::{gen_atoms, heap::THeapOwner, process::Process},
   fail::{RtErr, RtResult},
   term::{builders::make_badfun_n, term_builder::tuple_builder::tuple2, value::Term},
 };

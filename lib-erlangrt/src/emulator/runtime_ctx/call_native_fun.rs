@@ -1,7 +1,9 @@
-use super::Context;
+use super::RuntimeContext;
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{code_srv::CodeServer, mfa::ModFunArity, process::Process, vm::VM},
+  emulator::{
+    code_srv::CodeServer, heap::THeapOwner, mfa::ModFunArity, process::Process, vm::VM,
+  },
   fail::{self, RtErr, RtResult},
   native_fun::NativeFn,
   term::{boxed::import, value::*},
@@ -40,7 +42,7 @@ pub enum CallBifTarget {
 #[inline]
 pub fn find_and_call_native_fun(
   vm: &mut VM,
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   curr_p: &mut Process,
   fail_label: Term,
   target: CallBifTarget,
@@ -169,7 +171,7 @@ fn callbif_resolve_mfa(
 // #[inline]
 pub fn call_native_fun_fn(
   vm: &mut VM,
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   curr_p: &mut Process,
   func_pointer: NativeFn,
   args: &[Term],

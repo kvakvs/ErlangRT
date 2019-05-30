@@ -2,10 +2,10 @@
 pub mod create;
 
 use crate::{
+  beam::loader::CompactTermError,
   defs::{exc_type::ExceptionType, ByteSize},
   rt_util::bin_reader::{self, ReadError},
   term::value::Term,
-  beam::loader::CompactTermError,
 };
 use std::convert::From;
 
@@ -29,7 +29,7 @@ pub enum RtErr {
   //--- Memory allocation events and errors ---
   AtomNotExist(String),
   /// No space left in heap. GC requested.
-  HeapIsFull(&'static str),
+  HeapIsFull,
   /// Attempt to index outside of the current stack.
   StackIndexRange(usize),
 

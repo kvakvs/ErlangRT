@@ -17,7 +17,7 @@ use crate::{
 
 use self::sign::*;
 use crate::{
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   term::boxed::{bignum, endianness::Endianness},
 };
 
@@ -85,20 +85,17 @@ impl Bignum {
     limbs: &[Digit],
   ) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
-    let this = hp.alloc(n_words, false)? as *mut Self;
+    let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 
-    ptr::write(
-      this,
-      Self {
-        header: BoxHeader::new::<Self>(n_words),
-        size: if sign == Sign::Negative {
-          -(limbs.len() as isize)
-        } else {
-          limbs.len() as isize
-        },
-        digits: 0,
+    this.write(Self {
+      header: BoxHeader::new::<Self>(n_words),
+      size: if sign == Sign::Negative {
+        -(limbs.len() as isize)
+      } else {
+        limbs.len() as isize
       },
-    );
+      digits: 0,
+    });
     ptr::copy_nonoverlapping(
       limbs.as_ptr(),
       &mut (*this).digits as *mut Digit,

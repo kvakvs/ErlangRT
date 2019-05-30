@@ -141,7 +141,10 @@ impl CodeServer {
 
   /// Lookup, which will attempt to load a missing module if lookup fails
   /// on the first attempt.
-  pub fn lookup_beam_code_and_load(&mut self, mfarity: &ModFunArity) -> RtResult<CodePtr> {
+  pub fn lookup_beam_code_and_load(
+    &mut self,
+    mfarity: &ModFunArity,
+  ) -> RtResult<CodePtr> {
     // Try lookup once, then load if not found
     match self.lookup_beam_code(mfarity) {
       Ok(ip) => return Ok(ip),

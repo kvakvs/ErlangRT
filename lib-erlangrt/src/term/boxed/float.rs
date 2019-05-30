@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
@@ -11,7 +11,7 @@ use crate::{
     classify,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 #[allow(dead_code)]
 pub struct Float {
@@ -47,9 +47,9 @@ impl Float {
   #[allow(dead_code)]
   pub unsafe fn create_into(hp: &mut THeap, value: f64) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
-    let this = hp.alloc(n_words, false)? as *mut Self;
+    let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 
-    ptr::write(this, Self::new(value));
+    this.write(Self::new(value));
 
     Ok(this)
   }

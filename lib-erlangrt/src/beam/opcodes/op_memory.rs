@@ -1,39 +1,42 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::sizes::WordSize,
-  emulator::{process::Process, runtime_ctx::Context},
-  fail::{RtErr, RtResult},
+  emulator::{
+    heap::{AllocInit, THeapOwner},
+    process::Process,
+    runtime_ctx::RuntimeContext,
+  },
+  fail::RtResult,
   term::value::Term,
 };
 
 /// Shared code for stack checks and allocations with an optional heap check.
 #[inline]
 fn gen_alloc(
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   curr_p: &mut Process,
   stack_need: WordSize,
   heap_need: WordSize,
   live: usize,
-  zero: bool,
+  fill: AllocInit,
 ) -> RtResult<()> {
   ctx.live = live;
+  curr_p.ensure_heap(heap_need)?;
 
   let hp = curr_p.get_heap_mut();
+  hp.stack_alloc(stack_need, WordSize::one(), fill);
+  hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
 
-  if hp.allocate_intent(heap_need, live).is_err() {
-    return Err(RtErr::HeapIsFull("heap::gen_alloc"));
-  }
-
-  if hp.stack_check_available(stack_need + WordSize::one()) {
-    // Stack has enough words, we can allocate unchecked
-    if stack_need.words > 0 {
-      hp.stack_alloc_unchecked(stack_need, zero);
-    }
-    hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
-  } else {
-    // Stack has not enough, invoke GC and possibly fail
-    return Err(RtErr::HeapIsFull("heap::gen_alloc/stack"));
-  }
+  //  if hp.stack_check_available(stack_need + WordSize::one()) {
+  //    // Stack has enough words, we can allocate unchecked
+  //    if stack_need.words > 0 {
+  //      hp.stack_alloc_unchecked(stack_need, zero);
+  //    }
+  //    hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
+  //  } else {
+  //    // Stack has not enough, invoke GC and possibly fail
+  //    return Err(RtErr::HeapIsFull("heap::gen_alloc/stack"));
+  //  }
   Ok(())
 }
 
@@ -42,7 +45,8 @@ fn gen_alloc(
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateZero, arity: 2,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live, true)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live,
+              AllocInit::Nil)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(live),
@@ -52,7 +56,8 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocate, arity: 2,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live, false)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live,
+              AllocInit::Uninitialized)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(live),
@@ -64,7 +69,8 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateHeapZero, arity: 3,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need), live, true)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need),
+              live, AllocInit::Nil)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(heap_need), usize(live),
@@ -74,7 +80,8 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateHeap, arity: 3,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need), live, false)?;
+    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need),
+              live, AllocInit::Uninitialized)?;
     Ok(DispatchResult::Normal)
   },
   args: usize(stack_need), usize(heap_need), usize(live),
@@ -96,10 +103,11 @@ define_opcode!(_vm, ctx, curr_p,
 // GC using `live` amount of registers as a part of root set.
 // Arg 'live' will be used for gc.
 // Structure: test_heap(heap_need:int, live:int)
-define_opcode!(_vm, _ctx, curr_p,
+define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
   run: {
-    curr_p.get_heap_mut().allocate_intent(WordSize::new(heap_need), live)?;
+    ctx.live = live;
+    curr_p.ensure_heap(WordSize::new(heap_need))?;
     Ok(DispatchResult::Normal)
   },
   args: usize(heap_need), usize(live),

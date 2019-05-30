@@ -1,7 +1,9 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
-  emulator::{gen_atoms, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{
+    gen_atoms, heap::THeapOwner, process::Process, runtime_ctx::*, vm::VM,
+  },
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -39,7 +41,7 @@ impl OpcodeBsPutBinary {
   #[inline]
   fn bs_put_binary(
     _vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     _proc: &mut Process,
     fail: Term,
     in_size_term: Term,

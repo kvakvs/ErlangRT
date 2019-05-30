@@ -1,4 +1,4 @@
-use crate::{big, emulator::heap::heap_trait::THeap, fail::RtResult, term::value::*};
+use crate::{big, emulator::heap::THeap, fail::RtResult, term::value::*};
 
 #[allow(dead_code)]
 fn module() -> &'static str {

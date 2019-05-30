@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::exc_type::ExceptionType,
-  emulator::{process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::{RtErr, RtResult},
   term::value::Term,
 };
@@ -47,7 +47,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeTryEnd {
   #[inline]
   pub fn try_end(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     yreg: Term,
   ) -> RtResult<DispatchResult> {
@@ -81,7 +81,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeTryCase {
   #[inline]
   pub fn try_case(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     yreg: Term,
   ) -> RtResult<DispatchResult> {

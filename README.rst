@@ -28,9 +28,8 @@ Tests in ``priv/test2.erl`` work. Running ``make test`` tries to run ``init:boot
 Compiling
 `````````
 
-* The source assumes that you have Erlang OTP 21 source in a directory ``../otp``
-  relative to the ErlangRT directory, and the stdlib and preload BEAM files are
-  compiled and ready.
+* The source assumes that you have Erlang OTP 22+ source in a Git submodule in ``otp/``,
+  and the stdlib and preload BEAM files are compiled and ready. Makefile takes care of it.
 * Install latest **Rust** and **Cargo** via `Rustup <http://doc.crates.io/>`_
 * Run ``make`` and with the magic of Bash autocomplete see which targets it
   supports. You might like:
@@ -41,8 +40,8 @@ Compiling
     * ``make build`` and ``make build-rel`` - builds but does not run the debug and
       the release target respectively
       
-Currently the emulator expects to have preloaded BEAM modules from OTP 21 located in `../otp` relative
-to the project directory.
+Currently the emulator expects to have preloaded BEAM modules from OTP 22+ located in `otp/`
+Git submodule (Makefile takes care of it).
 
 Editing and Code Navigation
 ```````````````````````````

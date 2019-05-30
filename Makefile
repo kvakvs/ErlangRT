@@ -1,9 +1,9 @@
-.PHONY: build codegen ct
+.PHONY: build codegen ct submodule
 
-build: codegen
+build: otp codegen
 	cargo build
 
-build_tests:
+build_tests: submodule
 	cd priv && $(MAKE)
 
 codegen:
@@ -22,3 +22,7 @@ test: build build_tests
 .PHONY: test-gede
 test-gede: build
 	RUST_BACKTRACE=1 gede --args target/debug/ct_run
+
+otp:
+	git submodule update && cd otp && MAKE_FLAGS=-j8 ./otp_build setup
+

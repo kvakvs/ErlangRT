@@ -2,14 +2,13 @@ use core::fmt;
 
 use crate::{
   defs::{self, data_reader::TDataReader, BitSize, ByteSize, WordSize},
-  emulator::{heap::heap_trait::THeap, vm::VM},
+  emulator::{
+    heap::{THeap, THeapOwner},
+    vm::VM,
+  },
   fail::{RtErr, RtResult},
   term::{
     boxed::{
-      binary::{
-        binaryheap_bin::BinaryHeapBinary, procheap_bin::ProcessHeapBinary,
-        refc_bin::ReferenceToBinary, slice::BinarySlice, trait_interface::TBinary,
-      },
       boxtype::{self, BoxType},
       trait_interface::TBoxed,
       BoxHeader,
@@ -19,16 +18,19 @@ use crate::{
   },
 };
 
-pub mod binaryheap_bin;
 pub mod bits;
 pub mod bits_paste;
 pub mod match_state;
-pub mod procheap_bin;
-pub mod refc_bin;
-pub mod slice;
-pub mod trait_interface;
 
-// pub use self::{match_state::*, bitsize::*, slice::*, trait_interface::*};
+mod binaryheap_bin;
+mod procheap_bin;
+mod refc_bin;
+mod slice;
+mod trait_interface;
+pub use self::{
+  binaryheap_bin::BinaryHeapBinary, procheap_bin::ProcessHeapBinary,
+  refc_bin::ReferenceToBinary, slice::BinarySlice, trait_interface::TBinary,
+};
 
 #[derive(Debug, Copy, Clone)]
 #[allow(dead_code)]
@@ -70,18 +72,19 @@ impl TBoxed for Binary {
 impl Binary {
   /// For binary of given size ensure that the heap has enough space on it,
   /// and if a large binary is to be created, also check the binary heap capacity.
+  #[allow(dead_code)]
   pub fn ensure_memory_for_binary(
-    vm: &mut VM,
-    hp: &mut THeap,
+    _vm: &mut VM,
+    proc_source: &mut THeapOwner,
+    bin_source: &mut THeapOwner,
     size: BitSize,
     extra_memory: WordSize,
   ) -> RtResult<()> {
     if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
-      return hp.allocate_intent_no_gc(ProcessHeapBinary::storage_size(size) + extra_memory);
+      proc_source.ensure_heap(ProcessHeapBinary::storage_size(size) + extra_memory)
+    } else {
+      bin_source.ensure_heap(ReferenceToBinary::storage_size() + extra_memory)
     }
-    vm.binary_heap
-      .allocate_intent_no_gc(BinaryHeapBinary::storage_size(size))?;
-    return hp.allocate_intent_no_gc(ReferenceToBinary::storage_size() + extra_memory);
   }
 
   fn get_binary_type_for_creation(size: BitSize) -> BinaryType {
@@ -122,7 +125,7 @@ impl Binary {
   //  unsafe fn get_byte(this: *const Binary, i: usize) -> u8 {
   //    unimplemented!();
   //    // let p = this.add(1) as *const u8;
-  //    // ptr::read(p.add(i))
+  //    // p.add(i).read()
   //  }
 
   unsafe fn generic_switch<T>(

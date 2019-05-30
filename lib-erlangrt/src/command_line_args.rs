@@ -1,12 +1,11 @@
 use crate::{
-  emulator::heap::Heap,
+  emulator::heap::{Designation, Heap},
   fail::RtResult,
   term::{
-    value::Term,
     term_builder::{list_builder::build_erlstr_from_utf8, ListBuilder},
+    value::Term,
   },
 };
-use crate::emulator::heap::Designation;
 
 #[derive(Debug)]
 pub enum NodeName {

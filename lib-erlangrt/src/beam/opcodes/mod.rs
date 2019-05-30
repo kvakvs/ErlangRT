@@ -1,7 +1,6 @@
 //! Opcodes group of modules provides inline implementations of BEAM opcodes.
 #[macro_use]
 pub mod macros;
-pub mod op_native_fun;
 pub mod binary;
 pub mod op_data;
 pub mod op_execution;
@@ -9,20 +8,21 @@ pub mod op_fun;
 pub mod op_list;
 pub mod op_memory;
 pub mod op_message;
+pub mod op_native_fun;
 pub mod op_predicates;
 pub mod op_try_catch;
 pub mod op_tuple;
 pub mod op_type_checks;
 
 pub use crate::beam::opcodes::{
-  op_native_fun::*, binary::*, op_data::*, op_execution::*, op_fun::*, op_list::*,
-  op_memory::*, op_message::*, op_predicates::*, op_try_catch::*, op_tuple::*,
+  binary::*, op_data::*, op_execution::*, op_fun::*, op_list::*, op_memory::*,
+  op_message::*, op_native_fun::*, op_predicates::*, op_try_catch::*, op_tuple::*,
   op_type_checks::*,
 };
 use crate::{
   beam::gen_op,
   defs::Word,
-  emulator::{code::opcode::RawOpcode, runtime_ctx::Context},
+  emulator::{code::opcode::RawOpcode, runtime_ctx::*},
 };
 
 /// Debug-time assertion to guard against incompatible opcode arity on BEAM
@@ -48,7 +48,7 @@ pub fn assert_arity(op: RawOpcode, code_expected_arity: Word) {
 }
 
 /// Display an error about opcode not supported/not implemented.
-pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {
+pub fn unknown_opcode(op: RawOpcode, ctx: &RuntimeContext) {
   println!("{}", ctx);
   panic!(
     "vm_dispatch: Opcode {:?} '{}' not implemented",

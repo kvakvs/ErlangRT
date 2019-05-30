@@ -1,6 +1,6 @@
 use crate::{
   big,
-  emulator::{arith::multiplication, process::Process, vm::VM},
+  emulator::{arith::multiplication, heap::THeapOwner, process::Process, vm::VM},
   fail::RtResult,
   term::value::*,
 };

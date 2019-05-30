@@ -5,12 +5,12 @@
 
 use crate::{
   beam::{disp_result::*, gen_op::*, opcodes::*},
-  emulator::{code::opcode::RawOpcode, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{code::opcode::RawOpcode, process::Process, runtime_ctx::*, vm::VM},
   fail::RtResult,
 };
 
 #[inline]
-pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, curr_p: &mut Process) -> RtResult<DispatchResult> {
+pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut RuntimeContext, curr_p: &mut Process) -> RtResult<DispatchResult> {
   match op {
     OPCODE_FUNC_INFO => {
       assert_arity(OPCODE_FUNC_INFO, OpcodeFuncInfo::ARITY);

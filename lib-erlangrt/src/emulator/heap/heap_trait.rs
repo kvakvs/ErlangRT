@@ -1,36 +1,44 @@
 // use crate::emulator::heap::Designation;
 use crate::{
   defs::{sizes::WordSize, Word},
-  emulator::heap::{catch::NextCatchResult, iter},
+  emulator::heap::{catch::NextCatchResult, iter, *},
   fail::RtResult,
   term::value::Term,
 };
 
+#[derive(Eq, PartialEq)]
+pub enum AllocInit {
+  Nil,
+  Uninitialized,
+}
+
 /// Trait defines shared API which all heap implementations must expose
 pub trait THeap {
-  fn alloc(&mut self, sz: WordSize, nil_init: bool) -> RtResult<*mut Word>;
+  fn alloc(&mut self, sz: WordSize, fill: AllocInit) -> RtResult<*mut Word>;
+  fn garbage_collect(&mut self, _roots: Box<TRootIterator>) -> RtResult<()>;
 
-  // Data access
+  // Stack access
   //
 
-  fn get_y(&self, index: Word) -> RtResult<Term>;
-  fn get_y_unchecked(&self, index: Word) -> Term;
-  fn set_y(&mut self, index: Word, val: Term) -> RtResult<()>;
+  fn get_y(&self, index: usize) -> RtResult<Term>;
+  fn get_y_unchecked(&self, index: usize) -> Term;
+  fn set_y(&mut self, index: usize, val: Term) -> RtResult<()>;
 
   // Heap & Stack memory management
   //
+
   /// Take `cp` from stack top and deallocate `n+1` words of stack.
   fn stack_deallocate(&mut self, n: usize) -> Term;
 
-  /// Express the intent to allocate `size` words on the heap, which may either
-  /// include an attempt to GC, or incur a heap fragment allocation.
-  /// Does not immediately allocate.
-  fn allocate_intent(&mut self, size: WordSize, live: usize) -> RtResult<()>;
-  fn allocate_intent_no_gc(&mut self, size: WordSize) -> RtResult<()>;
+  // / Express the intent to allocate `size` words on the heap, which may either
+  // / include an attempt to GC, or incur a heap fragment allocation.
+  // / Does not immediately allocate.
+  // fn allocate_intent(&mut self, size: WordSize, live: usize) -> RtResult<()>;
+  // fn allocate_intent_no_gc(&mut self, size: WordSize) -> RtResult<()>;
 
   fn heap_check_available(&self, need: WordSize) -> bool;
   fn stack_check_available(&self, need: WordSize) -> bool;
-  fn stack_alloc_unchecked(&mut self, need: WordSize, fill_nil: bool);
+  fn stack_alloc(&mut self, need: WordSize, extra: WordSize, fill: AllocInit);
   fn stack_depth(&self) -> usize;
 
   /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.

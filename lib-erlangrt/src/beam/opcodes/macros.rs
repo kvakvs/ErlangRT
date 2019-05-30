@@ -43,7 +43,7 @@ macro_rules! define_opcode {
       #[inline]
       pub fn __run(
         $vmarg: &mut crate::emulator::vm::VM,
-        $ctxarg: &mut Context,
+        $ctxarg: &mut RuntimeContext,
         $procarg: &mut Process
       ) -> RtResult<DispatchResult> {
         fetch_multiple_args!(
@@ -170,6 +170,7 @@ macro_rules! fetch_one_arg {
     $vmarg:ident, $ctxarg:ident, $procarg:ident, $arg_pos:expr,
     load($arg_ident:ident)
   ) => {
+    // Error `get_heap_mut` not found - import the THeapOwner trait
     let $arg_ident = $ctxarg.op_arg_load_term_at($arg_pos, $procarg.get_heap_mut());
   };
 

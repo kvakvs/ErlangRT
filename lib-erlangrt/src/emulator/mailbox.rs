@@ -19,10 +19,10 @@ impl ProcessMailbox {
     self.read_index < self.inbox.len()
   }
 
-//  #[inline]
-//  pub fn is_empty(&self) -> bool {
-//    self.inbox.is_empty()
-//  }
+  //  #[inline]
+  //  pub fn is_empty(&self) -> bool {
+  //    self.inbox.is_empty()
+  //  }
 
   /// Copy a message and put into process mailbox.
   /// Assumes: the message is already copied to receiving process heap.

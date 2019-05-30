@@ -1,6 +1,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::{self, RtResult},
   term::{boxed, value::Term},
 };
@@ -55,7 +55,7 @@ impl OpcodeIsFunction2 {
 
   #[inline]
   pub fn is_function2(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     fail_label: Term,
     val: Term,
     arity_as_term: Term,

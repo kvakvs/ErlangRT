@@ -5,7 +5,7 @@ use crate::{
   emulator::atom,
   fail::RtResult,
   term::{
-    boxed::{self, binary::trait_interface::TBinary},
+    boxed::{self, binary::TBinary},
     classify,
     compare::EqResult::Concluded,
     value::*,

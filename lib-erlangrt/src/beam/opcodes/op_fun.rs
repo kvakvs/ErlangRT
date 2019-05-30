@@ -4,9 +4,10 @@ use crate::{
   emulator::{
     function::FunEntry,
     gen_atoms,
+    heap::THeapOwner,
     mfa::ModFunArity,
     process::Process,
-    runtime_ctx::{self, Context},
+    runtime_ctx::{self, RuntimeContext},
     vm::VM,
   },
   fail::{self, RtResult},
@@ -25,7 +26,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeMakeFun2 {
   #[inline]
   pub fn make_fun2(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     export: Term,
   ) -> RtResult<DispatchResult> {
@@ -54,7 +55,7 @@ impl OpcodeCallFun {
   #[inline]
   pub fn call_fun(
     vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
   ) -> RtResult<DispatchResult> {
@@ -90,7 +91,7 @@ impl OpcodeApply {
   #[inline]
   pub fn apply(
     vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
   ) -> RtResult<DispatchResult> {
@@ -117,7 +118,7 @@ impl OpcodeApplyLast {
   #[inline]
   pub fn apply_last(
     vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
     dealloc: usize,
@@ -140,7 +141,7 @@ impl OpcodeApplyLast {
 /// with optional deallocation.
 fn fixed_apply(
   vm: &mut VM,
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   curr_p: &mut Process,
   mfa: &ModFunArity,
   dealloc: usize,

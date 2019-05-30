@@ -25,7 +25,7 @@ pub use self::{
 };
 use crate::{
   defs,
-  emulator::{gen_atoms, heap::heap_trait::THeap},
+  emulator::{gen_atoms, heap::THeap},
   fail::{RtErr, RtResult},
   term::boxed::{self, box_header, BoxHeader, BoxType},
 };

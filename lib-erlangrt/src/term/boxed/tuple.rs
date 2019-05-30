@@ -1,6 +1,6 @@
 use crate::{
   defs::{ByteSize, Word, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
@@ -12,7 +12,7 @@ use crate::{
     value::Term,
   },
 };
-use core::{fmt, ptr};
+use core::fmt;
 
 /// A fixed-size array which stores everything in its allocated memory on
 /// process heap.
@@ -40,8 +40,8 @@ impl TBoxed for Tuple {
   //      let data = &mut (*this_p).data0 as *mut Term;
   //
   //      for i in 0..count {
-  //        let val = ptr::read(data.add(i));
-  //        ptr::write(data.add(i), mapfn(this_p as *mut BoxHeader, val));
+  //        let val = data.add(i).read();
+  //        data.add(i).write(mapfn(this_p as *mut BoxHeader, val));
   //      }
   //    }
   //  }
@@ -72,9 +72,9 @@ impl Tuple {
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.
   pub fn create_into(hp: &mut THeap, arity: usize) -> RtResult<*mut Tuple> {
     let n = Self::storage_size(arity);
-    let p = hp.alloc(n, false)? as *mut Self;
+    let p = hp.alloc(n, AllocInit::Uninitialized)? as *mut Self;
     unsafe {
-      ptr::write(p, Tuple::new(arity));
+      p.write(Tuple::new(arity));
     }
     Ok(p)
   }
@@ -85,7 +85,7 @@ impl Tuple {
     debug_assert!(index < self.get_arity());
 
     let data = &mut self.data0 as *mut Term as *mut Word;
-    ptr::write(data.add(index), val)
+    data.add(index).write(val)
   }
 
   // Write tuple's i-th element (base 0)
@@ -95,7 +95,7 @@ impl Tuple {
 
     // Take i-th word after the tuple header
     let data = &mut self.data0 as *mut Term;
-    ptr::write(data.add(index), val)
+    data.add(index).write(val)
   }
 
   // Read tuple's i-th element (base 0)
@@ -104,7 +104,7 @@ impl Tuple {
     debug_assert!(index < self.get_arity());
 
     let data = &self.data0 as *const Term;
-    ptr::read(data.add(index))
+    data.add(index).read()
   }
 
   /// Format tuple contents

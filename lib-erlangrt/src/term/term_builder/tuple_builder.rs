@@ -1,5 +1,5 @@
 use crate::{
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::THeap,
   fail::RtResult,
   term::{boxed, value::*},
 };

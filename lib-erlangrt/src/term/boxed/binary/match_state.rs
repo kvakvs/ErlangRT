@@ -1,6 +1,6 @@
 use crate::{
   defs::{BitSize, ByteSize, WordSize},
-  emulator::heap::heap_trait::THeap,
+  emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
     boxed::{
@@ -12,7 +12,6 @@ use crate::{
     classify,
   },
 };
-use core::ptr;
 
 /// Binary match buffer is a part of `BinaryMatchState`
 struct MatchBuffer {
@@ -79,11 +78,11 @@ impl BinaryMatchState {
     hp: &mut THeap,
   ) -> RtResult<*mut BinaryMatchState> {
     let storage_sz = Self::storage_size();
-    let this = hp.alloc(storage_sz, false)? as *mut Self;
+    let this = hp.alloc(storage_sz, AllocInit::Uninitialized)? as *mut Self;
 
     // Create and write the block header (Self)
     let new_self = Self::new(bin_ptr);
-    ptr::write(this, new_self);
+    this.write(new_self);
 
     Ok(this)
   }

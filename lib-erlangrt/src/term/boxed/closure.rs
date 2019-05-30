@@ -4,7 +4,7 @@ use crate::{
     code::pointer::{CodePtr, VersionedCodePtr},
     code_srv::CodeServer,
     function::FunEntry,
-    heap::heap_trait::THeap,
+    heap::{AllocInit, THeap},
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
@@ -18,7 +18,7 @@ use crate::{
     value::*,
   },
 };
-use core::{mem::size_of, ptr};
+use core::mem::size_of;
 
 const fn module() -> &'static str {
   "closure: "
@@ -78,7 +78,7 @@ impl Closure {
     frozen: &[Term],
   ) -> RtResult<Term> {
     let n_words = Self::storage_size(fe.nfrozen);
-    let this = hp.alloc(n_words, false)? as *mut Self;
+    let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     println!(
@@ -89,7 +89,7 @@ impl Closure {
       fe.nfrozen
     );
 
-    ptr::write(this, Self::new(fe.mfa, fe.nfrozen));
+    this.write(Self::new(fe.mfa, fe.nfrozen));
 
     assert_eq!(frozen.len(), fe.nfrozen as usize);
     // step 1 closure forward, which will point exactly at the frozen location

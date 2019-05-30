@@ -1,7 +1,7 @@
 use super::bin_reader::BinaryReader;
 use crate::{
   defs::{SWord, Word},
-  emulator::{atom, heap::heap_trait::THeap},
+  emulator::{atom, heap::THeap},
   fail::{RtErr, RtResult},
   term::{
     boxed::{self, bignum::sign::Sign},
