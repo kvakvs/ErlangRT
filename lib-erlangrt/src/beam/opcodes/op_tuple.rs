@@ -1,7 +1,7 @@
 //! Module implements opcodes related to tuple creation and manipulation.
 use crate::{
   beam::{disp_result::DispatchResult, gen_op::OPCODE_PUT},
-  emulator::{code::opcode, heap::THeapOwner, process::Process, runtime_ctx::Context},
+  emulator::{code::opcode, heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::{self, RtResult},
   term::{boxed, value::Term},
 };
@@ -22,7 +22,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodePutTuple {
   #[inline]
   pub fn put_tuple(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
     dst: Term,
@@ -63,7 +63,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodePutTuple2 {
   #[inline]
   pub fn put_tuple2(
-    _ctx: &mut Context,
+    _ctx: &mut RuntimeContext,
     _curr_p: &mut Process,
     _dst: Term,
     _initializer: Term,
@@ -84,7 +84,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeTestArity {
   #[inline]
   pub fn test_arity(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     fail: Term,
     value: Term,
     arity: usize,
@@ -115,7 +115,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeGetTupleElement {
   #[inline]
   pub fn get_tuple_element(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     src: Term,
     index: usize,
@@ -167,7 +167,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeIsTaggedTuple {
   #[inline]
   pub fn is_tagged_tuple(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     label: Term,
     value: Term,
     arity: usize,

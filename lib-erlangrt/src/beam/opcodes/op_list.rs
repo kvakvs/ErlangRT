@@ -2,11 +2,7 @@
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{
-    heap::{allocate_cons, THeapOwner},
-    process::Process,
-    runtime_ctx::Context,
-  },
+  emulator::{heap::*, process::Process, runtime_ctx::*},
   fail::{self, RtResult},
   term::value::Term,
 };
@@ -23,7 +19,7 @@ define_opcode!(_vm, ctx, _curr_p,
 impl OpcodeIsNonemptyList {
   #[inline]
   pub fn is_nonempty_list(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     fail: Term,
     value: Term,
   ) -> RtResult<DispatchResult> {
@@ -46,7 +42,11 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeIsNil {
   #[inline]
-  pub fn is_nil(ctx: &mut Context, fail: Term, value: Term) -> RtResult<DispatchResult> {
+  pub fn is_nil(
+    ctx: &mut RuntimeContext,
+    fail: Term,
+    value: Term,
+  ) -> RtResult<DispatchResult> {
     if value != Term::nil() && fail != Term::nil() {
       // jump to fail label
       ctx.jump(fail)
@@ -67,7 +67,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeGetList {
   #[inline]
   pub fn decons(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     src: Term,
     dst_hd: Term,
@@ -105,7 +105,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodePutList {
   #[inline]
   pub fn cons(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     src_hd: Term,
     src_tl: Term,
@@ -135,7 +135,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeGetHd {
   #[inline]
   pub fn hd(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     cons: Term,
     dst: Term,
@@ -158,7 +158,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeGetTl {
   #[inline]
   pub fn tl(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     cons: Term,
     dst: Term,

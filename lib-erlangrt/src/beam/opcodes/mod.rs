@@ -22,7 +22,7 @@ pub use crate::beam::opcodes::{
 use crate::{
   beam::gen_op,
   defs::Word,
-  emulator::{code::opcode::RawOpcode, runtime_ctx::Context},
+  emulator::{code::opcode::RawOpcode, runtime_ctx::*},
 };
 
 /// Debug-time assertion to guard against incompatible opcode arity on BEAM
@@ -48,7 +48,7 @@ pub fn assert_arity(op: RawOpcode, code_expected_arity: Word) {
 }
 
 /// Display an error about opcode not supported/not implemented.
-pub fn unknown_opcode(op: RawOpcode, ctx: &Context) {
+pub fn unknown_opcode(op: RawOpcode, ctx: &RuntimeContext) {
   println!("{}", ctx);
   panic!(
     "vm_dispatch: Opcode {:?} '{}' not implemented",

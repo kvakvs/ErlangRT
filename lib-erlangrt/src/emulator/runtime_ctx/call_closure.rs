@@ -1,4 +1,4 @@
-use super::Context;
+use super::RuntimeContext;
 use crate::{
   beam::disp_result::DispatchResult,
   defs::Arity,
@@ -15,7 +15,7 @@ fn module() -> &'static str {
 /// `fun() -> code end`.
 pub fn apply(
   vm: &mut VM,
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   _curr_p: &mut Process,
   closure: *mut boxed::Closure,
   args: &[Term],

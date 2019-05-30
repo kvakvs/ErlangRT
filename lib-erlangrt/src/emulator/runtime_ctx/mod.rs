@@ -31,7 +31,7 @@ fn module() -> &'static str {
 /// Structure represents the runtime state of a VM process. It is "swapped in"
 /// when the process is about to run, and "swapped out", when the process is
 /// done running its time-slice.
-pub struct Context {
+pub struct RuntimeContext {
   /// Current code location, const ptr (unsafe!).
   pub ip: CodePtr,
   /// For a fetched opcode this is op arguments location
@@ -66,9 +66,9 @@ pub enum ReturnResult {
   Success,
 }
 
-impl Context {
-  pub fn new(ip: CodePtr) -> Context {
-    Context {
+impl RuntimeContext {
+  pub fn new(ip: CodePtr) -> RuntimeContext {
+    RuntimeContext {
       cp: CodePtr::null(),
       args_ptr: ptr::null(),
       fpregs: [0.0; MAX_FPREGS],
@@ -381,7 +381,7 @@ impl Context {
 // === === === ===
 //
 
-impl fmt::Display for Context {
+impl fmt::Display for RuntimeContext {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut str_regs = String::new();
     for n in 0..self.live {

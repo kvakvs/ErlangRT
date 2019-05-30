@@ -5,12 +5,12 @@ use crate::{
   defs::{exc_type::ExceptionType, WordSize},
   emulator::{
     code_srv::CodeServer,
-    heap::{copy_term, Designation, Heap, THeap, THeapOwner},
+    heap::*,
     mailbox::ProcessMailbox,
     mfa::{ModFunArgs, ModFunArity},
     process_flags::ProcessFlags,
     process_registry::ProcessRegistry,
-    runtime_ctx,
+    runtime_ctx::RuntimeContext,
     scheduler::{self, Scheduler},
     spawn_options::SpawnOptions,
   },
@@ -53,7 +53,7 @@ pub struct Process {
 
   // Execution Context, etc.
   /// Runtime context with registers, instruction pointer etc
-  pub context: runtime_ctx::Context,
+  pub context: RuntimeContext,
 
   // Memory
   heap: Heap,
@@ -103,7 +103,7 @@ impl Process {
           mailbox: ProcessMailbox::new(),
 
           // Execution
-          context: runtime_ctx::Context::new(ip),
+          context: RuntimeContext::new(ip),
 
           error: None,
           num_catches: 0,
@@ -183,9 +183,18 @@ impl Process {
   /// We guarantee that this borrow will not outlive the process, or we will pay
   /// the price debugging the SIGSEGV.
   #[inline]
-  pub fn get_context_p(&self) -> *mut runtime_ctx::Context {
-    let p = &self.context as *const runtime_ctx::Context;
-    p as *mut runtime_ctx::Context
+  pub fn get_context_p(&self) -> *mut RuntimeContext {
+    let p = &self.context as *const RuntimeContext;
+    p as *mut RuntimeContext
+  }
+}
+
+impl TRootSource for Process {
+  /// Create a union iterator over all roots in the Process:
+  /// Roots are: live registers, process error value, stack, etc.
+  fn roots_get_iterator(&mut self) -> Box<TRootIterator> {
+    let regs_slice = self.context.registers_slice_mut(0, self.context.live);
+    Box::new(ArrayRootIterator::new(regs_slice))
   }
 }
 
@@ -195,7 +204,8 @@ impl THeapOwner for Process {
     if self.heap.heap_check_available(need) {
       return Ok(());
     }
-    panic!("OOM warning")
+    let roots = self.roots_get_iterator();
+    self.heap.garbage_collect(roots)
   }
 
   #[inline]

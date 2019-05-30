@@ -14,9 +14,13 @@ pub mod heap_incremental;
 pub mod iter;
 
 mod heap_owner_trait;
-mod heap_trait;
 pub use heap_owner_trait::THeapOwner;
+
+mod heap_trait;
 pub use heap_trait::{AllocInit, THeap};
+
+mod root_source_trait;
+pub use root_source_trait::*;
 
 pub type Heap = IncrementalHeap<NullGc>;
 

@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
-  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::RtResult,
   term::{
     boxed::binary::{match_state::BinaryMatchState, BinarySlice},
@@ -23,7 +23,7 @@ define_opcode!(
 impl OpcodeBsGetBinary2 {
   #[inline]
   unsafe fn bs_get_binary2_7(
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,
     _fail: Term,
     match_state: *mut BinaryMatchState,

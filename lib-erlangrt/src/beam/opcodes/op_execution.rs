@@ -9,7 +9,7 @@ use crate::{
     process::Process,
     runtime_ctx::{
       call_native_fun::{self, find_and_call_native_fun},
-      Context, ReturnResult,
+      RuntimeContext, ReturnResult,
     },
     vm::VM,
   },
@@ -33,7 +33,7 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeCall {
   #[inline]
-  pub fn call(ctx: &mut Context, arity: usize, dst: Term) -> RtResult<DispatchResult> {
+  pub fn call(ctx: &mut RuntimeContext, arity: usize, dst: Term) -> RtResult<DispatchResult> {
     ctx.live = arity;
     debug_assert!(dst.is_boxed(), "Call location must be a box (have {})", dst);
 
@@ -58,7 +58,7 @@ define_opcode!(_vm, ctx, _curr_p,
 impl OpcodeCallOnly {
   #[inline]
   pub fn call_only(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     arity: usize,
     dst: Term,
   ) -> RtResult<DispatchResult> {
@@ -81,7 +81,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeCallLast {
   #[inline]
   pub fn call_last(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
     dst: Term,
@@ -110,7 +110,7 @@ impl OpcodeCallExtOnly {
   #[inline]
   pub fn call_ext_only(
     vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
     dst: Term,
@@ -135,7 +135,7 @@ impl OpcodeCallExt {
   #[inline]
   pub fn call_ext(
     vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
     dst: Term,
@@ -158,7 +158,7 @@ impl OpcodeCallExtLast {
   #[inline]
   pub fn call_ext_last(
     vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     curr_p: &mut Process,
     arity: usize,
     dst: Term,
@@ -176,7 +176,7 @@ impl OpcodeCallExtLast {
 #[inline]
 fn generic_call_ext(
   vm: &mut VM,
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   proc: &mut Process,
   dst_import: Term,
   fail_label: Term,
@@ -243,7 +243,7 @@ define_opcode!(_vm, ctx, curr_p,
 impl OpcodeReturn {
   #[inline]
   pub fn return_opcode(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     proc: &mut Process,
   ) -> RtResult<DispatchResult> {
     match ctx.return_and_clear_cp(proc) {
@@ -305,7 +305,7 @@ define_opcode!(_vm, ctx, _curr_p,
 impl OpcodeSelectVal {
   #[inline]
   pub fn select_val(
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     val: Term,
     fail: Term,
     jtab: *const boxed::JumpTable,
@@ -336,7 +336,7 @@ define_opcode!(_vm, ctx, _curr_p,
 
 impl OpcodeJump {
   #[inline]
-  pub fn jump(ctx: &mut Context, dst: Term) -> RtResult<DispatchResult> {
+  pub fn jump(ctx: &mut RuntimeContext, dst: Term) -> RtResult<DispatchResult> {
     ctx.jump(dst);
     Ok(DispatchResult::Normal)
   }

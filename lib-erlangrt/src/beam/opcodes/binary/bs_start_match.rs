@@ -1,6 +1,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::RtResult,
   term::{
     boxed::{
@@ -32,7 +32,7 @@ define_opcode!(
 impl OpcodeBsStartMatch3 {
   #[inline]
   fn bs_start_match_3(
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,
     fail: Term,
     match_context: Term,
@@ -82,7 +82,7 @@ impl OpcodeBsStartMatch3 {
   /// When `bs_start_match*` is called with a binary, we allocate a new binary
   /// match context right here, and store it in the output register.
   fn start_with_new_binary(
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,
     _fail: Term,
     bin_ptr: *const TBinary,
@@ -116,7 +116,7 @@ impl OpcodeBsStartMatch3 {
   /// When `bs_start_match*` is called with a matchstate, which already exists
   /// on heap, we continue using that state.
   unsafe fn continue_with_matchstate(
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,
     match_state: *mut BinaryMatchState,
     dst: Term,

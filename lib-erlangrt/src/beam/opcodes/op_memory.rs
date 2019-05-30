@@ -4,7 +4,7 @@ use crate::{
   emulator::{
     heap::{AllocInit, THeapOwner},
     process::Process,
-    runtime_ctx::Context,
+    runtime_ctx::RuntimeContext,
   },
   fail::RtResult,
   term::value::Term,
@@ -13,7 +13,7 @@ use crate::{
 /// Shared code for stack checks and allocations with an optional heap check.
 #[inline]
 fn gen_alloc(
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   curr_p: &mut Process,
   stack_need: WordSize,
   heap_need: WordSize,

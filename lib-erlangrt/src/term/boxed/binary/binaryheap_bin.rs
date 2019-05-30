@@ -20,6 +20,7 @@ pub struct BinaryHeapBinary {
 }
 
 impl BinaryHeapBinary {
+  #[allow(dead_code)]
   pub fn storage_size(size: BitSize) -> WordSize {
     let header_size = ByteSize::new(std::mem::size_of::<Self>());
     // The size is `BinaryHeapBinary` in words rounded up + storage bytes rounded up

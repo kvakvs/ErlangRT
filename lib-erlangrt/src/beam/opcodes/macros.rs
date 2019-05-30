@@ -43,7 +43,7 @@ macro_rules! define_opcode {
       #[inline]
       pub fn __run(
         $vmarg: &mut crate::emulator::vm::VM,
-        $ctxarg: &mut Context,
+        $ctxarg: &mut RuntimeContext,
         $procarg: &mut Process
       ) -> RtResult<DispatchResult> {
         fetch_multiple_args!(

@@ -72,6 +72,7 @@ impl TBoxed for Binary {
 impl Binary {
   /// For binary of given size ensure that the heap has enough space on it,
   /// and if a large binary is to be created, also check the binary heap capacity.
+  #[allow(dead_code)]
   pub fn ensure_memory_for_binary(
     _vm: &mut VM,
     proc_source: &mut THeapOwner,

@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::{BitSize, ByteSize, WordSize},
-  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*, vm::VM},
   fail::{self, RtResult},
   term::{
     boxed::{self, binary::*},
@@ -31,7 +31,7 @@ impl OpcodeBsInit2 {
   #[inline]
   fn bs_init2(
     vm: &mut VM,
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,
     fail: Term,
     sz: usize,

@@ -9,12 +9,7 @@
 //! * The young values get garbaged more often, introduce an age mark.
 use crate::{
   defs::{Word, WordSize},
-  emulator::heap::{
-    catch::NextCatchResult,
-    gc_trait::TGc,
-    heap_trait::{AllocInit, THeap},
-    iter, Designation,
-  },
+  emulator::heap::{catch::NextCatchResult, gc_trait::TGc, heap_trait::*, iter, *},
   fail::{RtErr, RtResult},
   term::value::Term,
 };
@@ -74,15 +69,27 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     if fill == AllocInit::Nil {
       let raw_nil = Term::nil().raw();
       unsafe {
-          for i in 0..n_words {
-            new_chunk.add(i).write(raw_nil)
-          }
+        for i in 0..n_words {
+          new_chunk.add(i).write(raw_nil)
+        }
       }
     }
 
     self.heap_top += n_words;
 
     Ok(new_chunk)
+  }
+
+  fn garbage_collect(&mut self, mut roots: Box<TRootIterator>) -> RtResult<()> {
+    roots.roots_begin();
+    loop {
+      let r = roots.roots_next();
+      if r.is_null() {
+        break;
+      }
+      println!("root: {:?}", unsafe { *r });
+    }
+    unimplemented!("GC for incremental heap")
   }
 
   fn get_y(&self, index: Word) -> RtResult<Term> {

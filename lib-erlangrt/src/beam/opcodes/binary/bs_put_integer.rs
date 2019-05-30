@@ -1,7 +1,7 @@
 use crate::{
   beam::disp_result::DispatchResult,
   defs::BitSize,
-  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context, vm::VM},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*, vm::VM},
   fail::RtResult,
   term::value::Term,
 };
@@ -20,7 +20,7 @@ impl OpcodeBsPutInteger {
   #[inline]
   fn bs_put_integer(
     _vm: &mut VM,
-    ctx: &mut Context,
+    ctx: &mut RuntimeContext,
     _proc: &mut Process,
     _fail: Term,
     arg_sz: usize,

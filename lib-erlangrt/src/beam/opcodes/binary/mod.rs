@@ -12,7 +12,7 @@ pub use self::{
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::RtResult,
   term::{boxed::binary::match_state::BinaryMatchState, value::*},
 };
@@ -46,7 +46,7 @@ define_opcode!(
 impl OpcodeBsTestTail2 {
   #[inline]
   fn bs_test_tail2(
-    runtime_ctx: &mut Context,
+    runtime_ctx: &mut RuntimeContext,
     _proc: &mut Process,
     fail: Term,
     match_state: *mut BinaryMatchState,

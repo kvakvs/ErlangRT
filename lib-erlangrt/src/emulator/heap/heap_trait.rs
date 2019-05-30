@@ -1,7 +1,7 @@
 // use crate::emulator::heap::Designation;
 use crate::{
   defs::{sizes::WordSize, Word},
-  emulator::heap::{catch::NextCatchResult, iter},
+  emulator::heap::{catch::NextCatchResult, iter, *},
   fail::RtResult,
   term::value::Term,
 };
@@ -15,6 +15,7 @@ pub enum AllocInit {
 /// Trait defines shared API which all heap implementations must expose
 pub trait THeap {
   fn alloc(&mut self, sz: WordSize, fill: AllocInit) -> RtResult<*mut Word>;
+  fn garbage_collect(&mut self, _roots: Box<TRootIterator>) -> RtResult<()>;
 
   // Stack access
   //

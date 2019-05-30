@@ -4,7 +4,7 @@ use colored::Colorize;
 
 use crate::{
   beam::disp_result::DispatchResult,
-  emulator::{heap::THeapOwner, process::Process, runtime_ctx::Context},
+  emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::RtResult,
   term::{compare, value::Term},
 };
@@ -85,7 +85,7 @@ enum CmpInvert {
 #[inline]
 /// Shared code for equality checks. Assumes arg0 - fail label, arg1,2 - values
 fn generic_comparison(
-  ctx: &mut Context,
+  ctx: &mut RuntimeContext,
   fail_label: Term,
   a: Term,
   b: Term,

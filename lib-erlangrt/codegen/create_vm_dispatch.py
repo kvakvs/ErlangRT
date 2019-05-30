@@ -18,12 +18,12 @@ def main():
 
 use crate::{{
   beam::{{disp_result::*, gen_op::*, opcodes::*}},
-  emulator::{{code::opcode::RawOpcode, process::Process, runtime_ctx::Context, vm::VM}},
+  emulator::{{code::opcode::RawOpcode, process::Process, runtime_ctx::*, vm::VM}},
   fail::RtResult,
 }};
 
 #[inline]
-pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut Context, \
+pub fn dispatch_op_inline(vm: &mut VM, op: RawOpcode, ctx: &mut RuntimeContext, \
 curr_p: &mut Process) -> RtResult<DispatchResult> {{
   match op {{""".format(op_max=conf.max_opcode, otp=conf.__class__.__name__))
 
