@@ -6,7 +6,7 @@ use crate::{
       binary::{binaryheap_bin::BinaryHeapBinary, trait_interface::TBinary, BinaryType},
       Binary,
     },
-    value::Term,
+    Term,
   },
 };
 

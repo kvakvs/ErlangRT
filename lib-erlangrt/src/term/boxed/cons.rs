@@ -1,4 +1,4 @@
-use crate::term::value::Term;
+use crate::term::Term;
 
 /// A cons is 2 values stored together on heap forming a singly-linked list node.
 /// Each is a fully tagged term so anyone who is parsing the heap will see this

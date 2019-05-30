@@ -1,9 +1,6 @@
 use crate::{
   defs::ByteSize,
-  term::{
-    boxed,
-    value::{SpecialConst, SpecialTag, Term},
-  },
+  term::{boxed, SpecialConst, SpecialTag, Term},
 };
 
 impl Term {

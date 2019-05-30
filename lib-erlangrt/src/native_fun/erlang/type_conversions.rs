@@ -1,10 +1,7 @@
 use crate::{
   emulator::{atom, heap::THeapOwner, process::Process},
   fail::{self, RtResult},
-  term::{
-    term_builder::BinaryBuilder,
-    value::{cons, Term},
-  },
+  term::{cons, term_builder::BinaryBuilder, Term},
 };
 
 // Converts an atom to Erlang string.

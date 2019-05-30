@@ -6,7 +6,7 @@ use crate::{
   term::{
     boxed::{self, bignum::sign::Sign},
     term_builder::{ListBuilder, TupleBuilder},
-    value::Term,
+    Term,
   },
 };
 

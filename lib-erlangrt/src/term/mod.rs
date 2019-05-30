@@ -12,4 +12,8 @@ pub mod classify; // term ordering (for comparisons)
 pub mod compare; // term comparisons (less, equal, greater)
 pub mod integral; // integral value (small or bignum) for fterms
 pub mod term_builder; /* implements ITermBuilder for RT VM // term in memory (dynamic runtime dispatch) */
-pub mod value; // Value stored in one machine word
+
+mod value; // Value stored in one machine word
+pub use self::value::*;
+
+pub mod heap_walker;

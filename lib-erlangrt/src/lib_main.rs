@@ -1,7 +1,7 @@
 use crate::{
   command_line_args::ErlStartArgs,
   emulator::{atom, mfa::ModFunArgs, spawn_options::SpawnOptions, vm::VM},
-  term::value::*,
+  term::*,
 };
 use std::{
   io::{stdout, Write},

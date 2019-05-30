@@ -6,7 +6,7 @@ use crate::{
       binary::{bits_paste, trait_interface::TBinary, BinaryType},
       Binary,
     },
-    value::Term,
+    Term,
   },
 };
 use core::ptr;

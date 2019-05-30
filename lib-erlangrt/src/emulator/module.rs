@@ -11,7 +11,7 @@ use crate::{
     mfa::ModFunArity,
   },
   fail::{RtErr, RtResult},
-  term::value::Term,
+  term::Term,
 };
 use std::collections::BTreeMap;
 

@@ -1,6 +1,6 @@
 use crate::{
   defs::*,
-  term::{boxed::trait_interface::TBoxed, value::PrimaryTag},
+  term::{boxed::trait_interface::TBoxed, PrimaryTag},
 };
 use core::ptr;
 

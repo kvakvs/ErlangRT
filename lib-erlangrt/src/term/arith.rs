@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::term::value::*;
+use crate::term::*;
 
 pub fn add(_a: Term, _b: Term) -> Term {
   // TODO: If a is small, check that b is small or big or float

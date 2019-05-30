@@ -1,4 +1,4 @@
-use crate::term::{boxed, value::Term};
+use crate::term::{boxed, Term};
 
 impl Term {
   // === === EXPORT === ===

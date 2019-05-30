@@ -7,7 +7,7 @@ use crate::{
       binary::{trait_interface::TBinary, BinaryType},
       Binary,
     },
-    value::Term,
+    Term,
   },
 };
 use core::ptr;

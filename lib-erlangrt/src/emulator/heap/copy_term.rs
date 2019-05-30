@@ -5,9 +5,9 @@ use crate::{
   emulator::heap::THeap,
   fail::RtResult,
   term::{
-    boxed,
+    self, boxed, cons,
     term_builder::{ListBuilder, TupleBuilder},
-    value::{self, PrimaryTag, Term},
+    PrimaryTag, SpecialTag, Term,
   },
 };
 
@@ -24,7 +24,7 @@ pub fn copy_to(term: Term, hp: &mut THeap) -> RtResult<Term> {
     | PrimaryTag::LOCAL_PID
     | PrimaryTag::LOCAL_PORT => Ok(term),
     PrimaryTag::SPECIAL => match term.get_special_tag() {
-      value::SpecialTag::CONST => Ok(term),
+      SpecialTag::CONST => Ok(term),
       _ => panic!("Attempt to copy a special value: {}", term),
     },
     t => panic!("Not sure how to copy term with {:?}", t),
@@ -37,7 +37,7 @@ pub fn copy_to(term: Term, hp: &mut THeap) -> RtResult<Term> {
 unsafe fn copy_cons_to(lst: Term, hp: &mut THeap) -> RtResult<Term> {
   let mut lb = ListBuilder::new()?;
 
-  let tail_el_result = value::cons::for_each(lst, |el| {
+  let tail_el_result = cons::for_each(lst, |el| {
     // Recurse into copy, for each list element
     let copy_of_el = copy_to(el, hp)?;
     lb.append(copy_of_el, hp)?;

@@ -15,7 +15,7 @@ use crate::{
       BoxHeader, BOXTYPETAG_CLOSURE,
     },
     classify,
-    value::*,
+    *,
   },
 };
 use core::mem::size_of;

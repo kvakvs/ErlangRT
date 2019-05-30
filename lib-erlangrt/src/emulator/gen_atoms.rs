@@ -3,7 +3,7 @@
 //! Config used: OTP22
 #![allow(dead_code)]
 
-use crate::term::value::*;
+use crate::term::*;
 
 
 pub const SYM_PLUS: Term = Term::make_atom(0);

@@ -3,13 +3,18 @@
 use crate::{
   emulator::heap::{heap_trait::THeap, *},
   fail::RtResult,
+  term::heap_walker::*,
 };
 
 pub trait TGc {
   fn new() -> Self;
 
   /// GC takes a range of mutable-term-ranges
-  fn garbage_collect(heap: &THeap, roots: Box<TRootIterator>) -> RtResult<()>;
+  fn garbage_collect(
+    heap: &THeap,
+    walker: HeapWalker,
+    roots: Box<TRootIterator>,
+  ) -> RtResult<()>;
 }
 
 /// Null GC does nothing, and instead panics
@@ -21,7 +26,7 @@ impl TGc for NullGc {
     Self {}
   }
 
-  fn garbage_collect(_heap: &THeap, _roots: Box<TRootIterator>) -> RtResult<()> {
-    panic!("The heap is full and there is nothing i can do about it")
+  fn garbage_collect(_heap: &THeap, walker: HeapWalker,_roots: Box<TRootIterator>) -> RtResult<()> {
+    unimplemented!("NullGC is not designed to collect any garbage")
   }
 }

@@ -2,7 +2,7 @@ use crate::{
   emulator::{process::Process, vm::VM},
   fail::RtResult,
   native_fun::assert_arity,
-  term::value::Term,
+  term::Term,
 };
 
 #[allow(dead_code)]

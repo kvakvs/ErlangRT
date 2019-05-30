@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::{DispatchResult, YieldType},
   emulator::{process::Process, runtime_ctx::*, vm::VM},
   fail::{self, RtResult},
-  term::value::*,
+  term::*,
 };
 
 // Sends to x0 value x1, x1 is moved to x0 as result of the operation.

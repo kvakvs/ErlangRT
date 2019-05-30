@@ -5,7 +5,7 @@ use crate::{
     gen_atoms, heap::THeapOwner, process::Process, process_flags,
     process_registry::ProcessRegistry,
   },
-  term::value::*,
+  term::*,
 };
 use colored::Colorize;
 use std::collections::{HashMap, VecDeque};

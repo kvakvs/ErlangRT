@@ -1,4 +1,4 @@
-use crate::{emulator::process::Process, term::value::Term};
+use crate::{emulator::process::Process, term::Term};
 use core::ptr;
 use std::collections::HashMap;
 

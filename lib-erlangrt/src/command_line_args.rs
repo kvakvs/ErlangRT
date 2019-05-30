@@ -3,7 +3,7 @@ use crate::{
   fail::RtResult,
   term::{
     term_builder::{list_builder::build_erlstr_from_utf8, ListBuilder},
-    value::Term,
+    Term,
   },
 };
 

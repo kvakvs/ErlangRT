@@ -5,7 +5,7 @@ use crate::{
   beam::loader::CompactTermError,
   defs::{exc_type::ExceptionType, ByteSize},
   rt_util::bin_reader::{self, ReadError},
-  term::value::Term,
+  term::Term,
 };
 use std::convert::From;
 

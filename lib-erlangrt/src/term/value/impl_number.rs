@@ -1,7 +1,4 @@
-use crate::term::{
-  boxed,
-  value::{PrimaryTag, Term, LARGEST_SMALL, SMALLEST_SMALL},
-};
+use crate::term::{boxed, PrimaryTag, Term, LARGEST_SMALL, SMALLEST_SMALL};
 
 impl Term {
   // === === SMALL INTEGERS === === ===

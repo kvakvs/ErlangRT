@@ -21,7 +21,7 @@ use crate::{
     bin_reader::{BinaryReader, ReadError},
     ext_term_format as etf,
   },
-  term::value::Term,
+  term::Term,
 };
 
 fn module() -> &'static str {

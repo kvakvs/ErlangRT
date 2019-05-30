@@ -2,7 +2,7 @@
 //! A CP term is a box pointer with highest 63rd bit set.
 use crate::{
   defs,
-  term::value::{PrimaryTag, Term},
+  term::{PrimaryTag, Term},
 };
 
 impl Term {

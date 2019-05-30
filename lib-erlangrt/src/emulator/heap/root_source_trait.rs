@@ -1,4 +1,4 @@
-use crate::term::value::Term;
+use crate::term::Term;
 
 /// Mutable root is a mutable slice which will be read, collected and then
 /// updated with new locations of the data.

@@ -1,4 +1,4 @@
-use crate::term::value::Term;
+use crate::term::Term;
 use core::ptr;
 
 impl Term {

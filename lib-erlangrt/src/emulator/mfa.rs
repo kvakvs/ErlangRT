@@ -1,7 +1,7 @@
 //! Module contains reference structs to external and internal functions.
 //! M:F/Arity (external), M:F(Args) (apply style), F/Arity (internal).
 
-use crate::{defs::Arity, emulator::funarity::FunArity, fail::RtResult, term::value::*};
+use crate::{defs::Arity, emulator::funarity::FunArity, fail::RtResult, term::*};
 use core::fmt;
 
 #[allow(dead_code)]

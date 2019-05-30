@@ -1,7 +1,7 @@
 use crate::{
   emulator::{process::Process, vm::VM},
   fail::RtResult,
-  term::value::Term,
+  term::Term,
 };
 
 pub mod fn_entry;

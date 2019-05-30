@@ -5,7 +5,7 @@ use crate::{
   fail::{self, RtResult},
   term::{
     boxed::{self, binary::*},
-    value::Term,
+    Term,
   },
 };
 

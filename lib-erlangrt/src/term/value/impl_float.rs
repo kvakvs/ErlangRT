@@ -1,7 +1,7 @@
 use crate::{
   emulator::heap::THeap,
   fail::{RtErr, RtResult},
-  term::{boxed, value::Term},
+  term::{boxed, Term},
 };
 
 impl Term {

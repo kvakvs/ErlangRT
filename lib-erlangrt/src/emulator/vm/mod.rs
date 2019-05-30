@@ -9,7 +9,7 @@ use crate::{
     process_registry::ProcessRegistry, scheduler::Scheduler, spawn_options::SpawnOptions,
   },
   fail::RtResult,
-  term::value::*,
+  term::*,
 };
 
 mod binary_heap_owner;

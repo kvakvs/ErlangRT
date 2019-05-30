@@ -2,7 +2,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::{self, RtResult},
-  term::{boxed, value::Term},
+  term::{boxed, Term},
 };
 
 // Checks that argument is an atom, otherwise jumps to label.

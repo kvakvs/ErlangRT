@@ -1,4 +1,4 @@
-use crate::term::value::*;
+use crate::term::*;
 
 pub struct ProcessMailbox {
   inbox: Vec<Term>,

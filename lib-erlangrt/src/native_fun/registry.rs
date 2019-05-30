@@ -1,7 +1,7 @@
 use crate::{
   emulator::{atom, mfa::ModFunArity},
   native_fun::{erlang, erts_internal, lists, module::NativeModule, NativeFn},
-  term::value::Term,
+  term::Term,
 };
 use std::collections::HashMap;
 

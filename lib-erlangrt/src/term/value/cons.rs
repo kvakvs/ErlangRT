@@ -3,7 +3,7 @@ use crate::{
   defs::{exc_type::ExceptionType, sizes::ByteSize},
   emulator::{gen_atoms, heap::THeap},
   fail::{RtErr, RtResult},
-  term::{boxed, term_builder::ListBuilder, value::Term},
+  term::{boxed, term_builder::ListBuilder, Term},
 };
 
 // TODO: Rewrite this with for_each when i can think clear again

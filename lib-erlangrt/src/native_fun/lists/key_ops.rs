@@ -2,10 +2,7 @@
 use crate::{
   emulator::gen_atoms,
   fail::RtResult,
-  term::{
-    compare,
-    value::{cons, Term},
-  },
+  term::{compare, cons, Term},
 };
 use std::cmp::Ordering;
 

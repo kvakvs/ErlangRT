@@ -10,7 +10,7 @@ use crate::{
       self,
       binary::bits_paste::{self, SizeOrAll},
     },
-    value::Term,
+    Term,
   },
 };
 

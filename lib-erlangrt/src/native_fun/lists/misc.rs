@@ -2,7 +2,7 @@
 use crate::{
   emulator::{heap::THeapOwner, process::Process},
   fail::RtResult,
-  term::{compare, term_builder::ListBuilder, value::*},
+  term::{compare, term_builder::ListBuilder, *},
 };
 use core::cmp::Ordering;
 

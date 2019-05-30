@@ -11,7 +11,7 @@ use crate::{
     vm::VM,
   },
   fail::{self, RtResult},
-  term::{boxed, value::Term},
+  term::{boxed, Term},
 };
 
 // Create a closure from a lambda table item (loaded from a BEAM file).

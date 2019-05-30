@@ -14,7 +14,7 @@ use crate::{
     vm::VM,
   },
   fail::{self, RtErr, RtResult},
-  term::{boxed, compare, value::*},
+  term::{boxed, compare, *},
 };
 use core::cmp::Ordering;
 

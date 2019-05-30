@@ -2,7 +2,7 @@
 use crate::{
   defs::Word,
   emulator::heap::{heap_trait::THeap, Heap},
-  term::value::PrimaryTag,
+  term::PrimaryTag,
 };
 
 impl Heap {

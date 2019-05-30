@@ -3,7 +3,7 @@ use crate::{
   beam::{disp_result::DispatchResult, gen_op::OPCODE_PUT},
   emulator::{code::opcode, heap::THeapOwner, process::Process, runtime_ctx::*},
   fail::{self, RtResult},
-  term::{boxed, value::Term},
+  term::{boxed, Term},
 };
 
 // fn module() -> &'static str {

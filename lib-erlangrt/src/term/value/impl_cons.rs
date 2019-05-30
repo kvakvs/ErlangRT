@@ -1,8 +1,5 @@
 //! Submodule implements Cons Cell/List features of an Erlang Term
-use crate::term::{
-  boxed,
-  value::{PrimaryTag, Term},
-};
+use crate::term::{boxed, PrimaryTag, Term};
 
 impl Term {
   #[inline]

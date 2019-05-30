@@ -6,7 +6,7 @@ use crate::{
   defs::Word,
   emulator::gen_atoms,
   fail::{RtErr, RtResult},
-  term::value::*,
+  term::*,
 };
 use core::ptr;
 use std::{

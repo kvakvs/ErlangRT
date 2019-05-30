@@ -15,7 +15,7 @@ use crate::{
     spawn_options::SpawnOptions,
   },
   fail::RtResult,
-  term::value::*,
+  term::*,
 };
 use core::ptr;
 

@@ -2,7 +2,7 @@ use crate::{
   defs::sizes::WordSize,
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
-  term::{boxed, value::*},
+  term::{boxed, *},
 };
 use core::ptr;
 

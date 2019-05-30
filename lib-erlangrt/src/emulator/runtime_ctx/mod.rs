@@ -16,7 +16,7 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  term::value::{self, PrimaryTag, Term},
+  term::{self, PrimaryTag, SpecialReg, SpecialTag, Term},
 };
 
 pub mod call_closure;
@@ -213,15 +213,15 @@ impl RuntimeContext {
   // TODO: Optimize - separate load constant from load register instruction
   pub fn load(&self, src: Term, hp: &THeap) -> Term {
     if src.is_special() {
-      if src.get_special_tag() == value::SpecialTag::REG {
+      if src.get_special_tag() == SpecialTag::REG {
         let r_tag = src.get_reg_tag();
-        if r_tag == value::SpecialReg::REG_X {
+        if r_tag == SpecialReg::REG_X {
           return self.get_x(src.get_reg_value());
-        } else if r_tag == value::SpecialReg::REG_Y {
+        } else if r_tag == SpecialReg::REG_Y {
           let y_index = src.get_reg_value();
           let y_result = hp.get_y(y_index);
           return y_result.unwrap();
-        } else if r_tag == value::SpecialReg::REG_FLOAT {
+        } else if r_tag == SpecialReg::REG_FLOAT {
           panic!("todo fpreg load")
         } else {
           panic!("special tag not supported")
@@ -270,15 +270,15 @@ impl RuntimeContext {
       "ctx.store destination must be a X, Y or FP register"
     );
     if dst.get_term_tag() == PrimaryTag::SPECIAL {
-      if dst.get_special_tag() == value::SpecialTag::REG {
+      if dst.get_special_tag() == SpecialTag::REG {
         let r_tag = dst.get_reg_tag();
-        if r_tag == value::SpecialReg::REG_X {
+        if r_tag == SpecialReg::REG_X {
           self.set_x(dst.get_reg_value(), val);
           return Ok(());
-        } else if r_tag == value::SpecialReg::REG_Y {
+        } else if r_tag == SpecialReg::REG_Y {
           let y = dst.get_reg_value();
           return hp.set_y(y, val);
-        } else if r_tag == value::SpecialReg::REG_FLOAT {
+        } else if r_tag == SpecialReg::REG_FLOAT {
           panic!("todo fpreg store");
         } else {
           panic!("store: specialtag {:?} not supported", r_tag);

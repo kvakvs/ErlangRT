@@ -2,7 +2,7 @@ use crate::{
   fail::{RtErr, RtResult},
   term::{
     boxed::{BoxHeader, BoxType},
-    value::{PrimaryTag, Term},
+    PrimaryTag, Term,
   },
 };
 

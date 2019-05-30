@@ -7,7 +7,7 @@ use crate::{
     runtime_ctx::RuntimeContext,
   },
   fail::RtResult,
-  term::value::Term,
+  term::Term,
 };
 
 /// Shared code for stack checks and allocations with an optional heap check.

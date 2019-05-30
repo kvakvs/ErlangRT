@@ -5,7 +5,7 @@ use crate::{
   fail::RtResult,
   term::{
     boxed::binary::{match_state::BinaryMatchState, BinarySlice},
-    value::Term,
+    Term,
   },
 };
 

@@ -1,6 +1,6 @@
 use crate::{
   defs,
-  term::value::{PrimaryTag, Term},
+  term::{PrimaryTag, Term},
 };
 
 // Structure of SPECIAL values,

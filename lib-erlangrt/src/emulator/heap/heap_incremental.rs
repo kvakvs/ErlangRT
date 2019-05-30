@@ -11,7 +11,7 @@ use crate::{
   defs::{Word, WordSize},
   emulator::heap::{catch::NextCatchResult, gc_trait::TGc, heap_trait::*, iter, *},
   fail::{RtErr, RtResult},
-  term::value::Term,
+  term::{heap_walker::*, Term},
 };
 use colored::Colorize;
 use core::fmt;
@@ -64,7 +64,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     }
 
     // Assume we can grow the data without reallocating
-    let new_chunk = unsafe { self.get_heap_begin_ptr_mut().add(self.heap_top) };
+    let new_chunk = unsafe { self.get_heap_start_ptr_mut().add(self.heap_top) };
 
     if fill == AllocInit::Nil {
       let raw_nil = Term::nil().raw();
@@ -82,7 +82,8 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
 
   #[inline]
   fn garbage_collect(&mut self, roots: Box<TRootIterator>) -> RtResult<()> {
-    GC::garbage_collect(self, roots)
+    let walker = HeapWalker::new(self.get_heap_start_ptr_mut(), self.get_heap_top_ptr_mut());
+    GC::garbage_collect(self, walker, roots)
   }
 
   fn get_y(&self, index: Word) -> RtResult<Term> {
@@ -173,7 +174,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
     // Clear the new cells
     let raw_nil = Term::nil().raw();
     unsafe {
-      let p = self.get_heap_begin_ptr_mut().add(self.stack_top);
+      let p = self.get_heap_start_ptr_mut().add(self.stack_top);
 
       if fill == AllocInit::Nil {
         for y in 0..need.words {
@@ -318,7 +319,7 @@ impl<GC: TGc> IncrementalHeap<GC> {
   }
 
   #[inline]
-  fn get_heap_begin_ptr_mut(&mut self) -> *mut Word {
+  fn get_heap_start_ptr_mut(&mut self) -> *mut Word {
     self.data.as_mut_ptr()
   }
 
@@ -326,6 +327,12 @@ impl<GC: TGc> IncrementalHeap<GC> {
   #[inline]
   pub fn get_heap_top_ptr(&self) -> *const Word {
     unsafe { self.get_heap_start_ptr().add(self.heap_top) }
+  }
+
+  /// Get pointer to end of the allocated heap (below the stack top).
+  #[inline]
+  pub fn get_heap_top_ptr_mut(&mut self) -> *mut Word {
+    unsafe { self.get_heap_start_ptr_mut().add(self.heap_top) }
   }
 
   /// Stack start is same as end of everything, pointer to the first word after

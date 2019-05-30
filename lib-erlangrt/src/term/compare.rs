@@ -8,7 +8,7 @@ use crate::{
     boxed::{self, binary::TBinary},
     classify,
     compare::EqResult::Concluded,
-    value::*,
+    *,
   },
 };
 

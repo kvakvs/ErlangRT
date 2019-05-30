@@ -3,7 +3,7 @@
 use crate::{
   defs::{data_reader::BitReader, BitSize, ByteReader, ByteSize},
   fail::RtResult,
-  term::{boxed::binary::BinaryType, value::Term},
+  term::{boxed::binary::BinaryType, Term},
 };
 
 /// Trait represents any type of binary with generic access functions.

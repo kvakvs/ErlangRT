@@ -1,8 +1,5 @@
 //! Submodule implements Tuple features of an Erlang Term
-use crate::term::{
-  boxed,
-  value::{PrimaryTag, Term},
-};
+use crate::term::{boxed, PrimaryTag, Term};
 
 impl Term {
   pub fn is_tuple(self) -> bool {

@@ -11,7 +11,7 @@ use crate::{
   },
   fail::{self, RtErr, RtResult},
   native_fun::assert_arity,
-  term::{boxed, value::*},
+  term::{boxed, *},
 };
 
 #[allow(dead_code)]

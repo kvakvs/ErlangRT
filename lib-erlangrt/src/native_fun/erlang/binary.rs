@@ -1,6 +1,6 @@
 use crate::{
   fail::RtResult,
-  term::{boxed, value::Term},
+  term::{boxed, Term},
 };
 
 // Return byte size of a binary, rounded up.

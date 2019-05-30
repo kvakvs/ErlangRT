@@ -1,10 +1,7 @@
 use crate::{
   beam::loader::{LoaderState, PatchLocation},
   fail::RtResult,
-  term::{
-    boxed,
-    value::{self, Term},
-  },
+  term::{self, boxed, SpecialLoadtime, Term},
 };
 
 impl LoaderState {
@@ -42,11 +39,11 @@ impl LoaderState {
   /// a jump table, resolves as if it was a label index, and returns a value
   /// to be put back into memory.
   fn resolve_loadtime_label(&self, val: Term) -> Term {
-    //  if !val.is_loadtime() || val.get_loadtime_tag() != value::SpecialLoadtime::LABEL {
+    //  if !val.is_loadtime() || val.get_loadtime_tag() != SpecialLoadtime::LABEL {
     //    return val; // no changes, is not a loadtime label
     //  }
     debug_assert!(
-      val.is_loadtime() && val.get_loadtime_tag() == value::SpecialLoadtime::LABEL,
+      val.is_loadtime() && val.get_loadtime_tag() == SpecialLoadtime::LABEL,
       "resolve_lt_label: Expected a loadtime label, got {}",
       val
     );

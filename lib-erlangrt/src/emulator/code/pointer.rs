@@ -1,6 +1,6 @@
 //! Module defines pointer types for readonly code and mutable code.
 
-use crate::{defs::Word, emulator::module::VersionedModuleName, term::value::*};
+use crate::{defs::Word, emulator::module::VersionedModuleName, term::*};
 use core::{fmt, ptr};
 
 /// A cross-module code pointer tied to a specific module of a specific version.

@@ -1,7 +1,7 @@
 use crate::{
   emulator::{heap::THeapOwner, process::Process},
   fail::RtResult,
-  term::value::*,
+  term::*,
 };
 
 #[allow(dead_code)]

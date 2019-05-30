@@ -1,6 +1,6 @@
 use crate::{
   emulator::{mfa::ModFunArgs, spawn_options::SpawnOptions},
-  term::value::Term,
+  term::Term,
 };
 
 // Spawns special system process

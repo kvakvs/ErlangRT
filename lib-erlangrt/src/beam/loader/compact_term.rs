@@ -11,7 +11,7 @@ use crate::{
   term::{
     boxed::{self, bignum::sign::Sign, endianness::Endianness},
     term_builder::TupleBuilder,
-    value::Term,
+    Term,
   },
 };
 

@@ -1,8 +1,5 @@
 //! Define `HeapIterator` which can step over the heap
-use crate::term::{
-  boxed,
-  value::{PrimaryTag, Term},
-};
+use crate::term::{boxed, PrimaryTag, Term};
 
 // This is used by heap walkers such as "dump.rs"
 #[allow(dead_code)]

@@ -12,7 +12,7 @@ use crate::{
     },
     classify,
     compare::cmp_terms,
-    value::Term,
+    Term,
   },
 };
 use core::ptr;

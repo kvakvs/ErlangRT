@@ -8,8 +8,7 @@ use crate::{
       trait_interface::TBoxed,
       BoxHeader,
     },
-    classify,
-    value::Term,
+    classify, Term,
   },
 };
 use core::mem::size_of;

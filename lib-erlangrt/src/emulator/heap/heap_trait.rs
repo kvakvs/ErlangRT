@@ -3,7 +3,7 @@ use crate::{
   defs::{sizes::WordSize, Word},
   emulator::heap::{catch::NextCatchResult, iter, *},
   fail::RtResult,
-  term::value::Term,
+  term::Term,
 };
 
 #[derive(Eq, PartialEq)]

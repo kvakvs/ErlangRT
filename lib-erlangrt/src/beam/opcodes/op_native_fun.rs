@@ -9,7 +9,7 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  term::value::*,
+  term::*,
 };
 
 // Call a native_fun defined by `m:f/0`, a `HOImport` import object stored on heap

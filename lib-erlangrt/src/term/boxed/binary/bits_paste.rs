@@ -12,7 +12,7 @@ use crate::{
       self, bignum,
       binary::{bits, trait_interface::TBinary},
     },
-    value::Term,
+    Term,
   },
 };
 

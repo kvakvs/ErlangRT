@@ -4,7 +4,7 @@ use crate::{
   beam::disp_result::DispatchResult,
   emulator::{heap::*, process::Process, runtime_ctx::*},
   fail::{self, RtResult},
-  term::value::Term,
+  term::Term,
 };
 
 // Read the source `value` and check whether it is a list and not NIL. On

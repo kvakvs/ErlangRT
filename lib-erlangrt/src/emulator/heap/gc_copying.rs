@@ -4,6 +4,7 @@
 use crate::{
   emulator::heap::{gc_trait::TGc, heap_trait::THeap, *},
   fail::RtResult,
+  term::{heap_walker::*, Term},
 };
 
 pub struct CopyingGc {}
@@ -13,8 +14,13 @@ impl TGc for CopyingGc {
     Self {}
   }
 
-  fn garbage_collect(_heap: &THeap, mut roots: Box<TRootIterator>) -> RtResult<()> {
+  fn garbage_collect(
+    _heap: &THeap,
+    mut walker: HeapWalker,
+    mut roots: Box<TRootIterator>,
+  ) -> RtResult<()> {
     println!("Copying GC");
+
     roots.roots_begin();
     loop {
       let r = roots.roots_next();
@@ -23,6 +29,16 @@ impl TGc for CopyingGc {
       }
       println!("root: {:?}", unsafe { *r });
     }
-    unimplemented!("Copying GC")
+
+    loop {
+      let p = walker.next();
+      if p.is_null() {
+        break;
+      }
+      let pval = unsafe { Term::from_raw(*p) };
+      println!("Heapwalker: {}", pval);
+    }
+
+    unimplemented!("Copying GC: Done")
   }
 }

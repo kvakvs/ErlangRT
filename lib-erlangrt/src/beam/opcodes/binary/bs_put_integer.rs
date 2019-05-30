@@ -3,7 +3,7 @@ use crate::{
   defs::BitSize,
   emulator::{heap::THeapOwner, process::Process, runtime_ctx::*, vm::VM},
   fail::RtResult,
-  term::value::Term,
+  term::Term,
 };
 
 // Store `src` into the binary open for writing, the binary and the write

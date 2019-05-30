@@ -1,8 +1,5 @@
 //! Submodule implements Map features of an Erlang Term
-use crate::term::{
-  boxed,
-  value::{SpecialConst, SpecialTag, Term},
-};
+use crate::term::{boxed, SpecialConst, SpecialTag, Term};
 
 impl Term {
   #[inline]

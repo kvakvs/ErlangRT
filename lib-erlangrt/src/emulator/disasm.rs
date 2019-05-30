@@ -5,7 +5,7 @@ use crate::{
     code::{opcode, CodePtr, Labels, RefCode},
     code_srv::CodeServer,
   },
-  term::value::*,
+  term::*,
 };
 use colored::*;
 use core::ptr;

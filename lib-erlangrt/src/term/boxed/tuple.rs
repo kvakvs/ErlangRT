@@ -9,7 +9,7 @@ use crate::{
       BoxHeader,
     },
     classify,
-    value::Term,
+    Term,
   },
 };
 use core::fmt;

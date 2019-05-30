@@ -6,7 +6,7 @@ use crate::{
   },
   fail::{self, RtErr, RtResult},
   native_fun::NativeFn,
-  term::{boxed::import, value::*},
+  term::{boxed::import, *},
 };
 use core::slice;
 
