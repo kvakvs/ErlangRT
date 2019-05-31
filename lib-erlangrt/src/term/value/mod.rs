@@ -16,7 +16,9 @@ mod impl_nonvalue;
 mod impl_number;
 mod impl_special;
 mod impl_tuple;
+
 mod primary_tag;
+pub use self::primary_tag::PrimaryTag;
 
 pub use self::{
   impl_binary::*, impl_boxed::*, impl_cons::*, impl_cp::*, impl_float::*, impl_fun::*,
@@ -101,7 +103,17 @@ impl Term {
 
   #[inline]
   pub fn is_immediate(self) -> bool {
-    self.get_term_tag() != PrimaryTag::BOX_PTR
+    match self.get_term_tag() {
+      PrimaryTag::BOX_PTR | PrimaryTag::CONS_PTR | PrimaryTag::HEADER => false,
+      _ => true,
+    }
+  }
+
+  /// Return true if the value is a first header word of something large on heap
+  /// To know the size, consult with functions in the `term::boxed` module.
+  #[inline]
+  pub fn is_header_word(self) -> bool {
+    self.get_term_tag() == PrimaryTag::HEADER
   }
 
   /// Check whether the value is tagged as atom

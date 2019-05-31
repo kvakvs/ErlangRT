@@ -13,7 +13,6 @@ use crate::{
   fail::RtResult,
   rt_util::bin_reader::BinaryReader,
   term::{
-    self,
     boxed::{self, boxtype::BOXTYPETAG_JUMP_TABLE},
     SpecialLoadtime, Term,
   },

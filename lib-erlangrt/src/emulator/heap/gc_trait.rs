@@ -26,7 +26,7 @@ impl TGc for NullGc {
     Self {}
   }
 
-  fn garbage_collect(_heap: &THeap, walker: HeapWalker,_roots: Box<TRootIterator>) -> RtResult<()> {
+  fn garbage_collect(_heap: &THeap, _walker: HeapWalker,_roots: Box<TRootIterator>) -> RtResult<()> {
     unimplemented!("NullGC is not designed to collect any garbage")
   }
 }

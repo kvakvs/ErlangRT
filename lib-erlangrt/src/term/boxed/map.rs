@@ -69,7 +69,8 @@ impl Map {
 
   /// Returns allocated size used by this map on heap
   pub fn get_capacity(&self) -> usize {
-    self.header.get_storage_size()
+    // Capacity is in terms, word is same size as term
+    self.header.get_storage_size().words
   }
 
   /// Returns actual element count, less or equal to the capacity

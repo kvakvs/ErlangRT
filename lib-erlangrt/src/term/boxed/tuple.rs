@@ -66,7 +66,8 @@ impl Tuple {
 
   #[inline]
   pub fn get_arity(&self) -> usize {
-    self.header.get_storage_size() - BoxHeader::storage_size().words
+    // arity is in terms, term is same size as a word
+    (self.header.get_storage_size() - BoxHeader::storage_size()).words
   }
 
   /// Allocate `size+1` cells and form a tuple in memory, return the pointer.

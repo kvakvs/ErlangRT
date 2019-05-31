@@ -1,7 +1,7 @@
 use crate::{
   beam::loader::{LoaderState, PatchLocation},
   fail::RtResult,
-  term::{self, boxed, SpecialLoadtime, Term},
+  term::{boxed, SpecialLoadtime, Term},
 };
 
 impl LoaderState {

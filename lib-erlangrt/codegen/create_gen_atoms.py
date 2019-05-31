@@ -24,7 +24,7 @@ def main():
 //! Config used: {otp}
 #![allow(dead_code)]
 
-use crate::term::value::*;
+use crate::term::*;
 
 """.format(otp=conf.__class__.__name__))
 

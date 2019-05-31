@@ -4,7 +4,6 @@ use crate::{
   defs::Word,
   emulator::atom,
   term::{
-    self,
     boxed::{self, box_header::BoxHeader, boxtype},
     cons, PrimaryTag, SpecialLoadtime, SpecialReg, SpecialTag, Term,
   },

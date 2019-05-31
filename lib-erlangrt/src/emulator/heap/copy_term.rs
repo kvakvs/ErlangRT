@@ -5,7 +5,7 @@ use crate::{
   emulator::heap::THeap,
   fail::RtResult,
   term::{
-    self, boxed, cons,
+    boxed, cons,
     term_builder::{ListBuilder, TupleBuilder},
     PrimaryTag, SpecialTag, Term,
   },

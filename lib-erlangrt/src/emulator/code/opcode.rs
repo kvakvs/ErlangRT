@@ -4,7 +4,7 @@
 use crate::{
   beam::gen_op,
   defs::Word,
-  term::{self, SpecialTag, Term},
+  term::{SpecialTag, Term},
 };
 
 // TODO: Possibly will have to extend this type to fit new optimized opcodes.

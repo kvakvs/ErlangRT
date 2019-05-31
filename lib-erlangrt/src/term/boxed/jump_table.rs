@@ -65,7 +65,7 @@ impl JumpTable {
 
   #[inline]
   pub fn get_count(&self) -> usize {
-    (self.header.get_storage_size() - BoxHeader::storage_size().words) / 2
+    (self.header.get_storage_size() - BoxHeader::storage_size()).words / 2
   }
 
   /// Allocate `n_pairs`*2 cells and form a tuple-like structure

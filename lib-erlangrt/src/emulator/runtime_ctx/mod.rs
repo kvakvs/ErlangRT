@@ -16,7 +16,7 @@ use crate::{
     vm::VM,
   },
   fail::RtResult,
-  term::{self, PrimaryTag, SpecialReg, SpecialTag, Term},
+  term::{PrimaryTag, SpecialReg, SpecialTag, Term},
 };
 
 pub mod call_closure;

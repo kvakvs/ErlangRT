@@ -1,5 +1,8 @@
 //! Define `HeapIterator` which can step over the heap
-use crate::term::{boxed, PrimaryTag, Term};
+use crate::{
+  defs::WordSize,
+  term::{boxed, PrimaryTag, Term},
+};
 
 // This is used by heap walkers such as "dump.rs"
 #[allow(dead_code)]
@@ -19,10 +22,10 @@ impl HeapIterator {
     let val = self.p.read();
     let size = match val.get_term_tag() {
       PrimaryTag::HEADER => boxed::BoxHeader::headerword_to_storage_size(val.raw()),
-      _ => 1usize,
+      _ => WordSize::one(),
     };
 
-    self.p.add(size);
+    self.p.add(size.words);
 
     let end = self.end;
     if self.p >= end {

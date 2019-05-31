@@ -1,6 +1,6 @@
 //! Term ordering and classification.
 
-use crate::term::{self, boxed::BoxHeader, PrimaryTag, *};
+use crate::term::{boxed::BoxHeader, PrimaryTag, *};
 
 fn module() -> &'static str {
   "classify: "

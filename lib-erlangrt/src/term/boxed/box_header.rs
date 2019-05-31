@@ -99,7 +99,7 @@ impl BoxHeader {
     unsafe { core::mem::transmute(trait_obj) }
   }
 
-  pub fn get_storage_size(&self) -> usize {
+  pub fn get_storage_size(&self) -> WordSize {
     self.ensure_valid();
     Self::headerword_to_storage_size(self.header_word)
   }
@@ -107,12 +107,12 @@ impl BoxHeader {
   /// For a header word value, extract bits with arity
   /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:PrimaryTag::TAG_BITS>
   #[inline]
-  pub fn headerword_to_storage_size(w: Word) -> usize {
+  pub fn headerword_to_storage_size(w: Word) -> WordSize {
     debug_assert_eq!(
       w & PrimaryTag::TAG_MASK,
       PrimaryTag::HEADER.0,
       "Boxed header with arity must have HEADER tag"
     );
-    w >> PrimaryTag::TAG_BITS
+    WordSize::new(w >> PrimaryTag::TAG_BITS)
   }
 }
