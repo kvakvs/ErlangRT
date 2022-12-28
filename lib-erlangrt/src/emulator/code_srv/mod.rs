@@ -119,9 +119,9 @@ impl CodeServer {
 
   /// Find the module file from search path and return the path or error.
   pub fn find_module_file(&mut self, filename: &str) -> RtResult<PathBuf> {
-    match first_that_exists(&self.search_path, filename) {
+    match first_exists_in_search_path(&self.search_path, filename) {
       Some(found_first) => Ok(found_first),
-      None => Err(RtErr::FileNotFound(filename.to_string())),
+      None => Err(RtErr::BEAMFileNotFound(filename.to_string())),
     }
   }
 
@@ -150,7 +150,7 @@ impl CodeServer {
       Ok(ip) => return Ok(ip),
       Err(_e) => {
         let mod_name = atom::to_str(mfarity.m)?;
-        let found_mod = self.find_module_file(&mod_name).unwrap();
+        let found_mod = self.find_module_file(&mod_name)?;
 
         self.try_load_module(&found_mod)?;
       }
@@ -161,13 +161,7 @@ impl CodeServer {
       Err(_e) => {
         let mod_str = atom::to_str(mfarity.m)?;
         let fun_str = atom::to_str(mfarity.f)?;
-        let msg = format!(
-          "{}Func undef: {}:{}/{}",
-          module(),
-          mod_str,
-          fun_str,
-          mfarity.arity
-        );
+        let msg = format!("{}Func undef: {mod_str}:{fun_str}/{}", module(), mfarity.arity);
         Err(RtErr::FunctionNotFound(msg))
       }
     }
@@ -204,13 +198,14 @@ impl CodeServer {
 }
 
 /// Iterate through the search path list and try to find a file
-fn first_that_exists(search_path: &[String], filename: &str) -> Option<PathBuf> {
-  for s in search_path {
-    let full_path = format!("{}/{}.beam", s, filename).to_string();
+fn first_exists_in_search_path(search_paths: &[String], filename: &str) -> Option<PathBuf> {
+  for each_search_path in search_paths {
+    let full_path = format!("{each_search_path}/{filename}.beam");
     let p = Path::new(&full_path);
     if p.exists() {
       return Some(p.to_path_buf());
     }
+    println!("Tried {full_path}: not found");
   }
   None
 }

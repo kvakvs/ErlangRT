@@ -25,7 +25,7 @@ impl HeapIterator {
       _ => WordSize::one(),
     };
 
-    self.p.add(size.words);
+    self.p = self.p.add(size.words);
 
     let end = self.end;
     if self.p >= end {

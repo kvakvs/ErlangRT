@@ -12,7 +12,7 @@ use std::convert::From;
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum RtErr {
-  FileNotFound(String),
+  BEAMFileNotFound(String),
   ETFParseError(String),
   ReadError(ReadError),
 
