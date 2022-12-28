@@ -108,7 +108,7 @@ impl CompactTermReader {
         if bword.is_small() {
           return Ok(bword);
         }
-        Self::make_err(CompactTermError::BadLiteralTag)
+        Self::make_err(CompactTermError::LiteralTag)
       }
       x if x == CteTag::Atom as u8 => {
         if bword.is_small() {
@@ -118,35 +118,35 @@ impl CompactTermReader {
           }
           return Ok(Term::make_loadtime_atom(index));
         }
-        Self::make_err(CompactTermError::BadAtomTag)
+        Self::make_err(CompactTermError::AtomTag)
       }
       x if x == CteTag::XReg as u8 => {
         if bword.is_small() {
           return Ok(Term::make_register_x(bword.get_small_unsigned()));
         }
-        Self::make_err(CompactTermError::BadXRegTag)
+        Self::make_err(CompactTermError::XRegTag)
       }
       x if x == CteTag::YReg as u8 => {
         if bword.is_small() {
           return Ok(Term::make_register_y(bword.get_small_unsigned()));
         }
-        Self::make_err(CompactTermError::BadYRegTag)
+        Self::make_err(CompactTermError::YRegTag)
       }
       x if x == CteTag::Label as u8 => {
         if bword.is_small() {
           return Ok(Term::make_loadtime_label(bword.get_small_unsigned()));
         }
-        Self::make_err(CompactTermError::BadLabelTag)
+        Self::make_err(CompactTermError::LabelTag)
       }
       x if x == CteTag::Integer as u8 => {
         // Can return small or big
-        return Ok(bword);
+        Ok(bword)
       }
       x if x == CteTag::Character as u8 => {
         if bword.is_small() {
           return Ok(bword);
         }
-        Self::make_err(CompactTermError::BadCharacterTag)
+        Self::make_err(CompactTermError::CharacterTag)
       }
       // Extended tag (lower 3 bits = 0b111)
       _ => self.parse_ext_tag(reader, b),
@@ -168,7 +168,7 @@ impl CompactTermReader {
       x if x == CteExtTag::AllocList as u8 => {
         panic!("Don't know how to decode an alloclist")
       }
-      other => make_err(CompactTermError::BadExtendedTag(format!(
+      other => make_err(CompactTermError::ExtendedTag(format!(
         "Ext tag {} unknown",
         other
       ))),
@@ -193,8 +193,8 @@ impl CompactTermReader {
       x if x == CteExtTag::FloatReg as u8 => self.parse_ext_fpreg(reader),
       x if x == CteExtTag::Literal as u8 => self.parse_ext_literal(reader),
       other => {
-        let msg = format!("Ext tag {} unknown", other);
-        Self::make_err(CompactTermError::BadExtendedTag(msg))
+        let msg = format!("Ext tag {other} unknown");
+        Self::make_err(CompactTermError::ExtendedTag(msg))
       }
     }
   }
@@ -215,7 +215,7 @@ impl CompactTermReader {
       return Ok(Term::make_register_float(reg.get_small_unsigned()));
     }
     let msg = "Ext tag FPReg value too big".to_string();
-    Self::make_err(CompactTermError::BadExtendedTag(msg))
+    Self::make_err(CompactTermError::ExtendedTag(msg))
   }
 
   fn parse_ext_literal(&mut self, reader: &mut BinaryReader) -> RtResult<Term> {
@@ -225,7 +225,7 @@ impl CompactTermReader {
       return Ok(Term::make_loadtime_literal(reg.get_small_unsigned()));
     }
     let msg = "compact_term: loadtime Literal index too big".to_string();
-    Self::make_err(CompactTermError::BadExtendedTag(msg))
+    Self::make_err(CompactTermError::ExtendedTag(msg))
   }
 
   fn parse_list_as_tuple_initializer(
@@ -325,7 +325,7 @@ impl CompactTermReader {
         "Limbs vec can't be empty for creating a bigint"
       );
       let r = unsafe { boxed::Bignum::create_into(&mut (*self.heap), sign, &limbs)? };
-      println!("Creating bigint with {:?}", limbs);
+      println!("Creating bigint with {limbs:?}");
       Ok(Term::make_boxed(r))
     } // if larger than 11 bits
   }

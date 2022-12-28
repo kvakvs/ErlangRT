@@ -14,7 +14,7 @@ pub trait TRootIterator {
 /// to term values, so called ROOTS for the garbage collector. The root set
 /// serves as a starting point for tracing the heap value liveness during GC.
 pub trait TRootSource {
-  fn roots_get_iterator(&mut self) -> Box<TRootIterator>;
+  fn roots_get_iterator(&mut self) -> Box<dyn TRootIterator>;
 }
 
 /// Root source which takes root from a contiguous memory array with start and end.

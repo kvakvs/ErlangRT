@@ -49,7 +49,7 @@ impl Export {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn create_into(hp: &mut THeap, mfa: &ModFunArity) -> RtResult<Term> {
+  pub unsafe fn create_into(hp: &mut dyn THeap, mfa: &ModFunArity) -> RtResult<Term> {
     let n_words = Self::storage_size();
     let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 

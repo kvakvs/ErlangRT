@@ -40,7 +40,7 @@ pub const TRUE: Term = Term::make_atom(30);
 pub const UNDEF: Term = Term::make_atom(31);
 pub const UNDEFINED: Term = Term::make_atom(32);
 
-pub static ATOM_INIT_NAMES: &'static [&'static str] = &[
+pub static ATOM_INIT_NAMES: &[&str] = &[
   "+", // id=0
   "-", // id=1
   "==", // id=2

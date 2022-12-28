@@ -5,6 +5,7 @@ use crate::{
   fail::RtResult,
   term::Term,
 };
+use crate::beam::opcodes::binary::ArchUsize;
 
 // Store `src` into the binary open for writing, the binary and the write
 // position are stored in the process runtime context
@@ -12,7 +13,7 @@ use crate::{
 // bs_put_integer Fail=j Sz=sq Unit=u Flags=u Src=s => gen_put_integer(Fail, Sz, Unit, Flags, Src)
 define_opcode!(
   vm, rt_ctx, proc, name: OpcodeBsPutInteger, arity: 5,
-  run: { Self::bs_put_integer(vm, rt_ctx, proc, fail, sz, unit, flags, src) },
+  run: { Self::bs_put_integer(vm, rt_ctx, proc, fail, sz, unit, flags as ArchUsize, src) },
   args: cp_or_nil(fail), load_usize(sz), usize(unit), usize(flags), load(src),
 );
 
@@ -25,7 +26,7 @@ impl OpcodeBsPutInteger {
     _fail: Term,
     arg_sz: usize,
     _unit: usize,
-    flags: usize,
+    flags: ArchUsize,
     src: Term,
   ) -> RtResult<DispatchResult> {
     debug_assert!(

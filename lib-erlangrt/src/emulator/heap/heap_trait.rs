@@ -15,7 +15,7 @@ pub enum AllocInit {
 /// Trait defines shared API which all heap implementations must expose
 pub trait THeap {
   fn alloc(&mut self, sz: WordSize, fill: AllocInit) -> RtResult<*mut Word>;
-  fn garbage_collect(&mut self, _roots: Box<TRootIterator>) -> RtResult<()>;
+  fn garbage_collect(&mut self, _roots: Box<dyn TRootIterator>) -> RtResult<()>;
 
   // Stack access
   //

@@ -73,7 +73,7 @@ impl Closure {
   }
 
   pub unsafe fn create_into(
-    hp: &mut THeap,
+    hp: &mut dyn THeap,
     fe: &FunEntry,
     frozen: &[Term],
   ) -> RtResult<Term> {

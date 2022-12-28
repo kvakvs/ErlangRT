@@ -18,7 +18,7 @@ pub struct BinarySlice {
   pub offset: BitSize,
   pub size: BitSize,
   // TODO: Make sure this is recognized as a term during the GC
-  pub orig: *const TBinary,
+  pub orig: *const dyn TBinary,
 }
 
 impl BinarySlice {
@@ -31,11 +31,11 @@ impl BinarySlice {
   }
 
   pub unsafe fn create_into(
-    orig: *const TBinary,
+    orig: *const dyn TBinary,
     offset: BitSize,
     size: BitSize,
-    hp: &mut THeap,
-  ) -> RtResult<*const TBinary> {
+    hp: &mut dyn THeap,
+  ) -> RtResult<*const dyn TBinary> {
     if size.bits == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedSlice);
@@ -56,7 +56,7 @@ impl BinarySlice {
     };
     this.write(new_self);
 
-    Ok(this as *mut TBinary)
+    Ok(this as *mut dyn TBinary)
   }
 }
 
@@ -92,6 +92,7 @@ impl TBinary for BinarySlice {
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
     // Can not use mutable access on slice
+    #[allow(clippy::invalid_null_ptr_usage)]
     core::slice::from_raw_parts_mut(ptr::null_mut(), 0)
   }
 

@@ -135,7 +135,7 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "[]");
       } else if term.is_non_value() {
         panic!("This must have been handled above in call stack");
-      // return write!(f, "#Nonvalue<>");
+        // return write!(f, "#Nonvalue<>");
       } else if term == Term::empty_binary() {
         return write!(f, "<<>>");
       } else if term == Term::empty_tuple() {
@@ -227,6 +227,8 @@ pub unsafe fn format_cons_ascii(term: Term, f: &mut fmt::Formatter) -> fmt::Resu
 
   if let Ok(Some(tail)) = cons::for_each(term, |elem| {
     let ch = elem.get_small_unsigned();
+
+    #[allow(clippy::overly_complex_bool_expr)]
     if !(cfg!(feature = "fancy_string_quotes")) && ch == 34 {
       write!(f, "\\\"").unwrap();
     } else {

@@ -32,9 +32,9 @@ impl VM {
     // borrow will not outlive the owning process or we pay the harsh price
     // debugging SIGSEGVs.
     let ctx_p = curr_p.get_context_p();
-    let mut ctx = unsafe { &mut (*ctx_p) };
+    let ctx = unsafe { &mut (*ctx_p) };
     ctx.swap_in(); // tell the context, that it is active now
-                   // curr_p.heap.print_stack();
+    // curr_p.heap.print_stack();
 
     let cs = self.get_code_server_p();
 
@@ -58,9 +58,9 @@ impl VM {
       );
 
       // Handle next opcode
-      let disp_result = match dispatch_op_inline(self, op, &mut ctx, curr_p) {
+      let disp_result = match dispatch_op_inline(self, op, ctx, curr_p) {
         Err(RtErr::Exception(exc_type, exc_reason)) => {
-          println!("vm: Exception type={} reason={}", exc_type, exc_reason);
+          println!("vm: Exception type={exc_type} reason={exc_reason}");
           curr_p.set_exception(exc_type, exc_reason);
           curr_p.timeslice_result = SliceResult::Exception;
           return Ok(true);

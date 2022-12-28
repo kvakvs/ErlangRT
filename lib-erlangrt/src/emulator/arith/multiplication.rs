@@ -5,7 +5,7 @@ fn module() -> &'static str {
   "arith.multiplication: "
 }
 
-pub fn multiply(hp: &mut THeap, x: Term, y: Term) -> RtResult<Term> {
+pub fn multiply(hp: &mut dyn THeap, x: Term, y: Term) -> RtResult<Term> {
   if x.is_small() {
     if y.is_small() {
       // Both a and b are small, check how many bits will be there in result
@@ -49,7 +49,7 @@ fn optimistic_mul(a: isize, b: isize) -> Option<Term> {
 }
 
 /// Implement multiplication for two signed integers, possibly creating a bigint.
-pub fn multiply_two_small(hp: &mut THeap, x: isize, y: isize) -> RtResult<Term> {
+pub fn multiply_two_small(hp: &mut dyn THeap, x: isize, y: isize) -> RtResult<Term> {
   match optimistic_mul(x, y) {
     Some(val) => return Ok(val),
     None => {}

@@ -10,7 +10,7 @@ use crate::{
 /// The following opcodes which build a binary will refer to this state in order
 /// to know the destination for adding more bits.
 pub struct CurrentBinaryState {
-  pub dst: Option<*mut TBinary>,
+  pub dst: Option<*mut dyn TBinary>,
   pub offset: BitSize,
 }
 

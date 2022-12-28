@@ -85,7 +85,7 @@ impl OpcodeBsStartMatch3 {
     runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,
     _fail: Term,
-    bin_ptr: *const TBinary,
+    bin_ptr: *const dyn TBinary,
     dst: Term,
   ) -> RtResult<DispatchResult> {
     // let _total_bin_size = unsafe { (*bin_ptr).get_byte_size() };

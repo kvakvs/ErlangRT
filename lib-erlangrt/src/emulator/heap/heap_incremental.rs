@@ -81,7 +81,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
   }
 
   #[inline]
-  fn garbage_collect(&mut self, roots: Box<TRootIterator>) -> RtResult<()> {
+  fn garbage_collect(&mut self, roots: Box<dyn TRootIterator>) -> RtResult<()> {
     let walker = HeapWalker::new(self.get_heap_start_ptr_mut(), self.get_heap_top_ptr_mut());
     GC::garbage_collect(self, walker, roots)
   }
@@ -202,7 +202,7 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
   /// Sets the stack top.
   /// Arg: new_stack_top - offset from the heap end
   fn drop_stack_words(&mut self, n_drop: usize) {
-    println!("drop_stack_words {}", n_drop);
+    println!("drop_stack_words {n_drop}");
     assert!(self.stack_top + n_drop < self.capacity);
     self.stack_top += n_drop;
   }

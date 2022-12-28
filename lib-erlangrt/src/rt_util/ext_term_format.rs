@@ -52,7 +52,7 @@ fn fail<TermType: Copy>(msg: String) -> RtResult<TermType> {
 
 /// Given a binary reader `r` parse term and return it, `heap` is used to
 /// allocate space for larger boxed terms.
-pub fn decode(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
+pub fn decode(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> {
   let etf_tag = r.read_u8();
   if etf_tag != Tag::ETF as u8 {
     let msg = format!("{}Expected ETF tag byte 131, got {}", module(), etf_tag);
@@ -63,7 +63,7 @@ pub fn decode(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
 
 /// Given an encoded term without ETF tag (131u8), read the term from `r` and
 /// place boxed term parts on heap `heap`.
-pub fn decode_naked(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
+pub fn decode_naked(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> {
   let term_tag = r.read_u8();
   match term_tag {
     x if x == Tag::List as u8 => decode_list(r, hp),
@@ -116,7 +116,7 @@ pub fn decode_naked(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
 }
 
 /// Given `size`, read digits for a bigint.
-fn decode_big(r: &mut BinaryReader, size: Word, hp: &mut THeap) -> RtResult<Term> {
+fn decode_big(r: &mut BinaryReader, size: Word, hp: &mut dyn THeap) -> RtResult<Term> {
   let sign = if r.read_u8() == 0 {
     Sign::Positive
   } else {
@@ -127,7 +127,7 @@ fn decode_big(r: &mut BinaryReader, size: Word, hp: &mut THeap) -> RtResult<Term
   unsafe { boxed::Bignum::create_le(hp, sign, digits) }
 }
 
-fn decode_binary(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
+fn decode_binary(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> {
   let n_bytes = r.read_u32be() as usize;
   if n_bytes == 0 {
     return Ok(Term::empty_binary());
@@ -141,7 +141,7 @@ fn decode_binary(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
 }
 
 /// Given arity, allocate a tuple and read its elements sequentially.
-fn decode_tuple(r: &mut BinaryReader, size: usize, hp: &mut THeap) -> RtResult<Term> {
+fn decode_tuple(r: &mut BinaryReader, size: usize, hp: &mut dyn THeap) -> RtResult<Term> {
   let tb = TupleBuilder::with_arity(size, hp)?;
   for i in 0..size {
     let elem = decode_naked(r, hp)?;
@@ -151,7 +151,7 @@ fn decode_tuple(r: &mut BinaryReader, size: usize, hp: &mut THeap) -> RtResult<T
 }
 
 /// Given size, create a map of given size and read `size` pairs.
-fn decode_map(r: &mut BinaryReader, size: usize, hp: &mut THeap) -> RtResult<Term> {
+fn decode_map(r: &mut BinaryReader, size: usize, hp: &mut dyn THeap) -> RtResult<Term> {
   let map_ptr = boxed::Map::create_into(hp, size)?;
   for _i in 0..size {
     let key = decode_naked(r, hp)?;
@@ -161,23 +161,23 @@ fn decode_map(r: &mut BinaryReader, size: usize, hp: &mut THeap) -> RtResult<Ter
   Ok(Term::make_boxed(map_ptr))
 }
 
-fn decode_u8(r: &mut BinaryReader, _hp: &mut THeap) -> RtResult<Term> {
+fn decode_u8(r: &mut BinaryReader, _hp: &mut dyn THeap) -> RtResult<Term> {
   let val = r.read_u8();
   Ok(Term::make_small_signed(val as SWord))
 }
 
-fn decode_s32(r: &mut BinaryReader, _hp: &mut THeap) -> RtResult<Term> {
+fn decode_s32(r: &mut BinaryReader, _hp: &mut dyn THeap) -> RtResult<Term> {
   let val = r.read_u32be() as i32;
   Ok(Term::make_small_signed(val as SWord))
 }
 
-fn decode_atom_latin1(r: &mut BinaryReader, _hp: &mut THeap) -> RtResult<Term> {
+fn decode_atom_latin1(r: &mut BinaryReader, _hp: &mut dyn THeap) -> RtResult<Term> {
   let sz = r.read_u16be();
   let val = r.read_str_latin1(sz as Word).unwrap();
   Ok(atom::from_str(&val))
 }
 
-fn decode_list(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
+fn decode_list(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> {
   let n_elem = r.read_u32be();
   if n_elem == 0 {
     return Ok(Term::nil());
@@ -197,7 +197,7 @@ fn decode_list(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
 }
 
 /// A string of bytes encoded as tag 107 (String) with 16-bit length.
-fn decode_string(r: &mut BinaryReader, hp: &mut THeap) -> RtResult<Term> {
+fn decode_string(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> {
   let n_elem = r.read_u16be();
   if n_elem == 0 {
     return Ok(Term::nil());

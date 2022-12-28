@@ -17,6 +17,11 @@ use crate::{
   term::{boxed::binary::match_state::BinaryMatchState, *},
 };
 
+#[cfg(target_pointer_width = "64")]
+type ArchUsize = u64;
+#[cfg(target_pointer_width = "32")]
+type ArchUsize = u32;
+
 // Values used in bs_* opcodes for flags
 // pub const BSF_ALIGNED: usize = 1;
 // pub const BSF_LITTLE: usize = 2; )
@@ -24,7 +29,7 @@ use crate::{
 // pub const BSF_EXACT: usize = 8;
 // pub const BSF_NATIVE: usize = 16;
 bitflags! {
-    pub struct BsFlags: usize {
+    pub struct BsFlags: ArchUsize {
         const ALIGNED = 0b00000001; // Field is guaranteed to be byte-aligned
         const LITTLE  = 0b00000010; // Field is little-endian (otherwise big)
         const SIGNED  = 0b00000100; // Field is signed (otherwise unsigned)

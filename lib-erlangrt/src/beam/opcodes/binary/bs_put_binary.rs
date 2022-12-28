@@ -13,6 +13,7 @@ use crate::{
     Term,
   },
 };
+use crate::beam::opcodes::binary::ArchUsize;
 
 // Store `src` into the binary open for writing, the binary and the write
 // position are stored in the process runtime context.
@@ -21,7 +22,7 @@ use crate::{
 define_opcode!(
   vm, rt_ctx, proc, name: OpcodeBsPutBinary, arity: 5,
   run: {
-    Self::bs_put_binary(vm, rt_ctx, proc, fail, sz, unit, flags, src)
+    Self::bs_put_binary(vm, rt_ctx, proc, fail, sz, unit, flags as ArchUsize, src)
   },
   args: cp_or_nil(fail), load(sz), usize(unit), usize(flags), load(src),
 );
@@ -46,7 +47,7 @@ impl OpcodeBsPutBinary {
     fail: Term,
     in_size_term: Term,
     _unit: usize,
-    flags: usize,
+    flags: ArchUsize,
     src: Term,
   ) -> RtResult<DispatchResult> {
     debug_assert!(

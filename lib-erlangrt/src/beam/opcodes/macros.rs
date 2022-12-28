@@ -1,3 +1,4 @@
+#![allow(clippy::crate_in_macro_def)]
 /// Creates opcode struct and implementation.
 /// Struct name follows convention: `Opcode<Name><Arity>`
 /// Body must be a valid body for the run() function returning

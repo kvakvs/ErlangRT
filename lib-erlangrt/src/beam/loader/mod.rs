@@ -43,14 +43,14 @@ const fn module() -> &'static str {
 /// end caller wrapped in `fail::Error:CodeLoadingCompactTerm(x)`
 #[derive(Debug)]
 pub enum CompactTermError {
-  BadLiteralTag,
-  BadAtomTag,
-  BadXRegTag,
-  BadYRegTag,
-  BadLabelTag,
-  BadCharacterTag,
-  // BadIntegerTag,
-  BadExtendedTag(String),
+  LiteralTag,
+  AtomTag,
+  XRegTag,
+  YRegTag,
+  LabelTag,
+  CharacterTag,
+  //IntegerTag,
+  ExtendedTag(String),
 }
 
 /// Represents an instruction to patch either a code location or an index in
@@ -116,7 +116,7 @@ impl LoaderState {
     if n == 0 {
       return Term::nil();
     }
-    self.vm_atoms[n as usize - 1]
+    self.vm_atoms[n - 1]
   }
 
   fn module_name(&self) -> Term {

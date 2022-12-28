@@ -36,7 +36,7 @@ pub fn list_length(val: Term) -> RtResult<usize> {
 /// OBSERVE that the tail of the returned copy is uninitialized memory.
 pub unsafe fn copy_list_leave_tail(
   src: Term,
-  hp: &mut THeap,
+  hp: &mut dyn THeap,
 ) -> RtResult<(Term, *mut boxed::Cons)> {
   let mut lb = ListBuilder::new()?;
 
@@ -146,7 +146,7 @@ where
 
 /// Given Rust `String`, create list of characters on heap
 // TODO: Optimize by adding new string type which is not a list?
-pub unsafe fn rust_str_to_list(s: &String, hp: &mut THeap) -> RtResult<Term> {
+pub unsafe fn rust_str_to_list(s: &String, hp: &mut dyn THeap) -> RtResult<Term> {
   let mut lb = ListBuilder::new()?;
   for pos_char in s.char_indices() {
     let ch = pos_char.1 as usize;
@@ -157,7 +157,7 @@ pub unsafe fn rust_str_to_list(s: &String, hp: &mut THeap) -> RtResult<Term> {
 }
 
 /// Given an integer Term, convert it to a string with `base`.
-pub unsafe fn integer_to_list(val: Term, hp: &mut THeap) -> RtResult<Term> {
+pub unsafe fn integer_to_list(val: Term, hp: &mut dyn THeap) -> RtResult<Term> {
   if val.is_big_int() {
     panic!("TODO: impl integer_to_list for bigint");
   }

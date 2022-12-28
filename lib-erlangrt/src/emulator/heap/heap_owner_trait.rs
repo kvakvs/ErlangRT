@@ -13,7 +13,7 @@ pub trait THeapOwner {
   /// context if they need that value.
   fn ensure_heap(&mut self, need: WordSize) -> RtResult<()>;
   /// For read-only relations with my owned heap
-  fn get_heap(&self) -> &THeap;
+  fn get_heap(&self) -> &dyn THeap;
   /// For read-write relations with my owned heap
-  fn get_heap_mut(&mut self) -> &mut THeap;
+  fn get_heap_mut(&mut self) -> &mut dyn THeap;
 }

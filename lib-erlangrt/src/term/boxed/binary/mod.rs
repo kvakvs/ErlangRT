@@ -75,8 +75,8 @@ impl Binary {
   #[allow(dead_code)]
   pub fn ensure_memory_for_binary(
     _vm: &mut VM,
-    proc_source: &mut THeapOwner,
-    bin_source: &mut THeapOwner,
+    proc_source: &mut dyn THeapOwner,
+    bin_source: &mut dyn THeapOwner,
     size: BitSize,
     extra_memory: WordSize,
   ) -> RtResult<()> {
@@ -101,13 +101,13 @@ impl Binary {
     }
   }
 
-  pub unsafe fn create_with_data(data: &[u8], hp: &mut THeap) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_with_data(data: &[u8], hp: &mut dyn THeap) -> RtResult<*mut dyn TBinary> {
     let btrait = Self::create_into(BitSize::with_bytes(data.len()), hp)?;
     (*btrait).store(data)?;
     Ok(btrait)
   }
 
-  pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_into(size: BitSize, hp: &mut dyn THeap) -> RtResult<*mut dyn TBinary> {
     if size.bits == 0 {
       // Return binary {} immediate special instead!
       return Err(RtErr::CreatingZeroSizedBinary);
@@ -159,52 +159,52 @@ impl Binary {
     }
   }
 
-  pub unsafe fn get_trait(this: *const Binary) -> *const TBinary {
+  pub unsafe fn get_trait(this: *const Binary) -> *const dyn TBinary {
     Self::generic_switch(
       this,
-      |phb_ptr| phb_ptr as *const TBinary,
-      |refb_ptr| refb_ptr as *const TBinary,
-      |bhb_ptr| bhb_ptr as *const TBinary,
-      |slice_ptr| slice_ptr as *const TBinary,
+      |phb_ptr| phb_ptr as *const dyn TBinary,
+      |refb_ptr| refb_ptr as *const dyn TBinary,
+      |bhb_ptr| bhb_ptr as *const dyn TBinary,
+      |slice_ptr| slice_ptr as *const dyn TBinary,
     )
   }
 
   #[allow(dead_code)]
-  pub unsafe fn get_trait_mut(this: *mut Binary) -> *mut TBinary {
+  pub unsafe fn get_trait_mut(this: *mut Binary) -> *mut dyn TBinary {
     Self::generic_switch_mut(
       this,
-      |phb_ptr| phb_ptr as *mut TBinary,
-      |refb_ptr| refb_ptr as *mut TBinary,
-      |bhb_ptr| bhb_ptr as *mut TBinary,
-      |slice_ptr| slice_ptr as *mut TBinary,
+      |phb_ptr| phb_ptr as *mut dyn TBinary,
+      |refb_ptr| refb_ptr as *mut dyn TBinary,
+      |bhb_ptr| bhb_ptr as *mut dyn TBinary,
+      |slice_ptr| slice_ptr as *mut dyn TBinary,
     )
   }
 
   /// Convert a VM term representation into a dynamic dispatch Rust trait
-  pub unsafe fn get_trait_from_term(t: Term) -> *const TBinary {
+  pub unsafe fn get_trait_from_term(t: Term) -> *const dyn TBinary {
     let bin_p = t.get_box_ptr::<Binary>();
     Self::generic_switch(
       bin_p,
-      |phb_ptr| phb_ptr as *const TBinary,
-      |refb_ptr| refb_ptr as *const TBinary,
-      |bhb_ptr| bhb_ptr as *const TBinary,
-      |slice_ptr| slice_ptr as *const TBinary,
+      |phb_ptr| phb_ptr as *const dyn TBinary,
+      |refb_ptr| refb_ptr as *const dyn TBinary,
+      |bhb_ptr| bhb_ptr as *const dyn TBinary,
+      |slice_ptr| slice_ptr as *const dyn TBinary,
     )
   }
 
   /// Convert a VM term representation into a dynamic dispatch Rust trait
-  pub unsafe fn get_trait_mut_from_term(t: Term) -> *mut TBinary {
+  pub unsafe fn get_trait_mut_from_term(t: Term) -> *mut dyn TBinary {
     let bin_p = t.get_box_ptr_mut::<Binary>();
     Self::generic_switch_mut(
       bin_p,
-      |phb_ptr| phb_ptr as *mut TBinary,
-      |refb_ptr| refb_ptr as *mut TBinary,
-      |bhb_ptr| bhb_ptr as *mut TBinary,
-      |slice_ptr| slice_ptr as *mut TBinary,
+      |phb_ptr| phb_ptr as *mut dyn TBinary,
+      |refb_ptr| refb_ptr as *mut dyn TBinary,
+      |bhb_ptr| bhb_ptr as *mut dyn TBinary,
+      |slice_ptr| slice_ptr as *mut dyn TBinary,
     )
   }
 
-  pub unsafe fn format(bin_trait: *const TBinary, f: &mut fmt::Formatter) -> fmt::Result {
+  pub unsafe fn format(bin_trait: *const dyn TBinary, f: &mut fmt::Formatter) -> fmt::Result {
     // let size = (*bin_trait).get_bit_size();
 
     // Print opening '<<'

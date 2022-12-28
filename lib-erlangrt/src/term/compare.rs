@@ -343,10 +343,8 @@ fn cmp_terms_immed_box(a: Term, b: Term) -> RtResult<Ordering> {
     // cmp arity
     unimplemented!("compare 2 exports")
   } else if a.is_boxed() {
-    if a.is_binary() {
-      if b.is_binary() {
-        return unsafe { cmp_binary(a, b) };
-      }
+    if a.is_binary() && b.is_binary() {
+      return unsafe { cmp_binary(a, b) };
     }
     if !a.is_fun() {
       return cmp_mixed_types(a, b);
@@ -437,7 +435,7 @@ unsafe fn cmp_reader_vs_binary<AReader>(
   a: Term,
   b: Term,
   a_reader: AReader,
-  b_trait: *const TBinary,
+  b_trait: *const dyn TBinary,
 ) -> RtResult<Ordering>
 where
   AReader: TDataReader,

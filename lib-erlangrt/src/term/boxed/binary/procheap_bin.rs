@@ -98,7 +98,7 @@ impl ProcessHeapBinary {
     header_size.get_words_rounded_up() + size.get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(size: BitSize, hp: &mut THeap) -> RtResult<*mut TBinary> {
+  pub unsafe fn create_into(size: BitSize, hp: &mut dyn THeap) -> RtResult<*mut dyn TBinary> {
     // Size of header + data in words, to be allocated
     let storage_sz = Self::storage_size(size);
     let this = hp.alloc(storage_sz, AllocInit::Uninitialized)? as *mut Self;
@@ -112,6 +112,6 @@ impl ProcessHeapBinary {
     };
     this.write(new_self);
 
-    Ok(this as *mut TBinary)
+    Ok(this as *mut dyn TBinary)
   }
 }

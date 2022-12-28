@@ -15,7 +15,7 @@ impl Term {
 
   /// Constructor to create a float on heap. May fail if the heap is full or
   /// something else might happen.
-  pub fn make_float(hp: &mut THeap, val: f64) -> RtResult<Self> {
+  pub fn make_float(hp: &mut dyn THeap, val: f64) -> RtResult<Self> {
     let pf = unsafe { boxed::Float::create_into(hp, val)? };
     Ok(Self::make_boxed(pf))
   }

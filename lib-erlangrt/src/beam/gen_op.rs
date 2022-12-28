@@ -9,7 +9,7 @@ use crate::emulator::code::opcode::RawOpcode;
 
 pub const OPCODE_MAX: RawOpcode = RawOpcode(168);
 
-pub static ARITY_MAP: &'static [u8] = &[
+pub static ARITY_MAP: &[u8] = &[
     0, // opcode 0 does not exist
     1, // opcode: 1 (label)
     3, // opcode: 2 (func_info)

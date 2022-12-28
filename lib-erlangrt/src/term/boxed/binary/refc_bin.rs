@@ -79,7 +79,7 @@ impl TBinary for ReferenceToBinary {
     offset: BitSize,
     flags: crate::beam::opcodes::BsFlags,
   ) -> RtResult<()> {
-    let p = self.pointer as *mut TBinary;
+    let p = self.pointer as *mut dyn TBinary;
     (*p).put_integer(val, size, offset, flags)
   }
 }

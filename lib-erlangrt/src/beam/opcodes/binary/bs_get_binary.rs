@@ -22,6 +22,7 @@ define_opcode!(
 
 impl OpcodeBsGetBinary2 {
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   unsafe fn bs_get_binary2_7(
     runtime_ctx: &mut RuntimeContext,
     proc: &mut Process,

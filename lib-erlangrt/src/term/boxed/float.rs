@@ -45,7 +45,7 @@ impl Float {
   }
 
   #[allow(dead_code)]
-  pub unsafe fn create_into(hp: &mut THeap, value: f64) -> RtResult<*mut Self> {
+  pub unsafe fn create_into(hp: &mut dyn THeap, value: f64) -> RtResult<*mut Self> {
     let n_words = Self::storage_size();
     let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 

@@ -120,7 +120,7 @@ impl BeamFile {
 
         other => {
           let msg = format!("{}Unexpected chunk: {}", module(), other);
-          return Err(RtErr::CodeLoadingFailed(msg))
+          return Err(RtErr::CodeLoadingFailed(msg));
         }
       }
 
@@ -253,6 +253,8 @@ impl BeamFile {
     let mut ct_reader = CompactTermReader::new(&mut self.lit_heap);
     for _i in 0..n_line_refs {
       let val = ct_reader.read(reader)?;
+
+      #[allow(clippy::if_same_then_else)]
       if val.is_small() {
         // self.linerefs.push((_fname_index, w));
       } else if val.is_atom() {
@@ -284,8 +286,8 @@ impl BeamFile {
     // Decompress deflated literal table
     let iocursor = Cursor::new(&deflated);
     zlib::Decoder::new(iocursor)
-      .read_to_end(&mut inflated)
-      .unwrap();
+        .read_to_end(&mut inflated)
+        .unwrap();
     assert_eq!(
       inflated.len(),
       uncomp_sz as usize,

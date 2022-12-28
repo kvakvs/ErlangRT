@@ -42,7 +42,7 @@ impl Import {
     ByteSize::new(size_of::<Self>()).get_words_rounded_up()
   }
 
-  pub unsafe fn create_into(hp: &mut THeap, mfarity: ModFunArity) -> RtResult<Term> {
+  pub unsafe fn create_into(hp: &mut dyn THeap, mfarity: ModFunArity) -> RtResult<Term> {
     let storage_size = Self::storage_size();
     let this = hp.alloc(storage_size, AllocInit::Uninitialized)? as *mut Self;
 

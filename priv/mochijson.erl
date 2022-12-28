@@ -54,6 +54,7 @@
 %% @type binary_encoder_option() = {handler, function()}
 %% @type binary_decoder_option() = {object_hook, function()}
 
+%% Test doc for #encoder
 -record(encoder, {input_encoding=unicode,
                   handler=null}).
 
@@ -171,6 +172,7 @@ json_encode_proplist(Props, State) ->
     [$, | Acc1] = lists:foldl(F, "{", Props),
     lists:reverse([$\} | Acc1]).
 
+%% @doc Hello
 json_encode_string(A, _State) when is_atom(A) ->
     json_encode_string_unicode(xmerl_ucs:from_utf8(atom_to_list(A)));
 json_encode_string(B, _State) when is_binary(B) ->

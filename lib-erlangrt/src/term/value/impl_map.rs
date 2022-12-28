@@ -16,7 +16,7 @@ impl Term {
   /// that the value is a map (assert!) assuming that the caller has checked
   /// it by now.
   pub fn is_flat_map(self) -> bool {
-    self == Self::empty_map() || true
+    self == Self::empty_map() // || true
   }
 
   /// Check whether a value is a hash map >= 32 elements (HAMT). Does NOT check

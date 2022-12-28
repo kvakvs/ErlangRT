@@ -4,7 +4,7 @@ use crate::{defs::Arity, term::*};
 use core::{cmp::Ordering, fmt};
 
 /// Reference to an internal function in some module.
-#[derive(Debug, Eq, Clone, Hash)]
+#[derive(Debug, Eq, Clone, PartialEq, Hash)]
 pub struct FunArity {
   pub f: Term,
   pub arity: Arity,
@@ -38,11 +38,11 @@ impl PartialOrd for FunArity {
   }
 }
 
-impl PartialEq for FunArity {
-  fn eq(&self, other: &FunArity) -> bool {
-    self.f == other.f && self.arity == other.arity
-  }
-}
+// impl PartialEq for FunArity {
+//   fn eq(&self, other: &FunArity) -> bool {
+//     self.f == other.f && self.arity == other.arity
+//   }
+// }
 
 // Printing funarities as "{}"
 impl fmt::Display for FunArity {

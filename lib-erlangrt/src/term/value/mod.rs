@@ -167,7 +167,7 @@ impl Term {
     Self::make_from_tag_and_value(PrimaryTag::LOCAL_PID, pindex)
   }
 
-  pub fn make_remote_pid(hp: &mut THeap, node: Self, pindex: usize) -> RtResult<Self> {
+  pub fn make_remote_pid(hp: &mut dyn THeap, node: Self, pindex: usize) -> RtResult<Self> {
     let rpid_ptr = boxed::ExternalPid::create_into(hp, node, pindex)?;
     Ok(Self::make_boxed(rpid_ptr))
   }

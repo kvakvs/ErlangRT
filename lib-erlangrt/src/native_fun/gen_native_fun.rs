@@ -6,14 +6,12 @@
 use crate::{native_fun, defs::Arity, term::*};
 
 pub struct BifTabItem {
-    pub m: Term, 
-    pub f: Term, 
-    pub arity: Arity, 
-    pub func: native_fun::NativeFn
+    pub m: Term,
+    pub f: Term,
+    pub arity: Arity,
+    pub func: native_fun::NativeFn,
 }
 
 
-pub static BIF_TABLE: &'static [BifTabItem] = &[
-
-];
+pub static BIF_TABLE: &[BifTabItem] = &[];
 

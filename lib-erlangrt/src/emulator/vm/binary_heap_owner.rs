@@ -22,14 +22,14 @@ impl THeapOwner for BinaryHeapOwner {
   }
 
   #[inline]
-  fn get_heap(&self) -> &THeap {
-    &self.heap as &THeap
+  fn get_heap(&self) -> &dyn THeap {
+    &self.heap as &dyn THeap
   }
 
   #[inline]
-  fn get_heap_mut(&mut self) -> &mut THeap {
+  fn get_heap_mut(&mut self) -> &mut dyn THeap {
     // &self.heap as &mut THeap
     let heap_ref = &mut self.heap;
-    heap_ref as &mut THeap
+    heap_ref as &mut dyn THeap
   }
 }

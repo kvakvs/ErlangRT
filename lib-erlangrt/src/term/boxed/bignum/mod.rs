@@ -54,7 +54,7 @@ impl Bignum {
   }
 
   /// Create bignum for one isize
-  pub fn with_isize(hp: &mut THeap, val: isize) -> RtResult<*mut Bignum> {
+  pub fn with_isize(hp: &mut dyn THeap, val: isize) -> RtResult<*mut Bignum> {
     let (sign, positive_val) = Sign::split(val);
 
     // Create slice of one limb
@@ -68,7 +68,7 @@ impl Bignum {
   /// Given an array of bytes with little-endian order, create a bignum on the
   /// provided heap, or fail.
   pub unsafe fn create_le(
-    hp: &mut THeap,
+    hp: &mut dyn THeap,
     sign: bignum::sign::Sign,
     digits: Vec<u8>,
   ) -> RtResult<Term> {
@@ -80,7 +80,7 @@ impl Bignum {
   /// Consume bytes as either big- or little-endian stream, and build a big
   /// integer on heap.
   pub unsafe fn create_into(
-    hp: &mut THeap,
+    hp: &mut dyn THeap,
     sign: Sign,
     limbs: &[Digit],
   ) -> RtResult<*mut Self> {

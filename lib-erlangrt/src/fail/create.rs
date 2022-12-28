@@ -11,14 +11,14 @@ fn generic_fail<T>(err_atom: Term) -> RtResult<T> {
 }
 
 #[inline]
-pub fn generic_tuple2_fail<T>(err_atom: Term, val: Term, hp: &mut THeap) -> RtResult<T> {
+pub fn generic_tuple2_fail<T>(err_atom: Term, val: Term, hp: &mut dyn THeap) -> RtResult<T> {
   Err(RtErr::Exception(
     ExceptionType::Error,
     tuple2(hp, err_atom, val)?,
   ))
 }
 
-pub fn badmatch_val<T>(val: Term, hp: &mut THeap) -> RtResult<T> {
+pub fn badmatch_val<T>(val: Term, hp: &mut dyn THeap) -> RtResult<T> {
   generic_tuple2_fail(gen_atoms::BADMATCH, val, hp)
 }
 
@@ -30,7 +30,7 @@ pub fn badarg<T>() -> RtResult<T> {
   generic_fail(gen_atoms::BADARG)
 }
 
-pub fn badarg_val<T>(val: Term, hp: &mut THeap) -> RtResult<T> {
+pub fn badarg_val<T>(val: Term, hp: &mut dyn THeap) -> RtResult<T> {
   generic_tuple2_fail(gen_atoms::BADARG, val, hp)
 }
 
@@ -42,7 +42,7 @@ pub fn badfun<T>() -> RtResult<T> {
   generic_fail(gen_atoms::BADFUN)
 }
 
-pub fn badfun_val<T>(val: Term, hp: &mut THeap) -> RtResult<T> {
+pub fn badfun_val<T>(val: Term, hp: &mut dyn THeap) -> RtResult<T> {
   let badfun_tuple = make_badfun(val, hp)?;
   Err(RtErr::Exception(ExceptionType::Error, badfun_tuple))
 }

@@ -30,7 +30,7 @@ impl ListBuilder {
 
   /// Creates a new cons cell to grow the list either back or forward
   #[inline]
-  unsafe fn make_cell(&self, hp: &mut THeap) -> RtResult<*mut boxed::Cons> {
+  unsafe fn make_cell(&self, hp: &mut dyn THeap) -> RtResult<*mut boxed::Cons> {
     let p = hp.alloc(WordSize::new(2), AllocInit::Nil)?;
     Ok(p as *mut boxed::Cons)
   }
@@ -38,7 +38,7 @@ impl ListBuilder {
   /// Build list forward: Set current tail to a newly allocated cons (next cell).
   /// New cell becomes the current.
   /// Remember to terminate with NIL.
-  pub unsafe fn append(&mut self, val: Term, hp: &mut THeap) -> RtResult<()> {
+  pub unsafe fn append(&mut self, val: Term, hp: &mut dyn THeap) -> RtResult<()> {
     if self.head_p.is_null() {
       // First cell in the list, make it the only cell in list
       self.tail_p = self.make_cell(hp)?;
@@ -56,7 +56,7 @@ impl ListBuilder {
   /// Build list back: Create a new cons, where tail points to current.
   /// New previous cell becomes the current.
   /// Remember to terminate the first cell of the list with NIL.
-  pub unsafe fn prepend(&mut self, val: Term, hp: &mut THeap) -> RtResult<()> {
+  pub unsafe fn prepend(&mut self, val: Term, hp: &mut dyn THeap) -> RtResult<()> {
     if self.head_p.is_null() {
       self.head_p = self.make_cell(hp)?;
       self.tail_p = self.head_p;
@@ -87,7 +87,7 @@ impl ListBuilder {
 
 /// A helper which takes a heap and a UTF-8 string, and creates Erlang string
 /// of integer unicode codepoints, one per character.
-pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut THeap) -> RtResult<Term> {
+pub unsafe fn build_erlstr_from_utf8(s: &str, hp: &mut dyn THeap) -> RtResult<Term> {
   let mut lb = ListBuilder::new()?;
   for (_pos, ch) in s.char_indices() {
     let char_term = Term::make_small_unsigned(ch as usize);

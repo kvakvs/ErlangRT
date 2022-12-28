@@ -27,9 +27,9 @@ pub enum SizeOrAll {
 /// Arg `size`: How many bits to copy, or `All`
 /// Returns: Bit count copied
 pub unsafe fn put_binary(
-  src: *const TBinary,
+  src: *const dyn TBinary,
   size_or_all: SizeOrAll,
-  dst: *mut TBinary,
+  dst: *mut dyn TBinary,
   dst_offset: BitSize,
   _flags: crate::beam::opcodes::BsFlags,
 ) -> RtResult<BitSize> {
@@ -413,7 +413,7 @@ unsafe fn paste_bigint_le_negative(
       dst_offset += 1;
       d >>= 8;
       n -= 1;
-      if n <= 0 {
+      if n == 0 {
         break;
       }
     }
@@ -456,7 +456,7 @@ unsafe fn paste_bigint_le_positive(
       dst_offset += 1;
       d >>= 8;
       n -= 1;
-      if n <= 0 {
+      if n == 0 {
         break;
       }
     }
@@ -506,7 +506,7 @@ unsafe fn paste_bigint_be_negative(
       dst_offset -= 1;
       acc >>= 8;
       n -= 1;
-      if n <= 0 {
+      if n == 0 {
         break;
       }
     }
@@ -555,7 +555,7 @@ unsafe fn paste_bigint_be_positive(
       dst[dst_offset] = acc as u8;
       acc >>= 8;
       n -= 1;
-      if n <= 0 {
+      if n == 0 {
         break;
       }
     }

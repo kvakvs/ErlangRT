@@ -11,9 +11,9 @@ pub trait TGc {
 
   /// GC takes a range of mutable-term-ranges
   fn garbage_collect(
-    heap: &THeap,
+    heap: &dyn THeap,
     walker: HeapWalker,
-    roots: Box<TRootIterator>,
+    roots: Box<dyn TRootIterator>,
   ) -> RtResult<()>;
 }
 
@@ -26,7 +26,7 @@ impl TGc for NullGc {
     Self {}
   }
 
-  fn garbage_collect(_heap: &THeap, _walker: HeapWalker,_roots: Box<TRootIterator>) -> RtResult<()> {
+  fn garbage_collect(_heap: &dyn THeap, _walker: HeapWalker,_roots: Box<dyn TRootIterator>) -> RtResult<()> {
     unimplemented!("NullGC is not designed to collect any garbage")
   }
 }

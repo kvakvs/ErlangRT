@@ -16,7 +16,7 @@ use crate::{
 /// Binary match buffer is a part of `BinaryMatchState`
 struct MatchBuffer {
   // TODO: Make sure this is detected when garbage collected
-  pub orig: *const TBinary,
+  pub orig: *const dyn TBinary,
   /// The window begins at bit offset 0 always, and `start_at` will advance
   /// forward as we are reading from the binary.
   pub read_position: BitSize,
@@ -24,7 +24,7 @@ struct MatchBuffer {
 }
 
 impl MatchBuffer {
-  pub fn new(bin_ptr: *const TBinary) -> Self {
+  pub fn new(bin_ptr: *const dyn TBinary) -> Self {
     let stop_at = unsafe { (*bin_ptr).get_bit_size() };
     Self {
       orig: bin_ptr,
@@ -63,7 +63,7 @@ impl BinaryMatchState {
   }
 
   /// Create a new matchstate for the initial binary match step.
-  fn new(bin_ptr: *const TBinary) -> Self {
+  fn new(bin_ptr: *const dyn TBinary) -> Self {
     let storage_size = Self::storage_size();
     let mut self_ = Self {
       header: boxed::BoxHeader::new::<BinaryMatchState>(storage_size),
@@ -74,8 +74,8 @@ impl BinaryMatchState {
   }
 
   pub unsafe fn create_into(
-    bin_ptr: *const TBinary,
-    hp: &mut THeap,
+    bin_ptr: *const dyn TBinary,
+    hp: &mut dyn THeap,
   ) -> RtResult<*mut BinaryMatchState> {
     let storage_sz = Self::storage_size();
     let this = hp.alloc(storage_sz, AllocInit::Uninitialized)? as *mut Self;
@@ -88,7 +88,7 @@ impl BinaryMatchState {
   }
 
   #[inline]
-  pub fn get_src_binary(&self) -> *const TBinary {
+  pub fn get_src_binary(&self) -> *const dyn TBinary {
     self.match_buffer.orig
   }
 

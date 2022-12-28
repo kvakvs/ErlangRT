@@ -1,3 +1,4 @@
+#![allow(clippy::crate_in_macro_def)]
 /// Define a new native function header, along with simple argument checks.
 /// Note: if the body arg contains a call to the implementation, it is in your
 /// best interest to have that impl `#[inline]`.

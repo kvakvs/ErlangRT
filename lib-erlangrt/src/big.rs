@@ -10,13 +10,13 @@ use crate::{
 use core::ptr;
 
 /// Helper, creates a new big integer on heap with val.
-pub fn from_isize(hp: &mut THeap, val: isize) -> RtResult<Term> {
+pub fn from_isize(hp: &mut dyn THeap, val: isize) -> RtResult<Term> {
   let p = boxed::Bignum::with_isize(hp, val)?;
   Ok(Term::make_boxed(p))
 }
 
 /// Multiply two big ints
-pub fn mul(_hp: &mut THeap, a: Term, b: Term) -> RtResult<Term> {
+pub fn mul(_hp: &mut dyn THeap, a: Term, b: Term) -> RtResult<Term> {
   debug_assert!(a.is_big_int());
   debug_assert!(b.is_big_int());
   unimplemented!("mul big a, b")

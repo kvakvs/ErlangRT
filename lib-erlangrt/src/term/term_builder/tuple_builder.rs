@@ -11,7 +11,7 @@ pub struct TupleBuilder {
 
 impl TupleBuilder {
   #[inline]
-  pub fn with_arity(arity: usize, hp: &mut THeap) -> RtResult<Self> {
+  pub fn with_arity(arity: usize, hp: &mut dyn THeap) -> RtResult<Self> {
     let new_tuple = boxed::Tuple::create_into(hp, arity)?;
     Ok(Self::new(new_tuple))
   }
@@ -34,7 +34,7 @@ impl TupleBuilder {
 
 /// Create a 2-tuple.
 #[inline]
-pub fn tuple2(hp: &mut THeap, a: Term, b: Term) -> RtResult<Term> {
+pub fn tuple2(hp: &mut dyn THeap, a: Term, b: Term) -> RtResult<Term> {
   let tb = TupleBuilder::with_arity(2, hp)?;
   unsafe {
     tb.set_element(0, a);

@@ -15,9 +15,9 @@ impl TGc for CopyingGc {
   }
 
   fn garbage_collect(
-    _heap: &THeap,
+    _heap: &dyn THeap,
     mut walker: HeapWalker,
-    mut roots: Box<TRootIterator>,
+    mut roots: Box<dyn TRootIterator>,
   ) -> RtResult<()> {
     println!("Copying GC");
 
