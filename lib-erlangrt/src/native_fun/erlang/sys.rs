@@ -56,7 +56,7 @@ define_nativefun!(_vm, _proc, args,
 define_nativefun!(_vm, _proc, args,
   name: "erlang:load_nif/2", struct_name: NfErlangLoadNif2, arity: 2,
   invoke: {
-    println!("load_nif({}, {}) - doing nothing", path, load_info);
+    println!("load_nif({path}, {load_info}) - doing nothing");
     Ok(gen_atoms::OK)
   },
   args: list(path), term(load_info),

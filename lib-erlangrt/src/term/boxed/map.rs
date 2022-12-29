@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 
 use crate::{
-  defs::{Word, WordSize},
+  defs::{Word, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
@@ -52,8 +52,8 @@ impl TBoxed for Map {
 impl Map {
   /// Size of a tuple in memory with the header word (used for allocations)
   #[inline]
-  pub fn storage_size(num_pairs: Word) -> WordSize {
-    WordSize::new(2 * num_pairs) + BoxHeader::storage_size()
+  pub fn storage_size(num_pairs: Word) -> SizeWords {
+    SizeWords::new(2 * num_pairs) + BoxHeader::storage_size()
   }
 
   /// Capacity is how many extra words been allocated
@@ -143,7 +143,7 @@ impl Map {
 
     // Binary search goes here
     // Assuming: Keys are sorted in ascending order
-    println!("map:get size={} key={}", count, key);
+    println!("map:get size={count} key={key}");
 
     if count == 0 {
       return Ok(MapGetResult::ClosestLarger(0));
@@ -155,7 +155,7 @@ impl Map {
       let median = a + (b - a) / 2;
       let median_value = p.add(median * 2).read();
       // The key is less than median, step left
-      println!("map:get a={} b={} median={}", a, b, median);
+      println!("map:get a={a} b={b} median={median}");
       match cmp_terms(median_value, key, true)? {
         Ordering::Less => {
           if a == b {

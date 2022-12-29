@@ -28,7 +28,7 @@ pub const BYTE_BITS: usize = 1usize << BYTE_POF2_BITS;
 const BYTE_SHIFT_RANGE_MASK: usize = BYTE_BITS - 1;
 #[inline]
 pub const fn byte_shift(n: usize) -> usize {
-  n as usize & BYTE_SHIFT_RANGE_MASK
+  n & BYTE_SHIFT_RANGE_MASK
 }
 
 #[cfg(target_pointer_width = "32")]

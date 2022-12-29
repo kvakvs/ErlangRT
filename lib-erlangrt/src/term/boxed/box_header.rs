@@ -27,7 +27,7 @@ pub struct BoxHeader {
 pub const GUARD_WORD_VALUE: usize = 0xfeebbeeffacecafe;
 
 impl BoxHeader {
-    pub fn new<TraitType>(storage_size: WordSize) -> BoxHeader
+    pub fn new<TraitType>(storage_size: SizeWords) -> BoxHeader
         where
             TraitType: TBoxed + 'static,
     {
@@ -58,9 +58,9 @@ impl BoxHeader {
         }
     }
 
-    pub const fn storage_size() -> WordSize {
+    pub const fn storage_size() -> SizeWords {
         // The size will include guard word on debug builds
-        ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up()
+        SizeBytes::new(core::mem::size_of::<Self>()).get_words_rounded_up()
     }
 
     /// For any boxed header ensure that guard value is in place. Compiles to
@@ -105,7 +105,7 @@ impl BoxHeader {
         unsafe { core::mem::transmute(trait_obj) }
     }
 
-    pub fn get_storage_size(&self) -> WordSize {
+    pub fn get_storage_size(&self) -> SizeWords {
         self.ensure_valid();
         Self::headerword_to_storage_size(self.header_word)
     }
@@ -113,12 +113,12 @@ impl BoxHeader {
     /// For a header word value, extract bits with arity
     /// Format is <arity> <boxtype:BOXTYPE_TAG_BITS> <TAG_HEADER:PrimaryTag::TAG_BITS>
     #[inline]
-    pub fn headerword_to_storage_size(w: Word) -> WordSize {
+    pub fn headerword_to_storage_size(w: Word) -> SizeWords {
         debug_assert_eq!(
             w & PrimaryTag::TAG_MASK,
             PrimaryTag::HEADER.0,
             "Boxed header with arity must have HEADER tag"
         );
-        WordSize::new(w >> PrimaryTag::TAG_BITS)
+        SizeWords::new(w >> PrimaryTag::TAG_BITS)
     }
 }

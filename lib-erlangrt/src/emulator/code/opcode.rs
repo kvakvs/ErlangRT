@@ -42,9 +42,7 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
   debug_assert_eq!(
     as_term.get_special_tag(),
     SpecialTag::OPCODE,
-    "Opcode 0x{:x} from code memory must be tagged as Special/Opcode",
-    m
-  );
+    "Opcode 0x{m:x} from code memory must be tagged as Special/Opcode");
   debug_assert!(
     as_term.get_opcode_value() <= gen_op::OPCODE_MAX.0 as usize,
     "Value for rawOpcode is too big, get {} expected max {}",
@@ -64,21 +62,18 @@ pub fn from_memory_word(m: Word) -> RawOpcode {
 /// Debug version: Load an opcode and assert that it is decorated as Immediate3.
 #[inline]
 #[cfg(debug_assertions)]
-pub fn from_memory_ptr(p: *const Word) -> RawOpcode {
-  let m = unsafe { *p };
-  let as_term = Term::from_raw(m);
+pub fn from_memory_ptr(ptr: *const Word) -> RawOpcode {
+  let mem_content = unsafe { *ptr };
+  let as_term = Term::from_raw(mem_content);
   debug_assert!(
     as_term.is_special(),
     "Disasm: Opcode from memory {:p} must be tagged as Special",
-    p
+    ptr
   );
   debug_assert_eq!(
     as_term.get_special_tag(),
     SpecialTag::OPCODE,
-    "Disasm: Opcode 0x{:x} from code memory {:p} must be tagged as Special/Opcode",
-    m,
-    p
-  );
+    "Disasm: Opcode 0x{mem_content:x} from code memory {ptr:p} must be tagged as Special/Opcode");
   debug_assert!(
     as_term.get_opcode_value() <= gen_op::OPCODE_MAX.0 as usize,
     "Value for rawOpcode is too big, get {} expected max {}",

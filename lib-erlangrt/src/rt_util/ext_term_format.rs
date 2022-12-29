@@ -13,7 +13,8 @@ use crate::{
 #[repr(u8)]
 #[allow(dead_code)]
 enum Tag {
-  ETF = 131,
+  /// Always goes first in an external term format blob
+  ExtTermFormatPrefix = 131,
   NewFloat = 70,
   BitBinary = 77,
   AtomCacheRef_ = 82,
@@ -54,7 +55,7 @@ fn fail<TermType: Copy>(msg: String) -> RtResult<TermType> {
 /// allocate space for larger boxed terms.
 pub fn decode(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> {
   let etf_tag = r.read_u8();
-  if etf_tag != Tag::ETF as u8 {
+  if etf_tag != Tag::ExtTermFormatPrefix as u8 {
     let msg = format!("{}Expected ETF tag byte 131, got {}", module(), etf_tag);
     return fail(msg);
   }
@@ -106,10 +107,7 @@ pub fn decode_naked(r: &mut BinaryReader, hp: &mut dyn THeap) -> RtResult<Term> 
     }
 
     _ => {
-      let msg = format!(
-        "Don't know how to decode ETF value tag 0x{:x} ({})",
-        term_tag, term_tag
-      );
+      let msg = format!("Don't know how to decode ETF value tag 0x{term_tag:x} ({term_tag})");
       fail(msg)
     }
   }

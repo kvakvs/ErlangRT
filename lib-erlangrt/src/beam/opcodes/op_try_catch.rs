@@ -132,5 +132,5 @@ fn get_trace_from_exc(trace: Term) -> Option<ExceptionType> {
   if trace == Term::nil() {
     return None;
   }
-  return Some(ExceptionType::Error);
+  Some(ExceptionType::Error)
 }

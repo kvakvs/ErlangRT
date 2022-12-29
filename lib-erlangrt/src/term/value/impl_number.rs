@@ -1,4 +1,4 @@
-use crate::term::{boxed, PrimaryTag, Term, LARGEST_SMALL, SMALLEST_SMALL};
+use crate::term::{boxed, PrimaryTag, Term, ERL_LARGEST_SMALLINT, ERL_SMALLEST_SMALLINT};
 
 impl Term {
   // === === SMALL INTEGERS === === ===
@@ -40,21 +40,21 @@ impl Term {
   /// Check whether a signed isize fits into small integer range
   #[inline]
   pub fn small_fits(val: isize) -> bool {
-    val >= SMALLEST_SMALL && val <= LARGEST_SMALL
+    (ERL_SMALLEST_SMALLINT..=ERL_LARGEST_SMALLINT).contains(&val)
   }
 
   /// For 64-bit platform check multiplication results of i128
   #[cfg(target_pointer_width = "64")]
   #[inline]
   pub fn small_fits_i128(val: i128) -> bool {
-    val >= SMALLEST_SMALL as i128 && val <= LARGEST_SMALL as i128
+    (ERL_SMALLEST_SMALLINT as i128..=ERL_LARGEST_SMALLINT as i128).contains(&val)
   }
 
   /// For 32-bit platform check multiplication results of i64
   #[cfg(target_pointer_width = "32")]
   #[inline]
   pub fn small_fits_i64(val: i64) -> bool {
-    val >= SMALLEST_SMALL as i64 && val <= LARGEST_SMALL as i64
+    (ERL_SMALLEST_SMALLINT as i64..=ERL_LARGEST_SMALLINT as i64).contains(&val)
   }
 
   #[inline]

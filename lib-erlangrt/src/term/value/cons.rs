@@ -1,6 +1,6 @@
 //! Utility functions for handling lists
 use crate::{
-  defs::{exc_type::ExceptionType, sizes::ByteSize},
+  defs::{exc_type::ExceptionType, sizes::SizeBytes},
   emulator::{gen_atoms, heap::THeap},
   fail::{RtErr, RtResult},
   term::{boxed, term_builder::ListBuilder, Term},
@@ -146,7 +146,7 @@ where
 
 /// Given Rust `String`, create list of characters on heap
 // TODO: Optimize by adding new string type which is not a list?
-pub unsafe fn rust_str_to_list(s: &String, hp: &mut dyn THeap) -> RtResult<Term> {
+pub unsafe fn rust_str_to_list(s: &str, hp: &mut dyn THeap) -> RtResult<Term> {
   let mut lb = ListBuilder::new()?;
   for pos_char in s.char_indices() {
     let ch = pos_char.1 as usize;
@@ -191,11 +191,11 @@ pub unsafe fn integer_to_list(val: Term, hp: &mut dyn THeap) -> RtResult<Term> {
     }
   } // if not 0
 
-  return Ok(lb.make_term());
+  Ok(lb.make_term())
 }
 
-pub fn get_iolist_size(list: Term) -> ByteSize {
-  let mut result = ByteSize::new(0);
+pub fn get_iolist_size(list: Term) -> SizeBytes {
+  let mut result = SizeBytes::new(0);
   for_each(list, |elem| {
     if elem.is_small() {
       // Any small integer even larger than 256 counts as 1 byte

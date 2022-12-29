@@ -54,7 +54,7 @@ impl Module {
       code: Vec::new(),
       funs: BTreeMap::new(),
       lit_heap: Heap::new(Designation::TransientDestructible),
-      versioned_name: name.clone(),
+      versioned_name: *name,
       lambdas: Vec::new(),
     }
   }

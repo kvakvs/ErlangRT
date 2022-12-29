@@ -39,8 +39,7 @@ pub fn make_limbs_from_bytes(input_endian: Endianness, b: Vec<u8>) -> Vec<usize>
 
   // Round dst size up to nearest word size which will fit everything
   let dst_size: usize = (b.len() + defs::WORD_BYTES - 1) / defs::WORD_BYTES;
-  let mut dst = Vec::<usize>::with_capacity(dst_size);
-  dst.resize(dst_size, 0);
+  let mut dst = vec![0; dst_size];
 
   unsafe {
     ptr::copy_nonoverlapping(
@@ -50,7 +49,7 @@ pub fn make_limbs_from_bytes(input_endian: Endianness, b: Vec<u8>) -> Vec<usize>
     );
     // Bytes which did not form a new full usize
     let remaining_bytes = b.len() & (defs::WORD_BITS - 1);
-    if remaining_bytes > 0 && dst.len() > 0 {
+    if remaining_bytes > 0 && !dst.is_empty() {
       let index = dst.len() - 1;
       dst[index] = 0;
       ptr::copy_nonoverlapping(

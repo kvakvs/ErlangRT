@@ -41,7 +41,7 @@ impl Heap {
         }
       }
 
-      println!("{}", output)
+      println!("{output}")
     } // for
   }
 }

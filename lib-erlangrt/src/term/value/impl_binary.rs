@@ -1,5 +1,5 @@
 use crate::{
-  defs::ByteSize,
+  defs::SizeBytes,
   term::{boxed, SpecialConst, SpecialTag, Term},
 };
 
@@ -17,7 +17,7 @@ impl Term {
     self == Self::empty_binary() || self.is_boxed_of_type(boxed::BOXTYPETAG_BINARY)
   }
 
-  pub unsafe fn binary_byte_size(self) -> ByteSize {
+  pub unsafe fn binary_byte_size(self) -> SizeBytes {
     let binp = boxed::Binary::get_trait_from_term(self);
     (*binp).get_byte_size()
   }

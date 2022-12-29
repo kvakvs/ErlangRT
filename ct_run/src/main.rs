@@ -37,26 +37,22 @@ fn main() {
 
   // Take everything before erl_args option
   let before_erl_args: Vec<String> = in_args
-    .iter()
-    .take_while(|s| *s != "-erl_args")
-    .map(|s| s.clone())
-    .collect();
+      .iter()
+      .take_while(|s| *s != "-erl_args")
+      .cloned()
+      .collect();
   // Take everything after erl_args skip the erl_args option itself
   let _after_erl_args: Vec<String> = in_args
-    .iter()
-    .skip_while(|s| *s != "-erl_args")
-    .map(|s| s.clone())
-    .skip(1)
-    .collect();
+      .iter()
+      .skip_while(|s| *s != "-erl_args")
+      .skip(1)
+      .cloned()
+      .collect();
 
   let mut b_iter = before_erl_args.iter();
   let _empty_s = String::new();
-  loop {
-    let a = match b_iter.next() {
-      Some(s) => s,
-      None => break
-    };
 
+  while let Some(a) = b_iter.next() {
     if a == "-vts" {
       ct_args.ct_mode = CtMode::Vts;
     } else if a == "-browser" {
@@ -104,15 +100,15 @@ fn main() {
   // Push everything else
 
   let _modified_args: Vec<String> = in_args
-    .iter()
-    .map(|arg| {
-      if arg == "-erl_args" {
-        return "-ct_erl_args".to_string();
-      }
-      if arg == "-sname" || arg == "-name" {
-        return arg.to_string();
-      }
-      arg.to_string()
+      .iter()
+      .map(|arg| {
+        if arg == "-erl_args" {
+          return "-ct_erl_args".to_string();
+        }
+        if arg == "-sname" || arg == "-name" {
+          return arg.to_string();
+        }
+        arg.to_string()
 //      if erl_args_pos.is_some() && erl_args_pos.unwrap() > cnt {
 //        if in_args[cnt] == "-config" {
 //          cmd.arg("-ct_config");
@@ -122,8 +118,8 @@ fn main() {
 //          cmd.arg("-ct_decrypt_file");
 //        }
 //      }
-    })
-    .collect();
+      })
+      .collect();
   // Run again through the args
   //  cnt = 1;
   // TODO: Parse the command line here, instead of copy-modifying

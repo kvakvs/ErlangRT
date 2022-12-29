@@ -1,5 +1,5 @@
 use crate::{
-  defs::WordSize,
+  defs::SizeWords,
   emulator::heap::{Designation, Heap, THeap, THeapOwner},
   fail::RtResult,
 };
@@ -17,7 +17,7 @@ impl BinaryHeapOwner {
 }
 
 impl THeapOwner for BinaryHeapOwner {
-  fn ensure_heap(&mut self, _need: WordSize) -> RtResult<()> {
+  fn ensure_heap(&mut self, _need: SizeWords) -> RtResult<()> {
     unimplemented!()
   }
 

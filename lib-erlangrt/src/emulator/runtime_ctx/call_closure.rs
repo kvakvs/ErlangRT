@@ -23,7 +23,7 @@ pub fn apply(
   let args_len = args.len();
 
   let (closure_arity, closure_nfrozen) =
-    unsafe { ((*closure).mfa.arity as usize, (*closure).nfrozen) };
+      unsafe { ((*closure).mfa.arity, (*closure).nfrozen) };
   // The call is performed for passed args + frozen args, so the actual arity
   // will be incoming args length + frozen length
   let actual_call_arity = closure_nfrozen + args_len;
@@ -32,12 +32,12 @@ pub fn apply(
     let frozen = (*closure).get_frozen();
     // copy frozen values into registers after the arity
     ctx
-      .registers_slice_mut(args_len, closure_nfrozen)
-      .copy_from_slice(frozen);
+        .registers_slice_mut(args_len, closure_nfrozen)
+        .copy_from_slice(frozen);
   }
 
   ctx.live = actual_call_arity;
-  println!("{}", ctx);
+  println!("{ctx}");
 
   if actual_call_arity != closure_arity as Arity {
     println!(

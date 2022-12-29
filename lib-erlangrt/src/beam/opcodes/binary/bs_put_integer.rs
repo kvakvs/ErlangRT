@@ -19,6 +19,7 @@ define_opcode!(
 
 impl OpcodeBsPutInteger {
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   fn bs_put_integer(
     _vm: &mut VM,
     ctx: &mut RuntimeContext,

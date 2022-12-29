@@ -8,7 +8,7 @@
 //!
 //! * The young values get garbaged more often, introduce an age mark.
 use crate::{
-  defs::{Word, WordSize},
+  defs::{Word, SizeWords},
   emulator::heap::{catch::NextCatchResult, gc_trait::TGc, heap_trait::*, iter, *},
   fail::{RtErr, RtResult},
   term::{heap_walker::*, Term},
@@ -53,7 +53,7 @@ impl<GC: TGc> fmt::Debug for IncrementalHeap<GC> {
 }
 
 impl<GC: TGc> THeap for IncrementalHeap<GC> {
-  fn alloc(&mut self, n: WordSize, fill: AllocInit) -> RtResult<*mut Word> {
+  fn alloc(&mut self, n: SizeWords, fill: AllocInit) -> RtResult<*mut Word> {
     let pos = self.heap_top;
     let n_words = n.words;
 
@@ -155,17 +155,17 @@ impl<GC: TGc> THeap for IncrementalHeap<GC> {
   //  }
 
   #[inline]
-  fn heap_check_available(&self, need: WordSize) -> bool {
+  fn heap_check_available(&self, need: SizeWords) -> bool {
     self.heap_top + need.words <= self.stack_top
   }
 
   #[inline]
-  fn stack_check_available(&self, need: WordSize) -> bool {
+  fn stack_check_available(&self, need: SizeWords) -> bool {
     self.heap_top + need.words <= self.stack_top
   }
 
   /// Allocate stack cells without checking. Call `stack_have(n)` beforehand.
-  fn stack_alloc(&mut self, need: WordSize, _extra: WordSize, fill: AllocInit) {
+  fn stack_alloc(&mut self, need: SizeWords, _extra: SizeWords, fill: AllocInit) {
     if need.words == 0 {
       return;
     }

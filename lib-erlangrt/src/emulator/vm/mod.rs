@@ -79,7 +79,7 @@ impl VM {
     let mut p0 = Process::new(pid, parent, &mfarity, spawn_opts, unsafe { &mut (*cs) })?;
 
     // Error may happen here due to arg term copy error
-    p0.set_spawn_args(&mfargs)?;
+    p0.set_spawn_args(mfargs)?;
 
     self.register_new_process(pid, p0);
     Ok(pid)

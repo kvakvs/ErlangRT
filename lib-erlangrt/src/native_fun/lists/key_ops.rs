@@ -14,7 +14,7 @@ define_nativefun!(_vm, _proc, args,
 
 #[inline]
 fn keyfind_3(sample: Term, pos: usize, list: Term) -> RtResult<Term> {
-  if let Some(first) = cons::find_first(list, |elem| {
+  let predicate = |elem: Term| {
     if !elem.is_tuple() {
       return false;
     }
@@ -29,9 +29,11 @@ fn keyfind_3(sample: Term, pos: usize, list: Term) -> RtResult<Term> {
     if let Ok(cmp_result) = compare::cmp_terms(sample, tuple_element, true) {
       cmp_result == Ordering::Equal
     } else {
-      return false;
+      false
     }
-  }) {
+  };
+
+  if let Some(first) = cons::find_first(list, predicate) {
     Ok(Term::make_boxed(first))
   } else {
     Ok(gen_atoms::FALSE)

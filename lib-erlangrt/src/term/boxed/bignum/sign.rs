@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Sign {
   Positive,
@@ -8,23 +10,19 @@ pub enum Sign {
 impl Sign {
   #[allow(dead_code)]
   pub fn new(val: isize) -> Self {
-    if val == 0 {
-      Sign::Zero
-    } else if val > 0 {
-      Sign::Positive
-    } else {
-      Sign::Negative
+    match val.cmp(&0) {
+      Ordering::Less => Sign::Negative,
+      Ordering::Equal => Sign::Zero,
+      Ordering::Greater => Sign::Positive,
     }
   }
 
   /// Take sign out of the value, and return the sign and the positive value
   pub fn split(val: isize) -> (Self, usize) {
-    if val == 0 {
-      (Sign::Zero, 0)
-    } else if val > 0 {
-      (Sign::Positive, val as usize)
-    } else {
-      (Sign::Negative, -val as usize)
+    match val.cmp(&0) {
+      Ordering::Less => (Sign::Negative, -val as usize),
+      Ordering::Equal => (Sign::Zero, 0),
+      Ordering::Greater => (Sign::Positive, val as usize),
     }
   }
 }

@@ -201,15 +201,15 @@ fn generic_call_ext(
           true,
         );
         if save_cp {
-          return native_dispatch_result;
+          native_dispatch_result
         } else {
           // Perform inline return like if it was a tail recursive call
           // Because tail call might happen on an empty stack, the return with
           // empty stack will end the process life here (no more code).
           match ctx.return_and_clear_cp(proc) {
-            ReturnResult::EmptyStack => return Ok(DispatchResult::Finished),
-            ReturnResult::Success => return native_dispatch_result,
-          };
+            ReturnResult::EmptyStack => Ok(DispatchResult::Finished),
+            ReturnResult::Success => native_dispatch_result,
+          }
         }
       } else {
         // Perform a regular call to BEAM code, save CP and jump

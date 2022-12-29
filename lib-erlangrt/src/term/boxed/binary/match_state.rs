@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitSize, ByteSize, WordSize},
+  defs::{BitSize, SizeBytes, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
@@ -57,8 +57,8 @@ impl BinaryMatchState {
     println!("TODO: reset binary match state");
   }
 
-  fn storage_size() -> WordSize {
-    let bsize = ByteSize::new(std::mem::size_of::<Self>());
+  fn storage_size() -> SizeWords {
+    let bsize = SizeBytes::new(std::mem::size_of::<Self>());
     bsize.get_words_rounded_up()
   }
 

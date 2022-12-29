@@ -217,7 +217,7 @@ impl Scheduler {
       }
       self.advantage_count = 0;
     };
-    return None;
+    None
   }
 
   /// When time has come to select next running process, first we take a look
@@ -324,7 +324,7 @@ impl Scheduler {
         self.current = None;
       }
     }
-    return ScheduleHint::TakeAnotherProcess;
+    ScheduleHint::TakeAnotherProcess
   }
 
   /// Things to do before scheduling another process for execution.

@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  defs::{SizeBytes, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
@@ -31,13 +31,13 @@ impl TBoxed for Float {
 
 impl Float {
   #[allow(dead_code)]
-  const fn storage_size() -> WordSize {
-    ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up()
+  const fn storage_size() -> SizeWords {
+    SizeBytes::new(core::mem::size_of::<Self>()).get_words_rounded_up()
   }
 
   #[allow(dead_code)]
   fn new(value: f64) -> Self {
-    let storage_size = ByteSize::new(size_of::<Self>()).get_words_rounded_up();
+    let storage_size = SizeBytes::new(size_of::<Self>()).get_words_rounded_up();
     Self {
       header: BoxHeader::new::<Self>(storage_size),
       value,

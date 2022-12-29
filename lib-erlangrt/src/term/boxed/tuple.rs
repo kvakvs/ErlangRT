@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, Word, WordSize},
+  defs::{SizeBytes, Word, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
@@ -50,10 +50,10 @@ impl TBoxed for Tuple {
 impl Tuple {
   /// Size of a tuple in memory with the header word (used for allocations)
   #[inline]
-  const fn storage_size(arity: usize) -> WordSize {
+  const fn storage_size(arity: usize) -> SizeWords {
     // Minus one because data0 in tuple already consumes one word
-    let self_size = ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up();
-    WordSize::new(self_size.words + arity - 1)
+    let self_size = SizeBytes::new(core::mem::size_of::<Self>()).get_words_rounded_up();
+    SizeWords::new(self_size.words + arity - 1)
   }
 
   fn new(arity: usize) -> Tuple {

@@ -6,7 +6,7 @@ pub fn dump_vec(data: &[u8]) {
   let mut i = 0;
   while i < data.len() {
     // Offset
-    print!("{:04x} | ", i);
+    print!("{i:04x} | ");
 
     // Print hex bytes
     for j in 0..16 {
@@ -30,7 +30,7 @@ pub fn dump_vec(data: &[u8]) {
         print!(" ")
       }
       let c = data[i + j];
-      if c >= 32 && c < 127 {
+      if (32..127).contains(&c) {
         print!("{}", c as char)
       } else {
         print!(".")

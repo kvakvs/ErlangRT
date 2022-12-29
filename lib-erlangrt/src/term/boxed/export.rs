@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  defs::{SizeBytes, SizeWords},
   emulator::{
     export,
     heap::{AllocInit, THeap},
@@ -36,8 +36,8 @@ impl TBoxed for Export {
 
 impl Export {
   #[inline]
-  fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<Self>()).get_words_rounded_up()
+  fn storage_size() -> SizeWords {
+    SizeBytes::new(size_of::<Self>()).get_words_rounded_up()
   }
 
   fn new(mfa: &ModFunArity) -> Self {

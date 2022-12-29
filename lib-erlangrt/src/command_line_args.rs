@@ -35,9 +35,9 @@ pub struct ErlStartArgs {
 }
 
 impl ErlStartArgs {
-  pub fn new(raw_command_line: &Vec<String>) -> Self {
+  pub fn new(raw_command_line: &[String]) -> Self {
     Self {
-      command_line: raw_command_line.clone(),
+      command_line: raw_command_line.to_vec(),
       other_args: Vec::new(),
       node: NodeName::Short("nonode@nohost".to_string()),
       start: Vec::new(),
@@ -49,21 +49,17 @@ impl ErlStartArgs {
 
   pub fn add_start(&mut self, data: &[&str]) {
     self
-      .start
-      .push(data.iter().map(|s| s.to_string()).collect())
+        .start
+        .push(data.iter().map(|s| s.to_string()).collect())
   }
 
   /// Copy args from any string iterator source
-  pub fn populate_with<'a, ITER>(&'a mut self, mut iter: ITER)
-  where
-    ITER: Iterator<Item = &'a String>,
+  pub fn populate_with<'a, ITER>(&'a mut self, iter: ITER)
+    where
+        ITER: Iterator<Item=&'a String>,
   {
-    loop {
-      if let Some(s) = iter.next() {
-        self.add_arg1(s.as_ref())
-      } else {
-        break;
-      }
+    for s in iter {
+      self.add_arg1(s.as_ref())
     }
   }
 
@@ -81,7 +77,7 @@ impl ErlStartArgs {
   pub fn parse_arg(&mut self, args: &[&str]) {
     // assert at least one string is present in args
     let a = args[0];
-    match a.as_ref() {
+    match a {
       "-sname" => {
         self.node = NodeName::Short(args[1].to_string());
       }

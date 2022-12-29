@@ -2,13 +2,14 @@ use crate::defs::{self, BitSize};
 use core::fmt;
 use std::ops::{Add, Sub};
 
+/// Size of something in machine words (32 or 64 bit depending on platform)
 #[derive(Copy, Clone)]
-pub struct WordSize {
+pub struct SizeWords {
   pub words: usize,
 }
 
 #[allow(dead_code)]
-impl WordSize {
+impl SizeWords {
   pub const fn one() -> Self {
     Self { words: 1 }
   }
@@ -31,7 +32,7 @@ impl WordSize {
   }
 }
 
-impl Add for WordSize {
+impl Add for SizeWords {
   type Output = Self;
 
   fn add(self, other: Self) -> Self {
@@ -41,7 +42,7 @@ impl Add for WordSize {
   }
 }
 
-impl Sub for WordSize {
+impl Sub for SizeWords {
   type Output = Self;
 
   fn sub(self, other: Self) -> Self {
@@ -51,21 +52,22 @@ impl Sub for WordSize {
   }
 }
 
-impl fmt::Display for WordSize {
+impl fmt::Display for SizeWords {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}W", self.words)
   }
 }
 
+/// Size of something in bytes
 #[derive(Debug, Copy, Clone)]
-pub struct ByteSize {
+pub struct SizeBytes {
   pub bytes: usize,
 }
 
 #[allow(dead_code)]
-impl ByteSize {
+impl SizeBytes {
   #[inline]
-  pub const fn new(bytes: usize) -> ByteSize {
+  pub const fn new(bytes: usize) -> SizeBytes {
     Self { bytes }
   }
   pub const fn one() -> Self {
@@ -80,8 +82,8 @@ impl ByteSize {
   }
 
   // TODO: impl Add trait
-  pub fn add_bytesize(&mut self, other: ByteSize) {
-    self.bytes = self.bytes + other.bytes
+  pub fn add_bytesize(&mut self, other: SizeBytes) {
+    self.bytes += other.bytes
   }
 
   #[inline]
@@ -90,13 +92,13 @@ impl ByteSize {
   }
 
   #[inline]
-  pub const fn get_words_rounded_down(self) -> WordSize {
-    WordSize::new(self.bytes / defs::WORD_BYTES)
+  pub const fn get_words_rounded_down(self) -> SizeWords {
+    SizeWords::new(self.bytes / defs::WORD_BYTES)
   }
 
   #[inline]
-  pub const fn get_words_rounded_up(self) -> WordSize {
-    WordSize::new((self.bytes + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
+  pub const fn get_words_rounded_up(self) -> SizeWords {
+    SizeWords::new((self.bytes + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
   }
 
   #[inline]
@@ -105,7 +107,7 @@ impl ByteSize {
   }
 }
 
-impl fmt::Display for ByteSize {
+impl fmt::Display for SizeBytes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}B", self.bytes)
   }

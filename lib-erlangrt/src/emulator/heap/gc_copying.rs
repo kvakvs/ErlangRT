@@ -36,7 +36,7 @@ impl TGc for CopyingGc {
         break;
       }
       let pval = unsafe { Term::from_raw(*p) };
-      println!("Heapwalker: {}", pval);
+      println!("Heapwalker: {pval}");
     }
 
     unimplemented!("Copying GC: Done")

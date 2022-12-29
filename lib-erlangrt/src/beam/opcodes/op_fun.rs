@@ -30,13 +30,12 @@ impl OpcodeMakeFun2 {
     curr_p: &mut Process,
     export: Term,
   ) -> RtResult<DispatchResult> {
-    let fe = export.get_cp_ptr::<FunEntry>();
-
+    let fun_entry = export.get_cp_ptr::<FunEntry>();
     let hp = curr_p.get_heap_mut();
     let closure = unsafe {
-      let nfrozen = (*fe).nfrozen as usize;
+      let nfrozen = (*fun_entry).nfrozen;
       let frozen = ctx.registers_slice(0, nfrozen);
-      boxed::Closure::create_into(hp, fe.as_ref().unwrap(), frozen)?
+      boxed::Closure::create_into(hp, fun_entry.as_ref().unwrap(), frozen)?
     };
     ctx.set_x(0, closure);
     Ok(DispatchResult::Normal)
@@ -150,7 +149,7 @@ fn fixed_apply(
     panic!("TODO special handling for apply on apply/3");
   }
 
-  println!("call_mfa {}", mfa);
+  println!("call_mfa {mfa}");
   let l_result = vm.code_server.lookup_mfa(mfa, true);
   if l_result.is_err() {
     return fail::create::undef();

@@ -21,10 +21,10 @@ fn member_2(sample: Term, list: Term) -> RtResult<Term> {
     if let Ok(cmp_result) = compare::cmp_terms(sample, elem, true) {
       cmp_result == Ordering::Equal
     } else {
-      return false;
+      false
     }
   });
-  return Ok(Term::make_bool(result));
+  Ok(Term::make_bool(result))
 }
 
 // Returns list `list` reversed with `tail` appended (any term).

@@ -32,7 +32,7 @@ impl OpcodeBif0 {
     dst: Term,
   ) -> RtResult<DispatchResult> {
     // NOTE: bif0 cannot fail (fail_label=NIL)
-    println!("bif0 t={} dst={}", target, dst);
+    println!("bif0 target={target} dst={dst}");
     let cb_target = call_native_fun::CallBifTarget::ImportTerm(target);
     call_native_fun::find_and_call_native_fun(
       vm,
@@ -106,6 +106,7 @@ define_opcode!(vm, ctx, curr_p,
 
 impl OpcodeGcBif1 {
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   fn gc_bif1(
     vm: &mut VM,
     ctx: &mut RuntimeContext,
@@ -134,6 +135,7 @@ define_opcode!(vm, ctx, curr_p,
 
 impl OpcodeGcBif2 {
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   fn gc_bif2(
     vm: &mut VM,
     ctx: &mut RuntimeContext,
@@ -162,6 +164,7 @@ define_opcode!(vm, ctx, curr_p,
 
 impl OpcodeGcBif3 {
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   fn gc_bif3(
     vm: &mut VM,
     ctx: &mut RuntimeContext,

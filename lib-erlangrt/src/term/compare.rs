@@ -408,12 +408,10 @@ unsafe fn cmp_binary(a: Term, b: Term) -> RtResult<Ordering> {
     return Ok(a_size.cmp(&b_size));
   }
 
-  println!("Going to compare {} {}", a, b);
+  println!("Going to compare {a} ? {b}");
   println!(
-    "sizes - {} {} vs {} {}",
-    a_size,
+    "sizes - {a_size} {} vs {b_size} {}",
     (*a_trait).get_byte_size(),
-    b_size,
     (*b_trait).get_byte_size()
   );
 
@@ -484,7 +482,7 @@ where
     }
   }
   // No differences we've been able to find
-  return Ok(Ordering::Equal);
+  Ok(Ordering::Equal)
 }
 
 /// Deeper comparison of two values with different types

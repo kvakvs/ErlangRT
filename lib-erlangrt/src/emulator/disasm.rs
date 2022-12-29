@@ -35,12 +35,12 @@ pub unsafe fn disasm_op(ip0: *const Word, code_server: &CodeServer) -> *const Wo
   );
 
   if let Some(mfa) = code_server.code_reverse_lookup(CodePtr::from_ptr(ip)) {
-    print!("{} ", format!("{}", mfa).cyan());
+    print!("{} ", format!("{mfa}").cyan());
   }
 
   print!(
     "{}: {} ",
-    format!("{:p}", ip).bright_black(),
+    format!("{ip:p}").bright_black(),
     gen_op::opcode_name(op).white()
   );
   ip = ip.offset(1);
@@ -57,7 +57,7 @@ unsafe fn disasm_op_args(ip: *const Word, n_args: Word) {
   for arg_index in 0..n_args {
     let arg = ptr::read(ip.add(arg_index) as *const Term);
 
-    print!("{}", arg);
+    print!("{arg}");
     if arg_index < n_args - 1 {
       print!("{}", ", ".red())
     }

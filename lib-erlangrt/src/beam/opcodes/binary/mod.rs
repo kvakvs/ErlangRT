@@ -61,7 +61,7 @@ impl OpcodeBsTestTail2 {
     if remaining != bits {
       runtime_ctx.jump(fail);
     }
-    return Ok(DispatchResult::Normal);
+    Ok(DispatchResult::Normal)
   }
 }
 

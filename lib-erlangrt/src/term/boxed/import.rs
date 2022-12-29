@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  defs::{SizeBytes, SizeWords},
   emulator::{
     code::pointer::CodePtr,
     code_srv::CodeServer,
@@ -38,8 +38,8 @@ impl TBoxed for Import {
 }
 
 impl Import {
-  const fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<Self>()).get_words_rounded_up()
+  const fn storage_size() -> SizeWords {
+    SizeBytes::new(size_of::<Self>()).get_words_rounded_up()
   }
 
   pub unsafe fn create_into(hp: &mut dyn THeap, mfarity: ModFunArity) -> RtResult<Term> {

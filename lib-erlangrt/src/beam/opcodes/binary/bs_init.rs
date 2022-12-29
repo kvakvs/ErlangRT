@@ -1,6 +1,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  defs::{BitSize, ByteSize, WordSize},
+  defs::{BitSize, SizeBytes, SizeWords},
   emulator::{heap::THeapOwner, process::Process, runtime_ctx::*, vm::VM},
   fail::{self, RtResult},
   term::{
@@ -29,6 +29,7 @@ define_opcode!(
 
 impl OpcodeBsInit2 {
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   fn bs_init2(
     vm: &mut VM,
     runtime_ctx: &mut RuntimeContext,
@@ -40,7 +41,7 @@ impl OpcodeBsInit2 {
     _flags: usize,
     dst: Term,
   ) -> RtResult<DispatchResult> {
-    if fail != Term::nil() && boxed::Binary::is_size_too_big(ByteSize::new(sz)) {
+    if fail != Term::nil() && boxed::Binary::is_size_too_big(SizeBytes::new(sz)) {
       return fail::create::system_limit();
     }
     if sz == 0 {
@@ -51,7 +52,7 @@ impl OpcodeBsInit2 {
 
 
     // Check if words is really extra?
-    let extra_memory = WordSize::new(words);
+    let extra_memory = SizeWords::new(words);
     let bit_sz = BitSize::with_bytes(sz);
 
     // Show intent to allocate memory; TODO: add GC related args, like live/regs

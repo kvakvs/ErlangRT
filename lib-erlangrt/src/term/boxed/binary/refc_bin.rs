@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitReader, BitSize, ByteReader, ByteSize, Word, WordSize},
+  defs::{BitReader, BitSize, ByteReader, SizeBytes, Word, SizeWords},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -20,8 +20,8 @@ pub struct ReferenceToBinary {
 }
 
 impl ReferenceToBinary {
-  pub fn storage_size() -> WordSize {
-    let header_size = ByteSize::new(std::mem::size_of::<Self>());
+  pub fn storage_size() -> SizeWords {
+    let header_size = SizeBytes::new(std::mem::size_of::<Self>());
     header_size.get_words_rounded_up()
   }
 
@@ -29,7 +29,6 @@ impl ReferenceToBinary {
   pub unsafe fn on_destroy(this: *mut ReferenceToBinary) {
     if (*this).refc > 0 {
       (*this).refc -= 1;
-      return;
     }
   }
 }
@@ -39,7 +38,7 @@ impl TBinary for ReferenceToBinary {
     BinaryType::RefToBinaryHeap
   }
 
-  fn get_byte_size(&self) -> ByteSize {
+  fn get_byte_size(&self) -> SizeBytes {
     self.size.get_byte_size_rounded_up()
   }
 
@@ -65,7 +64,7 @@ impl TBinary for ReferenceToBinary {
 
   fn store(&mut self, _data: &[u8]) -> RtResult<()> {
     // TODO: Maybe should be possible? Assist with resolution into BinaryHeapBinary
-    return Err(RtErr::CannotCopyIntoRefbin);
+    Err(RtErr::CannotCopyIntoRefbin)
   }
 
   fn make_term(&self) -> Term {

@@ -3,7 +3,7 @@ pub mod create;
 
 use crate::{
   beam::loader::CompactTermError,
-  defs::{exc_type::ExceptionType, ByteSize},
+  defs::{exc_type::ExceptionType, SizeBytes},
   rt_util::bin_reader::{self, ReadError},
   term::Term,
 };
@@ -51,8 +51,8 @@ pub enum RtErr {
   CreatingZeroSizedSlice,  // can't create 0-sized slice, use immediate {} instead
   CannotCopyIntoRefbin,    // To copy into binary, resolve ref into heapbin
   CannotCopyIntoBinSlice,  // Can not copy into binary slice, it is const
-  HeapBinTooSmall(usize, ByteSize), // want bytes, have bytes
-  ProcBinTooSmall(usize, ByteSize), // want bytes, have bytes
+  HeapBinTooSmall(usize, SizeBytes), // want bytes, have bytes
+  ProcBinTooSmall(usize, SizeBytes), // want bytes, have bytes
   BinaryDestinationTooSmall, // bytes/bits will not fit the dst binary
   PasteIntMustBeSmallOrBigint,
   PasteIntZeroDstSize, // destination size for paste int was 0

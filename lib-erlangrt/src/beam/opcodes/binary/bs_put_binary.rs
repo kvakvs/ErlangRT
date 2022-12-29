@@ -40,6 +40,7 @@ impl OpcodeBsPutBinary {
 
   /// Put Binary opcode with the size
   #[inline]
+  #[allow(clippy::too_many_arguments)]
   fn bs_put_binary(
     _vm: &mut VM,
     ctx: &mut RuntimeContext,

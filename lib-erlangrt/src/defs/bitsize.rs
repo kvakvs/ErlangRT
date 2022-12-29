@@ -1,6 +1,6 @@
 use core::fmt;
 
-use crate::defs::{self, ByteSize, WordSize};
+use crate::defs::{self, SizeBytes, SizeWords};
 use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
@@ -37,7 +37,7 @@ impl BitSize {
 
   #[allow(dead_code)]
   #[inline]
-  pub const fn with_bytesize(size: ByteSize) -> Self {
+  pub const fn with_bytesize(size: SizeBytes) -> Self {
     Self {
       bits: size.bytes() * defs::BYTE_BITS,
     }
@@ -74,8 +74,8 @@ impl BitSize {
   }
 
   #[inline]
-  pub const fn get_byte_size_rounded_down(&self) -> ByteSize {
-    ByteSize::new(self.bits >> defs::BYTE_POF2_BITS)
+  pub const fn get_byte_size_rounded_down(&self) -> SizeBytes {
+    SizeBytes::new(self.bits >> defs::BYTE_POF2_BITS)
   }
 
   #[inline]
@@ -83,14 +83,14 @@ impl BitSize {
     self.bits >> defs::BYTE_POF2_BITS
   }
 
-  pub const fn get_byte_size_rounded_up(self) -> ByteSize {
-    ByteSize::new((self.bits + defs::BYTE_BITS - 1) / defs::BYTE_BITS)
+  pub const fn get_byte_size_rounded_up(self) -> SizeBytes {
+    SizeBytes::new((self.bits + defs::BYTE_BITS - 1) / defs::BYTE_BITS)
   }
 
   #[inline]
-  pub const fn get_words_rounded_up(self) -> WordSize {
+  pub const fn get_words_rounded_up(self) -> SizeWords {
     let b = self.get_byte_size_rounded_down().bytes();
-    WordSize::new((b + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
+    SizeWords::new((b + defs::WORD_BYTES - 1) / defs::WORD_BYTES)
   }
 }
 

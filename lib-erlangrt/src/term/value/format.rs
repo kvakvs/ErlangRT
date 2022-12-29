@@ -45,22 +45,17 @@ impl fmt::Display for Term {
       PrimaryTag::ATOM => match atom::to_str(*self) {
         Ok(s) => {
           if atom::is_printable_atom(&s) {
-            write!(f, "{}", s)
+            write!(f, "{s}")
           } else {
-            write!(f, "'{}'", s)
+            write!(f, "'{s}'")
           }
         }
-        Err(e) => write!(f, "#Atom<printing failed {:?}>", e),
+        Err(e) => write!(f, "#Atom<printing failed {e:?}>"),
       },
 
       PrimaryTag::HEADER => {
-        return write!(
-          f,
-          "#Header({})",
-          boxed::BoxHeader::headerword_to_storage_size(self.raw())
-        );
-        // format_box_contents(*self, ptr::null(), f)?;
-        // write!(f, ")")
+        let h = boxed::BoxHeader::headerword_to_storage_size(self.raw());
+        write!(f, "#Header({h})")
       }
 
       _ => panic!("Primary tag {:?} not recognized", self.get_term_tag()),
@@ -146,11 +141,11 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
       let r_tag = term.get_reg_tag();
       let r_val = term.get_reg_value();
       if r_tag == SpecialReg::REG_X {
-        return write!(f, "#x<{}>", r_val);
+        return write!(f, "#x<{r_val}>");
       } else if r_tag == SpecialReg::REG_Y {
-        return write!(f, "#y<{}>", r_val);
+        return write!(f, "#y<{r_val}>");
       } else if r_tag == SpecialReg::REG_FLOAT {
-        return write!(f, "#f<{}>", r_val);
+        return write!(f, "#f<{r_val}>");
       } else {
         panic!("Unknown special reg tag {:?}", r_tag)
       }
@@ -161,11 +156,11 @@ fn format_special(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
       let lt_tag = term.get_loadtime_tag();
       let lt_val = term.get_loadtime_val();
       if lt_tag == SpecialLoadtime::ATOM {
-        return write!(f, "LtAtom({})", lt_val);
+        return write!(f, "LtAtom({lt_val})");
       } else if lt_tag == SpecialLoadtime::LABEL {
-        return write!(f, "LtLabel({})", lt_val);
+        return write!(f, "LtLabel({lt_val})");
       } else if lt_tag == SpecialLoadtime::LITERAL {
-        return write!(f, "LtLit({})", lt_val);
+        return write!(f, "LtLit({lt_val})");
       } else {
         panic!("Unknown special loadtime tag {:?}", lt_tag)
       }
@@ -190,12 +185,12 @@ pub unsafe fn format_cons(term: Term, f: &mut fmt::Formatter) -> fmt::Result {
     } else {
       first = false;
     }
-    write!(f, "{}", elem).unwrap();
+    write!(f, "{elem}").unwrap();
     Ok(())
   }) {
     if tail != Term::nil() {
       // Improper list, show tail
-      write!(f, "| {}", tail)?;
+      write!(f, "| {tail}")?;
     }
   }
 
@@ -229,6 +224,7 @@ pub unsafe fn format_cons_ascii(term: Term, f: &mut fmt::Formatter) -> fmt::Resu
     let ch = elem.get_small_unsigned();
 
     #[allow(clippy::overly_complex_bool_expr)]
+    #[allow(clippy::nonminimal_bool)]
     if !(cfg!(feature = "fancy_string_quotes")) && ch == 34 {
       write!(f, "\\\"").unwrap();
     } else {

@@ -42,6 +42,7 @@ const fn module() -> &'static str {
 /// Errors created when parsing compact term format. They are delivered to the
 /// end caller wrapped in `fail::Error:CodeLoadingCompactTerm(x)`
 #[derive(Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum CompactTermError {
   LiteralTag,
   AtomTag,

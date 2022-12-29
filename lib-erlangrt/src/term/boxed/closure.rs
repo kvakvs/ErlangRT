@@ -1,5 +1,5 @@
 use crate::{
-  defs::{Arity, ByteSize, Word, WordSize},
+  defs::{Arity, SizeBytes, Word, SizeWords},
   emulator::{
     code::pointer::{CodePtr, VersionedCodePtr},
     code_srv::CodeServer,
@@ -56,14 +56,14 @@ impl TBoxed for Closure {
 
 impl Closure {
   #[inline]
-  const fn storage_size(nfrozen: Word) -> WordSize {
-    ByteSize::new(size_of::<Self>())
-      .get_words_rounded_up()
-      .add(nfrozen)
+  const fn storage_size(nfrozen: Word) -> SizeWords {
+    SizeBytes::new(size_of::<Self>())
+        .get_words_rounded_up()
+        .add(nfrozen)
   }
 
   fn new(mfa: ModFunArity, nfrozen: usize) -> Self {
-    let storage_size = Self::storage_size(nfrozen) - WordSize::one();
+    let storage_size = Self::storage_size(nfrozen) - SizeWords::one();
     Self {
       header: BoxHeader::new::<Self>(storage_size),
       mfa,
@@ -74,24 +74,24 @@ impl Closure {
 
   pub unsafe fn create_into(
     hp: &mut dyn THeap,
-    fe: &FunEntry,
+    fun_entry: &FunEntry,
     frozen: &[Term],
   ) -> RtResult<Term> {
-    let n_words = Self::storage_size(fe.nfrozen);
+    let n_words = Self::storage_size(fun_entry.nfrozen);
     let this = hp.alloc(n_words, AllocInit::Uninitialized)? as *mut Self;
 
-    assert_eq!(frozen.len(), fe.nfrozen as usize);
+    assert_eq!(frozen.len(), fun_entry.nfrozen);
     println!(
       "{}new closure: {} frozen={} nfrozen={}",
       module(),
-      fe.mfa,
+      fun_entry.mfa,
       frozen.len(),
-      fe.nfrozen
+      fun_entry.nfrozen
     );
 
-    this.write(Self::new(fe.mfa, fe.nfrozen));
+    this.write(Self::new(fun_entry.mfa, fun_entry.nfrozen));
 
-    assert_eq!(frozen.len(), fe.nfrozen as usize);
+    assert_eq!(frozen.len(), fun_entry.nfrozen);
     // step 1 closure forward, which will point exactly at the frozen location
     let dst = (*this).get_frozen_mut();
     dst.copy_from_slice(frozen);

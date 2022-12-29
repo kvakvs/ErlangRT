@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
+  defs::{BitReader, BitSize, ByteReader, SizeBytes, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::{RtErr, RtResult},
   term::{
@@ -26,7 +26,7 @@ impl TBinary for ProcessHeapBinary {
     BinaryType::ProcessHeap
   }
 
-  fn get_byte_size(&self) -> ByteSize {
+  fn get_byte_size(&self) -> SizeBytes {
     self.size.get_byte_size_rounded_up()
   }
 
@@ -92,8 +92,8 @@ impl TBinary for ProcessHeapBinary {
 impl ProcessHeapBinary {
   pub const ONHEAP_THRESHOLD: usize = 64;
 
-  pub fn storage_size(size: BitSize) -> WordSize {
-    let header_size = ByteSize::new(std::mem::size_of::<Self>());
+  pub fn storage_size(size: BitSize) -> SizeWords {
+    let header_size = SizeBytes::new(std::mem::size_of::<Self>());
     // The size is `ProcessHeapBinary` in words rounded up + storage bytes rounded up
     header_size.get_words_rounded_up() + size.get_words_rounded_up()
   }

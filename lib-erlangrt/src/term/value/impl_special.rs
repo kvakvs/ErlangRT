@@ -54,8 +54,10 @@ impl SpecialReg {
     SpecialReg::TAG_BITS + PrimaryTag::TAG_BITS + TERM_SPECIAL_TAG_BITS;
 
   // Begin `SpecialReg::TAG_BITS`-bit space
-  pub const REG_X: Self = Self(0); // register x
-  pub const REG_Y: Self = Self(1); // register y
+  pub const REG_X: Self = Self(0);
+  // register x
+  pub const REG_Y: Self = Self(1);
+  // register y
   pub const REG_FLOAT: Self = Self(2); // float register
 
   // unused 3
@@ -73,8 +75,10 @@ impl SpecialLoadtime {
   pub const RESERVED_BITS: usize =
     Self::TAG_BITS + PrimaryTag::TAG_BITS + TERM_SPECIAL_TAG_BITS;
 
-  pub const ATOM: Self = Self(0); // atom table index
-  pub const LABEL: Self = Self(1); // label table index
+  pub const ATOM: Self = Self(0);
+  // atom table index
+  pub const LABEL: Self = Self(1);
+  // label table index
   pub const LITERAL: Self = Self(2); // literal table index
 
   // unused 3
@@ -120,7 +124,7 @@ impl Term {
   #[inline]
   pub fn is_register_float(self) -> bool {
     self.is_special_of_type(SpecialTag::REG)
-      && self.get_reg_tag() == SpecialReg::REG_FLOAT
+        && self.get_reg_tag() == SpecialReg::REG_FLOAT
   }
 
   /// For register special, retrieve tag bits which are stored in the special value
@@ -240,9 +244,7 @@ impl Term {
   #[inline]
   pub fn get_loadtime_val(self) -> usize {
     debug_assert!(self.is_loadtime(), "Must be a loadtime value, got {}", self);
-    let result = self.get_special_value() >> SpecialLoadtime::TAG_BITS;
-    // println!("get_lt_val raw=0x{:x} result={}", self.raw(), result);
-    result
+    self.get_special_value() >> SpecialLoadtime::TAG_BITS
   }
 
   #[inline]

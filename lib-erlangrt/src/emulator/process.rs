@@ -2,7 +2,7 @@
 //! heap, stack, registers, and message queue.
 
 use crate::{
-  defs::{exc_type::ExceptionType, WordSize},
+  defs::{exc_type::ExceptionType, SizeWords},
   emulator::{
     code_srv::CodeServer,
     heap::*,
@@ -200,7 +200,7 @@ impl TRootSource for Process {
 
 impl THeapOwner for Process {
   /// Request heap space from this process' heap, GC will be invoked if necessary
-  fn ensure_heap(&mut self, need: WordSize) -> RtResult<()> {
+  fn ensure_heap(&mut self, need: SizeWords) -> RtResult<()> {
     if self.heap.heap_check_available(need) {
       return Ok(());
     }

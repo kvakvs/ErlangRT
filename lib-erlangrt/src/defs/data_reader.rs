@@ -1,4 +1,4 @@
-use crate::defs::{self, BitSize, ByteSize};
+use crate::defs::{self, BitSize, SizeBytes};
 
 /// A generic byte reader interface, to be replaced by either byte aligned reader
 /// or bit reader, depending whether the data is byte-aligned. In the future
@@ -57,7 +57,7 @@ impl ByteReader {
   }
 
   /// From a byte reader create one shorter byte reader, offset forward by `size`
-  pub unsafe fn set_offset_and_size(self, offs: ByteSize, size: ByteSize) -> Self {
+  pub unsafe fn set_offset_and_size(self, offs: SizeBytes, size: SizeBytes) -> Self {
     // println!("Setting data reader offset={}", offs);
     let new_ptr = self.data.as_ptr().add(offs.bytes());
     let new_len = core::cmp::min(self.data.len() - offs.bytes(), size.bytes());

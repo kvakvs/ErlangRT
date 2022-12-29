@@ -1,6 +1,6 @@
 // use crate::emulator::heap::Designation;
 use crate::{
-  defs::{sizes::WordSize, Word},
+  defs::{sizes::SizeWords, Word},
   emulator::heap::{catch::NextCatchResult, iter, *},
   fail::RtResult,
   term::Term,
@@ -14,7 +14,7 @@ pub enum AllocInit {
 
 /// Trait defines shared API which all heap implementations must expose
 pub trait THeap {
-  fn alloc(&mut self, sz: WordSize, fill: AllocInit) -> RtResult<*mut Word>;
+  fn alloc(&mut self, sz: SizeWords, fill: AllocInit) -> RtResult<*mut Word>;
   fn garbage_collect(&mut self, _roots: Box<dyn TRootIterator>) -> RtResult<()>;
 
   // Stack access
@@ -36,9 +36,9 @@ pub trait THeap {
   // fn allocate_intent(&mut self, size: WordSize, live: usize) -> RtResult<()>;
   // fn allocate_intent_no_gc(&mut self, size: WordSize) -> RtResult<()>;
 
-  fn heap_check_available(&self, need: WordSize) -> bool;
-  fn stack_check_available(&self, need: WordSize) -> bool;
-  fn stack_alloc(&mut self, need: WordSize, extra: WordSize, fill: AllocInit);
+  fn heap_check_available(&self, need: SizeWords) -> bool;
+  fn stack_check_available(&self, need: SizeWords) -> bool;
+  fn stack_alloc(&mut self, need: SizeWords, extra: SizeWords, fill: AllocInit);
   fn stack_depth(&self) -> usize;
 
   /// Push a Term to stack without checking. Call `stack_have(1)` beforehand.

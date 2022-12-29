@@ -49,7 +49,7 @@ pub fn assert_arity(op: RawOpcode, code_expected_arity: Word) {
 
 /// Display an error about opcode not supported/not implemented.
 pub fn unknown_opcode(op: RawOpcode, ctx: &RuntimeContext) {
-  println!("{}", ctx);
+  println!("{ctx}");
   panic!(
     "vm_dispatch: Opcode {:?} '{}' not implemented",
     op.get(),

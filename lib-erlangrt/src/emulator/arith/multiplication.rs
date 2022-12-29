@@ -50,9 +50,8 @@ fn optimistic_mul(a: isize, b: isize) -> Option<Term> {
 
 /// Implement multiplication for two signed integers, possibly creating a bigint.
 pub fn multiply_two_small(hp: &mut dyn THeap, x: isize, y: isize) -> RtResult<Term> {
-  match optimistic_mul(x, y) {
-    Some(val) => return Ok(val),
-    None => {}
+  if let Some(val) = optimistic_mul(x, y) {
+    return Ok(val);
   }
 
   // Pessimistic case, the result did not fit, so proceed with 2 big ints

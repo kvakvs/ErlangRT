@@ -1,6 +1,6 @@
 use crate::{
   beam::disp_result::DispatchResult,
-  defs::sizes::WordSize,
+  defs::sizes::SizeWords,
   emulator::{
     heap::{AllocInit, THeapOwner},
     process::Process,
@@ -15,8 +15,8 @@ use crate::{
 fn gen_alloc(
   ctx: &mut RuntimeContext,
   curr_p: &mut Process,
-  stack_need: WordSize,
-  heap_need: WordSize,
+  stack_need: SizeWords,
+  heap_need: SizeWords,
   live: usize,
   fill: AllocInit,
 ) -> RtResult<()> {
@@ -24,7 +24,7 @@ fn gen_alloc(
   curr_p.ensure_heap(heap_need)?;
 
   let hp = curr_p.get_heap_mut();
-  hp.stack_alloc(stack_need, WordSize::one(), fill);
+  hp.stack_alloc(stack_need, SizeWords::one(), fill);
   hp.stack_push_lterm_unchecked(ctx.cp.to_cp_term());
 
   //  if hp.stack_check_available(stack_need + WordSize::one()) {
@@ -45,7 +45,7 @@ fn gen_alloc(
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateZero, arity: 2,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live,
+    gen_alloc(ctx, curr_p, SizeWords::new(stack_need), SizeWords::new(0), live,
               AllocInit::Nil)?;
     Ok(DispatchResult::Normal)
   },
@@ -56,7 +56,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocate, arity: 2,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(0), live,
+    gen_alloc(ctx, curr_p, SizeWords::new(stack_need), SizeWords::new(0), live,
               AllocInit::Uninitialized)?;
     Ok(DispatchResult::Normal)
   },
@@ -69,7 +69,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateHeapZero, arity: 3,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need),
+    gen_alloc(ctx, curr_p, SizeWords::new(stack_need), SizeWords::new(heap_need),
               live, AllocInit::Nil)?;
     Ok(DispatchResult::Normal)
   },
@@ -80,7 +80,7 @@ define_opcode!(_vm, ctx, curr_p,
 define_opcode!(_vm, ctx, curr_p,
   name: OpcodeAllocateHeap, arity: 3,
   run: {
-    gen_alloc(ctx, curr_p, WordSize::new(stack_need), WordSize::new(heap_need),
+    gen_alloc(ctx, curr_p, SizeWords::new(stack_need), SizeWords::new(heap_need),
               live, AllocInit::Uninitialized)?;
     Ok(DispatchResult::Normal)
   },
@@ -107,7 +107,7 @@ define_opcode!(_vm, ctx, curr_p,
   name: OpcodeTestHeap, arity: 2,
   run: {
     ctx.live = live;
-    curr_p.ensure_heap(WordSize::new(heap_need))?;
+    curr_p.ensure_heap(SizeWords::new(heap_need))?;
     Ok(DispatchResult::Normal)
   },
   args: usize(heap_need), usize(live),

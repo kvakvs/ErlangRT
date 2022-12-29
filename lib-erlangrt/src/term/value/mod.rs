@@ -18,6 +18,7 @@ mod impl_special;
 mod impl_tuple;
 
 mod primary_tag;
+
 pub use self::primary_tag::PrimaryTag;
 
 pub use self::{
@@ -36,8 +37,8 @@ use std::fmt;
 
 /// Max value for a positive small integer packed into immediate2 low level
 /// Term. Assume word size minus 4 bits for imm1 tag and 1 for sign
-pub const SMALLEST_SMALL: isize = isize::MIN >> PrimaryTag::TAG_BITS;
-pub const LARGEST_SMALL: isize = isize::MAX >> PrimaryTag::TAG_BITS;
+pub const ERL_SMALLEST_SMALLINT: isize = isize::MIN >> PrimaryTag::TAG_BITS;
+pub const ERL_LARGEST_SMALLINT: isize = isize::MAX >> PrimaryTag::TAG_BITS;
 #[allow(dead_code)]
 pub const SMALL_SIGNED_BITS: usize = defs::WORD_BITS - PrimaryTag::TAG_BITS - 1;
 
@@ -103,10 +104,7 @@ impl Term {
 
   #[inline]
   pub fn is_immediate(self) -> bool {
-    match self.get_term_tag() {
-      PrimaryTag::BOX_PTR | PrimaryTag::CONS_PTR | PrimaryTag::HEADER => false,
-      _ => true,
-    }
+    !matches!(self.get_term_tag(), PrimaryTag::BOX_PTR | PrimaryTag::CONS_PTR | PrimaryTag::HEADER)
   }
 
   /// Return true if the value is a first header word of something large on heap
@@ -150,7 +148,7 @@ impl Term {
   pub fn get_term_val_without_tag(self) -> usize {
     debug_assert!(
       self.get_term_tag() != PrimaryTag::BOX_PTR
-        && self.get_term_tag() != PrimaryTag::CONS_PTR
+          && self.get_term_tag() != PrimaryTag::CONS_PTR
     );
     self.value >> PrimaryTag::TAG_BITS
   }
@@ -177,7 +175,7 @@ impl Term {
   #[inline]
   fn assert_is_not_boxheader_guard_value(&self) {
     debug_assert_ne!(self.value, box_header::GUARD_WORD_VALUE,
-      "Box header guard value cannot be interpreted as a term. Your pointer to data is corrupt.");
+                     "Box header guard value cannot be interpreted as a term. Your pointer to data is corrupt.");
   }
 
   #[cfg(not(debug_assertions))]
@@ -294,6 +292,6 @@ pub unsafe fn helper_get_mut_from_boxed_term<T>(
 
 impl fmt::Debug for Term {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", self)
+    write!(f, "{self}")
   }
 }

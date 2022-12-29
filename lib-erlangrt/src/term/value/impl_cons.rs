@@ -54,7 +54,7 @@ impl Term {
       }
 
       let hd_value = hd.get_small_signed();
-      if hd_value < 32 || hd_value >= 127 {
+      if !(32..127).contains(&hd_value) {
         return false;
       }
 

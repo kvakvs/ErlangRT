@@ -57,7 +57,7 @@ pub unsafe fn copy_bits(
         src = src.offset(src_direction);
         bits |= src.read() >> (defs::BYTE_BITS - diff_bits);
       }
-      dst.write(mask_bits(bits as u8, dst.read(), lmask as u8));
+      dst.write(mask_bits(bits, dst.read(), lmask as u8));
     } else {
       let diff_bits = (src_offset - dst_offset).get_last_byte_bits();
       dst.write(mask_bits(

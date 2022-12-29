@@ -1,5 +1,5 @@
 use crate::{
-  defs::{BitReader, BitSize, ByteReader, ByteSize, WordSize},
+  defs::{BitReader, BitSize, ByteReader, SizeBytes, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::{RtErr, RtResult},
   term::{
@@ -23,8 +23,8 @@ pub struct BinarySlice {
 
 impl BinarySlice {
   /// Return size in words for on-heap creation
-  pub fn storage_size() -> WordSize {
-    let header_size = ByteSize::new(std::mem::size_of::<Self>());
+  pub fn storage_size() -> SizeWords {
+    let header_size = SizeBytes::new(std::mem::size_of::<Self>());
 
     // The size of `BinarySlice` in words rounded up, no extra storage
     header_size.get_words_rounded_up()
@@ -65,7 +65,7 @@ impl TBinary for BinarySlice {
     BinaryType::Slice
   }
 
-  fn get_byte_size(&self) -> ByteSize {
+  fn get_byte_size(&self) -> SizeBytes {
     self.size.get_byte_size_rounded_up()
   }
 
@@ -76,15 +76,11 @@ impl TBinary for BinarySlice {
   fn get_byte_reader(&self) -> Option<ByteReader> {
     if self.offset.get_last_byte_bits() == 0 {
       // The offset is byte-aligned, we can actually return a faster byte-reader
-      match unsafe { (*self.orig).get_byte_reader() } {
-        Some(r) => unsafe {
-          Some(r.set_offset_and_size(
-            self.offset.get_byte_size_rounded_down(),
-            self.size.get_byte_size_rounded_down(),
-          ))
-        },
-        None => None,
-      }
+      unsafe { (*self.orig).get_byte_reader() }.map(
+        |r| unsafe {
+          r.set_offset_and_size(self.offset.get_byte_size_rounded_down(),
+                                self.size.get_byte_size_rounded_down())
+        })
     } else {
       None
     }
@@ -106,7 +102,7 @@ impl TBinary for BinarySlice {
   }
 
   fn store(&mut self, _data: &[u8]) -> RtResult<()> {
-    return Err(RtErr::CannotCopyIntoBinSlice);
+    Err(RtErr::CannotCopyIntoBinSlice)
   }
 
   fn make_term(&self) -> Term {

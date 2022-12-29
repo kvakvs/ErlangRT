@@ -1,5 +1,5 @@
 use crate::{
-  defs::WordSize, emulator::heap::heap_incremental::IncrementalHeap, fail::RtResult,
+  defs::SizeWords, emulator::heap::heap_incremental::IncrementalHeap, fail::RtResult,
   term::boxed,
 };
 
@@ -38,11 +38,11 @@ pub enum Designation {
 /// Allocate 2 cells `[Head | Tail]` of raw cons cell, and return the pointer.
 #[inline]
 pub fn allocate_cons(hp: &mut dyn THeap) -> RtResult<*mut boxed::Cons> {
-  heap_alloc::<boxed::Cons>(hp, WordSize::new(2), AllocInit::Uninitialized)
+  heap_alloc::<boxed::Cons>(hp, SizeWords::new(2), AllocInit::Uninitialized)
 }
 
 #[inline]
-pub fn heap_alloc<T>(hp: &mut dyn THeap, sz: WordSize, fill: AllocInit) -> RtResult<*mut T> {
+pub fn heap_alloc<T>(hp: &mut dyn THeap, sz: SizeWords, fill: AllocInit) -> RtResult<*mut T> {
   match hp.alloc(sz, fill) {
     Ok(x) => Ok(x as *mut T),
     Err(y) => Err(y),

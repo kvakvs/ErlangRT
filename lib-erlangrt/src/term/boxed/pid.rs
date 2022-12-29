@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, Word, WordSize},
+  defs::{SizeBytes, Word, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
@@ -31,12 +31,12 @@ impl TBoxed for ExternalPid {
 }
 
 impl ExternalPid {
-  const fn storage_size() -> WordSize {
-    ByteSize::new(size_of::<ExternalPid>()).get_words_rounded_up()
+  const fn storage_size() -> SizeWords {
+    SizeBytes::new(size_of::<ExternalPid>()).get_words_rounded_up()
   }
 
   fn new(node: Term, id: Word) -> ExternalPid {
-    let storage_size = ExternalPid::storage_size() - WordSize::one();
+    let storage_size = ExternalPid::storage_size() - SizeWords::one();
     ExternalPid {
       header: BoxHeader::new::<ExternalPid>(storage_size),
       node,

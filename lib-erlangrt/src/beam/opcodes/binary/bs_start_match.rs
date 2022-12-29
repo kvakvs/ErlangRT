@@ -39,10 +39,7 @@ impl OpcodeBsStartMatch3 {
     live: usize,
     dst: Term,
   ) -> RtResult<DispatchResult> {
-    println!(
-      "bs_start_match3 {}, context={}, live={}, dst={}",
-      fail, match_context, live, dst
-    );
+    println!("bs_start_match3 {fail}, context={match_context}, live={live}, dst={dst}");
 
     // Must be either a binary or a binary_match_context
     if !match_context.is_boxed() {
@@ -57,26 +54,25 @@ impl OpcodeBsStartMatch3 {
     // Switch based on the box type of the context...
     match box_type {
       boxed::BOXTYPETAG_BINARY_MATCH_STATE => unsafe {
-        return Self::continue_with_matchstate(
+        Self::continue_with_matchstate(
           runtime_ctx,
           proc,
           header as *mut BinaryMatchState,
           dst,
-        );
+        )
       },
 
       boxed::BOXTYPETAG_BINARY => {
         let bin_ptr = unsafe { boxed::Binary::get_trait(header as *const boxed::Binary) };
-        return Self::start_with_new_binary(runtime_ctx, proc, fail, bin_ptr, dst);
+        Self::start_with_new_binary(runtime_ctx, proc, fail, bin_ptr, dst)
       }
 
       _ => {
         // Context must either be a binary or matchstate
         runtime_ctx.jump(fail);
-        return Ok(DispatchResult::Normal);
+        Ok(DispatchResult::Normal)
       }
     }
-    // Ok(DispatchResult::Normal)
   }
 
   /// When `bs_start_match*` is called with a binary, we allocate a new binary
@@ -94,7 +90,7 @@ impl OpcodeBsStartMatch3 {
     // Here we have a new start, matchstate does not exist and the context
     // is a binary. Have to construct a new match context.
     let new_match_state =
-      unsafe { BinaryMatchState::create_into(bin_ptr, proc.get_heap_mut())? };
+        unsafe { BinaryMatchState::create_into(bin_ptr, proc.get_heap_mut())? };
 
     // The binary, we're working on, is stored temporarily in x[live]
     // runtime_ctx.set_x(live, context);

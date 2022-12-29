@@ -1,6 +1,6 @@
 //! Define `HeapIterator` which can step over the heap
 use crate::{
-  defs::WordSize,
+  defs::SizeWords,
   term::{boxed, PrimaryTag, Term},
 };
 
@@ -22,7 +22,7 @@ impl HeapIterator {
     let val = self.p.read();
     let size = match val.get_term_tag() {
       PrimaryTag::HEADER => boxed::BoxHeader::headerword_to_storage_size(val.raw()),
-      _ => WordSize::one(),
+      _ => SizeWords::one(),
     };
 
     self.p = self.p.add(size.words);

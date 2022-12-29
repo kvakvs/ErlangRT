@@ -2,7 +2,7 @@ use core::{mem::size_of, ptr};
 
 use crate::{
   big,
-  defs::{self, ByteSize, WordSize},
+  defs::{self, SizeBytes, SizeWords},
   fail::{RtErr, RtResult},
   term::{
     boxed::{
@@ -48,9 +48,9 @@ impl TBoxed for Bignum {
 }
 
 impl Bignum {
-  const fn storage_size() -> WordSize {
+  const fn storage_size() -> SizeWords {
     // This impl stores bignum in dynamic heap with the num library
-    ByteSize::new(size_of::<Bignum>()).get_words_rounded_up()
+    SizeBytes::new(size_of::<Bignum>()).get_words_rounded_up()
   }
 
   /// Create bignum for one isize
@@ -125,8 +125,8 @@ impl Bignum {
 
   /// Return how many bytes are used to store the digits. Multiple of word size.
   #[inline]
-  pub fn get_byte_size(&self) -> ByteSize {
-    ByteSize::new(self.get_size() * BIG_DIGIT_SIZE)
+  pub fn get_byte_size(&self) -> SizeBytes {
+    SizeBytes::new(self.get_size() * BIG_DIGIT_SIZE)
   }
 
   #[allow(dead_code)]

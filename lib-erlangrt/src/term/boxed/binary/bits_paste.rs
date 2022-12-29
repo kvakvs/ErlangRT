@@ -117,13 +117,13 @@ pub fn put_integer(
       // All bits will land into the same byte
       unsafe {
         let iptr = dst.as_mut_ptr().add(dst_offset.get_bytes_rounded_down());
-        return put_bits_one_byte(
+        put_bits_one_byte(
           iptr,
           rbits,
           inbyte_offset,
           write_val.get_small_signed(),
           write_size,
-        );
+        )
       }
     } else if inbyte_offset == 0 {
       // More than one bit, starting at a byte boundary.
@@ -199,7 +199,7 @@ unsafe fn put_bits_big_endian(
     b |= add_bits as u8;
   } else if val < 0 {
     // Simulate sign extension.
-    b |= (!0) & ((1 << rbits) - 1);
+    b |= (1 << rbits) - 1;
   }
   dst[dst_offset] = b;
 
@@ -362,7 +362,7 @@ unsafe fn paste_bigint(
     // adjust MSB!!!
     if offs != 0 {
       dst_offset -= 1;
-      dst[dst_offset] = dst[dst_offset] << (defs::BYTE_BITS - offs);
+      dst[dst_offset] <<= defs::BYTE_BITS - offs;
     }
   } else {
     // BIG ENDIAN

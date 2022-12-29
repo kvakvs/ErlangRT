@@ -1,7 +1,7 @@
 //! Generic binary trait used to access various types of binary
 
 use crate::{
-  defs::{data_reader::BitReader, BitSize, ByteReader, ByteSize},
+  defs::{data_reader::BitReader, BitSize, ByteReader, SizeBytes},
   fail::RtResult,
   term::{boxed::binary::BinaryType, Term},
 };
@@ -10,7 +10,7 @@ use crate::{
 pub trait TBinary {
   fn get_type(&self) -> BinaryType;
   // fn get_byte(&self, index: usize) -> u8;
-  fn get_byte_size(&self) -> ByteSize;
+  fn get_byte_size(&self) -> SizeBytes;
   fn get_bit_size(&self) -> BitSize;
 
   /// Get slice for read access to the bytes.

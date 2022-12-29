@@ -1,7 +1,7 @@
 use core::fmt;
 
 use crate::{
-  defs::{self, data_reader::TDataReader, BitSize, ByteSize, WordSize},
+  defs::{self, data_reader::TDataReader, BitSize, SizeBytes, SizeWords},
   emulator::{
     heap::{THeap, THeapOwner},
     vm::VM,
@@ -78,7 +78,7 @@ impl Binary {
     proc_source: &mut dyn THeapOwner,
     bin_source: &mut dyn THeapOwner,
     size: BitSize,
-    extra_memory: WordSize,
+    extra_memory: SizeWords,
   ) -> RtResult<()> {
     if size.get_byte_size_rounded_up().bytes() <= ProcessHeapBinary::ONHEAP_THRESHOLD {
       proc_source.ensure_heap(ProcessHeapBinary::storage_size(size) + extra_memory)
@@ -94,7 +94,7 @@ impl Binary {
     BinaryType::BinaryHeap
   }
 
-  fn new(bin_type: BinaryType, storage_size: WordSize) -> Binary {
+  fn new(bin_type: BinaryType, storage_size: SizeWords) -> Binary {
     Binary {
       header: BoxHeader::new::<Binary>(storage_size),
       bin_type,
@@ -234,24 +234,24 @@ impl Binary {
         write!(f, ", ").unwrap();
       }
       let b = reader.read(i);
-      write!(f, "{}", b).unwrap();
+      write!(f, "{b}").unwrap();
     }
 
     // If last byte bits are not 0, print comma again and print the last byte
-    let lbb = size.get_last_byte_bits();
-    if lbb != 0 {
+    let last_byte_bits = size.get_last_byte_bits();
+    if last_byte_bits != 0 {
       if size.bits > defs::BYTE_BITS {
         write!(f, ", ")?;
       }
       let last_byte = reader.read(n_bytes);
-      write!(f, "{}:{}", last_byte, lbb)?;
+      write!(f, "{last_byte}:{last_byte_bits}")?;
     }
     Ok(())
   }
 
   /// Check whether byte-size is too big to be stored in bitsize (i.e. more than
   /// max value div 8)
-  pub const fn is_size_too_big(size: ByteSize) -> bool {
+  pub const fn is_size_too_big(size: SizeBytes) -> bool {
     size.bytes() < core::usize::MAX / defs::BYTE_BITS
   }
 }

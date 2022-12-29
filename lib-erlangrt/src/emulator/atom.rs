@@ -143,7 +143,7 @@ pub fn to_str(a: Term) -> RtResult<String> {
 /// characters and underscores, and begins with a letter.
 #[inline]
 pub fn is_printable_atom(s: &str) -> bool {
-  if s.len() == 0 {
+  if s.is_empty() {
     return false;
   }
   let mut s_chars = s.char_indices();
@@ -151,7 +151,7 @@ pub fn is_printable_atom(s: &str) -> bool {
   if !first.1.is_ascii_lowercase() {
     return false;
   }
-  while let Some(c) = s_chars.next() {
+  for c in s_chars {
     if !c.1.is_alphanumeric() && c.1 != '_' {
       return false;
     }

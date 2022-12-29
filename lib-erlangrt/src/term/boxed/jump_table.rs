@@ -1,5 +1,5 @@
 use crate::{
-  defs::{ByteSize, WordSize},
+  defs::{SizeBytes, SizeWords},
   emulator::heap::{AllocInit, THeap},
   fail::RtResult,
   term::{
@@ -49,10 +49,10 @@ impl TBoxed for JumpTable {
 impl JumpTable {
   /// Size of a tuple in memory with the header word (used for allocations)
   #[inline]
-  const fn storage_size(n_pairs: usize) -> WordSize {
+  const fn storage_size(n_pairs: usize) -> SizeWords {
     // Minus one because data0 in tuple already consumes one word
-    let self_size = ByteSize::new(core::mem::size_of::<Self>()).get_words_rounded_up();
-    WordSize::new(self_size.words - 1 + n_pairs * 2)
+    let self_size = SizeBytes::new(core::mem::size_of::<Self>()).get_words_rounded_up();
+    SizeWords::new(self_size.words - 1 + n_pairs * 2)
   }
 
   fn new(n_pairs: usize) -> JumpTable {
@@ -137,7 +137,7 @@ impl JumpTable {
         write!(f, ", ")?
       }
       let (val, loc) = self.get_pair(i);
-      write!(f, "{} -> {}", val, loc)?;
+      write!(f, "{val} -> {loc}")?;
     }
     write!(f, ">")
   }
