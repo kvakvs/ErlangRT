@@ -35,7 +35,7 @@ trace_beam_loader = []
 
 [dependencies]
 bitflags = "2.2.1"
-bytes = "1.4.0"
+bytes = "1.11.1"
 clippy = {version = "0.0.302", optional = true}
 colored = "3.0.0" # console colors (TTY systems)
 flate2 = "1.0" # zlib decoder for BEAM literal tables
