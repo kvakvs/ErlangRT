@@ -37,12 +37,10 @@ trace_beam_loader = []
 bitflags = "2.2.1"
 bytes = "1.4.0"
 clippy = {version = "0.0.302", optional = true}
-colored = "2.0.0" # console colors (TTY systems)
-compress = "0.2.1" # depends on `num`; TODO: use libflate
+colored = "3.0.0" # console colors (TTY systems)
+flate2 = "1.0" # zlib decoder for BEAM literal tables
 lazy_static = "1.4.0"
-ramp = "0.7.0" # Rust multiprecision arithmetics
 byteorder = "1.4.3"
-failure = "0.1.8"
 
 [profile.dev]
 panic = "unwind"

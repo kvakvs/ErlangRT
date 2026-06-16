@@ -10,7 +10,7 @@ use crate::{
     Term,
   },
 };
-use core::ptr;
+use core::ptr::NonNull;
 
 /// Another type of binary. Refers to a slice in another binary.
 pub struct BinarySlice {
@@ -88,8 +88,7 @@ impl TBinary for BinarySlice {
 
   unsafe fn get_data_mut(&mut self) -> &mut [u8] {
     // Can not use mutable access on slice
-    #[allow(clippy::invalid_null_ptr_usage)]
-    core::slice::from_raw_parts_mut(ptr::null_mut(), 0)
+    core::slice::from_raw_parts_mut(NonNull::<u8>::dangling().as_ptr(), 0)
   }
 
   unsafe fn get_data(&self) -> &[u8] {

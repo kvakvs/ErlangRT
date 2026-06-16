@@ -4,7 +4,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use compress::zlib;
+use flate2::read::ZlibDecoder;
 
 use crate::{
   beam::{
@@ -285,9 +285,9 @@ impl BeamFile {
 
     // Decompress deflated literal table
     let iocursor = Cursor::new(&deflated);
-    zlib::Decoder::new(iocursor)
-        .read_to_end(&mut inflated)
-        .unwrap();
+    ZlibDecoder::new(iocursor)
+      .read_to_end(&mut inflated)
+      .unwrap();
     assert_eq!(
       inflated.len(),
       uncomp_sz as usize,
